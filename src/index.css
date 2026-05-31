@@ -75,6 +75,41 @@ input:focus, select:focus, textarea:focus, button:focus-visible {
   outline-offset: 2px;
 }
 
+/* Sidebar theming */
+:root {
+  --sidebar-bg: #f8f9fa;
+  --sidebar-border: #e0e3e5;
+  --sidebar-text: #44474a;
+  --sidebar-text-hover: #0F171C;
+  --sidebar-text-active: #0F171C;
+  --sidebar-text-muted: #74777b;
+  --sidebar-active-bg: rgba(15, 23, 28, 0.08);
+  --sidebar-icon-bg: #e0e3e5;
+  --sidebar-icon-text: #74777b;
+  --sidebar-icon-active-bg: #5CF2D0;
+  --sidebar-icon-active-text: #0F171C;
+  --sidebar-header-text: #0F171C;
+  --sidebar-header-sub: #5CF2D0;
+  --sidebar-header-muted: #74777b;
+}
+
+html.dark {
+  --sidebar-bg: #0F171C;
+  --sidebar-border: rgba(255,255,255,0.05);
+  --sidebar-text: rgba(255,255,255,0.5);
+  --sidebar-text-hover: #ffffff;
+  --sidebar-text-active: #ffffff;
+  --sidebar-text-muted: rgba(255,255,255,0.3);
+  --sidebar-active-bg: rgba(255,255,255,0.1);
+  --sidebar-icon-bg: rgba(255,255,255,0.05);
+  --sidebar-icon-text: rgba(255,255,255,0.4);
+  --sidebar-icon-active-bg: #5CF2D0;
+  --sidebar-icon-active-text: #0F171C;
+  --sidebar-header-text: #ffffff;
+  --sidebar-header-sub: #5CF2D0;
+  --sidebar-header-muted: rgba(255,255,255,0.6);
+}
+
 /* Dark mode foundations */
 html.dark {
   --bg-primary: #0a0e12;
