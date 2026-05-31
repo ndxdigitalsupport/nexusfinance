@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList } from 'lucide-react';
+import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown } from 'lucide-react';
 import AuthPage from './components/AuthPage';
 import Toast, { showToast } from './components/Toast';
 import LoanOfficerDashboard from './components/LoanOfficerDashboard';
@@ -733,6 +733,14 @@ function UsersView() {
   const [newPassword, setNewPassword] = useState('');
   const [creating, setCreating] = useState(false);
   const [userPage, setUserPage] = useState(1);
+  const [roleDropdownId, setRoleDropdownId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const handler = () => setRoleDropdownId(null);
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
   const itemsPerPage = 10;
 
   const fetchUsers = async () => {
@@ -838,14 +846,34 @@ function UsersView() {
                 </td>
                 <td className="px-5 py-3.5">
                   {u.role !== 'super-admin' && (
-                    <select
-                      value={u.role}
-                      onChange={(e) => changeRole(u.id, e.target.value)}
-                      className="text-[12px] font-bold border border-[#c4c7ca] rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:border-[#5CF2D0] cursor-pointer"
-                    >
-                      <option value="customer">Customer</option>
-                      <option value="loan-officer">Loan Officer</option>
-                    </select>
+                    <div className="relative">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setRoleDropdownId(roleDropdownId === u.id ? null : u.id); }}
+                        className="flex items-center gap-1.5 text-[12px] font-bold border border-[#c4c7ca] rounded-xl px-2.5 py-1.5 bg-white hover:border-[#94a3b8] focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all cursor-pointer min-w-[120px]"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 text-[#74777b]" />
+                        <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                          u.role === 'loan-officer' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'
+                        }`}>{u.role === 'loan-officer' ? 'Loan Officer' : 'Customer'}</span>
+                        <ChevronDown className={`w-3.5 h-3.5 text-[#74777b] ml-auto transition-transform duration-150 ${roleDropdownId === u.id ? 'rotate-180' : ''}`} />
+                      </button>
+                      {roleDropdownId === u.id && (
+                        <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-[#e2e8f0] rounded-xl shadow-xl shadow-black/5 z-20 py-1.5 overflow-hidden animate-dropdown-enter">
+                          {['customer', 'loan-officer'].map(r => (
+                            <button
+                              key={r}
+                              onClick={() => { changeRole(u.id, r); setRoleDropdownId(null); }}
+                              className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-left cursor-pointer transition-colors duration-100 hover:bg-[#f8fafc] ${r === u.role ? 'bg-[#f0fdfa] font-bold' : 'font-medium'}`}
+                            >
+                              <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${r === u.role ? 'border-[#0d9488] bg-[#0d9488]' : 'border-[#cbd5e1]'}`}>
+                                {r === u.role && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                              </span>
+                              <span className={`${r === u.role ? 'text-[#0d9488]' : 'text-[#0F171C]'}`}>{r === 'loan-officer' ? 'Loan Officer' : 'Customer'}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </td>
               </tr>
