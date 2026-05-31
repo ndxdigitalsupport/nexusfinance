@@ -113,6 +113,14 @@ html.dark .bg-\[\#f1f4f6\] {
   background-color: var(--bg-secondary) !important;
 }
 
+html.dark .bg-\[\#5cf2d0\],
+html.dark .bg-\[\#5CF2D0\] {
+  background-color: #3dba9e !important;
+}
+html.dark [class*="bg-[#41ddbc]"]:hover {
+  background-color: #2ea085 !important;
+}
+
 /* Smooth transitions for dark mode toggle */
 html.dark body {
   transition: background-color 0.3s ease;
