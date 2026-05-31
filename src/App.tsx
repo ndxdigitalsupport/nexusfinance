@@ -283,6 +283,11 @@ export default function App() {
           setSearchTermInvoice={setSearchTermInvoice}
           onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
           isMobileMenuOpen={mobileMenuOpen}
+          onPortalSwitchClick={() => handleSetPortal('portal-selection')}
+          userName={portalUser?.name}
+          userRole={portalUser?.role}
+          onProfileClick={() => handleSetActiveMenu('profile')}
+          onLogout={handleLogout}
         />
 
         {/* Mobile Drawer */}
