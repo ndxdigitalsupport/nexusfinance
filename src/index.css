@@ -1,40 +1,45 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-  
+
   --color-nexus-navy: #0F171C;
   --color-nexus-teal: #5CF2D0;
   --color-nexus-teal-hover: #41ddbc;
   --color-background-cool: #F4F7F9;
-  
+
   --radius-card: 16px;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-background-cool);
+  background-color: #f0f2f5;
+  background-image:
+    radial-gradient(ellipse at 0% 0%, rgba(92, 242, 208, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(15, 23, 28, 0.03) 0%, transparent 50%);
   color: #181c1e;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbars */
+::selection {
+  background-color: rgba(92, 242, 208, 0.3);
+  color: #0F171C;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
   background-color: #CBD5E0;
   border-radius: 10px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background-color: #A0AEC0;
 }
@@ -43,7 +48,29 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.75; }
 }
-
 .animate-pulse-subtle {
   animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+input:focus, select:focus, textarea:focus, button:focus-visible {
+  outline: 2px solid rgba(92, 242, 208, 0.5);
+  outline-offset: 2px;
 }
