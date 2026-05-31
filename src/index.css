@@ -129,8 +129,20 @@ html.dark .app-content .bg-white {
   background-color: var(--bg-card) !important;
 }
 
-html.dark .app-content .border-\[\#c4c7ca\] {
+html.dark .app-content .border-\[\#c4c7ca\],
+html.dark .app-content [class*="border-[#c4c7ca]"] {
   border-color: var(--border-color) !important;
+}
+html.dark .app-content [class*="divide-[#c4c7ca]"] > * {
+  border-color: var(--border-color) !important;
+}
+
+/* Lighten dark navy elements in dark mode so they don't blend into the bg */
+html.dark .app-content .bg-\[\#0F171C\]:not(button):not([class*="hover"]) {
+  background-color: #1a2a34 !important;
+}
+html.dark .app-content button.bg-\[\#0F171C\] {
+  background-color: #1a2a34 !important;
 }
 
 html.dark .app-content .text-\[\#0f171c\],
@@ -140,11 +152,13 @@ html.dark .app-content .text-\[\#181c1e\] {
 }
 
 html.dark .app-content .text-\[\#44474a\],
-html.dark .app-content .text-\[\#74777b\] {
+html.dark .app-content .text-\[\#74777b\],
+html.dark .app-content .text-\[\#bfc8ce\] {
   color: var(--text-secondary) !important;
 }
 
-html.dark .app-content .bg-\[\#f1f4f6\] {
+html.dark .app-content .bg-\[\#f1f4f6\],
+html.dark .app-content [class*="bg-[#f1f4f6]"] {
   background-color: var(--bg-secondary) !important;
 }
 
