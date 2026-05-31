@@ -6,9 +6,11 @@ interface ApplyLoanModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (app: Partial<LoanApplication>) => void;
+  userName?: string;
+  userEmail?: string;
 }
 
-export default function ApplyLoanModal({ isOpen, onClose, onSubmit }: ApplyLoanModalProps) {
+export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, userEmail }: ApplyLoanModalProps) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '',
@@ -22,6 +24,12 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit }: ApplyLoanM
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  React.useEffect(() => {
+    if (isOpen && (userName || userEmail)) {
+      setFormData(prev => ({ ...prev, name: userName || prev.name, email: userEmail || prev.email }));
+    }
+  }, [isOpen, userName, userEmail]);
 
   if (!isOpen) return null;
 
@@ -112,8 +120,8 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit }: ApplyLoanM
     setStep(1);
     setShowSuccess(false);
     setFormData({
-      name: '',
-      email: '',
+      name: userName || '',
+      email: userEmail || '',
       amount: '',
       type: 'SME Loan',
       purpose: '',

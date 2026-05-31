@@ -586,6 +586,8 @@ export default function App() {
         isOpen={isApplyOpen}
         onClose={() => setIsApplyOpen(false)}
         onSubmit={handleApplyLoanSubmit}
+        userName={portalUser?.name}
+        userEmail={portalUser?.email}
       />
 
       <RepayModal
