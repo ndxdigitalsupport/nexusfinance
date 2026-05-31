@@ -1,0 +1,6 @@
+{
+  "name": "Nexusfinance",
+  "description": "A high-fidelity corporate and consumer banking portal for Nexusfinance with complete portals for Customers, Loan Officers, and Super Admins.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
