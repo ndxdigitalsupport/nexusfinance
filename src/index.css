@@ -125,6 +125,10 @@ html.dark body {
   background-image: none;
 }
 
+html.dark .app-root {
+  background-color: var(--bg-primary) !important;
+}
+
 html.dark .app-content .bg-white {
   background-color: var(--bg-card) !important;
 }

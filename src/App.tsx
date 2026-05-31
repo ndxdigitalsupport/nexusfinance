@@ -284,7 +284,7 @@ export default function App() {
   })();
 
   return (
-    <div className="min-h-screen bg-[#f1f4f6]">
+    <div className="min-h-screen bg-[#f1f4f6] app-root">
       <Toast />
       {!isLoggedIn ? (
         <AuthPage onLoginSuccess={handleLoginSuccess} />
