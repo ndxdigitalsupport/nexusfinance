@@ -107,9 +107,17 @@ export default function Header({
               type="text"
               value={searchTermInvoice}
               onChange={(e) => setSearchTermInvoice(e.target.value)}
-              className="w-full bg-white border border-[#c4c7ca] rounded-xl py-2.5 pl-10 pr-4 text-[14px] leading-tight focus:outline-none focus:border-[#0F171C] focus:ring-2 focus:ring-[#0F171C]/10 transition-all duration-150 shadow-sm placeholder:text-[#74777b]"
+              className="w-full bg-white border border-[#c4c7ca] rounded-xl py-2.5 pl-10 pr-20 text-[14px] leading-tight focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all duration-150 shadow-sm placeholder:text-[#74777b]"
               placeholder="Search applicants, loans..."
             />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+              {searchTermInvoice && (
+                <button onClick={() => setSearchTermInvoice('')} className="p-0.5 text-[#74777b] hover:text-[#0F171C] cursor-pointer">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+              <kbd className="hidden sm:inline-flex text-[10px] font-bold text-[#74777b] bg-[#f1f4f6] border border-[#c4c7ca] px-1.5 py-0.5 rounded leading-none">⌘K</kbd>
+            </div>
           </div>
         )}
         <div className="flex items-center gap-2 text-[12px] font-semibold">
@@ -147,7 +155,7 @@ export default function Header({
           </button>
 
           {showNotificationsDropdown && (
-            <div className="absolute right-0 mt-2 w-80 bg-white border border-[#c4c7ca] rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="absolute right-0 mt-2 w-80 bg-white border border-[#c4c7ca] rounded-xl shadow-lg py-2 z-50 animate-dropdown-enter">
               <div className="px-4 py-2 border-b border-[#e0e3e5] flex justify-between items-center bg-[#f1f4f6] rounded-t-xl">
                 <span className="font-bold text-[14px] text-[#0F171C]">Notifications</span>
                 {unreadCount > 0 && <span className="text-[11px] text-[#0F171C] bg-[#5CF2D0] font-bold px-2 py-0.5 rounded-full">{unreadCount} new</span>}
@@ -196,7 +204,7 @@ export default function Header({
           {showUserMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-[#c4c7ca] rounded-xl shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-[#c4c7ca] rounded-xl shadow-lg py-1 z-50 animate-dropdown-enter">
                 <button
                   onClick={() => { setShowUserMenu(false); if (onProfileClick) onProfileClick(); }}
                   className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-semibold text-[#0F171C] hover:bg-[#f1f4f6] cursor-pointer"

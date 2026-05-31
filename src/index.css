@@ -10,7 +10,54 @@
   --color-nexus-teal-hover: #41ddbc;
   --color-background-cool: #F4F7F9;
 
+  /* Design system radius scale */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
+  --radius-2xl: 16px;
   --radius-card: 16px;
+  --radius-button: 12px;
+  --radius-input: 12px;
+  --radius-badge: 6px;
+
+  /* Design system shadow scale */
+  --shadow-card: 0 1px 3px 0 rgba(0,0,0,0.06);
+  --shadow-dropdown: 0 4px 12px 0 rgba(0,0,0,0.08);
+  --shadow-modal: 0 8px 30px 0 rgba(0,0,0,0.12);
+  --modal-overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* Radius utility classes */
+.radius-card { border-radius: 16px; }
+.radius-button { border-radius: 12px; }
+.radius-input { border-radius: 12px; }
+.radius-badge { border-radius: 6px; }
+.radius-icon-box { border-radius: 10px; }
+
+/* Animation presets */
+@keyframes content-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-content-enter {
+  animation: content-enter 0.25s ease-out;
+}
+
+@keyframes modal-enter {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-modal-enter {
+  animation: modal-enter 0.2s ease-out;
+}
+
+@keyframes dropdown-enter {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-dropdown-enter {
+  animation: dropdown-enter 0.15s ease-out;
 }
 
 body {
@@ -118,6 +165,7 @@ html.dark {
   --border-color: #2a353d;
   --text-primary: #e8edf0;
   --text-secondary: #9aa8b3;
+  --modal-overlay: rgba(0, 0, 0, 0.8);
 }
 
 html.dark body {

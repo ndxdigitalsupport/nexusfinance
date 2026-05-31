@@ -88,7 +88,7 @@ export default function SuperAdminDashboard({
         {/* Form panel configuring parameters (Spans 7) */}
         <form onSubmit={handleSave} className="lg:col-span-7 bg-white border border-[#c4c7ca] rounded-2xl p-6 sm:p-8 space-y-6">
           <h3 className="text-[18px] font-sans font-bold text-[#0F171C] border-b pb-2 flex items-center gap-2">
-            <Settings2 className="w-5 h-5 text-[#006b59]" /> System Parameters Adjustments
+            <Settings2 className="w-5 h-5 text-[#0F171C]" /> System Parameters Adjustments
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -135,7 +135,7 @@ export default function SuperAdminDashboard({
                   id="kycToggle"
                   checked={editingConfig.kycRequired}
                   onChange={(e) => setEditingConfig((p) => ({ ...p, kycRequired: e.target.checked }))}
-                  className="w-5 h-5 text-[#006b59] focus:ring-[#5CF2D0] border-[#c4c7ca] rounded"
+                  className="w-5 h-5 text-[#0F171C] focus:ring-[#5CF2D0] border-[#c4c7ca] rounded"
                 />
                 <label htmlFor="kycToggle" className="text-[13.5px] font-semibold text-[#181c1e]">Active & Mandatory</label>
               </div>
@@ -163,7 +163,7 @@ export default function SuperAdminDashboard({
         {/* Audit logging trail panel (Spans 5) */}
         <div className="lg:col-span-5 bg-white border border-[#c4c7ca] rounded-2xl p-6 shadow-xs space-y-5">
           <h3 className="text-[16px] font-extrabold text-[#0F171C] border-b pb-2 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-[#006b59]" /> Core Audit Logs Trails
+            <Activity className="w-5 h-5 text-[#0F171C]" /> Core Audit Logs Trails
           </h3>
 
           <div className="divide-y divide-gray-100 space-y-1.5 text-[13.5px] max-h-[320px] overflow-y-auto pr-1">

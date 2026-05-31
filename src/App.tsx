@@ -416,7 +416,7 @@ export default function App() {
                 onJoinMeeting={handleJoinMeeting}
               />
             ) : activeMenu === 'tasks' ? (
-              <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+              <div className="animate-content-enter">
                 <h2 className="text-[28px] font-extrabold text-[#0f171c] mb-6">Compliance Tasks</h2>
                 <div className="bg-white border border-[#c4c7ca] rounded-2xl overflow-hidden">
                   {tasks.length === 0 ? (
@@ -445,25 +445,25 @@ export default function App() {
                     <table className="w-full text-left">
                       <thead>
                         <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold sticky top-0">
-                          <th className="px-6 py-4">Task</th>
-                          <th className="px-6 py-4">Applicant</th>
-                          <th className="px-6 py-4">Regarding</th>
-                          <th className="px-6 py-4">Time</th>
-                          <th className="px-6 py-4">Status</th>
-                          <th className="px-6 py-4"></th>
+                          <th className="px-5 py-3.5">Task</th>
+                          <th className="px-5 py-3.5">Applicant</th>
+                          <th className="px-5 py-3.5">Regarding</th>
+                          <th className="px-5 py-3.5">Time</th>
+                          <th className="px-5 py-3.5">Status</th>
+                          <th className="px-5 py-3.5"></th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#e0e3e5]">
                         {paginated.map((task) => (
                           <tr key={task.id} className="text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors bg-white">
-                            <td className="px-6 py-4">{task.title}</td>
-                            <td className="px-6 py-4 text-[#44474a]">{task.applicant}</td>
-                            <td className="px-6 py-4 text-[#44474a]">{task.regarding}</td>
-                            <td className="px-6 py-4 text-[#44474a]">{task.time}</td>
-                            <td className="px-6 py-4">
-                              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700">Pending</span>
+                            <td className="px-5 py-3.5">{task.title}</td>
+                            <td className="px-5 py-3.5 text-[#44474a]">{task.applicant}</td>
+                            <td className="px-5 py-3.5 text-[#44474a]">{task.regarding}</td>
+                            <td className="px-5 py-3.5 text-[#44474a]">{task.time}</td>
+                            <td className="px-5 py-3.5">
+                              <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-100 text-amber-700">Pending</span>
                             </td>
-                            <td className="px-6 py-4">
+                            <td className="px-5 py-3.5">
                               {task.title.toLowerCase().includes('verification') && (
                                 <button
                                   onClick={() => handleJoinMeeting(task)}
@@ -497,7 +497,7 @@ export default function App() {
                 onInstantApprovedFastCash={handleInstantApprovedFastCash}
               />
             ) : activeMenu === 'loans' ? (
-              <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+              <div className="animate-content-enter">
                 <h2 className="text-[28px] font-extrabold text-[#0f171c] mb-6">Loans Ledger</h2>
                 <div className="bg-white border border-[#c4c7ca] rounded-2xl overflow-hidden">
                   {(() => {
@@ -518,28 +518,28 @@ export default function App() {
                     <table className="w-full text-left">
                       <thead>
                         <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold sticky top-0">
-                          <th className="px-6 py-4">ID</th>
-                          <th className="px-6 py-4">Amount</th>
-                          <th className="px-6 py-4">Type</th>
-                          <th className="px-6 py-4">Status</th>
-                          <th className="px-6 py-4">Date</th>
+                          <th className="px-5 py-3.5">ID</th>
+                          <th className="px-5 py-3.5">Amount</th>
+                          <th className="px-5 py-3.5">Type</th>
+                          <th className="px-5 py-3.5">Status</th>
+                          <th className="px-5 py-3.5">Date</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#e0e3e5]">
                         {paginated.map((app) => (
                           <tr key={app.id} className="text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors bg-white">
-                            <td className="px-6 py-4">{app.id}</td>
-                            <td className="px-6 py-4">${app.amount.toLocaleString()}</td>
-                            <td className="px-6 py-4 text-[#44474a]">{app.type}</td>
-                            <td className="px-6 py-4">
-                              <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                            <td className="px-5 py-3.5">{app.id}</td>
+                            <td className="px-5 py-3.5">${app.amount.toLocaleString()}</td>
+                            <td className="px-5 py-3.5 text-[#44474a]">{app.type}</td>
+                            <td className="px-5 py-3.5">
+                              <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold ${
                                 app.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
                                 app.status === 'Rejected' ? 'bg-red-100 text-red-700' :
                                 app.status === 'Hold' ? 'bg-amber-100 text-amber-700' :
                                 'bg-blue-100 text-blue-700'
                               }`}>{app.status}</span>
                             </td>
-                            <td className="px-6 py-4 text-[#44474a]">{app.date}</td>
+                            <td className="px-5 py-3.5 text-[#44474a]">{app.date}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -550,7 +550,7 @@ export default function App() {
                 </div>
               </div>
             ) : activeMenu === 'wallets' ? (
-              <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+              <div className="animate-content-enter">
                 <h2 className="text-[28px] font-extrabold text-[#0f171c] mb-6">Wallets</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-white border border-[#c4c7ca] rounded-2xl p-8">
@@ -566,7 +566,7 @@ export default function App() {
                 </div>
               </div>
             ) : activeMenu === 'transactions' ? (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="animate-content-enter">
                 <h2 className="text-[28px] font-extrabold text-[#0f171c] mb-6">History Logs</h2>
                 <div className="bg-white border border-[#c4c7ca] rounded-2xl overflow-hidden">
                   {transactions.length === 0 ? (
@@ -585,17 +585,17 @@ export default function App() {
                     <table className="w-full text-left">
                       <thead>
                         <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold sticky top-0">
-                          <th className="px-6 py-4">Title</th>
-                          <th className="px-6 py-4">Date</th>
-                          <th className="px-6 py-4">Amount</th>
+                          <th className="px-5 py-3.5">Title</th>
+                          <th className="px-5 py-3.5">Date</th>
+                          <th className="px-5 py-3.5">Amount</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#e0e3e5]">
                         {paginated.map((tx) => (
                           <tr key={tx.id} className="text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors bg-white">
-                            <td className="px-6 py-4">{tx.title}</td>
-                            <td className="px-6 py-4 text-[#44474a]">{tx.date}</td>
-                            <td className={`px-6 py-4 font-mono ${tx.amount > 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                            <td className="px-5 py-3.5">{tx.title}</td>
+                            <td className="px-5 py-3.5 text-[#44474a]">{tx.date}</td>
+                            <td className={`px-5 py-3.5 font-mono ${tx.amount > 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
                               {tx.amount > 0 ? '+' : '-'}${Math.abs(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </td>
                           </tr>
@@ -619,9 +619,9 @@ export default function App() {
                 view="dashboard"
               />
             ) : activeMenu === 'users' ? (
-              <div className="animate-in fade-in slide-in-from-left-4 duration-300"><UsersView /></div>
+              <div className="animate-content-enter"><UsersView /></div>
             ) : activeMenu === 'audit' ? (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-300"><AuditLogView /></div>
+              <div className="animate-content-enter"><AuditLogView /></div>
             ) : activeMenu === 'settings' ? (
               <SuperAdminDashboard
                 config={config}
@@ -633,11 +633,11 @@ export default function App() {
           )}
 
           {activeMenu === 'profile' && (
-            <div className="animate-in fade-in slide-in-from-left-4 duration-300"><ProfilePage token={token} /></div>
+            <div className="animate-content-enter"><ProfilePage token={token} /></div>
           )}
 
           {activeMenu === 'support' && (
-            <div className="animate-in fade-in slide-in-from-right-4 duration-300"><SupportView /></div>
+            <div className="animate-content-enter"><SupportView /></div>
           )}
         </main>
       </div>
@@ -818,25 +818,25 @@ function UsersView() {
         <table className="w-full text-left">
           <thead>
             <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold sticky top-0">
-              <th className="px-6 py-4">Name</th>
-              <th className="px-6 py-4">Email</th>
-              <th className="px-6 py-4">Role</th>
-              <th className="px-6 py-4"></th>
+              <th className="px-5 py-3.5">Name</th>
+              <th className="px-5 py-3.5">Email</th>
+              <th className="px-5 py-3.5">Role</th>
+              <th className="px-5 py-3.5"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#e0e3e5]">
               {paginatedUsers.map((u) => (
                   <tr key={u.id} className="text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors bg-white">
-                <td className="px-6 py-4">{u.name}</td>
-                <td className="px-6 py-4 text-[#44474a]">{u.email}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                <td className="px-5 py-3.5">{u.name}</td>
+                <td className="px-5 py-3.5 text-[#44474a]">{u.email}</td>
+                <td className="px-5 py-3.5">
+                  <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold ${
                     u.role === 'super-admin' ? 'bg-purple-100 text-purple-700' :
                     u.role === 'loan-officer' ? 'bg-blue-100 text-blue-700' :
                     'bg-emerald-100 text-emerald-700'
                   }`}>{u.role}</span>
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-5 py-3.5">
                   {u.role !== 'super-admin' && (
                     <select
                       value={u.role}

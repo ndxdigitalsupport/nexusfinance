@@ -60,7 +60,7 @@ export default function LiveMeetingModal({
   };
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="KYC verification meeting" className="fixed inset-0 bg-[#0F171C]/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
+    <div role="dialog" aria-modal="true" aria-label="KYC verification meeting" className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
       <div className="bg-[#0F171C] text-white w-full max-w-4xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden relative flex flex-col md:flex-row h-[550px] font-sans">
         
         {/* Close Button */}

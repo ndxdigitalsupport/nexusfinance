@@ -71,7 +71,7 @@ export default function AuditLogView() {
               {paginated.map((log, idx) => (
                 <tr key={log.id} className={`text-[14px] font-semibold text-[#0f171c] ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f9fa]'}`}>
                   <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${actionColor(log.action)}`}>{actionLabel(log.action)}</span>
+                    <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold ${actionColor(log.action)}`}>{actionLabel(log.action)}</span>
                   </td>
                   <td className="px-6 py-4 text-[#44474a] text-[13px] font-medium">{log.details}</td>
                   <td className="px-6 py-4 text-[#44474a]">{log.userEmail}</td>

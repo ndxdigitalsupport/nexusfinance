@@ -52,7 +52,7 @@ export default function RepayModal({
   };
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Repayment modal" className="fixed inset-0 bg-[#0F171C]/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div role="dialog" aria-modal="true" aria-label="Repayment modal" className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
       <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-[#c4c7ca] relative">
         <button
           onClick={onClose}
@@ -120,10 +120,10 @@ export default function RepayModal({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Coins className={`w-5 h-5 ${payMethod === 'wallet' ? 'text-[#006b59]' : 'text-gray-500'}`} />
+                    <Coins className={`w-5 h-5 ${payMethod === 'wallet' ? 'text-[#0F171C]' : 'text-gray-500'}`} />
                     <span className="text-[13.5px] font-bold text-[#181c1e]">Nexus Digital Vault Wallet</span>
                   </div>
-                  <div className="text-[12px] font-sans font-bold bg-[#5CF2D0]/20 text-[#006b59] px-2.5 py-0.5 rounded-full">Primary</div>
+                  <div className="text-[12px] font-sans font-bold bg-[#5CF2D0]/20 text-[#0F171C] px-2.5 py-0.5 rounded-full">Primary</div>
                 </div>
 
                 <div

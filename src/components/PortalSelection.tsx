@@ -89,7 +89,7 @@ export default function PortalSelection({ onSelectPortal, userRole }: PortalSele
                 {/* Status indicator */}
                 <div className="flex items-center justify-center">
                   {isSelected ? (
-                    <CheckCircle2 className="w-5 h-5 text-[#006b59] fill-[#5CF2D0]" />
+                    <CheckCircle2 className="w-5 h-5 text-[#0F171C] fill-[#5CF2D0]" />
                   ) : (
                     <div className="w-4 h-4 rounded-full border-2 border-[#c4c7ca] group-hover:border-[#74777b] transition-colors" />
                   )}
@@ -111,11 +111,11 @@ export default function PortalSelection({ onSelectPortal, userRole }: PortalSele
         {/* Legal Disclaimer */}
         <p className="text-center text-[11px] text-[#44474a] font-medium leading-relaxed mt-4">
           By continuing, you agree to our{' '}
-          <a href="#" className="font-semibold text-[#006b59] hover:underline" onClick={(e) => e.preventDefault()}>
+          <a href="#" className="font-semibold text-[#0F171C] hover:underline" onClick={(e) => e.preventDefault()}>
             Terms of Service
           </a>{' '}
           and{' '}
-          <a href="#" className="font-semibold text-[#006b59] hover:underline" onClick={(e) => e.preventDefault()}>
+          <a href="#" className="font-semibold text-[#0F171C] hover:underline" onClick={(e) => e.preventDefault()}>
             Privacy Policy
           </a>
           .

@@ -40,7 +40,7 @@ function CustomSelect({ value, options, onChange, icon: Icon, className }: {
         <ChevronDown className={`w-4 h-4 text-[#94a3b8] transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#e2e8f0] rounded-xl shadow-xl shadow-black/5 z-20 py-1.5 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#e2e8f0] rounded-xl shadow-xl shadow-black/5 z-20 py-1.5 overflow-hidden animate-dropdown-enter">
           {options.map(opt => (
             <button key={opt.value} type="button" onClick={() => { onChange(opt.value); setOpen(false); }}
               className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[14px] text-left cursor-pointer transition-colors duration-100 hover:bg-[#f8fafc] ${opt.value === value ? 'bg-[#f0fdfa] text-[#0d9488] font-bold' : 'text-[#0F171C] font-medium'}`}>
@@ -146,7 +146,7 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto" onClick={onClose}>
+    <div className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto animate-in fade-in duration-150" onClick={onClose}>
       <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-white/20 relative" onClick={e => e.stopPropagation()}>
         <button onClick={onClose} className="absolute -top-3 -right-3 z-20 p-3 rounded-full bg-white border border-[#e2e8f0] shadow-lg hover:shadow-xl hover:bg-[#f8fafc] text-[#64748b] hover:text-[#0F171C] transition-all duration-200 cursor-pointer">
           <X className="w-4 h-4" />
@@ -202,7 +202,7 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
 
             <form onSubmit={handleFormSubmit} className="px-8 pb-8 pt-6 space-y-5">
               {step === 1 ? (
-                <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
+                <div className="space-y-4 animate-content-enter">
                   <div>
                     <label className="block text-[12px] font-bold text-[#64748b] uppercase tracking-wider mb-1.5">Full Name</label>
                     <div className="relative">
@@ -226,7 +226,7 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
+                <div className="space-y-4 animate-content-enter">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[12px] font-bold text-[#64748b] uppercase tracking-wider mb-1.5">Loan Amount</label>

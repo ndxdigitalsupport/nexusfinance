@@ -61,7 +61,7 @@ export default function CustomerDashboard({
         </div>
         <div className="flex gap-2">
           <div className="bg-white border border-[#c4c7ca] flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-xs">
-            <Coins className="w-5 h-5 text-[#006b59]" />
+            <Coins className="w-5 h-5 text-[#0F171C]" />
             <div>
               <span className="text-[10px] text-[#44474a] font-bold uppercase tracking-wider block">Vault Wallet</span>
                   <span className="text-[14px] font-extrabold font-mono text-[#0F171C]">${walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
@@ -118,7 +118,7 @@ export default function CustomerDashboard({
               onClick={onApplyLoanClick}
               className="bg-white border border-[#c4c7ca] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[#006b59] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[#0F171C] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <PlusCircle className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="text-[13.5px] font-extrabold text-[#0F171C]">Apply Loan</span>
@@ -129,7 +129,7 @@ export default function CustomerDashboard({
               onClick={onRepayClick}
               className="bg-white border border-[#c4c7ca] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[#006b59] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[#0F171C] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <Coins className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="text-[13.5px] font-extrabold text-[#0F171C]">Repay Account</span>
@@ -140,7 +140,7 @@ export default function CustomerDashboard({
               onClick={() => onSetActiveMenu('wallets')}
               className="bg-white border border-[#c4c7ca] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[#006b59] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[#0F171C] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <Wallet className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="text-[13.5px] font-extrabold text-[#0F171C]">My Wallets</span>
@@ -151,7 +151,7 @@ export default function CustomerDashboard({
               onClick={() => onSetActiveMenu('support')}
               className="bg-white border border-[#c4c7ca] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[#006b59] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[#0F171C] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <HelpCircle className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="text-[13.5px] font-extrabold text-[#0F171C]">Support Hub</span>
@@ -245,7 +245,7 @@ export default function CustomerDashboard({
 
       {/* FAST CASH INSTANT PROMOTION CHECKPOINT DIALOG MOCK */}
       {showFastCashPromo && (
-        <div className="fixed inset-0 bg-[#0F171C]/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
           <div className="bg-[#0f171c] text-white border border-white/10 w-full max-w-md rounded-2xl shadow-xl overflow-hidden relative">
             <button
               onClick={() => setShowFastCashPromo(false)}
