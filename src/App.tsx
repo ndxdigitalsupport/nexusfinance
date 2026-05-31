@@ -381,11 +381,15 @@ export default function App() {
                 <h2 className="text-[28px] font-extrabold text-[#0f171c] mb-6">Compliance Tasks</h2>
                 <div className="bg-white border border-[#c4c7ca] rounded-2xl overflow-hidden">
                   {tasks.length === 0 ? (
-                    <div className="p-12 text-center text-[#44474a] font-medium">No tasks assigned.</div>
+                    <div className="p-16 text-center">
+                      <CheckSquare className="w-12 h-12 text-[#c4c7ca] mx-auto mb-4" />
+                      <p className="text-[#44474a] font-semibold text-[15px]">No compliance tasks</p>
+                      <p className="text-[#74777b] text-[13px] mt-1">Tasks will appear when loans require review.</p>
+                    </div>
                   ) : (
                     <table className="w-full text-left">
                       <thead>
-                        <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold">
+                        <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold sticky top-0">
                           <th className="px-6 py-4">Task</th>
                           <th className="px-6 py-4">Applicant</th>
                           <th className="px-6 py-4">Regarding</th>
@@ -396,8 +400,8 @@ export default function App() {
                       </thead>
                       <tbody className="divide-y divide-[#e0e3e5]">
                         {tasks.filter(t => !t.completed).length > 0 ? (
-                          tasks.filter(t => !t.completed).map(task => (
-                            <tr key={task.id} className="text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/50">
+                          tasks.filter(t => !t.completed).map((task, idx) => (
+                            <tr key={task.id} className={`text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f9fa]'}`}>
                               <td className="px-6 py-4">{task.title}</td>
                               <td className="px-6 py-4 text-[#44474a]">{task.applicant}</td>
                               <td className="px-6 py-4 text-[#44474a]">{task.regarding}</td>
@@ -448,11 +452,15 @@ export default function App() {
                 <h2 className="text-[28px] font-extrabold text-[#0f171c] mb-6">Loans Ledger</h2>
                 <div className="bg-white border border-[#c4c7ca] rounded-2xl overflow-hidden">
                   {applications.filter(a => a.applicantEmail === (portalUser?.email || '')).length === 0 ? (
-                    <div className="p-12 text-center text-[#44474a] font-medium">No loan applications found.</div>
+                    <div className="p-16 text-center">
+                      <Landmark className="w-12 h-12 text-[#c4c7ca] mx-auto mb-4" />
+                      <p className="text-[#44474a] font-semibold text-[15px]">No loan applications yet</p>
+                      <p className="text-[#74777b] text-[13px] mt-1">Apply for your first loan to get started.</p>
+                    </div>
                   ) : (
                     <table className="w-full text-left">
                       <thead>
-                        <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold">
+                        <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold sticky top-0">
                           <th className="px-6 py-4">ID</th>
                           <th className="px-6 py-4">Amount</th>
                           <th className="px-6 py-4">Type</th>
@@ -461,8 +469,8 @@ export default function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#e0e3e5]">
-                        {applications.filter(a => a.applicantEmail === (portalUser?.email || '')).map(app => (
-                          <tr key={app.id} className="text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/50">
+                        {applications.filter(a => a.applicantEmail === (portalUser?.email || '')).map((app, idx) => (
+                          <tr key={app.id} className={`text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f9fa]'}`}>
                             <td className="px-6 py-4">{app.id}</td>
                             <td className="px-6 py-4">${app.amount.toLocaleString()}</td>
                             <td className="px-6 py-4 text-[#44474a]">{app.type}</td>
@@ -503,19 +511,23 @@ export default function App() {
                 <h2 className="text-[28px] font-extrabold text-[#0f171c] mb-6">History Logs</h2>
                 <div className="bg-white border border-[#c4c7ca] rounded-2xl overflow-hidden">
                   {transactions.length === 0 ? (
-                    <div className="p-12 text-center text-[#44474a] font-medium">No transactions found.</div>
+                    <div className="p-16 text-center">
+                      <History className="w-12 h-12 text-[#c4c7ca] mx-auto mb-4" />
+                      <p className="text-[#44474a] font-semibold text-[15px]">No transactions yet</p>
+                      <p className="text-[#74777b] text-[13px] mt-1">Your financial activity will appear here.</p>
+                    </div>
                   ) : (
                     <table className="w-full text-left">
                       <thead>
-                        <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold">
+                        <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold sticky top-0">
                           <th className="px-6 py-4">Title</th>
                           <th className="px-6 py-4">Date</th>
                           <th className="px-6 py-4">Amount</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#e0e3e5]">
-                        {transactions.map(tx => (
-                          <tr key={tx.id} className="text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/50">
+                        {transactions.map((tx, idx) => (
+                          <tr key={tx.id} className={`text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f9fa]'}`}>
                             <td className="px-6 py-4">{tx.title}</td>
                             <td className="px-6 py-4 text-[#44474a]">{tx.date}</td>
                             <td className={`px-6 py-4 font-mono ${tx.amount > 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
@@ -672,11 +684,15 @@ function UsersView() {
       <h2 className="text-[28px] font-extrabold text-[#0f171c] mb-6">User Management</h2>
       <div className="bg-white border border-[#c4c7ca] rounded-2xl overflow-hidden">
         {users.length === 0 ? (
-          <div className="p-12 text-center text-[#44474a] font-medium">No users found.</div>
+          <div className="p-16 text-center">
+            <Users className="w-12 h-12 text-[#c4c7ca] mx-auto mb-4" />
+            <p className="text-[#44474a] font-semibold text-[15px]">No users registered</p>
+            <p className="text-[#74777b] text-[13px] mt-1">Users will appear here once they sign up.</p>
+          </div>
         ) : (
         <table className="w-full text-left">
           <thead>
-            <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold">
+            <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold sticky top-0">
               <th className="px-6 py-4">Name</th>
               <th className="px-6 py-4">Email</th>
               <th className="px-6 py-4">Role</th>
@@ -684,8 +700,8 @@ function UsersView() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#e0e3e5]">
-            {users.map(u => (
-              <tr key={u.id} className="text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/50">
+            {users.map((u, idx) => (
+              <tr key={u.id} className={`text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f9fa]'}`}>
                 <td className="px-6 py-4">{u.name}</td>
                 <td className="px-6 py-4 text-[#44474a]">{u.email}</td>
                 <td className="px-6 py-4">

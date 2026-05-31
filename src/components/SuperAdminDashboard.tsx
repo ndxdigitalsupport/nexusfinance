@@ -44,10 +44,10 @@ export default function SuperAdminDashboard({
   };
 
   const currentStatsItems = [
-    { label: 'Total Volume under Management', value: `$${stats.totalVolume.toLocaleString()}`, change: '+14% mom', icon: Database, bg: 'bg-emerald-50 text-emerald-600' },
-    { label: 'Active Enrolled Customers', value: stats.activeCustomers.toString(), change: '+8 this week', icon: Users, bg: 'bg-indigo-50 text-indigo-600' },
-    { label: 'Total Outstanding Portfolio', value: `$${stats.outstandingBalanceValue.toLocaleString()}`, change: '-5% repayments', icon: FileCheck2, bg: 'bg-blue-50 text-blue-600' },
-    { label: 'Gross Yields Generated (APR)', value: `$${stats.interestEarned.toLocaleString()}`, change: '+18% yoy', icon: TrendingUp, bg: 'bg-teal-50 text-[#006b59]' },
+    { label: 'Total Volume under Management', value: `$${stats.totalVolume.toLocaleString()}`, change: '+14% mom', icon: Database, gradient: 'from-[#0e1720] to-[#1a2a37]' },
+    { label: 'Active Enrolled Customers', value: stats.activeCustomers.toString(), change: '+8 this week', icon: Users, gradient: 'from-[#1a3a4a] to-[#0f2a38]' },
+    { label: 'Outstanding Portfolio', value: `$${stats.outstandingBalanceValue.toLocaleString()}`, change: '-5% repayments', icon: FileCheck2, gradient: 'from-[#0f171c] to-[#1a2a30]' },
+    { label: 'Gross Yields (APR)', value: `$${stats.interestEarned.toLocaleString()}`, change: '+18% yoy', icon: TrendingUp, gradient: 'from-[#0a2028] to-[#153038]' },
   ];
 
   return (
@@ -64,17 +64,18 @@ export default function SuperAdminDashboard({
         {currentStatsItems.map((st, i) => {
           const Icon = st.icon;
           return (
-            <div key={i} className="bg-white border border-[#c4c7ca] rounded-2xl p-5 shadow-xs flex flex-col justify-between">
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-[12px] font-bold text-[#44474a] uppercase tracking-wider max-w-[150px] leading-tight">{st.label}</span>
-                <div className={`p-2.5 rounded-xl ${st.bg}`}>
+            <div key={i} className={`bg-gradient-to-br ${st.gradient} rounded-2xl p-5 shadow-md flex flex-col justify-between relative overflow-hidden group`}>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-bl-full transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex justify-between items-start mb-4 relative z-10">
+                <span className="text-[11px] font-bold text-[#8fa8b5] uppercase tracking-wider max-w-[140px] leading-tight">{st.label}</span>
+                <div className="p-2.5 rounded-xl bg-white/10 text-[#5cf2d0]">
                   <Icon className="w-5 h-5" />
                 </div>
               </div>
-              <div>
-                <span className="text-[26px] font-extrabold text-[#0F171C] font-mono block leading-none">{st.value}</span>
-                <span className="text-[11px] text-slate-500 font-bold block mt-1.5 flex items-center gap-1">
-                  <ArrowUpRight className="w-3.5 h-3.5 text-emerald-600" /> {st.change}
+              <div className="relative z-10">
+                <span className="text-[24px] font-extrabold text-white font-mono block leading-none tracking-tight">{st.value}</span>
+                <span className="text-[11px] text-[#5cf2d0] font-bold block mt-1.5 flex items-center gap-1">
+                  <ArrowUpRight className="w-3.5 h-3.5" /> {st.change}
                 </span>
               </div>
             </div>
