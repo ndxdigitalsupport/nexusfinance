@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Settings, Layers, Menu, X, User, LogOut, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Search, Bell, Menu, X, User, LogOut, Layers } from 'lucide-react';
 import { PortalType } from '../types';
 
 interface HeaderProps {
@@ -93,16 +93,7 @@ export default function Header({
       </div>
 
       {/* Action Tray */}
-      <div className="flex items-center gap-4 relative ml-auto">
-        {/* Portal Quick Switch */}
-        <button
-          onClick={onPortalSwitchClick}
-          className="hidden lg:flex items-center gap-1.5 px-3.5 py-1.5 bg-[#f1f4f6] text-[13px] text-[#0F171C] border border-[#c4c7ca] rounded-full hover:bg-[#e5e9eb] tracking-wide font-semibold cursor-pointer"
-        >
-          <Layers className="w-4 h-4" />
-          Switch View
-        </button>
-
+      <div className="flex items-center gap-2 relative ml-auto">
         {/* Notifications */}
         <div className="relative">
           <button 
@@ -135,15 +126,6 @@ export default function Header({
             </div>
           )}
         </div>
-
-        {/* Settings */}
-        <button 
-          onClick={onPortalSwitchClick}
-          className="p-2 text-[#44474a] hover:bg-[#f1f4f6] rounded-full transition-colors hidden md:block cursor-pointer"
-          title="Switch Portal"
-        >
-          <Settings className="w-5 h-5" />
-        </button>
 
         {/* User Info + Avatar */}
         <div className="relative">
