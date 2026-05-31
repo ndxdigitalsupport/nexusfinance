@@ -90,7 +90,9 @@ export default function App() {
       setTasks(tasksData);
       setConfig(configData);
       setStats(statsData);
-    } catch {}
+    } catch {
+      showToast('Some data failed to load. Check your connection.', 'error');
+    }
   };
 
   useEffect(() => {
@@ -121,6 +123,13 @@ export default function App() {
     ['nexus_token', 'nexus_portal', 'nexus_active_menu'].forEach(k => localStorage.removeItem(k));
     setCurrentPortal('portal-selection');
     setMobileMenuOpen(false);
+    setApplications([]);
+    setTasks([]);
+    setTransactions([]);
+    setOutstandingBalance(0);
+    setWalletBalance(8450.25);
+    setConfig(DEFAULT_CONFIG);
+    setStats(DEFAULT_STATS);
   };
 
   const handleSetPortal = (portal: PortalType) => {
@@ -250,7 +259,7 @@ export default function App() {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       return {
-        id: (payload as any).id as number,
+        id: Number(payload.id),
         name: (payload as any).name || 'User',
         email: (payload as any).email || '',
         role: (payload as any).role || 'customer',
@@ -622,7 +631,7 @@ function SupportView() {
       setSent(true);
       setTimeout(() => { setSent(false); setName(''); setEmail(''); setMessage(''); }, 3000);
     } catch (e: any) {
-      alert(e.message);
+      showToast(e.message || 'Failed to send message', 'error');
     }
   };
 
@@ -663,7 +672,9 @@ function UsersView() {
     try {
       const data = await apiFetch('/users');
       setUsers(data);
-    } catch {} finally {
+    } catch {
+      showToast('Failed to load users', 'error');
+    } finally {
       setLoading(false);
     }
   };

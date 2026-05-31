@@ -36,6 +36,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [registerName, setRegisterName] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
+  const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
   const [registerPhone, setRegisterPhone] = useState('');
   const [pendingToken, setPendingToken] = useState<string | null>(null);
 
@@ -95,6 +96,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   // Register handler
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (registerPassword !== registerConfirmPassword) return showToast('Passwords do not match', 'error');
     setRegisterLoading(true);
     try {
       const res = await fetch(`${API}/auth/register`, {
@@ -168,7 +170,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-      }).catch(() => {});
+      }).catch(() => showToast('Failed to send verification code. Try resend.', 'error'));
     }
   }, [view, verifyVia]);
 
@@ -246,7 +248,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       />
                       <span>Remember me</span>
                     </label>
-                    <button onClick={() => setView('forgot')} className="text-slate-600 hover:text-slate-900 cursor-pointer">
+                    <button onClick={() => { setForgotEmail(loginEmail); setView('forgot'); }} className="text-slate-600 hover:text-slate-900 cursor-pointer">
                       Forgot Password?
                     </button>
                   </div>
@@ -546,6 +548,26 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#00e1b5]/20 focus:outline-[#00e1b5]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-mono transition-all animate-none"
                       required
                     />
+                  </div>
+
+                  {/* Field: Confirm Password */}
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider">
+                      Confirm Password
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                        <Lock className="w-4.5 h-4.5" />
+                      </div>
+                      <input
+                        type="password"
+                        value={registerConfirmPassword}
+                        onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                        placeholder="••••••••••••"
+                        className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#00e1b5]/20 focus:outline-[#00e1b5]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-mono transition-all animate-none"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 

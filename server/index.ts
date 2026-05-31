@@ -30,7 +30,8 @@ declare global {
 
 const app = express();
 const PORT = 3001;
-const JWT_SECRET = process.env.JWT_SECRET || 'nexus-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) { console.error('FATAL: JWT_SECRET environment variable is required.'); process.exit(1); }
 
 app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.json());
@@ -55,6 +56,13 @@ passport.use(new GoogleStrategy({
   done(null, newUser);
 }));
 
+function asyncHandler(fn: (req: any, res: any, next: any) => Promise<any>) {
+  return (req: any, res: any, next: any) => fn(req, res, next).catch((err: any) => {
+    console.error('Unhandled error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  });
+}
+
 function authMiddleware(req: any, res: any, next: any) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -70,7 +78,7 @@ function authMiddleware(req: any, res: any, next: any) {
 
 // ── AUTH ROUTES ─────────────────────────────────────────────
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const { data: user } = await db.from('nexus_users').select('*').eq('email', email).single();
   if (!user) return res.status(400).json({ error: 'User not found with that email.' });
@@ -80,7 +88,7 @@ app.post('/api/auth/login', async (req, res) => {
   res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
 });
 
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', asyncHandler(async (req, res) => {
   const { name, email, password, phone } = req.body;
   const { data: existing } = await db.from('nexus_users').select('id').eq('email', email).single();
   if (existing) return res.status(400).json({ error: 'Email already registered.' });
@@ -88,12 +96,13 @@ app.post('/api/auth/register', async (req, res) => {
   const { data: newUser } = await db.from('nexus_users').insert({
     name, email, password: bcrypt.hashSync(password, 10), role: 'customer', phone: phone || '',
   }).select().single();
+  if (!newUser) return res.status(500).json({ error: 'Registration failed.' });
 
   const token = jwt.sign({ id: newUser.id, email: newUser.email, name: newUser.name, role: newUser.role }, JWT_SECRET, { expiresIn: '24h' });
   res.json({ token, user: { id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role } });
 });
 
-app.post('/api/auth/forgot-password', async (req, res) => {
+app.post('/api/auth/forgot-password', asyncHandler(async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email is required.' });
   const { data: user } = await db.from('nexus_users').select('id').eq('email', email).single();
@@ -156,13 +165,13 @@ app.post('/api/auth/verify-otp', (req, res) => {
   res.json({ message: 'Phone verified successfully.' });
 });
 
-app.get('/api/auth/me', authMiddleware, async (req, res) => {
+app.get('/api/auth/me', authMiddleware, asyncHandler(async (req, res) => {
   const { data: user } = await db.from('nexus_users').select('id, name, email, role, phone').eq('id', req.user.id).single();
   if (!user) return res.status(404).json({ error: 'User not found.' });
   res.json(user);
 });
 
-app.patch('/api/auth/profile', authMiddleware, async (req, res) => {
+app.patch('/api/auth/profile', authMiddleware, asyncHandler(async (req, res) => {
   const { name, email, phone } = req.body;
   const updates: any = {};
   if (name !== undefined) updates.name = name;
@@ -181,7 +190,7 @@ app.patch('/api/auth/profile', authMiddleware, async (req, res) => {
   res.json({ user: updated, token });
 });
 
-app.patch('/api/auth/password', authMiddleware, async (req, res) => {
+app.patch('/api/auth/password', authMiddleware, asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Current and new password are required.' });
   if (newPassword.length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters.' });
@@ -208,7 +217,7 @@ app.get('/api/auth/google/callback',
 
 // ── LOAN ROUTES ─────────────────────────────────────────────
 
-app.get('/api/loans', authMiddleware, async (req, res) => {
+app.get('/api/loans', authMiddleware, asyncHandler(async (req, res) => {
   let query = db.from('nexus_loans').select('*');
   if (req.user.role === 'customer') {
     query = query.eq('applicantEmail', req.user.email);
@@ -217,7 +226,7 @@ app.get('/api/loans', authMiddleware, async (req, res) => {
   res.json(loans || []);
 });
 
-app.post('/api/loans', authMiddleware, async (req, res) => {
+app.post('/api/loans', authMiddleware, asyncHandler(async (req, res) => {
   const { applicantName, applicantEmail, initials, amount, type, purpose, creditScore, monthlyIncome, durationMonths } = req.body;
   const loanId = '#77' + Math.floor(1000 + Math.random() * 9000);
 
@@ -252,7 +261,7 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
   res.status(201).json(newLoan);
 });
 
-app.patch('/api/loans/:id/approve', authMiddleware, async (req, res) => {
+app.patch('/api/loans/:id/approve', authMiddleware, asyncHandler(async (req, res) => {
   const { data: loan } = await db.from('nexus_loans').select('*').eq('id', req.params.id).single();
   if (!loan) return res.status(404).json({ error: 'Loan not found.' });
 
@@ -271,14 +280,14 @@ app.patch('/api/loans/:id/approve', authMiddleware, async (req, res) => {
   res.json({ ...loan, status: 'Approved', assignedTo: req.user.id });
 });
 
-app.patch('/api/loans/:id/reject', authMiddleware, async (req, res) => {
+app.patch('/api/loans/:id/reject', authMiddleware, asyncHandler(async (req, res) => {
   const { data: loan } = await db.from('nexus_loans').select('id').eq('id', req.params.id).single();
   if (!loan) return res.status(404).json({ error: 'Loan not found.' });
   await db.from('nexus_loans').update({ status: 'Rejected' }).eq('id', req.params.id);
   res.json({ ...loan, status: 'Rejected' });
 });
 
-app.patch('/api/loans/:id/hold', authMiddleware, async (req, res) => {
+app.patch('/api/loans/:id/hold', authMiddleware, asyncHandler(async (req, res) => {
   const { data: loan } = await db.from('nexus_loans').select('id').eq('id', req.params.id).single();
   if (!loan) return res.status(404).json({ error: 'Loan not found.' });
   await db.from('nexus_loans').update({ status: 'Hold' }).eq('id', req.params.id);
@@ -287,12 +296,12 @@ app.patch('/api/loans/:id/hold', authMiddleware, async (req, res) => {
 
 // ── TRANSACTION ROUTES ──────────────────────────────────────
 
-app.get('/api/transactions', authMiddleware, async (req, res) => {
+app.get('/api/transactions', authMiddleware, asyncHandler(async (req, res) => {
   const { data: txs } = await db.from('nexus_transactions').select('*').eq('userId', req.user.id).order('id', { ascending: false });
   res.json(txs || []);
 });
 
-app.post('/api/transactions/repay', authMiddleware, async (req, res) => {
+app.post('/api/transactions/repay', authMiddleware, asyncHandler(async (req, res) => {
   const { amount } = req.body;
   const newTx = {
     id: 'tx_pyp' + Date.now().toString().slice(-6),
@@ -306,7 +315,7 @@ app.post('/api/transactions/repay', authMiddleware, async (req, res) => {
   res.status(201).json(tx);
 });
 
-app.post('/api/transactions/disburse', authMiddleware, async (req, res) => {
+app.post('/api/transactions/disburse', authMiddleware, asyncHandler(async (req, res) => {
   const { amount } = req.body;
   const newTx = {
     id: 'tx_fst' + Date.now().toString().slice(-6),
@@ -322,12 +331,12 @@ app.post('/api/transactions/disburse', authMiddleware, async (req, res) => {
 
 // ── TASK ROUTES ─────────────────────────────────────────────
 
-app.get('/api/tasks', authMiddleware, async (req, res) => {
+app.get('/api/tasks', authMiddleware, asyncHandler(async (req, res) => {
   const { data: tasks } = await db.from('nexus_tasks').select('*');
   res.json(tasks || []);
 });
 
-app.patch('/api/tasks/:id/complete', authMiddleware, async (req, res) => {
+app.patch('/api/tasks/:id/complete', authMiddleware, asyncHandler(async (req, res) => {
   const { data: task } = await db.from('nexus_tasks').select('*').eq('id', req.params.id).single();
   if (!task) return res.status(404).json({ error: 'Task not found.' });
 
@@ -348,14 +357,16 @@ app.patch('/api/tasks/:id/complete', authMiddleware, async (req, res) => {
 
 // ── USER MANAGEMENT (Super Admin) ──────────────────────────
 
-app.get('/api/users', authMiddleware, async (req, res) => {
+app.get('/api/users', authMiddleware, asyncHandler(async (req, res) => {
   if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
   const { data: users } = await db.from('nexus_users').select('id, name, email, role');
   res.json(users || []);
 });
 
-app.patch('/api/users/:id/role', authMiddleware, async (req, res) => {
+app.patch('/api/users/:id/role', authMiddleware, asyncHandler(async (req, res) => {
   if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
+  const allowedRoles = ['customer', 'loan-officer', 'super-admin'];
+  if (!allowedRoles.includes(req.body.role)) return res.status(400).json({ error: 'Invalid role.' });
   const { data: user } = await db.from('nexus_users').select('id').eq('id', parseInt(req.params.id)).single();
   if (!user) return res.status(404).json({ error: 'User not found.' });
   await db.from('nexus_users').update({ role: req.body.role }).eq('id', user.id);
@@ -364,12 +375,13 @@ app.patch('/api/users/:id/role', authMiddleware, async (req, res) => {
 
 // ── CONFIG ROUTES (Super Admin) ─────────────────────────────
 
-app.get('/api/config', authMiddleware, async (req, res) => {
+app.get('/api/config', authMiddleware, asyncHandler(async (req, res) => {
   const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
   res.json(config || {});
 });
 
-app.patch('/api/config', authMiddleware, async (req, res) => {
+app.patch('/api/config', authMiddleware, asyncHandler(async (req, res) => {
+  if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
   await db.from('nexus_config').update(req.body).eq('id', 1);
   const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
   res.json(config);
@@ -377,7 +389,7 @@ app.patch('/api/config', authMiddleware, async (req, res) => {
 
 // ── STATS ROUTES ────────────────────────────────────────────
 
-app.get('/api/stats', authMiddleware, async (req, res) => {
+app.get('/api/stats', authMiddleware, asyncHandler(async (req, res) => {
   const { data: allDisbursements } = await db.from('nexus_transactions').select('amount').eq('type', 'Loan Disbursement');
   const { data: allRepayments } = await db.from('nexus_transactions').select('amount').eq('type', 'Repayment');
   const { count: activeCustomers } = await db.from('nexus_users').select('*', { count: 'exact', head: true }).eq('role', 'customer');

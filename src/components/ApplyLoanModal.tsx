@@ -82,38 +82,26 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
     }
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateStep2()) return;
 
     setIsSubmitting(true);
 
-    // Simulate backend underwriting score determination
-    setTimeout(() => {
-      setIsSubmitting(false);
-      const generatedId = '#LL' + Math.floor(10000 + Math.random() * 90000);
-      const initials = formData.name.split(' ').map(token => token[0]).join('').toUpperCase().slice(0, 2) || 'PP';
-      const score = Math.floor(620 + Math.random() * 180); // Generated mock credit score between 620-800
-
-      onSubmit({
-        id: generatedId,
+    try {
+      await onSubmit({
         applicantName: formData.name,
         applicantEmail: formData.email,
-        initials,
         amount: parseFloat(formData.amount),
         type: formData.type,
-        status: 'New',
-        urgency: parseFloat(formData.amount) > 100000 ? 'Urgent' : 'Normal',
-        assignedToMe: true,
-        date: new Date().toISOString().split('T')[0],
         purpose: formData.purpose,
-        creditScore: score,
         monthlyIncome: parseFloat(formData.monthlyIncome),
         durationMonths: parseInt(formData.durationMonths, 10),
       });
-
       setShowSuccess(true);
-    }, 1200);
+    } catch {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReset = () => {
