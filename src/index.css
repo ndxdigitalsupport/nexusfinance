@@ -155,6 +155,13 @@ html.dark .bg-\[\#5CF2D0\] {
 html.dark [class*="bg-[#41ddbc]"]:hover {
   background-color: #2ea085 !important;
 }
+html.dark [class*="from-[#5CF2D0]"],
+html.dark [class*="from-[#5cf2d0]"] {
+  --tw-gradient-from: #3dba9e !important;
+}
+html.dark [class*="to-[#41ddbc]"] {
+  --tw-gradient-to: #2ea085 !important;
+}
 
 /* Smooth transitions for dark mode toggle */
 html.dark body {
