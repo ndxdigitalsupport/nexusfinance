@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, ArrowUpDown } from 'lucide-react';
+import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle } from 'lucide-react';
 import AuthPage from './components/AuthPage';
 import Toast, { showToast } from './components/Toast';
 import LoanOfficerDashboard from './components/LoanOfficerDashboard';
 import CustomerDashboard from './components/CustomerDashboard';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
 import Sidebar from './components/Sidebar';
+import Header from './components/Header';
 import PortalSelection from './components/PortalSelection';
 import ProfilePage from './components/ProfilePage';
 import ApplicationDetailsModal from './components/ApplicationDetailsModal';
@@ -276,6 +277,90 @@ export default function App() {
       />
 
       <div className="md:pl-64">
+        <Header
+          currentPortal={currentPortal}
+          searchTermInvoice={searchTermInvoice}
+          setSearchTermInvoice={setSearchTermInvoice}
+          onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
+          isMobileMenuOpen={mobileMenuOpen}
+        />
+
+        {/* Mobile Drawer */}
+        {mobileMenuOpen && (
+          <>
+            <div className="fixed inset-0 bg-black/30 z-40 md:hidden" onClick={() => setMobileMenuOpen(false)} />
+            <div className="fixed top-0 left-0 h-full w-72 bg-[#ebeef0] border-r border-[#c4c7ca] z-50 animate-in slide-in-from-left duration-200 md:hidden overflow-y-auto">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[#c4c7ca]">
+                <div className="flex items-center gap-3 select-none">
+                  <span className="font-sans text-[18px] tracking-tight flex items-center">
+                    <span className="text-[#0E171C] font-black">Nexus</span>
+                    <span className="text-[#0E171C] font-light">finance</span>
+                  </span>
+                </div>
+                <button onClick={() => setMobileMenuOpen(false)} className="p-1 rounded-md text-[#44474a] hover:bg-[#e0e3e5] cursor-pointer">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {currentPortal === 'customer' && (
+                <div className="px-4 py-3">
+                  <button
+                    onClick={() => { setIsApplyOpen(true); setMobileMenuOpen(false); }}
+                    className="w-full bg-[#5CF2D0] hover:bg-[#41ddbc] text-[#0F171C] font-semibold text-[14px] py-3 rounded-lg flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <PlusCircle className="w-4.5 h-4.5" /> Apply for Loan
+                  </button>
+                </div>
+              )}
+
+              <div className="px-3 py-2 space-y-1">
+                {(() => {
+                  const items = currentPortal === 'loan-officer'
+                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'tasks', label: 'Compliance Tasks', icon: CheckSquare }]
+                    : currentPortal === 'super-admin'
+                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'users', label: 'Users', icon: Users }, { id: 'settings', label: 'Settings', icon: Settings }]
+                    : [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'loans', label: 'Loans Ledger', icon: Landmark }, { id: 'wallets', label: 'Wallets', icon: Wallet }, { id: 'transactions', label: 'History Logs', icon: History }];
+                  return items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeMenu === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => { handleSetActiveMenu(item.id); setMobileMenuOpen(false); }}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-semibold text-[14px] transition-all cursor-pointer ${isActive ? 'bg-[#0F171C] text-white shadow-sm' : 'text-[#44474a] hover:bg-[#e0e3e5]'}`}
+                      >
+                        <Icon className={`w-5 h-5 ${isActive ? 'text-[#5CF2D0]' : 'text-[#44474a]'}`} />
+                        {item.label}
+                      </button>
+                    );
+                  });
+                })()}
+              </div>
+
+              <div className="mt-auto px-3 pt-4 border-t border-[#c4c7ca] mx-3 space-y-1">
+                <button
+                  onClick={() => { setActiveMenu('profile'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-semibold text-[14px] transition-all cursor-pointer ${activeMenu === 'profile' ? 'bg-[#0F171C] text-white shadow-sm' : 'text-[#44474a] hover:bg-[#e0e3e5]'}`}
+                >
+                  <User className="w-5 h-5 text-[#44474a]" /> Profile
+                </button>
+                <button
+                  onClick={() => { setActiveMenu('support'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-semibold text-[14px] transition-all cursor-pointer ${activeMenu === 'support' ? 'bg-[#0F171C] text-white shadow-sm' : 'text-[#44474a] hover:bg-[#e0e3e5]'}`}
+                >
+                  <HelpCircle className="w-5 h-5 text-[#44474a]" /> Support
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-[#44474a] hover:bg-red-50 hover:text-red-600 rounded-lg font-semibold text-[14px] cursor-pointer"
+                >
+                  <LogOut className="w-5 h-5" /> Logout
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
         <main className="p-4 md:p-6 max-w-7xl mx-auto">
           {currentPortal === 'loan-officer' && (
             activeMenu === 'dashboard' ? (
