@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { X, Sparkles, User, Mail, DollarSign, Briefcase, Calendar, FileText, CheckCircle2, ArrowRight, ArrowLeft, Clock } from 'lucide-react';
+import { X, Sparkles, User, Mail, DollarSign, Briefcase, Calendar, FileText, CheckCircle2, ArrowRight, ArrowLeft, Clock, ChevronDown } from 'lucide-react';
 import { LoanApplication } from '../types';
 
 interface ApplyLoanModalProps {
@@ -210,19 +210,21 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                     <div>
                       <label className="block text-[12px] font-bold text-[#64748b] uppercase tracking-wider mb-1.5">Loan Category</label>
                       <div className="relative">
-                        <Briefcase className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                        <select name="type" value={formData.type} onChange={handleInputChange} className={`${inputClass('type')} pl-10 appearance-none bg-no-repeat`} style={{ backgroundPosition: 'right 12px center', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")` }}>
+                        <Briefcase className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <select name="type" value={formData.type} onChange={handleInputChange} className={`${inputClass('type')} pl-10 pr-10 appearance-none cursor-pointer`}>
                           {LOAN_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                         </select>
+                        <ChevronDown className="w-4 h-4 text-[#94a3b8] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       </div>
                     </div>
                     <div>
                       <label className="block text-[12px] font-bold text-[#64748b] uppercase tracking-wider mb-1.5">Duration</label>
                       <div className="relative">
-                        <Calendar className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                        <select name="durationMonths" value={formData.durationMonths} onChange={handleInputChange} className={`${inputClass('durationMonths')} pl-10 appearance-none bg-no-repeat`} style={{ backgroundPosition: 'right 12px center', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")` }}>
+                        <Calendar className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <select name="durationMonths" value={formData.durationMonths} onChange={handleInputChange} className={`${inputClass('durationMonths')} pl-10 pr-10 appearance-none cursor-pointer`}>
                           {DURATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
                         </select>
+                        <ChevronDown className="w-4 h-4 text-[#94a3b8] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       </div>
                     </div>
                   </div>
