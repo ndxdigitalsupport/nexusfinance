@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { X, Sparkles, User, Mail, DollarSign, Briefcase, Calendar, FileText, CheckCircle2, ArrowRight, ArrowLeft, Clock, ChevronDown } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { X, Sparkles, User, Mail, DollarSign, Briefcase, Calendar, FileText, CheckCircle2, ArrowRight, ArrowLeft, Clock, ChevronDown, Check } from 'lucide-react';
 import { LoanApplication } from '../types';
 
 interface ApplyLoanModalProps {
@@ -18,6 +18,46 @@ const DURATIONS = [
   { value: '60', label: '60 Months', sub: '5 years' },
   { value: '180', label: '180 Months', sub: '15 years' },
 ];
+
+function CustomSelect({ value, options, onChange, icon: Icon, className }: {
+  value: string; options: { value: string; label: string; sub?: string }[];
+  onChange: (v: string) => void; icon: React.ElementType; className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+  const selected = options.find(o => o.value === value);
+  return (
+    <div ref={ref} className="relative">
+      <button type="button" onClick={() => setOpen(!open)}
+        className={`w-full flex items-center gap-2.5 bg-[#f8fafc] border border-[#e2e8f0] hover:border-[#94a3b8] rounded-xl px-3.5 py-3 text-[14px] text-left cursor-pointer transition-all duration-200 focus:bg-white focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 ${className || ''}`}>
+        <Icon className="w-4 h-4 text-[#94a3b8] flex-shrink-0" />
+        <span className="flex-1 text-[#0F171C] font-medium">{selected?.label || value}</span>
+        <ChevronDown className={`w-4 h-4 text-[#94a3b8] transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#e2e8f0] rounded-xl shadow-xl shadow-black/5 z-20 py-1.5 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+          {options.map(opt => (
+            <button key={opt.value} type="button" onClick={() => { onChange(opt.value); setOpen(false); }}
+              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[14px] text-left cursor-pointer transition-colors duration-100 hover:bg-[#f8fafc] ${opt.value === value ? 'bg-[#f0fdfa] text-[#0d9488] font-bold' : 'text-[#0F171C] font-medium'}`}>
+              <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${opt.value === value ? 'border-[#0d9488] bg-[#0d9488]' : 'border-[#cbd5e1]'}`}>
+                {opt.value === value && <Check className="w-3 h-3 text-white" />}
+              </span>
+              <div className="flex-1">
+                <span>{opt.label}</span>
+                {opt.sub && <span className="text-[11px] text-[#94a3b8] ml-2 font-normal">{opt.sub}</span>}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, userEmail }: ApplyLoanModalProps) {
   const [step, setStep] = useState(1);
@@ -209,23 +249,11 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[12px] font-bold text-[#64748b] uppercase tracking-wider mb-1.5">Loan Category</label>
-                      <div className="relative">
-                        <Briefcase className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <select name="type" value={formData.type} onChange={handleInputChange} className={`${inputClass('type')} pl-10 pr-10 appearance-none cursor-pointer`}>
-                          {LOAN_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                        </select>
-                        <ChevronDown className="w-4 h-4 text-[#94a3b8] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      </div>
+                      <CustomSelect value={formData.type} options={LOAN_TYPES.map(t => ({ value: t, label: t }))} onChange={v => setFormData(prev => ({ ...prev, type: v }))} icon={Briefcase} />
                     </div>
                     <div>
                       <label className="block text-[12px] font-bold text-[#64748b] uppercase tracking-wider mb-1.5">Duration</label>
-                      <div className="relative">
-                        <Calendar className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <select name="durationMonths" value={formData.durationMonths} onChange={handleInputChange} className={`${inputClass('durationMonths')} pl-10 pr-10 appearance-none cursor-pointer`}>
-                          {DURATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-                        </select>
-                        <ChevronDown className="w-4 h-4 text-[#94a3b8] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      </div>
+                      <CustomSelect value={formData.durationMonths} options={DURATIONS} onChange={v => setFormData(prev => ({ ...prev, durationMonths: v }))} icon={Calendar} />
                     </div>
                   </div>
 
