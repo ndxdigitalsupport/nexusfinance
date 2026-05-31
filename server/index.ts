@@ -4,6 +4,7 @@
 
 import express from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import passport from 'passport';
@@ -33,9 +34,18 @@ const PORT = 3001;
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) { console.error('FATAL: JWT_SECRET environment variable is required.'); process.exit(1); }
 
-app.use(cors({ origin: 'http://localhost:3000' }));
+const requiredEnv = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE'];
+for (const key of requiredEnv) {
+  if (!process.env[key]) { console.error(`FATAL: ${key} is not set in .env`); process.exit(1); }
+}
+
+const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
 app.use(passport.initialize());
+
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: { error: 'Too many attempts. Try again later.' } });
+const otpLimiter = rateLimit({ windowMs: 5 * 60 * 1000, max: 5, message: { error: 'Too many OTP requests. Try again later.' } });
 
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID!,
@@ -78,7 +88,7 @@ function authMiddleware(req: any, res: any, next: any) {
 
 // ── AUTH ROUTES ─────────────────────────────────────────────
 
-app.post('/api/auth/login', asyncHandler(async (req, res) => {
+app.post('/api/auth/login', authLimiter, asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const { data: user } = await db.from('nexus_users').select('*').eq('email', email).single();
   if (!user) return res.status(400).json({ error: 'User not found with that email.' });
@@ -88,7 +98,7 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
   res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
 });
 
-app.post('/api/auth/register', asyncHandler(async (req, res) => {
+app.post('/api/auth/register', authLimiter, asyncHandler(async (req, res) => {
   const { name, email, password, phone } = req.body;
   const { data: existing } = await db.from('nexus_users').select('id').eq('email', email).single();
   if (existing) return res.status(400).json({ error: 'Email already registered.' });
@@ -111,7 +121,7 @@ app.post('/api/auth/forgot-password', asyncHandler(async (req, res) => {
   res.json({ message: 'Password reset link sent to your email.' });
 });
 
-app.post('/api/auth/send-otp', (req, res) => {
+app.post('/api/auth/send-otp', otpLimiter, (req, res) => {
   const { via, email, phone } = req.body;
 
   if (via === 'email') {
@@ -410,6 +420,19 @@ app.post('/api/support/message', authMiddleware, (req, res) => {
   console.log(`\n  📧 Support message from ${name} (${email}):`);
   console.log(`  └─ ${message}`);
   res.json({ message: 'Message sent successfully. We will get back to you shortly.' });
+});
+
+// ── 404 catch-all ────────────────────────────────────────────
+
+app.use((req, res) => {
+  res.status(404).json({ error: `Route ${req.method} ${req.path} not found.` });
+});
+
+// ── Global error handler ────────────────────────────────────
+
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error.' });
 });
 
 // ── START THE SERVER ────────────────────────────────────────
