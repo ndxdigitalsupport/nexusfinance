@@ -48,7 +48,7 @@ export default function ApplicationDetailsModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-[#0F171C]/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto font-sans">
+    <div role="dialog" aria-modal="true" aria-label="Application details" className="fixed inset-0 bg-[#0F171C]/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto font-sans">
       <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden border border-[#c4c7ca] my-8 relative animate-in fade-in zoom-in-95 duration-150">
         
         {/* Header toolbar */}

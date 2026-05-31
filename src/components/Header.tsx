@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Menu, X, User, LogOut, Layers } from 'lucide-react';
+import { Search, Bell, Menu, X, User, LogOut, Layers, Sun, Moon } from 'lucide-react';
 import { PortalType } from '../types';
 
 const API = 'http://localhost:3001/api';
@@ -42,6 +42,13 @@ export default function Header({
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [connected, setConnected] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => document.documentElement.classList.contains('dark'));
+
+  const toggleDarkMode = () => {
+    const next = !darkMode;
+    setDarkMode(next);
+    document.documentElement.classList.toggle('dark', next);
+  };
 
   useEffect(() => {
     fetch('http://localhost:3001/api/config', { signal: AbortSignal.timeout(3000) })
@@ -77,6 +84,8 @@ export default function Header({
       <div className="flex items-center gap-3 md:hidden">
         <button 
           onClick={onMobileMenuToggle}
+          aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={isMobileMenuOpen}
           className="p-1 rounded-md text-[#44474a] hover:bg-[#ebeef0] focus:outline-none cursor-pointer"
         >
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -98,7 +107,7 @@ export default function Header({
               type="text"
               value={searchTermInvoice}
               onChange={(e) => setSearchTermInvoice(e.target.value)}
-              className="w-full bg-white border border-[#c4c7ca] rounded-full py-2 pl-10 pr-4 text-[14px] leading-tight focus:outline-none focus:border-[#0F171C] focus:ring-1 focus:ring-[#0F171C] transition-all duration-150 shadow-sm placeholder:text-[#74777b]"
+              className="w-full bg-white border border-[#c4c7ca] rounded-xl py-2.5 pl-10 pr-4 text-[14px] leading-tight focus:outline-none focus:border-[#0F171C] focus:ring-2 focus:ring-[#0F171C]/10 transition-all duration-150 shadow-sm placeholder:text-[#74777b]"
               placeholder="Search applicants, loans..."
             />
           </div>
@@ -111,10 +120,22 @@ export default function Header({
 
       {/* Action Tray */}
       <div className="flex items-center gap-2 relative ml-auto">
+        {/* Dark Mode Toggle */}
+        <button
+          onClick={toggleDarkMode}
+          aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="p-2 text-[#44474a] hover:bg-[#f1f4f6] rounded-full transition-colors cursor-pointer"
+        >
+          {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </button>
+
         {/* Notifications */}
         <div className="relative">
           <button 
             onClick={handleNotificationClick}
+            aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+            aria-expanded={showNotificationsDropdown}
+            aria-haspopup="true"
             className="p-2 text-[#44474a] hover:bg-[#f1f4f6] rounded-full transition-colors cursor-pointer relative"
           >
             <Bell className="w-5 h-5" />
@@ -158,6 +179,9 @@ export default function Header({
         <div className="relative">
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
+            aria-label="User menu"
+            aria-expanded={showUserMenu}
+            aria-haspopup="true"
             className="flex items-center gap-2.5 cursor-pointer"
           >
             <div className="hidden md:block text-right">

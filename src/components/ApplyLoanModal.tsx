@@ -146,9 +146,9 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-white/20 relative overflow-hidden">
-        <button onClick={onClose} className="absolute top-5 right-5 z-10 p-2 rounded-full bg-[#f1f4f6] hover:bg-[#e2e8f0] text-[#44474a] hover:text-[#0F171C] transition-all cursor-pointer">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto" onClick={onClose}>
+      <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-white/20 relative" onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute -top-3 -right-3 z-20 p-3 rounded-full bg-white border border-[#e2e8f0] shadow-lg hover:shadow-xl hover:bg-[#f8fafc] text-[#64748b] hover:text-[#0F171C] transition-all duration-200 cursor-pointer">
           <X className="w-4 h-4" />
         </button>
 

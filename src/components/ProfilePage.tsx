@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, Lock, Save, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { showToast } from './Toast';
+import { SkeletonCard } from './Skeleton';
 
 const API = 'http://localhost:3001/api';
 
@@ -75,7 +76,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
     }
   };
 
-  if (fetching) return <div className="p-12 text-center text-[#44474a] font-medium">Loading profile...</div>;
+  if (fetching) return <div className="animate-in fade-in duration-200 max-w-2xl space-y-8"><SkeletonCard lines={3} /><SkeletonCard lines={2} /></div>;
 
   return (
     <div className="animate-in fade-in duration-200 max-w-2xl space-y-8">
@@ -97,7 +98,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#00e1b5] focus:ring-4 focus:ring-[#00e1b5]/10 text-slate-800 transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all"
               />
             </div>
           </div>
@@ -111,7 +112,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#00e1b5] focus:ring-4 focus:ring-[#00e1b5]/10 text-slate-800 transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all"
               />
             </div>
           </div>
@@ -125,7 +126,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#00e1b5] focus:ring-4 focus:ring-[#00e1b5]/10 text-slate-800 transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all"
               />
             </div>
           </div>
@@ -152,7 +153,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#00e1b5] focus:ring-4 focus:ring-[#00e1b5]/10 text-slate-800 transition-all"
+              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all"
               required
             />
           </div>
@@ -162,7 +163,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#00e1b5] focus:ring-4 focus:ring-[#00e1b5]/10 text-slate-800 transition-all"
+              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all"
               required
               minLength={6}
             />
@@ -173,7 +174,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#00e1b5] focus:ring-4 focus:ring-[#00e1b5]/10 text-slate-800 transition-all"
+              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all"
               required
               minLength={6}
             />

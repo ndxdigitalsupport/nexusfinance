@@ -52,7 +52,7 @@ export default function RepayModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-[#0F171C]/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div role="dialog" aria-modal="true" aria-label="Repayment modal" className="fixed inset-0 bg-[#0F171C]/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
       <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-[#c4c7ca] relative">
         <button
           onClick={onClose}

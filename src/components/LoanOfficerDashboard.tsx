@@ -274,10 +274,8 @@ export default function LoanOfficerDashboard({
               </button>
             </div>
 
-            {/* Simulated bar columns */}
-            <div className="h-48 flex items-end justify-between gap-3 px-2 pb-2.5 border-b-2 border-[#c4c7ca] relative mb-2 pr-4">
+            <div className="h-48 flex items-end justify-between gap-4 px-2 pb-2.5 border-b-2 border-[#c4c7ca] relative mb-2 pr-4">
               
-              {/* Background scale lines lines */}
               <div className="absolute w-full h-full flex flex-col justify-between z-0 pointer-events-none pb-2.5 pr-4 left-0">
                 <div className="w-full border-t border-gray-100 border-dashed"></div>
                 <div className="w-full border-t border-gray-100 border-dashed"></div>
@@ -285,49 +283,30 @@ export default function LoanOfficerDashboard({
                 <div className="w-full"></div>
               </div>
 
-              {/* BAR: NEW */}
-              <div className="flex flex-col items-center gap-2.5 z-10 group w-1/4">
-                <div 
-                  className="w-full max-w-[36px] bg-[#dbe4eb] rounded-t-md transition-all duration-300 group-hover:bg-[#0F171C] font-mono font-bold text-[11px] text-[#0F171C] flex flex-col justify-start items-center pt-1.5 shadow-inner"
-                  style={{ height: `${(chartStats.new / chartMaxVal) * 110 + 15}px`, minHeight: '24px' }}
-                >
-                  {chartStats.new}
-                </div>
-                <span className="text-[10px] text-[#44474a] font-bold uppercase tracking-wider">New</span>
-              </div>
-
-              {/* BAR: REVIEW (Hero/Highlight column in Image 1 style) */}
-              <div className="flex flex-col items-center gap-2.5 z-10 group w-1/4">
-                <div 
-                  className="w-full max-w-[36px] bg-[#0F171C] rounded-t-md relative shadow-sm font-mono font-bold text-[12px] text-[#5CF2D0] flex flex-col justify-start items-center pt-2"
-                  style={{ height: `${(chartStats.review / chartMaxVal) * 110 + 20}px` }}
-                >
-                  {chartStats.review}
-                </div>
-                <span className="text-[10px] text-[#0F171C] font-extrabold uppercase tracking-wider">Review</span>
-              </div>
-
-              {/* BAR: FINAL */}
-              <div className="flex flex-col items-center gap-2.5 z-10 group w-1/4">
-                <div 
-                  className="w-full max-w-[36px] bg-[#dbe4eb] rounded-t-md transition-all duration-300 group-hover:bg-[#0F171C] font-mono font-bold text-[11px] text-[#0F171C] flex flex-col justify-start items-center pt-1.5 shadow-inner"
-                  style={{ height: `${(chartStats.final / chartMaxVal) * 110 + 15}px`, minHeight: '24px' }}
-                >
-                  {chartStats.final}
-                </div>
-                <span className="text-[10px] text-[#44474a] font-bold uppercase tracking-wider">Final</span>
-              </div>
-
-              {/* BAR: HOLD */}
-              <div className="flex flex-col items-center gap-2.5 z-10 group w-1/4">
-                <div 
-                  className="w-full max-w-[36px] bg-[#bfc8ce] rounded-t-md transition-all duration-300 group-hover:bg-[#44474a] font-mono font-bold text-[11px] text-gray-700 flex flex-col justify-start items-center pt-1.5 shadow-inner"
-                  style={{ height: `${(chartStats.hold / chartMaxVal) * 110 + 15}px`, minHeight: '24px' }}
-                >
-                  {chartStats.hold}
-                </div>
-                <span className="text-[10px] text-[#44474a] font-bold uppercase tracking-wider">Hold</span>
-              </div>
+              {[
+                { key: 'new', label: 'New', value: chartStats.new, gradient: 'from-[#dbe4eb] to-[#bfc8ce]', textColor: 'text-[#44474a]', hoverGradient: 'hover:from-[#0F171C] hover:to-[#2a3a44]' },
+                { key: 'review', label: 'Review', value: chartStats.review, gradient: 'from-[#0F171C] to-[#1a2a34]', textColor: 'text-[#5CF2D0]', hoverGradient: '' },
+                { key: 'final', label: 'Final', value: chartStats.final, gradient: 'from-[#dbe4eb] to-[#bfc8ce]', textColor: 'text-[#44474a]', hoverGradient: 'hover:from-[#0F171C] hover:to-[#2a3a44]' },
+                { key: 'hold', label: 'Hold', value: chartStats.hold, gradient: 'from-[#bfc8ce] to-[#a0adb5]', textColor: 'text-gray-700', hoverGradient: 'hover:from-[#44474a] hover:to-[#5a6a74]' },
+              ].map((bar) => {
+                const pct = chartMaxVal > 0 ? Math.round((bar.value / chartMaxVal) * 100) : 0;
+                return (
+                  <div key={bar.key} className="flex flex-col items-center gap-2.5 z-10 group w-1/4 relative">
+                    <div
+                      className={`w-full max-w-[40px] bg-gradient-to-t ${bar.gradient} ${bar.hoverGradient} rounded-t-md transition-all duration-300 font-mono font-bold text-[11px] ${bar.textColor} flex flex-col justify-start items-center pt-1.5 shadow-inner cursor-default`}
+                      style={{ height: `${Math.max((bar.value / chartMaxVal) * 110 + 15, 24)}px` }}
+                    >
+                      {bar.value}
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#44474a]">{bar.label}</span>
+                    {bar.value > 0 && (
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#0F171C] text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg">
+                        {pct}% of total
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Chart Subtitle summary */}

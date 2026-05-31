@@ -15,6 +15,7 @@ import RepayModal from './components/RepayModal';
 import LiveMeetingModal from './components/LiveMeetingModal';
 import Pagination from './components/Pagination';
 import AuditLogView from './components/AuditLogView';
+import { SkeletonTable } from './components/Skeleton';
 import { LoanApplication, Task, Transaction, PlatformConfig, PlatformStats, PortalType } from './types';
 import { DEFAULT_CONFIG, DEFAULT_STATS } from './data';
 
@@ -315,31 +316,35 @@ export default function App() {
         {mobileMenuOpen && (
           <>
             <div className="fixed inset-0 bg-black/30 z-40 md:hidden" onClick={() => setMobileMenuOpen(false)} />
-            <div className="fixed top-0 left-0 h-full w-72 bg-[#ebeef0] border-r border-[#c4c7ca] z-50 animate-in slide-in-from-left duration-200 md:hidden overflow-y-auto">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[#c4c7ca]">
-                <div className="flex items-center gap-3 select-none">
+            <div className="fixed top-0 left-0 h-full w-72 bg-[#0F171C] z-50 animate-in slide-in-from-left duration-200 md:hidden overflow-y-auto">
+              <div className="flex items-center justify-between px-5 py-5 border-b border-white/5">
+                <div className="flex items-center gap-3.5">
                   <span className="font-sans text-[18px] tracking-tight flex items-center">
-                    <span className="text-[#0E171C] font-black">Nexus</span>
-                    <span className="text-[#0E171C] font-light">finance</span>
+                    <span className="text-white font-black">Nexus</span>
+                    <span className="text-white/60 font-light">finance</span>
+                  </span>
+                  <span className="text-[9px] font-bold text-[#5CF2D0] uppercase tracking-wider bg-[#5CF2D0]/10 px-2 py-0.5 rounded-full">
+                    {currentPortal === 'loan-officer' ? 'Corporate' : currentPortal === 'super-admin' ? 'Admin' : 'Client'}
                   </span>
                 </div>
-                <button onClick={() => setMobileMenuOpen(false)} className="p-1 rounded-md text-[#44474a] hover:bg-[#e0e3e5] cursor-pointer">
+                <button onClick={() => setMobileMenuOpen(false)} className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/5 cursor-pointer">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {currentPortal === 'customer' && (
-                <div className="px-4 py-3">
+                <div className="px-4 pt-4 pb-2">
                   <button
                     onClick={() => { setIsApplyOpen(true); setMobileMenuOpen(false); }}
-                    className="w-full bg-[#5CF2D0] hover:bg-[#41ddbc] text-[#0F171C] font-semibold text-[14px] py-3 rounded-lg flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full bg-gradient-to-r from-[#5CF2D0] to-[#41ddbc] hover:brightness-105 text-[#0F171C] font-bold text-[14px] py-3 rounded-xl shadow-lg shadow-[#5CF2D0]/20 flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <PlusCircle className="w-4.5 h-4.5" /> Apply for Loan
                   </button>
                 </div>
               )}
 
-              <div className="px-3 py-2 space-y-1">
+              <div className="px-3 py-3 space-y-0.5">
+                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 pb-2 pt-1">Menu</p>
                 {(() => {
                   const items = currentPortal === 'loan-officer'
                     ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'tasks', label: 'Compliance Tasks', icon: CheckSquare }]
@@ -353,9 +358,11 @@ export default function App() {
                       <button
                         key={item.id}
                         onClick={() => { handleSetActiveMenu(item.id); setMobileMenuOpen(false); }}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-semibold text-[14px] transition-all cursor-pointer ${isActive ? 'bg-[#0F171C] text-white shadow-sm' : 'text-[#44474a] hover:bg-[#e0e3e5]'}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                       >
-                        <Icon className={`w-5 h-5 ${isActive ? 'text-[#5CF2D0]' : 'text-[#44474a]'}`} />
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${isActive ? 'bg-[#5CF2D0] text-[#0F171C]' : 'bg-white/5 text-white/40'}`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
                         {item.label}
                       </button>
                     );
@@ -363,24 +370,34 @@ export default function App() {
                 })()}
               </div>
 
-              <div className="mt-auto px-3 pt-4 border-t border-[#c4c7ca] mx-3 space-y-1">
+              <div className="px-3 py-3 border-t border-white/5 space-y-0.5">
+                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 pb-1">Account</p>
                 <button
                   onClick={() => { setActiveMenu('profile'); setMobileMenuOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-semibold text-[14px] transition-all cursor-pointer ${activeMenu === 'profile' ? 'bg-[#0F171C] text-white shadow-sm' : 'text-[#44474a] hover:bg-[#e0e3e5]'}`}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer ${activeMenu === 'profile' ? 'bg-white/10 text-white shadow-sm' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                 >
-                  <User className="w-5 h-5 text-[#44474a]" /> Profile
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-white/40">
+                    <User className="w-4 h-4" />
+                  </div>
+                  Profile
                 </button>
                 <button
                   onClick={() => { setActiveMenu('support'); setMobileMenuOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-semibold text-[14px] transition-all cursor-pointer ${activeMenu === 'support' ? 'bg-[#0F171C] text-white shadow-sm' : 'text-[#44474a] hover:bg-[#e0e3e5]'}`}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer ${activeMenu === 'support' ? 'bg-white/10 text-white shadow-sm' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                 >
-                  <HelpCircle className="w-5 h-5 text-[#44474a]" /> Support
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-white/40">
+                    <HelpCircle className="w-4 h-4" />
+                  </div>
+                  Support
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-[#44474a] hover:bg-red-50 hover:text-red-600 rounded-lg font-semibold text-[14px] cursor-pointer"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer text-red-400/60 hover:text-red-400 hover:bg-red-500/10"
                 >
-                  <LogOut className="w-5 h-5" /> Logout
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 text-red-400/60">
+                    <LogOut className="w-4 h-4" />
+                  </div>
+                  Logout
                 </button>
               </div>
             </div>
@@ -398,19 +415,27 @@ export default function App() {
                 onJoinMeeting={handleJoinMeeting}
               />
             ) : activeMenu === 'tasks' ? (
-              <div className="animate-in fade-in duration-200">
+              <div className="animate-in fade-in slide-in-from-left-4 duration-300">
                 <h2 className="text-[28px] font-extrabold text-[#0f171c] mb-6">Compliance Tasks</h2>
                 <div className="bg-white border border-[#c4c7ca] rounded-2xl overflow-hidden">
                   {tasks.length === 0 ? (
-                    <div className="p-16 text-center">
-                      <CheckSquare className="w-12 h-12 text-[#c4c7ca] mx-auto mb-4" />
-                      <p className="text-[#44474a] font-semibold text-[15px]">No compliance tasks</p>
-                      <p className="text-[#74777b] text-[13px] mt-1">Tasks will appear when loans require review.</p>
+                    <div className="p-16 text-center flex flex-col items-center">
+                      <div className="w-20 h-20 bg-[#f1f4f6] rounded-2xl flex items-center justify-center mb-5 border border-[#c4c7ca]/50">
+                        <CheckSquare className="w-10 h-10 text-[#74777b]" />
+                      </div>
+                      <p className="text-[#0F171C] font-extrabold text-[17px]">No compliance tasks</p>
+                      <p className="text-[#74777b] text-[13px] mt-1.5 max-w-xs">Tasks will appear here automatically when loans require review or verification.</p>
                     </div>
                   ) : (() => {
                     const pending = tasks.filter(t => !t.completed);
                     if (pending.length === 0) return (
-                      <div className="p-12 text-center text-emerald-700 font-bold">All tasks completed.</div>
+                      <div className="p-12 text-center flex flex-col items-center">
+                        <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mb-4 border border-emerald-200">
+                          <CheckSquare className="w-8 h-8 text-emerald-500" />
+                        </div>
+                        <p className="text-emerald-800 font-extrabold text-[16px]">All tasks completed</p>
+                        <p className="text-[#74777b] text-[13px] mt-1">Nothing requires your attention right now.</p>
+                      </div>
                     );
                     const itemsPerPage = 5;
                     const totalPages = Math.ceil(pending.length / itemsPerPage) || 1;
@@ -471,16 +496,18 @@ export default function App() {
                 onInstantApprovedFastCash={handleInstantApprovedFastCash}
               />
             ) : activeMenu === 'loans' ? (
-              <div className="animate-in fade-in duration-200">
+              <div className="animate-in fade-in slide-in-from-left-4 duration-300">
                 <h2 className="text-[28px] font-extrabold text-[#0f171c] mb-6">Loans Ledger</h2>
                 <div className="bg-white border border-[#c4c7ca] rounded-2xl overflow-hidden">
                   {(() => {
                     const filtered = applications.filter(a => a.applicantEmail === (portalUser?.email || ''));
                     if (filtered.length === 0) return (
-                      <div className="p-16 text-center">
-                        <Landmark className="w-12 h-12 text-[#c4c7ca] mx-auto mb-4" />
-                        <p className="text-[#44474a] font-semibold text-[15px]">No loan applications yet</p>
-                        <p className="text-[#74777b] text-[13px] mt-1">Apply for your first loan to get started.</p>
+                      <div className="p-16 text-center flex flex-col items-center">
+                        <div className="w-20 h-20 bg-[#f1f4f6] rounded-2xl flex items-center justify-center mb-5 border border-[#c4c7ca]/50">
+                          <Landmark className="w-10 h-10 text-[#74777b]" />
+                        </div>
+                        <p className="text-[#0F171C] font-extrabold text-[17px]">No loan applications yet</p>
+                        <p className="text-[#74777b] text-[13px] mt-1.5 max-w-xs">Apply for your first loan to get started with Nexus Finance.</p>
                       </div>
                     );
                     const itemsPerPage = 5;
@@ -522,7 +549,7 @@ export default function App() {
                 </div>
               </div>
             ) : activeMenu === 'wallets' ? (
-              <div className="animate-in fade-in duration-200">
+              <div className="animate-in fade-in slide-in-from-left-4 duration-300">
                 <h2 className="text-[28px] font-extrabold text-[#0f171c] mb-6">Wallets</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-white border border-[#c4c7ca] rounded-2xl p-8">
@@ -538,14 +565,16 @@ export default function App() {
                 </div>
               </div>
             ) : activeMenu === 'transactions' ? (
-              <div className="animate-in fade-in duration-200">
+              <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                 <h2 className="text-[28px] font-extrabold text-[#0f171c] mb-6">History Logs</h2>
                 <div className="bg-white border border-[#c4c7ca] rounded-2xl overflow-hidden">
                   {transactions.length === 0 ? (
-                    <div className="p-16 text-center">
-                      <History className="w-12 h-12 text-[#c4c7ca] mx-auto mb-4" />
-                      <p className="text-[#44474a] font-semibold text-[15px]">No transactions yet</p>
-                      <p className="text-[#74777b] text-[13px] mt-1">Your financial activity will appear here.</p>
+                    <div className="p-16 text-center flex flex-col items-center">
+                      <div className="w-20 h-20 bg-[#f1f4f6] rounded-2xl flex items-center justify-center mb-5 border border-[#c4c7ca]/50">
+                        <History className="w-10 h-10 text-[#74777b]" />
+                      </div>
+                      <p className="text-[#0F171C] font-extrabold text-[17px]">No transactions yet</p>
+                      <p className="text-[#74777b] text-[13px] mt-1.5 max-w-xs">Your financial activity will appear here once you make a transaction.</p>
                     </div>
                   ) : (() => {
                     const itemsPerPage = 10;
@@ -589,9 +618,9 @@ export default function App() {
                 view="dashboard"
               />
             ) : activeMenu === 'users' ? (
-              <UsersView />
+              <div className="animate-in fade-in slide-in-from-left-4 duration-300"><UsersView /></div>
             ) : activeMenu === 'audit' ? (
-              <AuditLogView />
+              <div className="animate-in fade-in slide-in-from-right-4 duration-300"><AuditLogView /></div>
             ) : activeMenu === 'settings' ? (
               <SuperAdminDashboard
                 config={config}
@@ -603,11 +632,11 @@ export default function App() {
           )}
 
           {activeMenu === 'profile' && (
-            <ProfilePage token={token} />
+            <div className="animate-in fade-in slide-in-from-left-4 duration-300"><ProfilePage token={token} /></div>
           )}
 
           {activeMenu === 'support' && (
-            <SupportView />
+            <div className="animate-in fade-in slide-in-from-right-4 duration-300"><SupportView /></div>
           )}
         </main>
       </div>
@@ -681,10 +710,10 @@ function SupportView() {
         <div className="bg-white border border-[#c4c7ca] rounded-2xl p-6 space-y-4">
           <h3 className="text-[15px] font-bold text-[#0F171C] uppercase tracking-wider">Send a Message</h3>
           <form onSubmit={handleSubmit} className="space-y-3">
-            <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Your Name" required className="w-full border border-[#c4c7ca] rounded-lg px-4 py-3 text-[14px] focus:outline-none focus:border-[#5CF2D0]" />
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Your Email" required className="w-full border border-[#c4c7ca] rounded-lg px-4 py-3 text-[14px] focus:outline-none focus:border-[#5CF2D0]" />
-            <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Message" rows={4} required className="w-full border border-[#c4c7ca] rounded-lg px-4 py-3 text-[14px] focus:outline-none focus:border-[#5CF2D0] resize-none" />
-            <button type="submit" className="bg-[#5CF2D0] hover:bg-[#41ddbc] text-[#0F171C] font-bold text-[14px] px-6 py-3 rounded-lg transition cursor-pointer">
+            <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Your Name" required className="w-full border border-[#c4c7ca] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all" />
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Your Email" required className="w-full border border-[#c4c7ca] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all" />
+            <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Message" rows={4} required className="w-full border border-[#c4c7ca] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all resize-none" />
+            <button type="submit" className="bg-[#5CF2D0] hover:bg-[#41ddbc] text-[#0F171C] font-bold text-[14px] px-6 py-3 rounded-xl transition cursor-pointer">
               {sent ? 'Message Sent!' : 'Send Message'}
             </button>
           </form>
@@ -746,7 +775,7 @@ function UsersView() {
 
   useEffect(() => { fetchUsers(); }, []);
 
-  if (loading) return <div className="p-12 text-center text-[#44474a] font-medium">Loading users...</div>;
+  if (loading) return <div className="animate-in fade-in duration-200"><SkeletonTable rows={6} /></div>;
 
   const totalPages = Math.ceil(users.length / itemsPerPage) || 1;
   const paginatedUsers = users.slice((userPage - 1) * itemsPerPage, userPage * itemsPerPage);
@@ -776,10 +805,12 @@ function UsersView() {
 
       <div className="bg-white border border-[#c4c7ca] rounded-2xl overflow-hidden">
         {users.length === 0 ? (
-          <div className="p-16 text-center">
-            <Users className="w-12 h-12 text-[#c4c7ca] mx-auto mb-4" />
-            <p className="text-[#44474a] font-semibold text-[15px]">No users registered</p>
-            <p className="text-[#74777b] text-[13px] mt-1">Users will appear here once they sign up.</p>
+          <div className="p-16 text-center flex flex-col items-center">
+            <div className="w-20 h-20 bg-[#f1f4f6] rounded-2xl flex items-center justify-center mb-5 border border-[#c4c7ca]/50">
+              <Users className="w-10 h-10 text-[#74777b]" />
+            </div>
+            <p className="text-[#0F171C] font-extrabold text-[17px]">No users registered</p>
+            <p className="text-[#74777b] text-[13px] mt-1.5 max-w-xs">Users will appear here once they sign up through the registration page.</p>
           </div>
         ) : (
         <>

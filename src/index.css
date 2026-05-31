@@ -74,3 +74,51 @@ input:focus, select:focus, textarea:focus, button:focus-visible {
   outline: 2px solid rgba(92, 242, 208, 0.5);
   outline-offset: 2px;
 }
+
+/* Dark mode foundations */
+html.dark {
+  --bg-primary: #0a0e12;
+  --bg-secondary: #11181c;
+  --bg-card: #1a2228;
+  --border-color: #2a353d;
+  --text-primary: #e8edf0;
+  --text-secondary: #9aa8b3;
+}
+
+html.dark body {
+  background-color: var(--bg-primary);
+  background-image: none;
+}
+
+html.dark .bg-white {
+  background-color: var(--bg-card) !important;
+}
+
+html.dark .border-\[\#c4c7ca\] {
+  border-color: var(--border-color) !important;
+}
+
+html.dark .text-\[\#0f171c\],
+html.dark .text-\[\#0F171C\],
+html.dark .text-\[\#181c1e\] {
+  color: var(--text-primary) !important;
+}
+
+html.dark .text-\[\#44474a\],
+html.dark .text-\[\#74777b\] {
+  color: var(--text-secondary) !important;
+}
+
+html.dark .bg-\[\#f1f4f6\] {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* Smooth transitions for dark mode toggle */
+html.dark body {
+  transition: background-color 0.3s ease;
+}
+html.dark .bg-white,
+html.dark .border-\[\#c4c7ca\],
+html.dark .bg-\[\#f1f4f6\] {
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
