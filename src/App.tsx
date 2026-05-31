@@ -115,6 +115,9 @@ export default function App() {
     localStorage.setItem('nexus_token', newToken);
     setToken(newToken);
     setIsLoggedIn(true);
+    const role = (() => { try { return JSON.parse(atob(newToken.split('.')[1])).role; } catch { return 'customer'; } })();
+    if (role === 'customer') handleSetPortal('customer');
+    else if (role === 'loan-officer') handleSetPortal('loan-officer');
   };
 
   const handleLogout = () => {
@@ -133,6 +136,10 @@ export default function App() {
   };
 
   const handleSetPortal = (portal: PortalType) => {
+    if (!portalUser) return;
+    if (portal === 'super-admin' && portalUser.role !== 'super-admin') return;
+    if (portal === 'loan-officer' && portalUser.role !== 'loan-officer' && portalUser.role !== 'super-admin') return;
+    if (portal === 'portal-selection' && portalUser.role !== 'super-admin') return;
     setCurrentPortal(portal);
     saveToStorage('nexus_portal', portal);
     if (portal === 'loan-officer') setActiveMenu('dashboard');
@@ -275,7 +282,7 @@ export default function App() {
       {!isLoggedIn ? (
         <AuthPage onLoginSuccess={handleLoginSuccess} />
       ) : currentPortal === 'portal-selection' ? (
-        <PortalSelection onSelectPortal={handleSetPortal} />
+        <PortalSelection onSelectPortal={handleSetPortal} userRole={portalUser?.role || 'customer'} />
       ) : (<>
       <Sidebar
         currentPortal={currentPortal}

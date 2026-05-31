@@ -5,12 +5,11 @@ import Logo from './Logo';
 
 interface PortalSelectionProps {
   onSelectPortal: (portal: PortalType) => void;
+  userRole: string;
 }
 
-export default function PortalSelection({ onSelectPortal }: PortalSelectionProps) {
-  const [selected, setSelected] = useState<PortalType>('customer');
-
-  const options = [
+export default function PortalSelection({ onSelectPortal, userRole }: PortalSelectionProps) {
+  const allOptions = [
     {
       id: 'customer' as PortalType,
       title: 'CUSTOMER',
@@ -33,6 +32,14 @@ export default function PortalSelection({ onSelectPortal }: PortalSelectionProps
       color: 'text-purple-500 bg-purple-500/10',
     },
   ];
+
+  const options = allOptions.filter(o => {
+    if (userRole === 'super-admin') return true;
+    if (userRole === 'loan-officer') return o.id === 'loan-officer';
+    return o.id === 'customer';
+  });
+
+  const [selected, setSelected] = useState<PortalType>(options[0]?.id || 'customer');
 
   const handleContinue = () => {
     onSelectPortal(selected);
