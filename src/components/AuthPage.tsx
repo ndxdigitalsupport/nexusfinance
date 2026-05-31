@@ -210,7 +210,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 {/* Title block */}
                 <div className="text-center mb-8">
                   <h2 className="text-[36px] font-extrabold tracking-tight text-[#0e171c]">Login</h2>
-                  <p className="text-[14px] text-slate-500 font-medium mt-1 leading-none">welcome to nexus finanace</p>
+                  <p className="text-[14px] text-slate-500 font-medium mt-1 leading-none">welcome to nexus finance</p>
                 </div>
 
                 {/* Form fields */}
@@ -221,7 +221,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                       placeholder="Email / Username"
-                      className="w-full rounded-full bg-white border border-slate-200/90 px-6 py-3.5 text-[14px] text-slate-800 placeholder-slate-400/90 focus:outline-none focus:border-[#00e1b5]/80 focus:ring-2 focus:ring-[#00e1b5]/20 font-medium transition-all"
+                      className="w-full rounded-2xl bg-white border border-slate-200/90 px-6 py-3.5 text-[14px] text-slate-800 placeholder-slate-400/90 focus:outline-none focus:border-[#5CF2D0]/80 focus:ring-2 focus:ring-[#5CF2D0]/20 font-medium transition-all"
                       required
                     />
                   </div>
@@ -232,7 +232,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       placeholder="Password"
-                      className="w-full rounded-full bg-white border border-slate-200/90 px-6 py-3.5 text-[14px] text-slate-800 placeholder-slate-400/90 focus:outline-none focus:border-[#00e1b5]/80 focus:ring-2 focus:ring-[#00e1b5]/20 font-mono transition-all"
+                      className="w-full rounded-2xl bg-white border border-slate-200/90 px-6 py-3.5 text-[14px] text-slate-800 placeholder-slate-400/90 focus:outline-none focus:border-[#5CF2D0]/80 focus:ring-2 focus:ring-[#5CF2D0]/20 font-mono transition-all"
                       required
                     />
                   </div>
@@ -244,7 +244,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         type="checkbox"
                         checked={rememberMe}
                         onChange={(e) => setRememberMe(e.target.checked)}
-                        className="w-4.5 h-4.5 rounded text-[#00e1b5] border-slate-300 focus:ring-[#00e1b5]"
+                        className="w-4.5 h-4.5 rounded text-[#5CF2D0] border-slate-300 focus:ring-[#5CF2D0]"
                       />
                       <span>Remember me</span>
                     </label>
@@ -258,7 +258,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     <button
                       type="submit"
                       disabled={loginLoading}
-                      className="w-full bg-[#00e1b5] hover:bg-[#00f2c4] text-[#0e171c] font-black text-[15.5px] tracking-wide py-3.5 px-6 rounded-full flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-teal-400/20 active:scale-98 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                      className="w-full bg-[#5CF2D0] hover:bg-[#6ff5da] text-[#0e171c] font-black text-[15.5px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-teal-400/20 active:scale-98 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                     >
                       {loginLoading ? (
                         <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> SIGNING IN...</span>
@@ -291,7 +291,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 <button
                   type="button"
                   onClick={() => window.location.href = 'http://localhost:3001/api/auth/google'}
-                  className="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-[14px] py-3 px-6 rounded-full flex items-center justify-center gap-2.5 transition active:scale-98 shadow-xs cursor-pointer"
+                  className="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-[14px] py-3 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-98 shadow-xs cursor-pointer"
                 >
                   <svg className="w-4 h-4 mr-0.5" viewBox="0 0 24 24">
                     <path
@@ -327,7 +327,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               >
                 {/* Perspective Grid Floor */}
                 <g opacity="0.3">
-                  <path d="M 100,500 L 400,200 L 700,500 M 400,200 L 400,580" stroke="#00e1b5" strokeWidth="1.5" strokeDasharray="5,5" />
+                  <path d="M 100,500 L 400,200 L 700,500 M 400,200 L 400,580" stroke="#5CF2D0" strokeWidth="1.5" strokeDasharray="5,5" />
                   <path d="M 200,400 L 600,400 M 250,450 L 550,450" stroke="#00bfa5" strokeWidth="1" />
                 </g>
 
@@ -344,29 +344,29 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   <g transform="translate(176, 84)">
                     {/* Floating top bar */}
                     <rect x="10" y="10" width="160" height="28" rx="8" fill="white" fillOpacity="0.15" />
-                    <circle cx="28" cy="24" r="6" fill="#00e1b5" />
+                    <circle cx="28" cy="24" r="6" fill="#5CF2D0" />
                     <rect x="42" y="20" width="80" height="8" rx="4" fill="white" fillOpacity="0.3" />
 
                     {/* Balance box card */}
                     <rect x="10" y="50" width="160" height="74" rx="16" fill="white" fillOpacity="0.25" stroke="white" strokeWidth="1.5" className="backdrop-blur-md" />
                     <rect x="24" y="66" width="50" height="8" rx="4" fill="white" fillOpacity="0.4" />
-                    <rect x="24" y="82" width="110" height="18" rx="6" fill="#00e1b5" />
+                    <rect x="24" y="82" width="110" height="18" rx="6" fill="#5CF2D0" />
                     {/* Tiny stats graph symbol */}
                     <path d="M 24,110 L 50,102 L 76,108 L 102,96 L 128,104" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
 
                     {/* Chart columns inside phone screen */}
                     <g transform="translate(10, 140)">
                       <rect x="0" y="0" width="160" height="96" rx="16" fill="white" fillOpacity="0.1" />
-                      <rect x="16" y="70" width="16" height="14" rx="3" fill="#00e1b5" />
+                      <rect x="16" y="70" width="16" height="14" rx="3" fill="#5CF2D0" />
                       <rect x="42" y="50" width="16" height="34" rx="3" fill="white" fillOpacity="0.6" />
                       <rect x="68" y="30" width="16" height="54" rx="3" fill="#00b6ff" />
-                      <rect x="94" y="44" width="16" height="40" rx="3" fill="#00e1b5" />
+                      <rect x="94" y="44" width="16" height="40" rx="3" fill="#5CF2D0" />
                       <rect x="120" y="15" width="16" height="69" rx="3" fill="white" />
                     </g>
 
                     {/* Mini button actions */}
                     <rect x="10" y="250" width="42" height="42" rx="12" fill="white" fillOpacity="0.4" />
-                    <rect x="68" y="250" width="42" height="42" rx="12" fill="#00e1b5" />
+                    <rect x="68" y="250" width="42" height="42" rx="12" fill="#5CF2D0" />
                     <rect x="126" y="250" width="42" height="42" rx="12" fill="white" fillOpacity="0.4" />
                   </g>
                 </g>
@@ -389,7 +389,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   {/* Columns stacked in 3D perspective */}
                   <g transform="translate(20, 80)">
                     {/* Prism 1 */}
-                    <path d="M 20,40 L 40,30 L 40,0 L 20,10 Z M 40,30 L 60,20 L 60,-10 L 40,0 Z" fill="#00e1b5" />
+                    <path d="M 20,40 L 40,30 L 40,0 L 20,10 Z M 40,30 L 60,20 L 60,-10 L 40,0 Z" fill="#5CF2D0" />
                     <polygon points="20,10 40,0 60,-10 40,-20" fill="#4effdf" />
                     {/* Shadow prism */}
                     <path d="M 20,40 L 40,30 L 60,20" stroke="white" opacity="0.4" />
@@ -403,14 +403,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                   <g transform="translate(120, 20)">
                     {/* Prism 3 */}
-                    <path d="M 20,35 L 40,25 L 40,-5 L 20,5 Z M 40,25 L 60,15 L 60,-15 L 40,-5 Z" fill="#00e1b5" />
+                    <path d="M 20,35 L 40,25 L 40,-5 L 20,5 Z M 40,25 L 60,15 L 60,-15 L 40,-5 Z" fill="#5CF2D0" />
                     <polygon points="20,5 40,-5 60,-15 40,-25" fill="#4effdf" />
                   </g>
                 </g>
 
                 {/* Floating Micro elements */}
                 <g transform="translate(160, 240)">
-                  <polygon points="10,20 30,10 40,25 20,35" fill="#00e1b5" opacity="0.4" />
+                  <polygon points="10,20 30,10 40,25 20,35" fill="#5CF2D0" opacity="0.4" />
                 </g>
                 <g transform="translate(490, 100)">
                   <polygon points="0,40 40,20 60,50 20,70" fill="#00b6ff" opacity="0.3" />
@@ -430,7 +430,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     <line x1="-25" y1="28" x2="5" y2="28" stroke="#1e293b" strokeWidth="1.5" />
                   </g>
                   {/* Interacting visual lines */}
-                  <path d="M -10,100 C -40,110 -60,90 -90,120" stroke="#00e1b5" strokeWidth="2" strokeDasharray="4,4" />
+                  <path d="M -10,100 C -40,110 -60,90 -90,120" stroke="#5CF2D0" strokeWidth="2" strokeDasharray="4,4" />
                 </g>
 
                 <defs>
@@ -439,7 +439,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     <stop offset="100%" stopColor="#1e293b" />
                   </linearGradient>
                   <linearGradient id="chart-grad-green" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#00e1b5" />
+                    <stop offset="0%" stopColor="#5CF2D0" />
                     <stop offset="100%" stopColor="#004d40" />
                   </linearGradient>
                 </defs>
@@ -505,7 +505,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={registerName}
                       onChange={(e) => setRegisterName(e.target.value)}
                       placeholder="Johnathan Doe"
-                      className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#00e1b5]/20 focus:outline-[#00e1b5]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-medium transition-all"
+                      className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-medium transition-all"
                       required
                     />
                   </div>
@@ -525,7 +525,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={registerEmail}
                       onChange={(e) => setRegisterEmail(e.target.value)}
                       placeholder="j.doe@nexus.finance"
-                      className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#00e1b5]/20 focus:outline-[#00e1b5]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-medium transition-all"
+                      className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-medium transition-all"
                       required
                     />
                   </div>
@@ -545,7 +545,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={registerPassword}
                       onChange={(e) => setRegisterPassword(e.target.value)}
                       placeholder="••••••••••••"
-                      className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#00e1b5]/20 focus:outline-[#00e1b5]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-mono transition-all animate-none"
+                      className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-mono transition-all animate-none"
                       required
                     />
                   </div>
@@ -564,7 +564,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         value={registerConfirmPassword}
                         onChange={(e) => setRegisterConfirmPassword(e.target.value)}
                         placeholder="••••••••••••"
-                        className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#00e1b5]/20 focus:outline-[#00e1b5]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-mono transition-all animate-none"
+                        className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-mono transition-all animate-none"
                         required
                       />
                     </div>
@@ -585,7 +585,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={registerPhone}
                       onChange={(e) => setRegisterPhone(e.target.value)}
                       placeholder="+855 12 345 678"
-                      className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#00e1b5]/20 focus:outline-[#00e1b5]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-medium transition-all"
+                      className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-medium transition-all"
                       required
                     />
                   </div>
@@ -596,7 +596,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   <button
                     type="submit"
                     disabled={registerLoading}
-                    className="w-full bg-[#00e1b5] hover:bg-[#00f2c4] text-[#0e171c] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-98 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-[#5CF2D0] hover:bg-[#6ff5da] text-[#0e171c] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-98 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {registerLoading ? (
                       <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> CREATING...</span>
@@ -686,7 +686,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={digit}
                       onChange={(e) => handleDigitChange(idx, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(idx, e)}
-                      className="w-11 h-11 sm:w-14 sm:h-14 bg-white/90 border border-slate-200/90 rounded-2xl text-center text-[18px] sm:text-[22px] font-sans font-extrabold focus:outline-none focus:border-[#00e1b5] focus:ring-4 focus:ring-[#00e1b5]/10 text-slate-800 transition-all shadow-xs"
+                      className="w-11 h-11 sm:w-14 sm:h-14 bg-white/90 border border-slate-200/90 rounded-2xl text-center text-[18px] sm:text-[22px] font-sans font-extrabold focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all shadow-xs"
                       required
                     />
                   ))}
@@ -696,7 +696,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 <button
                   type="submit"
                   disabled={vSuccess || verifyLoading}
-                  className="w-full bg-[#00e1b5] hover:bg-[#00f2c4] text-[#0e171c] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-[#5CF2D0] hover:bg-[#6ff5da] text-[#0e171c] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {vSuccess ? (
                     <span className="flex items-center gap-2 text-slate-800">
@@ -784,14 +784,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         placeholder="your@email.com"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3.5 bg-white/90 border border-slate-200/90 rounded-2xl text-[14px] font-medium focus:outline-none focus:border-[#00e1b5] focus:ring-4 focus:ring-[#00e1b5]/10 text-slate-800 transition-all"
+                        className="w-full pl-10 pr-4 py-3.5 bg-white/90 border border-slate-200/90 rounded-2xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all"
                         required
                       />
                     </div>
                   </div>
                   <button
                     type="submit"
-                    className="w-full bg-[#00e1b5] hover:bg-[#00f2c4] text-[#0e171c] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
+                    className="w-full bg-[#5CF2D0] hover:bg-[#6ff5da] text-[#0e171c] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
                   >
                     SEND RESET LINK <ArrowRight className="w-5 h-5 stroke-[2.5]" />
                   </button>
@@ -799,7 +799,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               ) : (
                 <button
                   onClick={() => setView('login')}
-                  className="w-full bg-[#00e1b5] hover:bg-[#00f2c4] text-[#0e171c] font-bold py-4 rounded-2xl transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
+                  className="w-full bg-[#5CF2D0] hover:bg-[#6ff5da] text-[#0e171c] font-bold py-4 rounded-2xl transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
                 >
                   BACK TO LOGIN
                 </button>

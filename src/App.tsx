@@ -428,8 +428,8 @@ export default function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#e0e3e5]">
-                        {paginated.map((task, idx) => (
-                          <tr key={task.id} className={`text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f9fa]'}`}>
+                        {paginated.map((task) => (
+                          <tr key={task.id} className="text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors bg-white">
                             <td className="px-6 py-4">{task.title}</td>
                             <td className="px-6 py-4 text-[#44474a]">{task.applicant}</td>
                             <td className="px-6 py-4 text-[#44474a]">{task.regarding}</td>
@@ -498,8 +498,8 @@ export default function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#e0e3e5]">
-                        {paginated.map((app, idx) => (
-                          <tr key={app.id} className={`text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f9fa]'}`}>
+                        {paginated.map((app) => (
+                          <tr key={app.id} className="text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors bg-white">
                             <td className="px-6 py-4">{app.id}</td>
                             <td className="px-6 py-4">${app.amount.toLocaleString()}</td>
                             <td className="px-6 py-4 text-[#44474a]">{app.type}</td>
@@ -561,8 +561,8 @@ export default function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#e0e3e5]">
-                        {paginated.map((tx, idx) => (
-                          <tr key={tx.id} className={`text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f9fa]'}`}>
+                        {paginated.map((tx) => (
+                          <tr key={tx.id} className="text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors bg-white">
                             <td className="px-6 py-4">{tx.title}</td>
                             <td className="px-6 py-4 text-[#44474a]">{tx.date}</td>
                             <td className={`px-6 py-4 font-mono ${tx.amount > 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
@@ -793,8 +793,8 @@ function UsersView() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#e0e3e5]">
-            {paginatedUsers.map((u, idx) => (
-              <tr key={u.id} className={`text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f9fa]'}`}>
+              {paginatedUsers.map((u) => (
+                  <tr key={u.id} className="text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors bg-white">
                 <td className="px-6 py-4">{u.name}</td>
                 <td className="px-6 py-4 text-[#44474a]">{u.email}</td>
                 <td className="px-6 py-4">

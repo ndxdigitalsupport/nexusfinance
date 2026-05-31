@@ -99,7 +99,7 @@ export default function SuperAdminDashboard({
                 step="0.05"
                 value={editingConfig.baseInterestRate}
                 onChange={(e) => setEditingConfig((p) => ({ ...p, baseInterestRate: parseFloat(e.target.value) || 0 }))}
-                className="w-full bg-white border border-[#c4c7ca] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[#5CF2D0]"
+                className="w-full bg-white border border-[#c4c7ca] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all"
               />
             </div>
 
@@ -110,7 +110,7 @@ export default function SuperAdminDashboard({
                 step="500"
                 value={editingConfig.autoApproveLimit}
                 onChange={(e) => setEditingConfig((p) => ({ ...p, autoApproveLimit: parseFloat(e.target.value) || 0 }))}
-                className="w-full bg-white border border-[#c4c7ca] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[#5CF2D0]"
+                className="w-full bg-white border border-[#c4c7ca] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all"
               />
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function SuperAdminDashboard({
                 step="50000"
                 value={editingConfig.maxLoanAmount}
                 onChange={(e) => setEditingConfig((p) => ({ ...p, maxLoanAmount: parseFloat(e.target.value) || 0 }))}
-                className="w-full bg-white border border-[#c4c7ca] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[#5CF2D0]"
+                className="w-full bg-white border border-[#c4c7ca] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all"
               />
             </div>
 
@@ -166,7 +166,7 @@ export default function SuperAdminDashboard({
             <Activity className="w-5 h-5 text-[#006b59]" /> Core Audit Logs Trails
           </h3>
 
-          <div className="divide-y divide-gray-100 space-y-1.5 text-[13.5px]">
+          <div className="divide-y divide-gray-100 space-y-1.5 text-[13.5px] max-h-[320px] overflow-y-auto pr-1">
             {logs.map((log) => (
               <div key={log.id} className="py-3 flex justify-between items-start gap-4">
                 <div>
