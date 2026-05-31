@@ -80,6 +80,24 @@ INSERT INTO nexus_loans (id, "applicantName", "applicantEmail", initials, amount
   ('#772677', 'Demo Customer', 'customer@nexus.com', 'DC', 200, 'Personal', 'Approved', 'Normal', 2, '2026-05-30', 'Emergency expenses', 732, 1000, 12),
   ('#773239', 'Demo Customer', 'customer@nexus.com', 'DC', 5000, 'Personal', 'New', 'Normal', NULL, '2026-05-30', 'Test', 700, 4000, 12);
 
+CREATE TABLE nexus_audit_logs (
+  id SERIAL PRIMARY KEY,
+  action TEXT NOT NULL,
+  details TEXT NOT NULL,
+  "userId" INT REFERENCES nexus_users(id) ON DELETE SET NULL,
+  "userEmail" TEXT NOT NULL,
+  timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE nexus_notifications (
+  id SERIAL PRIMARY KEY,
+  "userId" INT REFERENCES nexus_users(id) ON DELETE CASCADE,
+  text TEXT NOT NULL,
+  time TEXT NOT NULL,
+  unread BOOLEAN NOT NULL DEFAULT true,
+  "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Seed transactions
 INSERT INTO nexus_transactions (id, title, date, amount, type, "userId") VALUES
   ('tx1', 'Repayment', 'Nov 28, 2023', -250, 'Repayment', 1),

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle } from 'lucide-react';
+import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList } from 'lucide-react';
 import AuthPage from './components/AuthPage';
 import Toast, { showToast } from './components/Toast';
 import LoanOfficerDashboard from './components/LoanOfficerDashboard';
@@ -13,6 +13,8 @@ import ApplicationDetailsModal from './components/ApplicationDetailsModal';
 import ApplyLoanModal from './components/ApplyLoanModal';
 import RepayModal from './components/RepayModal';
 import LiveMeetingModal from './components/LiveMeetingModal';
+import Pagination from './components/Pagination';
+import AuditLogView from './components/AuditLogView';
 import { LoanApplication, Task, Transaction, PlatformConfig, PlatformStats, PortalType } from './types';
 import { DEFAULT_CONFIG, DEFAULT_STATS } from './data';
 
@@ -70,6 +72,9 @@ export default function App() {
   const [isRepayOpen, setIsRepayOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isMeetingOpen, setIsMeetingOpen] = useState(false);
+  const [loanPage, setLoanPage] = useState(1);
+  const [txPage, setTxPage] = useState(1);
+  const [taskPage, setTaskPage] = useState(1);
 
   const calcBalance = (txs: Transaction[]) =>
     txs.reduce((sum, t) => sum + t.amount, 0);
@@ -339,7 +344,7 @@ export default function App() {
                   const items = currentPortal === 'loan-officer'
                     ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'tasks', label: 'Compliance Tasks', icon: CheckSquare }]
                     : currentPortal === 'super-admin'
-                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'users', label: 'Users', icon: Users }, { id: 'settings', label: 'Settings', icon: Settings }]
+                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'users', label: 'Users', icon: Users }, { id: 'audit', label: 'Audit Log', icon: ClipboardList }, { id: 'settings', label: 'Settings', icon: Settings }]
                     : [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'loans', label: 'Loans Ledger', icon: Landmark }, { id: 'wallets', label: 'Wallets', icon: Wallet }, { id: 'transactions', label: 'History Logs', icon: History }];
                   return items.map((item) => {
                     const Icon = item.icon;
@@ -402,7 +407,15 @@ export default function App() {
                       <p className="text-[#44474a] font-semibold text-[15px]">No compliance tasks</p>
                       <p className="text-[#74777b] text-[13px] mt-1">Tasks will appear when loans require review.</p>
                     </div>
-                  ) : (
+                  ) : (() => {
+                    const pending = tasks.filter(t => !t.completed);
+                    if (pending.length === 0) return (
+                      <div className="p-12 text-center text-emerald-700 font-bold">All tasks completed.</div>
+                    );
+                    const itemsPerPage = 5;
+                    const totalPages = Math.ceil(pending.length / itemsPerPage) || 1;
+                    const paginated = pending.slice((taskPage - 1) * itemsPerPage, taskPage * itemsPerPage);
+                    return <>
                     <table className="w-full text-left">
                       <thead>
                         <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold sticky top-0">
@@ -415,38 +428,32 @@ export default function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#e0e3e5]">
-                        {tasks.filter(t => !t.completed).length > 0 ? (
-                          tasks.filter(t => !t.completed).map((task, idx) => (
-                            <tr key={task.id} className={`text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f9fa]'}`}>
-                              <td className="px-6 py-4">{task.title}</td>
-                              <td className="px-6 py-4 text-[#44474a]">{task.applicant}</td>
-                              <td className="px-6 py-4 text-[#44474a]">{task.regarding}</td>
-                              <td className="px-6 py-4 text-[#44474a]">{task.time}</td>
-                              <td className="px-6 py-4">
-                                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700">Pending</span>
-                              </td>
-                              <td className="px-6 py-4">
-                                {task.title.toLowerCase().includes('verification') && (
-                                  <button
-                                    onClick={() => handleJoinMeeting(task)}
-                                    className="bg-[#0F171C] hover:bg-slate-800 text-white text-[12px] font-bold px-4 py-2 rounded-lg transition cursor-pointer"
-                                  >
-                                    Join Meeting
-                                  </button>
-                                )}
-                              </td>
-                            </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td colSpan={6} className="p-12 text-center text-emerald-700 font-bold">
-                              All tasks completed.
+                        {paginated.map((task, idx) => (
+                          <tr key={task.id} className={`text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f9fa]'}`}>
+                            <td className="px-6 py-4">{task.title}</td>
+                            <td className="px-6 py-4 text-[#44474a]">{task.applicant}</td>
+                            <td className="px-6 py-4 text-[#44474a]">{task.regarding}</td>
+                            <td className="px-6 py-4 text-[#44474a]">{task.time}</td>
+                            <td className="px-6 py-4">
+                              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700">Pending</span>
+                            </td>
+                            <td className="px-6 py-4">
+                              {task.title.toLowerCase().includes('verification') && (
+                                <button
+                                  onClick={() => handleJoinMeeting(task)}
+                                  className="bg-[#0F171C] hover:bg-slate-800 text-white text-[12px] font-bold px-4 py-2 rounded-lg transition cursor-pointer"
+                                >
+                                  Join Meeting
+                                </button>
+                              )}
                             </td>
                           </tr>
-                        )}
+                        ))}
                       </tbody>
                     </table>
-                  )}
+                    <Pagination currentPage={taskPage} totalPages={totalPages} totalItems={pending.length} itemsPerPage={itemsPerPage} onPageChange={setTaskPage} />
+                    </>;
+                  })()}
                 </div>
               </div>
             ) : null
@@ -467,13 +474,19 @@ export default function App() {
               <div className="animate-in fade-in duration-200">
                 <h2 className="text-[28px] font-extrabold text-[#0f171c] mb-6">Loans Ledger</h2>
                 <div className="bg-white border border-[#c4c7ca] rounded-2xl overflow-hidden">
-                  {applications.filter(a => a.applicantEmail === (portalUser?.email || '')).length === 0 ? (
-                    <div className="p-16 text-center">
-                      <Landmark className="w-12 h-12 text-[#c4c7ca] mx-auto mb-4" />
-                      <p className="text-[#44474a] font-semibold text-[15px]">No loan applications yet</p>
-                      <p className="text-[#74777b] text-[13px] mt-1">Apply for your first loan to get started.</p>
-                    </div>
-                  ) : (
+                  {(() => {
+                    const filtered = applications.filter(a => a.applicantEmail === (portalUser?.email || ''));
+                    if (filtered.length === 0) return (
+                      <div className="p-16 text-center">
+                        <Landmark className="w-12 h-12 text-[#c4c7ca] mx-auto mb-4" />
+                        <p className="text-[#44474a] font-semibold text-[15px]">No loan applications yet</p>
+                        <p className="text-[#74777b] text-[13px] mt-1">Apply for your first loan to get started.</p>
+                      </div>
+                    );
+                    const itemsPerPage = 5;
+                    const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
+                    const paginated = filtered.slice((loanPage - 1) * itemsPerPage, loanPage * itemsPerPage);
+                    return <>
                     <table className="w-full text-left">
                       <thead>
                         <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold sticky top-0">
@@ -485,7 +498,7 @@ export default function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#e0e3e5]">
-                        {applications.filter(a => a.applicantEmail === (portalUser?.email || '')).map((app, idx) => (
+                        {paginated.map((app, idx) => (
                           <tr key={app.id} className={`text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f9fa]'}`}>
                             <td className="px-6 py-4">{app.id}</td>
                             <td className="px-6 py-4">${app.amount.toLocaleString()}</td>
@@ -503,7 +516,9 @@ export default function App() {
                         ))}
                       </tbody>
                     </table>
-                  )}
+                    <Pagination currentPage={loanPage} totalPages={totalPages} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setLoanPage} />
+                    </>;
+                  })()}
                 </div>
               </div>
             ) : activeMenu === 'wallets' ? (
@@ -532,7 +547,11 @@ export default function App() {
                       <p className="text-[#44474a] font-semibold text-[15px]">No transactions yet</p>
                       <p className="text-[#74777b] text-[13px] mt-1">Your financial activity will appear here.</p>
                     </div>
-                  ) : (
+                  ) : (() => {
+                    const itemsPerPage = 10;
+                    const totalPages = Math.ceil(transactions.length / itemsPerPage) || 1;
+                    const paginated = transactions.slice((txPage - 1) * itemsPerPage, txPage * itemsPerPage);
+                    return <>
                     <table className="w-full text-left">
                       <thead>
                         <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold sticky top-0">
@@ -542,7 +561,7 @@ export default function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#e0e3e5]">
-                        {transactions.map((tx, idx) => (
+                        {paginated.map((tx, idx) => (
                           <tr key={tx.id} className={`text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f9fa]'}`}>
                             <td className="px-6 py-4">{tx.title}</td>
                             <td className="px-6 py-4 text-[#44474a]">{tx.date}</td>
@@ -553,7 +572,9 @@ export default function App() {
                         ))}
                       </tbody>
                     </table>
-                  )}
+                    <Pagination currentPage={txPage} totalPages={totalPages} totalItems={transactions.length} itemsPerPage={itemsPerPage} onPageChange={setTxPage} />
+                    </>;
+                  })()}
                 </div>
               </div>
             ) : null
@@ -569,6 +590,8 @@ export default function App() {
               />
             ) : activeMenu === 'users' ? (
               <UsersView />
+            ) : activeMenu === 'audit' ? (
+              <AuditLogView />
             ) : activeMenu === 'settings' ? (
               <SuperAdminDashboard
                 config={config}
@@ -674,6 +697,13 @@ function SupportView() {
 function UsersView() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [userPage, setUserPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchUsers = async () => {
     try {
@@ -695,13 +725,55 @@ function UsersView() {
     }
   };
 
+  const handleCreateOfficer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName || !newEmail || !newPassword) return showToast('All fields required', 'error');
+    setCreating(true);
+    try {
+      const reg = await apiFetch('/auth/register', { method: 'POST', body: JSON.stringify({ name: newName, email: newEmail, password: newPassword }) });
+      const newUserId = reg.user.id;
+      await apiFetch(`/users/${newUserId}/role`, { method: 'PATCH', body: JSON.stringify({ role: 'loan-officer' }) });
+      showToast('Loan officer created successfully', 'success');
+      setShowCreate(false);
+      setNewName(''); setNewEmail(''); setNewPassword('');
+      await fetchUsers();
+    } catch (e: any) {
+      showToast(e.message || 'Failed to create officer', 'error');
+    } finally {
+      setCreating(false);
+    }
+  };
+
   useEffect(() => { fetchUsers(); }, []);
 
   if (loading) return <div className="p-12 text-center text-[#44474a] font-medium">Loading users...</div>;
 
+  const totalPages = Math.ceil(users.length / itemsPerPage) || 1;
+  const paginatedUsers = users.slice((userPage - 1) * itemsPerPage, userPage * itemsPerPage);
+
   return (
     <div className="animate-in fade-in duration-200">
-      <h2 className="text-[28px] font-extrabold text-[#0f171c] mb-6">User Management</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-[28px] font-extrabold text-[#0f171c]">User Management</h2>
+        <button onClick={() => setShowCreate(!showCreate)} className="flex items-center gap-2 bg-[#0F171C] hover:bg-slate-800 text-white text-[13px] font-bold px-4 py-2.5 rounded-lg transition cursor-pointer">
+          <PlusCircle className="w-4 h-4" /> {showCreate ? 'Cancel' : 'Create Loan Officer'}
+        </button>
+      </div>
+
+      {showCreate && (
+        <form onSubmit={handleCreateOfficer} className="bg-white border border-[#c4c7ca] rounded-2xl p-6 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
+          <h3 className="font-bold text-[#0f171c] mb-4">New Loan Officer</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Full Name" className="border border-[#c4c7ca] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[#5CF2D0]" />
+            <input value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="Email" type="email" className="border border-[#c4c7ca] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[#5CF2D0]" />
+            <input value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Password" type="password" className="border border-[#c4c7ca] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[#5CF2D0]" />
+          </div>
+          <button type="submit" disabled={creating} className="bg-[#5CF2D0] hover:bg-[#41ddbc] text-[#0F171C] font-bold text-[14px] px-6 py-2.5 rounded-lg transition cursor-pointer disabled:opacity-50">
+            {creating ? 'Creating...' : 'Create Officer'}
+          </button>
+        </form>
+      )}
+
       <div className="bg-white border border-[#c4c7ca] rounded-2xl overflow-hidden">
         {users.length === 0 ? (
           <div className="p-16 text-center">
@@ -710,6 +782,7 @@ function UsersView() {
             <p className="text-[#74777b] text-[13px] mt-1">Users will appear here once they sign up.</p>
           </div>
         ) : (
+        <>
         <table className="w-full text-left">
           <thead>
             <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold sticky top-0">
@@ -720,7 +793,7 @@ function UsersView() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#e0e3e5]">
-            {users.map((u, idx) => (
+            {paginatedUsers.map((u, idx) => (
               <tr key={u.id} className={`text-[14px] font-semibold text-[#0f171c] hover:bg-[#f1f4f6]/70 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f9fa]'}`}>
                 <td className="px-6 py-4">{u.name}</td>
                 <td className="px-6 py-4 text-[#44474a]">{u.email}</td>
@@ -747,6 +820,8 @@ function UsersView() {
             ))}
           </tbody>
         </table>
+        <Pagination currentPage={userPage} totalPages={totalPages} totalItems={users.length} itemsPerPage={itemsPerPage} onPageChange={setUserPage} />
+        </>
         )}
       </div>
     </div>

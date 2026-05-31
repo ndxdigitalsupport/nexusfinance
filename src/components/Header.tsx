@@ -2,6 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Search, Bell, Menu, X, User, LogOut, Layers } from 'lucide-react';
 import { PortalType } from '../types';
 
+const API = 'http://localhost:3001/api';
+async function apiFetch(path: string, options?: RequestInit) {
+  const token = localStorage.getItem('nexus_token');
+  const res = await fetch(`${API}${path}`, { ...options, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options?.headers || {}) } });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
 interface HeaderProps {
   currentPortal: PortalType;
   searchTermInvoice: string;
@@ -29,7 +38,7 @@ export default function Header({
   onProfileClick,
   onLogout,
 }: HeaderProps) {
-  const [showNotificationBadge, setShowNotificationBadge] = useState(true);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [connected, setConnected] = useState(false);
@@ -40,16 +49,24 @@ export default function Header({
       .catch(() => setConnected(false));
   }, []);
 
-  const mockNotifications = [
-    { id: 1, text: 'New SME Loan applied by SV (#77281)', time: '5 mins ago', unread: true },
-    { id: 2, text: 'Urgent review required: Nguyen Khanh (#77295)', time: '1 hr ago', unread: true },
-    { id: 3, text: 'Verification meeting scheduled at 14:00 PM', time: '2 hrs ago', unread: false },
-  ];
+  useEffect(() => {
+    if (!localStorage.getItem('nexus_token')) return;
+    apiFetch('/notifications').then(setNotifications).catch(() => {});
+    const interval = setInterval(() => {
+      apiFetch('/notifications').then(setNotifications).catch(() => {});
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const unreadCount = notifications.filter(n => n.unread).length;
+
+  const handleMarkRead = async (id: number) => {
+    await apiFetch(`/notifications/${id}/read`, { method: 'PATCH' }).catch(() => {});
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+  };
 
   const handleNotificationClick = () => {
     setShowNotificationsDropdown(!showNotificationsDropdown);
-    setShowNotificationBadge(false);
-    if (onNotificationsClick) onNotificationsClick();
   };
 
   const roleLabel = userRole === 'super-admin' ? 'Super Admin' : userRole === 'loan-officer' ? 'Loan Officer' : 'Customer';
@@ -101,8 +118,10 @@ export default function Header({
             className="p-2 text-[#44474a] hover:bg-[#f1f4f6] rounded-full transition-colors cursor-pointer relative"
           >
             <Bell className="w-5 h-5" />
-            {showNotificationBadge && (
-              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-white"></span>
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] text-[10px] font-bold bg-red-600 text-white rounded-full flex items-center justify-center px-1 border-2 border-white">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
             )}
           </button>
 
@@ -110,15 +129,23 @@ export default function Header({
             <div className="absolute right-0 mt-2 w-80 bg-white border border-[#c4c7ca] rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
               <div className="px-4 py-2 border-b border-[#e0e3e5] flex justify-between items-center bg-[#f1f4f6] rounded-t-xl">
                 <span className="font-bold text-[14px] text-[#0F171C]">Notifications</span>
-                <span className="text-[11px] text-[#0F171C] bg-[#5CF2D0] font-sans font-bold px-2 py-0.5 rounded-full">New</span>
+                {unreadCount > 0 && <span className="text-[11px] text-[#0F171C] bg-[#5CF2D0] font-bold px-2 py-0.5 rounded-full">{unreadCount} new</span>}
               </div>
               <div className="divide-y divide-[#e0e3e5] max-h-64 overflow-y-auto">
-                {mockNotifications.map((notif) => (
-                  <div key={notif.id} className={`p-3 text-[13px] hover:bg-[#f1f4f6] transition-colors cursor-pointer ${notif.unread ? 'bg-blue-50/50' : ''}`}>
-                    <p className={`text-[#181c1e] ${notif.unread ? 'font-semibold' : ''}`}>{notif.text}</p>
-                    <span className="text-[10px] text-[#74777b] mt-1 block">{notif.time}</span>
-                  </div>
-                ))}
+                {notifications.length === 0 ? (
+                  <div className="p-6 text-center text-[#74777b] text-[13px]">No notifications yet</div>
+                ) : (
+                  notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      onClick={() => { if (notif.unread) handleMarkRead(notif.id); }}
+                      className={`p-3 text-[13px] hover:bg-[#f1f4f6] transition-colors cursor-pointer ${notif.unread ? 'bg-blue-50/50' : ''}`}
+                    >
+                      <p className={`text-[#181c1e] ${notif.unread ? 'font-semibold' : ''}`}>{notif.text}</p>
+                      <span className="text-[10px] text-[#74777b] mt-1 block">{notif.time}</span>
+                    </div>
+                  ))
+                )}
               </div>
               <div className="p-2 text-center text-[12px] bg-[#f1f4f6]/50 border-t border-[#e0e3e5] rounded-b-xl">
                 <button onClick={() => setShowNotificationsDropdown(false)} className="text-gray-600 font-bold hover:underline cursor-pointer">Close</button>

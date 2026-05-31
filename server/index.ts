@@ -70,6 +70,15 @@ passport.use(new GoogleStrategy({
   done(null, newUser);
 }));
 
+function logAudit(action: string, details: string, user: any) {
+  db.from('nexus_audit_logs').insert({ action, details, userId: user.id, userEmail: user.email }).then(null, () => {});
+}
+
+function notifyUser(userId: number, text: string) {
+  const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  db.from('nexus_notifications').insert({ userId, text, time }).then(null, () => {});
+}
+
 function authMiddleware(req: any, res: any, next: any) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -307,6 +316,7 @@ app.patch('/api/loans/:id/approve', authMiddleware, async (req, res) => {
   if (!loan) return res.status(404).json({ error: 'Loan not found.' });
 
   await db.from('nexus_loans').update({ status: 'Approved', assignedTo: req.user.id }).eq('id', req.params.id);
+  logAudit('loan-approved', `Loan ${loan.id} (${loan.type}) for ${loan.applicantName} approved`, req.user);
 
   const { data: applicantUser } = await db.from('nexus_users').select('id').eq('email', loan.applicantEmail).single();
   await db.from('nexus_transactions').insert({
@@ -317,21 +327,26 @@ app.patch('/api/loans/:id/approve', authMiddleware, async (req, res) => {
     type: 'Loan Disbursement',
     userId: applicantUser?.id || 1,
   });
+  if (applicantUser) notifyUser(applicantUser.id, `Your loan ${loan.id} has been approved — $${loan.amount.toLocaleString()} disbursed.`);
 
   res.json({ ...loan, status: 'Approved', assignedTo: req.user.id });
 });
 
 app.patch('/api/loans/:id/reject', authMiddleware, async (req, res) => {
-  const { data: loan } = await db.from('nexus_loans').select('id').eq('id', req.params.id).single();
+  const { data: loan } = await db.from('nexus_loans').select('*').eq('id', req.params.id).single();
   if (!loan) return res.status(404).json({ error: 'Loan not found.' });
   await db.from('nexus_loans').update({ status: 'Rejected' }).eq('id', req.params.id);
+  logAudit('loan-rejected', `Loan ${loan.id} (${loan.type}) for ${loan.applicantName} rejected`, req.user);
+  const { data: applicantUser } = await db.from('nexus_users').select('id').eq('email', loan.applicantEmail).single();
+  if (applicantUser) notifyUser(applicantUser.id, `Your loan ${loan.id} application has been rejected.`);
   res.json({ ...loan, status: 'Rejected' });
 });
 
 app.patch('/api/loans/:id/hold', authMiddleware, async (req, res) => {
-  const { data: loan } = await db.from('nexus_loans').select('id').eq('id', req.params.id).single();
+  const { data: loan } = await db.from('nexus_loans').select('*').eq('id', req.params.id).single();
   if (!loan) return res.status(404).json({ error: 'Loan not found.' });
   await db.from('nexus_loans').update({ status: 'Hold' }).eq('id', req.params.id);
+  logAudit('loan-held', `Loan ${loan.id} (${loan.type}) for ${loan.applicantName} put on hold`, req.user);
   res.json({ ...loan, status: 'Hold' });
 });
 
@@ -408,9 +423,11 @@ app.patch('/api/users/:id/role', authMiddleware, async (req, res) => {
   if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
   const allowedRoles = ['customer', 'loan-officer', 'super-admin'];
   if (!allowedRoles.includes(req.body.role)) return res.status(400).json({ error: 'Invalid role.' });
-  const { data: user } = await db.from('nexus_users').select('id').eq('id', parseInt(req.params.id)).single();
+  const { data: user } = await db.from('nexus_users').select('id, name, email').eq('id', parseInt(req.params.id)).single();
   if (!user) return res.status(404).json({ error: 'User not found.' });
   await db.from('nexus_users').update({ role: req.body.role }).eq('id', user.id);
+  logAudit('role-changed', `${user.name} (${user.email}) role changed to ${req.body.role}`, req.user);
+  notifyUser(user.id, `Your role has been updated to ${req.body.role.replace('-', ' ')}.`);
   res.json({ id: user.id, ...req.body });
 });
 
@@ -423,6 +440,7 @@ app.get('/api/config', authMiddleware, async (req, res) => {
 
 app.patch('/api/config', authMiddleware, async (req, res) => {
   if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
+  logAudit('config-updated', `Platform config updated: ${JSON.stringify(req.body)}`, req.user);
   await db.from('nexus_config').update(req.body).eq('id', 1);
   const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
   res.json(config);
@@ -442,6 +460,26 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
   const interestEarned = outstandingBalanceValue * 0.054;
 
   res.json({ totalVolume, activeCustomers: activeCustomers || 0, outstandingBalanceValue, interestEarned });
+});
+
+// ── NOTIFICATION ROUTES ────────────────────────────────────
+
+app.get('/api/notifications', authMiddleware, async (req, res) => {
+  const { data: notifs } = await db.from('nexus_notifications').select('*').eq('userId', req.user.id).order('id', { ascending: false }).limit(20);
+  res.json(notifs || []);
+});
+
+app.patch('/api/notifications/:id/read', authMiddleware, async (req, res) => {
+  await db.from('nexus_notifications').update({ unread: false }).eq('id', parseInt(req.params.id)).eq('userId', req.user.id);
+  res.json({ ok: true });
+});
+
+// ── AUDIT LOG ROUTES (Super Admin) ─────────────────────────
+
+app.get('/api/audit/logs', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
+  const { data: logs } = await db.from('nexus_audit_logs').select('*').order('id', { ascending: false }).limit(100);
+  res.json(logs || []);
 });
 
 // ── SUPPORT ROUTES ─────────────────────────────────────────
