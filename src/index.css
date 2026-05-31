@@ -218,6 +218,45 @@ html.dark .app-content .divide-gray-100 > * {
   border-color: var(--border-color) !important;
 }
 
+/* Chart / misc element dark mode overrides */
+html.dark .app-content .border-gray-100 {
+  border-color: var(--border-color) !important;
+}
+html.dark .app-content .border-slate-50,
+html.dark .app-content .border-slate-100 {
+  border-color: var(--border-color) !important;
+}
+html.dark .app-content .text-gray-700 {
+  color: var(--text-primary) !important;
+}
+html.dark .app-content .text-emerald-700,
+html.dark .app-content .text-emerald-600 {
+  color: #34d399 !important;
+}
+html.dark .app-content .hover\:bg-\[\#f1f4f6\]:hover {
+  background-color: var(--bg-secondary) !important;
+}
+html.dark .app-content .hover\:border-\[\#0F171C\]:hover {
+  border-color: var(--border-color) !important;
+}
+html.dark .app-content .bg-\[\#62f7d5\]\/30 {
+  background-color: rgba(55, 180, 150, 0.2) !important;
+}
+html.dark .app-content .text-\[\#005142\] {
+  color: #34d399 !important;
+}
+
+/* Chart bar gradient dark mode overrides */
+html.dark .app-content [class*="from-[#dbe4eb]"] {
+  --tw-gradient-from: #2a353d !important;
+}
+html.dark .app-content [class*="to-[#bfc8ce]"] {
+  --tw-gradient-to: #1a2a34 !important;
+}
+html.dark .app-content [class*="from-[#a0adb5]"] {
+  --tw-gradient-from: #3a4a55 !important;
+}
+
 /* Smooth transitions for dark mode toggle */
 html.dark body {
   transition: background-color 0.3s ease;
