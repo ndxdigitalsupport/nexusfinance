@@ -175,7 +175,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   }, [view, verifyVia]);
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-slate-800 font-sans relative overflow-x-hidden">
+    <div className="min-h-screen flex flex-col justify-between bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-slate-800 font-sans relative overflow-x-hidden auth-page">
       
       {/* Background soft glowing decorative orbs */}
       <div className="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full bg-[#c0f5ea]/40 blur-[120px] pointer-events-none z-0" />

@@ -127,6 +127,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    document.documentElement.classList.remove('dark');
     setIsLoggedIn(false);
     setToken(null);
     ['nexus_token', 'nexus_portal', 'nexus_active_menu'].forEach(k => localStorage.removeItem(k));
@@ -298,7 +299,7 @@ export default function App() {
         onLogout={handleLogout}
       />
 
-      <div className="md:pl-64">
+      <div className="md:pl-64 app-content">
         <Header
           currentPortal={currentPortal}
           searchTermInvoice={searchTermInvoice}
