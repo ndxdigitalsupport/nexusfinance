@@ -1,8 +1,9 @@
 import { Client, Account, ID } from 'appwrite';
 
+const cfg = (window as any).__APPWRITE__ || {};
 const client = new Client()
-  .setEndpoint(import.meta.env.VITE_APPWRITE_ENDPOINT || '')
-  .setProject(import.meta.env.VITE_APPWRITE_PROJECT_ID || '');
+  .setEndpoint(cfg.endpoint || 'https://sgp.cloud.appwrite.io/v1')
+  .setProject(cfg.projectId || '6a1d2f3b002adfa34f7a');
 
 export const account = new Account(client);
 export { ID };

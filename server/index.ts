@@ -366,12 +366,24 @@ app.get('/api/health-error', (req, res) => {
 // ── PRODUCTION: serve frontend build ─────────────────────────
 
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(process.cwd(), 'dist')));
+  const appwriteConfig = JSON.stringify({
+    endpoint: process.env.APPWRITE_ENDPOINT,
+    projectId: process.env.APPWRITE_PROJECT_ID,
+  });
+  const distDir = path.join(process.cwd(), 'dist');
+  app.use(express.static(distDir));
   app.get('*', (req, res) => {
     if (req.path.startsWith('/api')) {
       res.status(404).json({ error: `Route ${req.method} ${req.path} not found.` });
     } else {
-      res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
+      const indexPath = path.join(distDir, 'index.html');
+      if (require('fs').existsSync(indexPath)) {
+        let html = require('fs').readFileSync(indexPath, 'utf-8');
+        html = html.replace('</head>', `<script>window.__APPWRITE__=${appwriteConfig}</script></head>`);
+        res.type('html').send(html);
+      } else {
+        res.status(404).send('Not found');
+      }
     }
   });
 }
