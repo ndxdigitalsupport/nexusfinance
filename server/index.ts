@@ -354,6 +354,15 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 
+const errors: any[] = [];
+app.post('/api/health-error', (req, res) => {
+  errors.push({ ...req.body, time: Date.now() });
+  res.json({ ok: true });
+});
+app.get('/api/health-error', (req, res) => {
+  res.json(errors.slice(-20));
+});
+
 // ── PRODUCTION: serve frontend build ─────────────────────────
 
 if (process.env.NODE_ENV === 'production') {
