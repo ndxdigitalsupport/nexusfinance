@@ -183,6 +183,7 @@ app.post('/api/auth/send-otp', otpLimiter, async (req, res) => {
         </div>`
       ).catch(e => console.error('✉️ Email send error:', e));
     }, 0);
+    return;
   }
 
   if (!phone) return res.status(400).json({ error: 'Phone number is required.' });
