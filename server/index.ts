@@ -496,12 +496,6 @@ app.post('/api/support/message', authMiddleware, (req, res) => {
   res.json({ message: 'Message sent successfully. We will get back to you shortly.' });
 });
 
-// ── 404 catch-all ────────────────────────────────────────────
-
-app.use((req, res) => {
-  res.status(404).json({ error: `Route ${req.method} ${req.path} not found.` });
-});
-
 // ── Global error handler ────────────────────────────────────
 
 app.use((err: any, req: any, res: any, next: any) => {
