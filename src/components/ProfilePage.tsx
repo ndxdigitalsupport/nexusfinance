@@ -3,7 +3,7 @@ import { User, Mail, Phone, Lock, Save, RefreshCw, CheckCircle2 } from 'lucide-r
 import { showToast } from './Toast';
 import { SkeletonCard } from './Skeleton';
 
-const API = 'http://localhost:3001/api';
+import { API } from '../api';
 
 interface ProfilePageProps {
   token: string;

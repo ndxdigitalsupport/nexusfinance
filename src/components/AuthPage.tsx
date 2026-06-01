@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { showToast } from './Toast';
 
-const API = 'http://localhost:3001/api';
+import { API } from '../api';
 
 interface AuthPageProps {
   onLoginSuccess: (token: string) => void;
@@ -290,7 +290,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 {/* Google Sign In — redirects to real Google OAuth */}
                 <button
                   type="button"
-                  onClick={() => window.location.href = 'http://localhost:3001/api/auth/google'}
+                  onClick={() => window.location.href = API + '/auth/google'}
                   className="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-[14px] py-3 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-98 shadow-xs cursor-pointer"
                 >
                   <svg className="w-4 h-4 mr-0.5" viewBox="0 0 24 24">

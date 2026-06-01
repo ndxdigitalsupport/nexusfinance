@@ -3,7 +3,7 @@ import { ClipboardList } from 'lucide-react';
 import Pagination from './Pagination';
 import { showToast } from './Toast';
 
-const API = 'http://localhost:3001/api';
+import { API } from '../api';
 async function apiFetch(path: string, options?: RequestInit) {
   const token = localStorage.getItem('nexus_token');
   const res = await fetch(`${API}${path}`, { ...options, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options?.headers || {}) } });

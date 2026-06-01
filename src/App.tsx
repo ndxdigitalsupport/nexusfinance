@@ -18,8 +18,7 @@ import AuditLogView from './components/AuditLogView';
 import { SkeletonTable } from './components/Skeleton';
 import { LoanApplication, Task, Transaction, PlatformConfig, PlatformStats, PortalType } from './types';
 import { DEFAULT_CONFIG, DEFAULT_STATS } from './data';
-
-const API = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import { API } from './api';
 
 const enc = (id: string) => encodeURIComponent(id);
 

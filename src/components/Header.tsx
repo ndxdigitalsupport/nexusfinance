@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Bell, Menu, X, User, LogOut, Layers, Sun, Moon } from 'lucide-react';
 import { PortalType } from '../types';
+import { API } from '../api';
 
-const API = 'http://localhost:3001/api';
 async function apiFetch(path: string, options?: RequestInit) {
   const token = localStorage.getItem('nexus_token');
   const res = await fetch(`${API}${path}`, { ...options, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options?.headers || {}) } });
@@ -51,7 +51,7 @@ export default function Header({
   };
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/config', { signal: AbortSignal.timeout(3000) })
+    fetch(`${API}/config`, { signal: AbortSignal.timeout(3000) })
       .then(() => setConnected(true))
       .catch(() => setConnected(false));
   }, []);
