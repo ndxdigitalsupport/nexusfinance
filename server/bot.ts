@@ -10,9 +10,16 @@ if (!TOKEN) {
 }
 
 const API = process.env.VITE_API_URL || 'http://localhost:3001/api';
+const SITE_URL = process.env.SITE_URL || 'https://nexusfinance-5okf.onrender.com';
 const ADMIN_ID = parseInt(process.env.TELEGRAM_ADMIN_ID || '0', 10);
 
 const bot = new TelegramBot(TOKEN, { polling: true });
+
+const siteButton: TelegramBot.InlineKeyboardButton = { text: '🌐 Open Nexus Finance', url: SITE_URL };
+const replyMarkup: TelegramBot.SendMessageOptions = {
+  parse_mode: 'Markdown',
+  reply_markup: { inline_keyboard: [[siteButton]] },
+};
 
 let apiToken: string | null = null;
 
@@ -55,7 +62,7 @@ Commands:
 /users — User list
 /notifications — Latest notifications
 /help — This message`,
-    { parse_mode: 'Markdown' }
+    replyMarkup
   );
 });
 
@@ -67,14 +74,14 @@ bot.onText(/\/help/, async (msg) => {
 /loans — Last 10 loan applications with status
 /users — All registered users and their roles
 /notifications — Latest 5 notifications`,
-    { parse_mode: 'Markdown' }
+    replyMarkup
   );
 });
 
 bot.onText(/\/stats/, async (msg) => {
   if (msg.from?.id !== ADMIN_ID) return;
   const data = await apiGet('/stats');
-  if (!data) return bot.sendMessage(msg.chat.id, '❌ Failed to fetch stats.');
+  if (!data) return bot.sendMessage(msg.chat.id, '❌ Failed to fetch stats.', replyMarkup);
   bot.sendMessage(msg.chat.id,
 `📊 *Platform Statistics*
 
@@ -82,14 +89,14 @@ bot.onText(/\/stats/, async (msg) => {
 • Active Customers: *${data.activeCustomers || 0}*
 • Outstanding: *$${data.outstandingBalanceValue?.toLocaleString() || 0}*
 • Interest Earned: *$${data.interestEarned?.toLocaleString() || 0}*`,
-    { parse_mode: 'Markdown' }
+    replyMarkup
   );
 });
 
 bot.onText(/\/loans/, async (msg) => {
   if (msg.from?.id !== ADMIN_ID) return;
   const loans = await apiGet('/loans');
-  if (!loans || loans.length === 0) return bot.sendMessage(msg.chat.id, '❌ No loans found.');
+  if (!loans || loans.length === 0) return bot.sendMessage(msg.chat.id, '❌ No loans found.', replyMarkup);
   const lines = loans.slice(0, 10).map((l: any) =>
     `  • ${l.id} — ${l.applicantName} — *${l.status}* — $${l.amount?.toLocaleString()}`
   );
@@ -97,27 +104,27 @@ bot.onText(/\/loans/, async (msg) => {
 `📋 *Recent Loans (${loans.length} total)*
 
 ${lines.join('\n')}`,
-    { parse_mode: 'Markdown' }
+    replyMarkup
   );
 });
 
 bot.onText(/\/users/, async (msg) => {
   if (msg.from?.id !== ADMIN_ID) return;
   const users = await apiGet('/users');
-  if (!users || users.length === 0) return bot.sendMessage(msg.chat.id, '❌ No users found.');
+  if (!users || users.length === 0) return bot.sendMessage(msg.chat.id, '❌ No users found.', replyMarkup);
   const lines = users.map((u: any) => `  • ${u.name} — *${u.role}* — ${u.email}`);
   bot.sendMessage(msg.chat.id,
 `👥 *Users (${users.length})*
 
 ${lines.join('\n')}`,
-    { parse_mode: 'Markdown' }
+    replyMarkup
   );
 });
 
 bot.onText(/\/notifications/, async (msg) => {
   if (msg.from?.id !== ADMIN_ID) return;
   const notifs = await apiGet('/notifications');
-  if (!notifs || notifs.length === 0) return bot.sendMessage(msg.chat.id, '❌ No notifications.');
+  if (!notifs || notifs.length === 0) return bot.sendMessage(msg.chat.id, '❌ No notifications.', replyMarkup);
   const lines = notifs.slice(0, 5).map((n: any) =>
     `  ${n.unread ? '🟢' : '⚪'} ${n.text}`
   );
@@ -125,7 +132,7 @@ bot.onText(/\/notifications/, async (msg) => {
 `🔔 *Recent Notifications*
 
 ${lines.join('\n')}`,
-    { parse_mode: 'Markdown' }
+    replyMarkup
   );
 });
 
