@@ -19,17 +19,26 @@ dotenv.config();
 
 let transporter: nodemailer.Transporter | null = null;
 if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+  console.log(`  📧 SMTP configured for ${process.env.SMTP_USER}`);
   transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    connectionTimeout: 8000,
   });
+} else {
+  console.log('  📧 SMTP not configured — emails will be logged only');
 }
 
 async function sendEmail(to: string, subject: string, html: string) {
   console.log(`  📧 Sending email to ${to}: ${subject}`);
   try {
     if (transporter) {
-      await transporter.sendMail({ from: process.env.SMTP_USER, to, subject, html });
+      await Promise.race([
+        transporter.sendMail({ from: process.env.SMTP_USER, to, subject, html }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP timeout')), 10000)),
+      ]);
       console.log(`  ✅ Email sent to ${to}`);
     } else {
       console.log(`  📧 Email would be sent to ${to}: ${subject}`);
