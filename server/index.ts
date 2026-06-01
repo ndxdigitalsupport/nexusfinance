@@ -11,37 +11,25 @@ import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import dotenv from 'dotenv';
-import SentDm from '@sentdm/sentdm';
-import { Resend } from 'resend';
-import sgMail from '@sendgrid/mail';
+import nodemailer from 'nodemailer';
 import path from 'path';
 import { db } from './db.js';
 
 dotenv.config();
 
-const sentClient = new SentDm({
-  apiKey: process.env.SENT_DM_API_KEY || '',
-});
-
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+let transporter: nodemailer.Transporter | null = null;
+if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+  transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
 }
-
-const SENDGRID_FROM = process.env.SENDGRID_FROM_EMAIL || 'noreply@nexusfinance.com';
 
 async function sendEmail(to: string, subject: string, html: string) {
   console.log(`  📧 Sending email to ${to}: ${subject}`);
   try {
-    if (process.env.RESEND_API_KEY) {
-      await Promise.race([
-        new Resend(process.env.RESEND_API_KEY).emails.send({
-          from: 'NexusFinance <onboarding@resend.dev>', to, subject, html,
-        }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Resend timeout after 10s')), 10000)),
-      ]);
-      console.log(`  ✅ Email sent to ${to}`);
-    } else if (process.env.SENDGRID_API_KEY) {
-      await sgMail.send({ from: SENDGRID_FROM, to, subject, html });
+    if (transporter) {
+      await transporter.sendMail({ from: process.env.SMTP_USER, to, subject, html });
       console.log(`  ✅ Email sent to ${to}`);
     } else {
       console.log(`  📧 Email would be sent to ${to}: ${subject}`);
