@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: nexusfinance
+    runtime: docker
+    repo: https://github.com/Not-Juicy/nexusfinance
+    branch: main
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
