@@ -29,14 +29,14 @@ if (process.env.SENDGRID_API_KEY) {
 
 const SENDGRID_FROM = process.env.SENDGRID_FROM_EMAIL || 'noreply@nexusfinance.com';
 
-function sendEmail(to: string, subject: string, html: string) {
+async function sendEmail(to: string, subject: string, html: string) {
+  console.log(`  📧 Sending email to ${to}: ${subject}`);
   if (process.env.SENDGRID_API_KEY) {
-    sgMail.send({ from: SENDGRID_FROM, to, subject, html })
-      .catch(err => console.warn('⚠️ Email send failed:', err.message));
+    await sgMail.send({ from: SENDGRID_FROM, to, subject, html });
   } else if (process.env.RESEND_API_KEY) {
-    new Resend(process.env.RESEND_API_KEY).emails.send({
+    await new Resend(process.env.RESEND_API_KEY).emails.send({
       from: 'NexusFinance <onboarding@resend.dev>', to, subject, html,
-    }).catch(err => console.warn('⚠️ Email send failed:', err.message));
+    });
   } else {
     console.log(`  📧 Email would be sent to ${to}: ${subject}`);
   }
@@ -150,7 +150,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
   const resetToken = jwt.sign({ id: user.id, purpose: 'password-reset' }, JWT_SECRET, { expiresIn: '15m' });
   const resetLink = `${process.env.SITE_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
 
-  sendEmail(email, 'Reset Your NexusFinance Password',
+  await sendEmail(email, 'Reset Your NexusFinance Password',
     `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
       <h2 style="color:#0d9488">NexusFinance</h2>
       <p>Click the link below to reset your password. This link expires in 15 minutes.</p>
@@ -162,7 +162,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
   res.json({ message: 'Password reset link sent to your email.' });
 });
 
-app.post('/api/auth/send-otp', otpLimiter, (req, res) => {
+app.post('/api/auth/send-otp', otpLimiter, async (req, res) => {
   const { via, email, phone } = req.body;
 
     if (via === 'email') {
@@ -170,7 +170,8 @@ app.post('/api/auth/send-otp', otpLimiter, (req, res) => {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     otpStore.set(`email:${email}`, { code, expiresAt: Date.now() + 5 * 60 * 1000 });
 
-    sendEmail(email, 'Your NexusFinance Verification Code',
+    console.log(`\n  🔑 DEV OTP for ${email}: ${code}\n`);
+    await sendEmail(email, 'Your NexusFinance Verification Code',
       `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
         <h2 style="color:#0d9488">NexusFinance</h2>
         <p>Your verification code is:</p>
@@ -185,17 +186,16 @@ app.post('/api/auth/send-otp', otpLimiter, (req, res) => {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   otpStore.set(`phone:${phone}`, { code, expiresAt: Date.now() + 5 * 60 * 1000 });
 
-  if (!process.env.SENT_DM_API_KEY) {
-    console.log(`\n  🔑 DEV OTP for ${phone}: ${code}\n`);
-  } else {
-    sentClient.messages.send({
+  console.log(`\n  🔑 DEV OTP for ${phone}: ${code}\n`);
+  if (process.env.SENT_DM_API_KEY) {
+    await sentClient.messages.send({
       to: [phone],
       template: {
         id: process.env.SENT_OTP_TEMPLATE_ID || undefined,
         name: process.env.SENT_OTP_TEMPLATE || 'verification',
         parameters: { code },
       },
-    }).catch(err => console.warn('⚠️ Sent DM send failed:', err.message));
+    });
   }
   res.json({ message: 'OTP sent successfully.' });
 });
@@ -463,7 +463,7 @@ app.post('/api/users/:id/send-reset-link', authMiddleware, async (req, res) => {
   if (!user) return res.status(404).json({ error: 'User not found.' });
   const resetToken = jwt.sign({ id: user.id, purpose: 'password-reset' }, JWT_SECRET, { expiresIn: '15m' });
   const resetLink = `${process.env.SITE_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
-  sendEmail(user.email, 'Reset Your NexusFinance Password',
+  await sendEmail(user.email, 'Reset Your NexusFinance Password',
     `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
       <h2 style="color:#0d9488">NexusFinance</h2>
       <p>An administrator requested a password reset. Click the link below to set a new password. This link expires in 15 minutes.</p>
