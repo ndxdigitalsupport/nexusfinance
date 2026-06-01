@@ -440,6 +440,19 @@ app.patch('/api/users/:id/role', authMiddleware, async (req, res) => {
   res.json({ id: user.id, ...req.body });
 });
 
+app.patch('/api/users/:id/reset-password', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
+  const { password } = req.body;
+  if (!password || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+  const { data: user } = await db.from('nexus_users').select('id, name, email').eq('id', parseInt(req.params.id)).single();
+  if (!user) return res.status(404).json({ error: 'User not found.' });
+  const hash = await bcrypt.hash(password, 10);
+  await db.from('nexus_users').update({ password: hash }).eq('id', user.id);
+  logAudit('password-reset', `${user.name} (${user.email}) password reset by admin`, req.user);
+  notifyUser(user.id, 'Your password has been reset by an administrator.');
+  res.json({ message: 'Password reset successfully.' });
+});
+
 // ── CONFIG ROUTES (Super Admin) ─────────────────────────────
 
 app.get('/api/config', authMiddleware, async (req, res) => {

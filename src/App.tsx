@@ -742,6 +742,9 @@ function UsersView() {
   const [creating, setCreating] = useState(false);
   const [userPage, setUserPage] = useState(1);
   const [roleDropdownId, setRoleDropdownId] = useState<number | null>(null);
+  const [resetPwUserId, setResetPwUserId] = useState<number | null>(null);
+  const [resetPwPassword, setResetPwPassword] = useState('');
+  const [resettingPw, setResettingPw] = useState(false);
 
   useEffect(() => {
     const handler = () => setRoleDropdownId(null);
@@ -768,6 +771,21 @@ function UsersView() {
       await fetchUsers();
     } catch (e: any) {
       showToast(e.message || 'Failed to update role', 'error');
+    }
+  };
+
+  const resetPassword = async (userId: number) => {
+    if (!resetPwPassword || resetPwPassword.length < 6) return showToast('Password must be at least 6 characters', 'error');
+    setResettingPw(true);
+    try {
+      await apiFetch(`/users/${userId}/reset-password`, { method: 'PATCH', body: JSON.stringify({ password: resetPwPassword }) });
+      showToast('Password reset successfully');
+      setResetPwUserId(null);
+      setResetPwPassword('');
+    } catch (e: any) {
+      showToast(e.message || 'Failed to reset password', 'error');
+    } finally {
+      setResettingPw(false);
     }
   };
 
@@ -838,6 +856,7 @@ function UsersView() {
               <th className="px-5 py-3.5">Email</th>
               <th className="px-5 py-3.5">Role</th>
               <th className="px-5 py-3.5"></th>
+              <th className="px-5 py-3.5"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#e0e3e5]">
@@ -884,6 +903,16 @@ function UsersView() {
                     </div>
                   )}
                 </td>
+                <td className="px-5 py-3.5">
+                  {u.role !== 'super-admin' && (
+                    <button
+                      onClick={() => { setResetPwUserId(u.id); setResetPwPassword(''); }}
+                      className="text-[11px] font-bold text-[#74777b] hover:text-[#0F171C] border border-[#c4c7ca] rounded-lg px-2.5 py-1.5 hover:border-[#94a3b8] transition-all cursor-pointer"
+                    >
+                      Reset PW
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -891,6 +920,27 @@ function UsersView() {
         <Pagination currentPage={userPage} totalPages={totalPages} totalItems={users.length} itemsPerPage={itemsPerPage} onPageChange={setUserPage} />
         </>
         )}
+
+      {resetPwUserId !== null && (
+        <div className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150" onClick={() => setResetPwUserId(null)}>
+          <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl border border-[#c4c7ca] p-6" onClick={e => e.stopPropagation()}>
+            <h3 className="text-[18px] font-extrabold text-[#0F171C] mb-1">Reset Password</h3>
+            <p className="text-[13px] text-[#74777b] mb-4">Enter a new password for this user.</p>
+            <input
+              type="password"
+              value={resetPwPassword}
+              onChange={e => setResetPwPassword(e.target.value)}
+              placeholder="New password (min 6 chars)"
+              className="w-full border border-[#c4c7ca] rounded-xl px-3.5 py-2.5 text-[14px] mb-4 focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20"
+            />
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setResetPwUserId(null)} className="px-4 py-2 text-[13px] font-bold text-[#74777b] hover:text-[#0F171C] border border-[#c4c7ca] rounded-xl cursor-pointer">Cancel</button>
+              <button onClick={() => resetPassword(resetPwUserId)} disabled={resettingPw} className="px-4 py-2 text-[13px] font-bold bg-[#0F171C] text-white rounded-xl hover:brightness-110 cursor-pointer disabled:opacity-50">{resettingPw ? 'Resetting...' : 'Reset'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       </div>
     </div>
   );
