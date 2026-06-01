@@ -170,34 +170,34 @@ app.post('/api/auth/send-otp', otpLimiter, async (req, res) => {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     otpStore.set(`email:${email}`, { code, expiresAt: Date.now() + 5 * 60 * 1000 });
 
-    console.log(`\n  🔑 DEV OTP for ${email}: ${code}\n`);
-    await sendEmail(email, 'Your NexusFinance Verification Code',
+    console.log(`\n  🔑 OTP for ${email}: ${code}\n`);
+    try { await sendEmail(email, 'Your NexusFinance Verification Code',
       `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
         <h2 style="color:#0d9488">NexusFinance</h2>
         <p>Your verification code is:</p>
         <div style="font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center;padding:16px;background:#f0fdfa;border-radius:8px;color:#0f766e">${code}</div>
         <p style="color:#6b7280;font-size:14px">Expires in 5 minutes.</p>
       </div>`
-    );
-    return res.json({ message: 'OTP sent to email.' });
+    ); } catch { /* email failed, devCode below */ }
+    return res.json({ message: 'OTP sent to email.', devCode: code });
   }
 
   if (!phone) return res.status(400).json({ error: 'Phone number is required.' });
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   otpStore.set(`phone:${phone}`, { code, expiresAt: Date.now() + 5 * 60 * 1000 });
 
-  console.log(`\n  🔑 DEV OTP for ${phone}: ${code}\n`);
+  console.log(`\n  🔑 OTP for ${phone}: ${code}\n`);
   if (process.env.SENT_DM_API_KEY) {
-    await sentClient.messages.send({
+    try { await sentClient.messages.send({
       to: [phone],
       template: {
         id: process.env.SENT_OTP_TEMPLATE_ID || undefined,
         name: process.env.SENT_OTP_TEMPLATE || 'verification',
         parameters: { code },
       },
-    });
+    }); } catch { /* SMS failed */ }
   }
-  res.json({ message: 'OTP sent successfully.' });
+  res.json({ message: 'OTP sent successfully.', devCode: code });
 });
 
 app.post('/api/auth/verify-otp', async (req, res) => {

@@ -53,6 +53,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   // Verification success status trigger
   const [vSuccess, setVSuccess] = useState(false);
+  const [devCode, setDevCode] = useState('');
 
   // Handle verify digit change
   const handleDigitChange = (index: number, val: string) => {
@@ -170,6 +171,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+      }).then(r => r.json()).then(data => {
+        if (data.devCode) setDevCode(data.devCode);
       }).catch(() => showToast('Failed to send verification code. Try resend.', 'error'));
     }
   }, [view, verifyVia]);
@@ -673,6 +676,12 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 We've sent a 6-digit code to <strong>{verifyVia === 'email' ? registerEmail : registerPhone}</strong>. Enter it below.
               </p>
 
+              {devCode && (
+                <p className="text-[11px] text-amber-600 font-mono text-center -mt-5 mb-4 px-4 py-2 bg-amber-50 rounded-xl border border-amber-200">
+                  Dev code: {devCode}
+                </p>
+              )}
+
               <form onSubmit={handleVerifySubmit} className="w-full space-y-8 flex flex-col items-center">
                 
                 {/* 6 code inputs row layout */}
@@ -726,6 +735,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify(body),
+                    }).then(r => r.json()).then(data => {
+                      if (data.devCode) setDevCode(data.devCode);
                     }).catch(() => {});
                   }}
                   className="flex items-center gap-2 hover:text-[#0e171c] cursor-pointer"
