@@ -61,24 +61,29 @@ function authMiddleware(req: any, res: any, next: any) {
 // ── AUTH ROUTES (Appwrite-backed) ──────────────────────────
 
 app.post('/api/auth/session', async (req, res) => {
-  const { email, name } = req.body;
-  if (!email) return res.status(400).json({ error: 'Email is required.' });
+  try {
+    const { email, name } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required.' });
 
-  let { data: dbUser } = await db.from('nexus_users').select('*').eq('email', email).single();
-  if (!dbUser) {
-    const { data: newUser } = await db.from('nexus_users').insert({
-      name: name || email.split('@')[0],
-      email, role: 'customer', phone: '',
-    }).select().single();
-    dbUser = newUser;
+    let { data: dbUser } = await db.from('nexus_users').select('*').eq('email', email).maybeSingle();
+    if (!dbUser) {
+      const { data: newUser } = await db.from('nexus_users').insert({
+        name: name || email.split('@')[0],
+        email, role: 'customer', phone: '',
+      }).select().single();
+      dbUser = newUser;
+    }
+
+    const token = jwt.sign({ id: dbUser!.id, email: dbUser!.email, name: dbUser!.name, role: dbUser!.role }, JWT_SECRET, { expiresIn: '24h' });
+    res.json({ token, user: { id: dbUser!.id, name: dbUser!.name, email: dbUser!.email, role: dbUser!.role } });
+  } catch (err) {
+    console.error('Session exchange error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
   }
-
-  const token = jwt.sign({ id: dbUser!.id, email: dbUser!.email, name: dbUser!.name, role: dbUser!.role }, JWT_SECRET, { expiresIn: '24h' });
-  res.json({ token, user: { id: dbUser!.id, name: dbUser!.name, email: dbUser!.email, role: dbUser!.role } });
 });
 
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
-  const { data: user } = await db.from('nexus_users').select('id, name, email, role, phone').eq('id', req.user.id).single();
+  const { data: user } = await db.from('nexus_users').select('id, name, email, role, phone').eq('id', req.user.id).maybeSingle();
   if (!user) return res.status(404).json({ error: 'User not found.' });
   res.json(user);
 });
