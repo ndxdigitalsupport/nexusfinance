@@ -178,7 +178,7 @@ app.post('/api/auth/send-otp', otpLimiter, async (req, res) => {
         <div style="font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center;padding:16px;background:#f0fdfa;border-radius:8px;color:#0f766e">${code}</div>
         <p style="color:#6b7280;font-size:14px">Expires in 5 minutes.</p>
       </div>`
-    ); } catch { /* email failed, devCode below */ }
+    ); } catch (e) { console.error('✉️ Email send error:', e); }
     return res.json({ message: 'OTP sent to email.', devCode: code });
   }
 
