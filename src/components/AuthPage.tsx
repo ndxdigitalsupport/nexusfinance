@@ -40,7 +40,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [registerPhone, setRegisterPhone] = useState('');
   const [pendingToken, setPendingToken] = useState<string | null>(null);
 
-  const [verifyVia, setVerifyVia] = useState<'email' | 'phone'>('phone');
+  const [verifyVia, setVerifyVia] = useState<'email' | 'phone'>('email');
 
   // Loading states
   const [loginLoading, setLoginLoading] = useState(false);
@@ -107,7 +107,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       const data = await res.json();
       if (!res.ok) { setRegisterLoading(false); showToast(data.error || 'Registration failed', 'error'); return; }
       setPendingToken(data.token);
-      setVerifyVia('phone');
+      setVerifyVia('email');
       setView('verify');
     } catch {
       showToast('Could not connect to server. Is it running?', 'error');
