@@ -19,7 +19,7 @@ import { SkeletonTable } from './components/Skeleton';
 import { LoanApplication, Task, Transaction, PlatformConfig, PlatformStats, PortalType } from './types';
 import { DEFAULT_CONFIG, DEFAULT_STATS } from './data';
 
-const API = 'http://localhost:3001/api';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const enc = (id: string) => encodeURIComponent(id);
 

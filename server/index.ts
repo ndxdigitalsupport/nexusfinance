@@ -13,6 +13,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import dotenv from 'dotenv';
 import SentDm from '@sentdm/sentdm';
 import { Resend } from 'resend';
+import path from 'path';
 import { db } from './db.js';
 
 dotenv.config();
@@ -34,7 +35,7 @@ declare global {
 }
 
 const app = express();
-const PORT = 3001;
+const PORT = parseInt(process.env.PORT || '3001', 10);
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) { console.error('FATAL: JWT_SECRET environment variable is required.'); process.exit(1); }
 
@@ -502,6 +503,37 @@ app.use((req, res) => {
 app.use((err: any, req: any, res: any, next: any) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error.' });
+});
+
+// ── PRODUCTION: serve frontend build ─────────────────────────
+
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(process.cwd(), 'dist')));
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api')) {
+      res.status(404).json({ error: `Route ${req.method} ${req.path} not found.` });
+    } else {
+      res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
+    }
+  });
+}
+
+// ── HEALTH CHECK ─────────────────────────────────────────────
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime() });
+});
+
+// ── 404 catch-all ────────────────────────────────────────────
+
+app.use((req, res) => {
+  res.status(404).json({ error: `Route ${req.method} ${req.path} not found.` });
+});
+
+// ── HEALTH CHECK ─────────────────────────────────────────────
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime() });
 });
 
 // ── START THE SERVER ────────────────────────────────────────
