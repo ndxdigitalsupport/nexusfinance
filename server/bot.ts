@@ -15,7 +15,7 @@ const ADMIN_ID = parseInt(process.env.TELEGRAM_ADMIN_ID || '0', 10);
 
 const bot = new TelegramBot(TOKEN, { polling: true });
 
-const siteButton: TelegramBot.InlineKeyboardButton = { text: '🌐 Open Nexus Finance', url: SITE_URL };
+const siteButton: TelegramBot.InlineKeyboardButton = { text: '🚀 Open Nexus Finance', web_app: { url: SITE_URL } };
 const replyMarkup: TelegramBot.SendMessageOptions = {
   parse_mode: 'Markdown',
   reply_markup: { inline_keyboard: [[siteButton]] },
