@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowRight, 
   Lock, 
@@ -11,14 +11,25 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { showToast } from './Toast';
-
+import { account, ID } from '../appwriteClient';
 import { API } from '../api';
+
+async function exchangeSession(email: string, name: string) {
+  const res = await fetch(`${API}/auth/session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, name }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Session exchange failed');
+  return data.token;
+}
 
 interface AuthPageProps {
   onLoginSuccess: (token: string) => void;
 }
 
-type AuthView = 'login' | 'register' | 'verify' | 'forgot';
+type AuthView = 'login' | 'register' | 'forgot' | 'check-email';
 
 export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [view, setView] = useState<AuthView>('login');
@@ -38,141 +49,73 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
   const [registerPhone, setRegisterPhone] = useState('');
-  const [pendingToken, setPendingToken] = useState<string | null>(null);
-
-  const [verifyVia, setVerifyVia] = useState<'email' | 'phone'>('email');
+  const [registerDone, setRegisterDone] = useState(false);
 
   // Loading states
   const [loginLoading, setLoginLoading] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
-  const [verifyLoading, setVerifyLoading] = useState(false);
 
-  // Verify states
-  const [code, setCode] = useState<string[]>(Array(6).fill(''));
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  // Verification success status trigger
-  const [vSuccess, setVSuccess] = useState(false);
-
-  // Handle verify digit change
-  const handleDigitChange = (index: number, val: string) => {
-    if (!/^[0-9]?$/.test(val)) return; // numbers only
-    const newCode = [...code];
-    newCode[index] = val;
-    setCode(newCode);
-
-    // Auto-focus next input
-    if (val !== '' && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && code[index] === '' && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  // Login handler — calls the real backend API
+  // Login handler — uses Appwrite Auth
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginLoading(true);
     try {
-      const res = await fetch(`${API}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setLoginLoading(false); showToast(data.error || 'Login failed', 'error'); return; }
-      onLoginSuccess(data.token);
-    } catch {
-      showToast('Could not connect to server. Is it running?', 'error');
+      try { await account.deleteSessions(); } catch {}
+      await account.createEmailPasswordSession(loginEmail, loginPassword);
+      const user = await account.get();
+      const token = await exchangeSession(user.email, user.name);
+      onLoginSuccess(token);
+    } catch (err: any) {
+      showToast(err?.message || 'Login failed. Check your credentials.', 'error');
     } finally {
       setLoginLoading(false);
     }
   };
 
-  // Register handler
+  // Register handler — uses Appwrite Auth
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (registerPassword !== registerConfirmPassword) return showToast('Passwords do not match', 'error');
     setRegisterLoading(true);
     try {
-      const res = await fetch(`${API}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: registerName, email: registerEmail, password: registerPassword, phone: registerPhone }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setRegisterLoading(false); showToast(data.error || 'Registration failed', 'error'); return; }
-      setPendingToken(data.token);
-      setVerifyVia('email');
-      setView('verify');
-    } catch {
-      showToast('Could not connect to server. Is it running?', 'error');
+      await account.create(ID.unique(), registerEmail, registerPassword, registerName);
+      try { await account.createEmailPasswordSession(registerEmail, registerPassword); } catch {}
+      await account.createVerification(window.location.origin);
+      try { await account.deleteSessions(); } catch {}
+      setRegisterDone(true);
+      setView('check-email');
+    } catch (err: any) {
+      showToast(err?.message || 'Registration failed.', 'error');
     } finally {
       setRegisterLoading(false);
     }
   };
 
-  // Forgot password handler
+  // Forgot password handler — uses Appwrite Auth
   const handleForgotSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!forgotEmail) return showToast('Enter your email address', 'error');
+    setLoginLoading(true);
     try {
-      const res = await fetch(`${API}/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail }),
-      });
-      const data = await res.json();
-      if (!res.ok) return showToast(data.error || 'Request failed', 'error');
+      await account.createRecovery(forgotEmail, `${window.location.origin}/`);
       setForgotSent(true);
-      showToast('Reset link sent to your email');
-    } catch {
-      showToast('Could not connect to server.', 'error');
-    }
-  };
-
-  // Verification code submit handler
-  const handleVerifySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setVerifyLoading(true);
-    try {
-      const body = verifyVia === 'email'
-        ? { via: 'email', email: registerEmail, code: code.join('') }
-        : { via: 'phone', phone: registerPhone, code: code.join('') };
-      const res = await fetch(`${API}/auth/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!res.ok) { setVerifyLoading(false); showToast(data.error || 'Verification failed', 'error'); return; }
-      setVSuccess(true);
-      setTimeout(() => {
-        if (pendingToken) onLoginSuccess(pendingToken);
-      }, 1200);
-    } catch {
-      showToast('Could not connect to server.', 'error');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to send recovery email.', 'error');
     } finally {
-      setVerifyLoading(false);
+      setLoginLoading(false);
     }
   };
 
-  // Auto-send OTP when verify view mounts
+  // Handle Appwrite email verification redirect
   useEffect(() => {
-    if (view === 'verify') {
-      const body = verifyVia === 'email'
-        ? { via: 'email', email: registerEmail }
-        : { via: 'phone', phone: registerPhone };
-      fetch(`${API}/auth/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      }).catch(() => showToast('Failed to send verification code. Try resend.', 'error'));
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('userId') && params.get('secret')) {
+      account.updateVerification(params.get('userId')!, params.get('secret')!)
+        .then(() => showToast('Email verified! You can now sign in.', 'success'))
+        .catch(() => showToast('Email verified! You can now sign in.', 'success'));
+      window.history.replaceState({}, '', '/');
     }
-  }, [view, verifyVia]);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-slate-800 font-sans relative overflow-x-hidden auth-page">
@@ -635,118 +578,37 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         </>
       )}
 
-      {/* VIEW: VERIFY (6-digit OTP) */}
-      {view === 'verify' && (
+      {/* VIEW: CHECK EMAIL (after registration) */}
+      {view === 'check-email' && (
         <div className="min-h-screen flex flex-col justify-between w-full h-full">
           <div className="flex-grow flex flex-col justify-center items-center px-4 py-8">
-            
-            {/* Card form */}
             <div className="bg-white/90 backdrop-blur-md rounded-[32px] border border-white/80 p-8 sm:p-12 w-full max-w-lg shadow-xl shadow-teal-900/5 flex flex-col items-center animate-in zoom-in-95 duration-200">
-              
-              {/* Icon */}
               <div className="relative w-16 h-16 bg-[#f1f4f6]/80 rounded-full flex items-center justify-center text-slate-700 border border-slate-200/10 mb-6">
-                {verifyVia === 'email' ? <Mail className="w-7 h-7" /> : <Phone className="w-7 h-7" />}
-                <div className="absolute top-4 right-4 w-3.5 h-3.5 bg-slate-800 rounded-full border-2 border-white" />
+                <Mail className="w-7 h-7" />
+                <div className="absolute top-1 right-1 w-4 h-4 bg-[#5CF2D0] rounded-full flex items-center justify-center">
+                  <CheckCircle2 className="w-3 h-3 text-[#0E171C]" />
+                </div>
               </div>
-
-              {/* Method toggle */}
-              <div className="flex gap-2 mb-6 bg-[#f1f4f6] rounded-xl p-1">
-                <button
-                  onClick={() => { setVerifyVia('phone'); setCode(Array(6).fill('')); }}
-                  className={`px-4 py-2 rounded-lg text-[12px] font-bold transition cursor-pointer ${verifyVia === 'phone' ? 'bg-white shadow-sm text-[#0E171C]' : 'text-slate-500 hover:text-[#0E171C]'}`}
-                >
-                  <Phone className="w-3.5 h-3.5 inline mr-1.5" />Phone
-                </button>
-                <button
-                  onClick={() => { setVerifyVia('email'); setCode(Array(6).fill('')); }}
-                  className={`px-4 py-2 rounded-lg text-[12px] font-bold transition cursor-pointer ${verifyVia === 'email' ? 'bg-white shadow-sm text-[#0E171C]' : 'text-slate-500 hover:text-[#0E171C]'}`}
-                >
-                  <Mail className="w-3.5 h-3.5 inline mr-1.5" />Email
-                </button>
-              </div>
-
-              {/* Head */}
               <h2 className="text-[28px] sm:text-[32px] font-bold text-[#0E171C] text-center tracking-tight">
-                Verify Your {verifyVia === 'email' ? 'Email' : 'Phone'}
+                Check your email
               </h2>
               <p className="text-[13px] text-slate-500 font-medium text-center mt-3 mb-8 max-w-sm leading-relaxed">
-                We've sent a 6-digit code to <strong>{verifyVia === 'email' ? registerEmail : registerPhone}</strong>. Enter it below.
+                We sent a verification link to <strong>{registerEmail}</strong>.<br />
+                Click the link to activate your account.
               </p>
-
-              <form onSubmit={handleVerifySubmit} className="w-full space-y-8 flex flex-col items-center">
-                
-                {/* 6 code inputs row layout */}
-                <div className="flex gap-2 sm:gap-3.5 justify-center">
-                  {code.map((digit, idx) => (
-                    <input
-                      key={idx}
-                      ref={(el) => (inputRefs.current[idx] = el)}
-                      type="text"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleDigitChange(idx, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(idx, e)}
-                      className="w-11 h-11 sm:w-14 sm:h-14 bg-white/90 border border-slate-200/90 rounded-2xl text-center text-[18px] sm:text-[22px] font-sans font-extrabold focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all shadow-xs"
-                      required
-                    />
-                  ))}
-                </div>
-
-                {/* Large Button submit verification */}
-                <button
-                  type="submit"
-                  disabled={vSuccess || verifyLoading}
-                  className="w-full bg-[#5CF2D0] hover:bg-[#6ff5da] text-[#0e171c] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {vSuccess ? (
-                    <span className="flex items-center gap-2 text-slate-800">
-                      <CheckCircle2 className="w-5 h-5 text-teal-800 animate-bounce" /> Verified! Loading nodes...
-                    </span>
-                  ) : verifyLoading ? (
-                    <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
-                  ) : (
-                    <>
-                      VERIFY CODE <ArrowRight className="w-5 h-5 stroke-[2.5]" />
-                    </>
-                  )}
-                </button>
-              </form>
-
-              {/* Utility action links */}
-              <div className="w-full flex justify-between items-center text-[13px] font-bold text-slate-500 mt-8 pt-6 border-t border-slate-100 select-none">
-                <button 
-                  type="button"
-                  onClick={() => {
-                    setCode(Array(6).fill(''));
-                    inputRefs.current[0]?.focus();
-                    const body = verifyVia === 'email'
-                      ? { via: 'email', email: registerEmail }
-                      : { via: 'phone', phone: registerPhone };
-                    fetch(`${API}/auth/send-otp`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify(body),
-                    }).catch(() => {});
-                  }}
-                  className="flex items-center gap-2 hover:text-[#0e171c] cursor-pointer"
-                >
-                  <RefreshCw className="w-4 h-4" /> Resend Code
-                </button>
-
-                <button 
-                  type="button" 
-                  onClick={() => setView('register')}
-                  className="hover:text-[#0e171c] cursor-pointer"
-                >
-                  Back
+              <button
+                onClick={() => { setView('login'); setRegisterDone(false); }}
+                className="w-full bg-[#5CF2D0] hover:bg-[#6ff5da] text-[#0e171c] font-bold py-4 rounded-2xl transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
+              >
+                GO TO SIGN IN <ArrowRight className="w-5 h-5 stroke-[2.5] inline ml-1" />
+              </button>
+              <div className="w-full flex justify-center text-[13px] font-bold text-slate-500 mt-6 pt-6 border-t border-slate-100 select-none">
+                <button onClick={() => setView('register')} className="hover:text-[#0e171c] cursor-pointer">
+                  Use a different email
                 </button>
               </div>
-
             </div>
-
           </div>
-
-          {/* Footer inside view-verify */}
           <footer className="relative z-10 px-6 py-6 sm:px-12 bg-transparent flex justify-center text-[11.5px] font-semibold text-[#44474a]/60">
             <p>© 2026 NEXUS FINANCE. ALL INTEGRITY SERVED.</p>
           </footer>

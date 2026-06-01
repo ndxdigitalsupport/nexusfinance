@@ -38,19 +38,8 @@ async function apiFetch(path: string, options?: RequestInit) {
 }
 
 export default function App() {
-  const [token, setToken] = useState<string | null>(() => {
-    const googleToken = new URLSearchParams(window.location.search).get('google_token');
-    if (googleToken) {
-      localStorage.setItem('nexus_token', googleToken);
-      window.history.replaceState({}, '', '/');
-      return googleToken;
-    }
-    return localStorage.getItem('nexus_token');
-  });
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    if (new URLSearchParams(window.location.search).get('google_token')) return true;
-    return localStorage.getItem('nexus_token') !== null;
-  });
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('nexus_token'));
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => localStorage.getItem('nexus_token') !== null);
   const [currentPortal, setCurrentPortal] = useState<PortalType>(() => {
     return (localStorage.getItem('nexus_portal') as PortalType) || 'portal-selection';
   });
@@ -65,6 +54,8 @@ export default function App() {
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [config, setConfig] = useState<PlatformConfig>(DEFAULT_CONFIG);
   const [stats, setStats] = useState<PlatformStats>(DEFAULT_STATS);
+
+  const [userData, setUserData] = useState<{ id: number; name: string; email: string; role: string } | null>(null);
 
   const [searchTermInvoice, setSearchTermInvoice] = useState('');
   const [selectedApplication, setSelectedApplication] = useState<LoanApplication | null>(null);
@@ -119,20 +110,34 @@ export default function App() {
 
   const saveToStorage = (key: string, val: string) => localStorage.setItem(key, val);
 
+  async function fetchUserData(newToken: string) {
+    try {
+      const res = await fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${newToken}` } });
+      const data = await res.json();
+      if (res.ok && data.role) {
+        setUserData(data);
+        if (data.role === 'customer') handleSetPortal('customer');
+        else if (data.role === 'loan-officer') handleSetPortal('loan-officer');
+        else handleSetPortal('portal-selection');
+      }
+    } catch { /* fallback */ }
+  }
+
   const handleLoginSuccess = (newToken: string) => {
     localStorage.setItem('nexus_token', newToken);
     localStorage.removeItem('nexus_portal');
     localStorage.removeItem('nexus_active_menu');
     setToken(newToken);
     setIsLoggedIn(true);
-    const role = (() => { try { return JSON.parse(atob(newToken.split('.')[1])).role; } catch { return 'customer'; } })();
-    if (role === 'customer') handleSetPortal('customer');
-    else if (role === 'loan-officer') handleSetPortal('loan-officer');
-    else handleSetPortal('portal-selection');
+    fetchUserData(newToken);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     document.documentElement.classList.remove('dark');
+    try {
+      const { account } = await import('./appwriteClient');
+      await account.deleteSessions();
+    } catch { /* Appwrite session may already be gone */ }
     setIsLoggedIn(false);
     setToken(null);
     ['nexus_token', 'nexus_portal', 'nexus_active_menu'].forEach(k => localStorage.removeItem(k));
@@ -274,7 +279,7 @@ export default function App() {
     setIsMeetingOpen(true);
   };
 
-  const portalUser = (() => {
+  const portalUser = userData || (() => {
     if (!token) return null;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
@@ -284,9 +289,7 @@ export default function App() {
         email: (payload as any).email || '',
         role: (payload as any).role || 'customer',
       };
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   })();
 
   return (

@@ -23,16 +23,39 @@ const replyMarkup: TelegramBot.SendMessageOptions = {
 
 let apiToken: string | null = null;
 
+const AW_ENDPOINT = process.env.APPWRITE_ENDPOINT || 'https://sgp.cloud.appwrite.io/v1';
+const AW_PROJECT = process.env.APPWRITE_PROJECT_ID || '';
+
 async function loginAsAdmin() {
   try {
-    const res = await fetch(`${API}/auth/login`, {
+    const sessionRes = await fetch(`${AW_ENDPOINT}/account/sessions/email`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Appwrite-Project': AW_PROJECT },
       body: JSON.stringify({ email: 'admin@nexus.com', password: 'password123' }),
     });
-    const data = await res.json();
+    const session = await sessionRes.json();
+    if (!session.$id) return;
+
+    const jwtRes = await fetch(`${AW_ENDPOINT}/account/jwts`, {
+      method: 'POST',
+      headers: { 'X-Appwrite-Project': AW_PROJECT, 'X-Appwrite-Session': session.$id },
+    });
+    const jwt = await jwtRes.json();
+    if (!jwt.jwt) return;
+
+    const user = await (await fetch(`${AW_ENDPOINT}/account`, {
+      headers: { 'X-Appwrite-Project': AW_PROJECT, 'X-Appwrite-Session': session.$id },
+    })).json();
+    const exchangeRes = await fetch(`${API}/auth/session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: user.email, name: user.name }),
+    });
+    const data = await exchangeRes.json();
     apiToken = data.token;
-  } catch {}
+  } catch (e) {
+    console.error('Bot admin login failed:', e);
+  }
 }
 
 async function apiGet(path: string) {

@@ -5,55 +5,18 @@
 import 'express-async-errors';
 import express from 'express';
 import cors from 'cors';
-import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import passport from 'passport';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import dotenv from 'dotenv';
-import nodemailer from 'nodemailer';
 import path from 'path';
 import { db } from './db.js';
+import { updateUserPassword } from './appwrite.js';
 
 dotenv.config();
 
-let transporter: nodemailer.Transporter | null = null;
-if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-  console.log(`  📧 SMTP configured for ${process.env.SMTP_USER}`);
-  transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    connectionTimeout: 8000,
-  });
-} else {
-  console.log('  📧 SMTP not configured — emails will be logged only');
-}
-
-async function sendEmail(to: string, subject: string, html: string) {
-  console.log(`  📧 Sending email to ${to}: ${subject}`);
-  try {
-    if (transporter) {
-      await Promise.race([
-        transporter.sendMail({ from: process.env.SMTP_USER, to, subject, html }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP timeout')), 10000)),
-      ]);
-      console.log(`  ✅ Email sent to ${to}`);
-    } else {
-      console.log(`  📧 Email would be sent to ${to}: ${subject}`);
-    }
-  } catch (e) {
-    console.error('✉️ Email send error:', e instanceof Error ? e.message : e);
-  }
-}
-
-const otpStore = new Map<string, { code: string; expiresAt: number }>();
-
 declare global {
   namespace Express {
-    interface User {
-      id: number; email: string; name: string; role: string;
+    interface Request {
+      user?: { id: number; email: string; name: string; role: string };
     }
   }
 }
@@ -72,31 +35,6 @@ app.set('trust proxy', 1);
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
 app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
-app.use(passport.initialize());
-
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: { error: 'Too many attempts. Try again later.' } });
-const otpLimiter = rateLimit({ windowMs: 5 * 60 * 1000, max: 5, message: { error: 'Too many OTP requests. Try again later.' } });
-
-if (process.env.GOOGLE_CLIENT_ID) {
-  passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-    callbackURL: `${corsOrigin}/api/auth/google/callback`,
-  }, async (accessToken, refreshToken, profile, done) => {
-    const email = profile.emails?.[0]?.value || `${profile.id}@google.com`;
-    const { data: existing } = await db.from('nexus_users').select('*').eq('email', email).single();
-    if (existing) return done(null, existing);
-
-    const { data: newUser } = await db.from('nexus_users').insert({
-      name: profile.displayName || email.split('@')[0],
-      email,
-      password: '',
-      role: 'customer',
-    }).select().single();
-
-    done(null, newUser);
-  }));
-}
 
 function logAudit(action: string, details: string, user: any) {
   db.from('nexus_audit_logs').insert({ action, details, userId: user.id, userEmail: user.email }).then(null, () => {});
@@ -120,122 +58,23 @@ function authMiddleware(req: any, res: any, next: any) {
   }
 }
 
-// ── AUTH ROUTES ─────────────────────────────────────────────
+// ── AUTH ROUTES (Appwrite-backed) ──────────────────────────
 
-app.post('/api/auth/login', authLimiter, async (req, res) => {
-  const { email, password } = req.body;
-  const { data: user } = await db.from('nexus_users').select('*').eq('email', email).single();
-  if (!user) return res.status(400).json({ error: 'User not found with that email.' });
-  if (!bcrypt.compareSync(password, user.password)) return res.status(400).json({ error: 'Wrong password.' });
-  if (!user.verified) return res.status(403).json({ error: 'Please verify your email before logging in.' });
-
-  const token = jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
-  res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
-});
-
-app.post('/api/auth/register', authLimiter, async (req, res) => {
-  const { name, email, password, phone } = req.body;
-  const { data: existing } = await db.from('nexus_users').select('id').eq('email', email).single();
-  if (existing) return res.status(400).json({ error: 'Email already registered.' });
-
-  const { data: newUser } = await db.from('nexus_users').insert({
-    name, email, password: bcrypt.hashSync(password, 10), role: 'customer', phone: phone || '',
-    verified: false,
-  }).select().single();
-  if (!newUser) return res.status(500).json({ error: 'Registration failed.' });
-
-  const token = jwt.sign({ id: newUser.id, email: newUser.email, name: newUser.name, role: newUser.role }, JWT_SECRET, { expiresIn: '24h' });
-  res.json({ token, user: { id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role } });
-});
-
-app.post('/api/auth/forgot-password', async (req, res) => {
-  const { email } = req.body;
+app.post('/api/auth/session', async (req, res) => {
+  const { email, name } = req.body;
   if (!email) return res.status(400).json({ error: 'Email is required.' });
-  const { data: user } = await db.from('nexus_users').select('id').eq('email', email).single();
-  if (!user) return res.status(404).json({ error: 'No account found with that email.' });
 
-  const resetToken = jwt.sign({ id: user.id, purpose: 'password-reset' }, JWT_SECRET, { expiresIn: '15m' });
-  const resetLink = `${process.env.SITE_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
-
-  await sendEmail(email, 'Reset Your NexusFinance Password',
-    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-      <h2 style="color:#0d9488">NexusFinance</h2>
-      <p>Click the link below to reset your password. This link expires in 15 minutes.</p>
-      <a href="${resetLink}" style="display:inline-block;padding:12px 24px;background:#0d9488;color:#fff;text-decoration:none;border-radius:6px;margin:16px 0">Reset Password</a>
-      <p style="color:#6b7280;font-size:14px">If you didn't request this, ignore this email.</p>
-    </div>`
-  );
-
-  res.json({ message: 'Password reset link sent to your email.' });
-});
-
-app.post('/api/auth/send-otp', otpLimiter, async (req, res) => {
-  const { via, email, phone } = req.body;
-
-    if (via === 'email') {
-    if (!email) return res.status(400).json({ error: 'Email is required.' });
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    otpStore.set(`email:${email}`, { code, expiresAt: Date.now() + 5 * 60 * 1000 });
-
-    console.log(`\n  🔑 OTP for ${email}: ${code}\n`);
-    res.json({ message: 'OTP sent to email.' });
-    setTimeout(() => {
-      sendEmail(email, 'Your NexusFinance Verification Code',
-        `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-          <h2 style="color:#0d9488">NexusFinance</h2>
-          <p>Your verification code is:</p>
-          <div style="font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center;padding:16px;background:#f0fdfa;border-radius:8px;color:#0f766e">${code}</div>
-          <p style="color:#6b7280;font-size:14px">Expires in 5 minutes.</p>
-        </div>`
-      ).catch(e => console.error('✉️ Email send error:', e));
-    }, 0);
-    return;
+  let { data: dbUser } = await db.from('nexus_users').select('*').eq('email', email).single();
+  if (!dbUser) {
+    const { data: newUser } = await db.from('nexus_users').insert({
+      name: name || email.split('@')[0],
+      email, role: 'customer', phone: '',
+    }).select().single();
+    dbUser = newUser;
   }
 
-  if (!phone) return res.status(400).json({ error: 'Phone number is required.' });
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  otpStore.set(`phone:${phone}`, { code, expiresAt: Date.now() + 5 * 60 * 1000 });
-
-  console.log(`\n  🔑 OTP for ${phone}: ${code}\n`);
-  res.json({ message: 'OTP sent successfully.' });
-  setTimeout(() => {
-    if (process.env.SENT_DM_API_KEY) {
-      sentClient.messages.send({
-        to: [phone],
-        template: {
-          id: process.env.SENT_OTP_TEMPLATE_ID || undefined,
-          name: process.env.SENT_OTP_TEMPLATE || 'verification',
-          parameters: { code },
-        },
-      }).catch(e => console.error('✉️ SMS send error:', e));
-    }
-  }, 0);
-});
-
-app.post('/api/auth/verify-otp', async (req, res) => {
-  const { via, email, phone, code } = req.body;
-
-  if (via === 'email') {
-    if (!email || !code) return res.status(400).json({ error: 'Email and code are required.' });
-    const key = `email:${email}`;
-    const stored = otpStore.get(key);
-    if (!stored) return res.status(400).json({ error: 'No OTP found. Request a new one.' });
-    if (Date.now() > stored.expiresAt) { otpStore.delete(key); return res.status(400).json({ error: 'OTP expired. Request a new one.' }); }
-    if (stored.code !== code) return res.status(400).json({ error: 'Invalid verification code.' });
-    otpStore.delete(key);
-    await db.from('nexus_users').update({ verified: true }).eq('email', email);
-    return res.json({ message: 'Email verified successfully.' });
-  }
-
-  if (!phone || !code) return res.status(400).json({ error: 'Phone and code are required.' });
-  const key = `phone:${phone}`;
-  const stored = otpStore.get(key);
-  if (!stored) return res.status(400).json({ error: 'No OTP found. Request a new one.' });
-  if (Date.now() > stored.expiresAt) { otpStore.delete(key); return res.status(400).json({ error: 'OTP expired. Request a new one.' }); }
-  if (stored.code !== code) return res.status(400).json({ error: 'Invalid verification code.' });
-  otpStore.delete(key);
-  await db.from('nexus_users').update({ verified: true }).eq('phone', phone);
-  res.json({ message: 'Phone verified successfully.' });
+  const token = jwt.sign({ id: dbUser!.id, email: dbUser!.email, name: dbUser!.name, role: dbUser!.role }, JWT_SECRET, { expiresIn: '24h' });
+  res.json({ token, user: { id: dbUser!.id, name: dbUser!.name, email: dbUser!.email, role: dbUser!.role } });
 });
 
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
@@ -250,45 +89,14 @@ app.patch('/api/auth/profile', authMiddleware, async (req, res) => {
   if (name !== undefined) updates.name = name;
   if (email !== undefined) updates.email = email;
   if (phone !== undefined) updates.phone = phone;
-
   if (email) {
     const { data: existing } = await db.from('nexus_users').select('id').eq('email', email).neq('id', req.user.id).single();
     if (existing) return res.status(400).json({ error: 'Email already in use.' });
   }
-
   const { data: updated } = await db.from('nexus_users').update(updates).eq('id', req.user.id).select('id, name, email, role, phone').single();
   if (!updated) return res.status(404).json({ error: 'User not found.' });
-
-  const token = jwt.sign({ id: updated.id, email: updated.email, name: updated.name, role: updated.role }, JWT_SECRET, { expiresIn: '24h' });
-  res.json({ user: updated, token });
+  res.json({ user: updated });
 });
-
-app.patch('/api/auth/password', authMiddleware, async (req, res) => {
-  const { currentPassword, newPassword } = req.body;
-  if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Current and new password are required.' });
-  if (newPassword.length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters.' });
-
-  const { data: user } = await db.from('nexus_users').select('password').eq('id', req.user.id).single();
-  if (!user) return res.status(404).json({ error: 'User not found.' });
-  if (!bcrypt.compareSync(currentPassword, user.password)) return res.status(400).json({ error: 'Current password is incorrect.' });
-
-  const hashed = bcrypt.hashSync(newPassword, 10);
-  await db.from('nexus_users').update({ password: hashed }).eq('id', req.user.id);
-  res.json({ message: 'Password updated successfully.' });
-});
-
-if (process.env.GOOGLE_CLIENT_ID) {
-  app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-  app.get('/api/auth/google/callback',
-    passport.authenticate('google', { session: false, failureRedirect: `${corsOrigin}` }),
-    (req, res) => {
-      const user = req.user as any;
-      const token = jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
-      res.redirect(`${corsOrigin}?google_token=${token}`);
-    }
-  );
-}
 
 // ── LOAN ROUTES ─────────────────────────────────────────────
 
@@ -462,28 +270,10 @@ app.patch('/api/users/:id/reset-password', authMiddleware, async (req, res) => {
   if (!password || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
   const { data: user } = await db.from('nexus_users').select('id, name, email').eq('id', parseInt(req.params.id)).single();
   if (!user) return res.status(404).json({ error: 'User not found.' });
-  const hash = await bcrypt.hash(password, 10);
-  await db.from('nexus_users').update({ password: hash }).eq('id', user.id);
+  try { await updateUserPassword(user.email, password); } catch (e) { console.error('Failed to update Appwrite password:', e); }
   logAudit('password-reset', `${user.name} (${user.email}) password reset by admin`, req.user);
   notifyUser(user.id, 'Your password has been reset by an administrator.');
   res.json({ message: 'Password reset successfully.' });
-});
-
-app.post('/api/users/:id/send-reset-link', authMiddleware, async (req, res) => {
-  if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
-  const { data: user } = await db.from('nexus_users').select('id, name, email').eq('id', parseInt(req.params.id)).single();
-  if (!user) return res.status(404).json({ error: 'User not found.' });
-  const resetToken = jwt.sign({ id: user.id, purpose: 'password-reset' }, JWT_SECRET, { expiresIn: '15m' });
-  const resetLink = `${process.env.SITE_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
-  await sendEmail(user.email, 'Reset Your NexusFinance Password',
-    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-      <h2 style="color:#0d9488">NexusFinance</h2>
-      <p>An administrator requested a password reset. Click the link below to set a new password. This link expires in 15 minutes.</p>
-      <a href="${resetLink}" style="display:inline-block;padding:12px 24px;background:#0d9488;color:#fff;text-decoration:none;border-radius:6px;margin:16px 0">Reset Password</a>
-    </div>`
-  );
-  logAudit('password-reset-link', `${user.name} (${user.email}) sent reset link by admin`, req.user);
-  res.json({ message: 'Reset link sent to user email.' });
 });
 
 // ── CONFIG ROUTES (Super Admin) ─────────────────────────────
