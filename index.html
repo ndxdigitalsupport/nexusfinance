@@ -10,14 +10,6 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
     <title>Nexusfinance — Smart Lending Platform</title>
-    <script>
-      window.onerror = function(msg, url, line, col, err) {
-        fetch('/api/health-error', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({msg: msg, url: url, line: line, col: col, stack: err?.stack}) });
-      };
-      window.addEventListener('unhandledrejection', function(e) {
-        fetch('/api/health-error', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({msg: e.reason?.message || String(e.reason), stack: e.reason?.stack}) });
-      });
-    </script>
   </head>
   <body>
     <div id="root"></div>
