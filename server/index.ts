@@ -13,21 +13,34 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import dotenv from 'dotenv';
 import SentDm from '@sentdm/sentdm';
 import { Resend } from 'resend';
+import sgMail from '@sendgrid/mail';
 import path from 'path';
 import { db } from './db.js';
 
 dotenv.config();
 
-// Start Telegram bot (if TELEGRAM_BOT_TOKEN is set)
-if (process.env.TELEGRAM_BOT_TOKEN) {
-  import('./bot.js').catch(() => {});
-}
-
 const sentClient = new SentDm({
   apiKey: process.env.SENT_DM_API_KEY || '',
 });
 
-const resend = new Resend(process.env.RESEND_API_KEY || '');
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
+
+const SENDGRID_FROM = process.env.SENDGRID_FROM_EMAIL || 'noreply@nexusfinance.com';
+
+function sendEmail(to: string, subject: string, html: string) {
+  if (process.env.SENDGRID_API_KEY) {
+    sgMail.send({ from: SENDGRID_FROM, to, subject, html })
+      .catch(err => console.warn('⚠️ Email send failed:', err.message));
+  } else if (process.env.RESEND_API_KEY) {
+    new Resend(process.env.RESEND_API_KEY).emails.send({
+      from: 'NexusFinance <onboarding@resend.dev>', to, subject, html,
+    }).catch(err => console.warn('⚠️ Email send failed:', err.message));
+  } else {
+    console.log(`  📧 Email would be sent to ${to}: ${subject}`);
+  }
+}
 
 const otpStore = new Map<string, { code: string; expiresAt: number }>();
 
@@ -133,23 +146,16 @@ app.post('/api/auth/forgot-password', async (req, res) => {
   if (!user) return res.status(404).json({ error: 'No account found with that email.' });
 
   const resetToken = jwt.sign({ id: user.id, purpose: 'password-reset' }, JWT_SECRET, { expiresIn: '15m' });
-  const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+  const resetLink = `${process.env.SITE_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
 
-  if (process.env.RESEND_API_KEY) {
-    resend.emails.send({
-      from: 'NexusFinance <onboarding@resend.dev>',
-      to: email,
-      subject: 'Reset Your NexusFinance Password',
-      html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-        <h2 style="color:#0d9488">NexusFinance</h2>
-        <p>Click the link below to reset your password. This link expires in 15 minutes.</p>
-        <a href="${resetLink}" style="display:inline-block;padding:12px 24px;background:#0d9488;color:#fff;text-decoration:none;border-radius:6px;margin:16px 0">Reset Password</a>
-        <p style="color:#6b7280;font-size:14px">If you didn't request this, ignore this email.</p>
-      </div>`,
-    }).catch(err => console.warn('⚠️ Password reset email failed:', err.message));
-  } else {
-    console.log(`\n  🔑 Password reset link for ${email}: ${resetLink}\n`);
-  }
+  sendEmail(email, 'Reset Your NexusFinance Password',
+    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+      <h2 style="color:#0d9488">NexusFinance</h2>
+      <p>Click the link below to reset your password. This link expires in 15 minutes.</p>
+      <a href="${resetLink}" style="display:inline-block;padding:12px 24px;background:#0d9488;color:#fff;text-decoration:none;border-radius:6px;margin:16px 0">Reset Password</a>
+      <p style="color:#6b7280;font-size:14px">If you didn't request this, ignore this email.</p>
+    </div>`
+  );
 
   res.json({ message: 'Password reset link sent to your email.' });
 });
@@ -157,26 +163,19 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 app.post('/api/auth/send-otp', otpLimiter, (req, res) => {
   const { via, email, phone } = req.body;
 
-  if (via === 'email') {
+    if (via === 'email') {
     if (!email) return res.status(400).json({ error: 'Email is required.' });
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     otpStore.set(`email:${email}`, { code, expiresAt: Date.now() + 5 * 60 * 1000 });
 
-    if (process.env.RESEND_API_KEY) {
-      resend.emails.send({
-        from: 'NexusFinance <onboarding@resend.dev>',
-        to: email,
-        subject: 'Your NexusFinance Verification Code',
-        html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-          <h2 style="color:#0d9488">NexusFinance</h2>
-          <p>Your verification code is:</p>
-          <div style="font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center;padding:16px;background:#f0fdfa;border-radius:8px;color:#0f766e">${code}</div>
-          <p style="color:#6b7280;font-size:14px">Expires in 5 minutes.</p>
-        </div>`,
-      }).catch(err => console.warn('⚠️ Email send failed:', err.message));
-    } else {
-      console.log(`\n  🔑 DEV OTP for ${email}: ${code}\n`);
-    }
+    sendEmail(email, 'Your NexusFinance Verification Code',
+      `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+        <h2 style="color:#0d9488">NexusFinance</h2>
+        <p>Your verification code is:</p>
+        <div style="font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center;padding:16px;background:#f0fdfa;border-radius:8px;color:#0f766e">${code}</div>
+        <p style="color:#6b7280;font-size:14px">Expires in 5 minutes.</p>
+      </div>`
+    );
     return res.json({ message: 'OTP sent to email.' });
   }
 
