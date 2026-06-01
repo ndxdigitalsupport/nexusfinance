@@ -121,11 +121,14 @@ export default function App() {
 
   const handleLoginSuccess = (newToken: string) => {
     localStorage.setItem('nexus_token', newToken);
+    localStorage.removeItem('nexus_portal');
+    localStorage.removeItem('nexus_active_menu');
     setToken(newToken);
     setIsLoggedIn(true);
     const role = (() => { try { return JSON.parse(atob(newToken.split('.')[1])).role; } catch { return 'customer'; } })();
     if (role === 'customer') handleSetPortal('customer');
     else if (role === 'loan-officer') handleSetPortal('loan-officer');
+    else handleSetPortal('portal-selection');
   };
 
   const handleLogout = () => {
