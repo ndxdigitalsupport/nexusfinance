@@ -31,12 +31,12 @@ const SENDGRID_FROM = process.env.SENDGRID_FROM_EMAIL || 'noreply@nexusfinance.c
 
 async function sendEmail(to: string, subject: string, html: string) {
   console.log(`  📧 Sending email to ${to}: ${subject}`);
-  if (process.env.SENDGRID_API_KEY) {
-    await sgMail.send({ from: SENDGRID_FROM, to, subject, html });
-  } else if (process.env.RESEND_API_KEY) {
+  if (process.env.RESEND_API_KEY) {
     await new Resend(process.env.RESEND_API_KEY).emails.send({
       from: 'NexusFinance <onboarding@resend.dev>', to, subject, html,
     });
+  } else if (process.env.SENDGRID_API_KEY) {
+    await sgMail.send({ from: SENDGRID_FROM, to, subject, html });
   } else {
     console.log(`  📧 Email would be sent to ${to}: ${subject}`);
   }
@@ -178,8 +178,8 @@ app.post('/api/auth/send-otp', otpLimiter, async (req, res) => {
         <div style="font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center;padding:16px;background:#f0fdfa;border-radius:8px;color:#0f766e">${code}</div>
         <p style="color:#6b7280;font-size:14px">Expires in 5 minutes.</p>
       </div>`
-    ); } catch (e) { console.error('✉️ Email send error:', e); }
-    return res.json({ message: 'OTP sent to email.', devCode: code });
+    );     } catch (e) { console.error('✉️ Email send error:', e); }
+    return res.json({ message: 'OTP sent to email.' });
   }
 
   if (!phone) return res.status(400).json({ error: 'Phone number is required.' });
@@ -197,7 +197,7 @@ app.post('/api/auth/send-otp', otpLimiter, async (req, res) => {
       },
     }); } catch { /* SMS failed */ }
   }
-  res.json({ message: 'OTP sent successfully.', devCode: code });
+  res.json({ message: 'OTP sent successfully.' });
 });
 
 app.post('/api/auth/verify-otp', async (req, res) => {
