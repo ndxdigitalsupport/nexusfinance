@@ -11,9 +11,14 @@ import {
 } from 'lucide-react';
 import { PlatformConfig, PlatformStats } from '../types';
 
+interface AuditLog {
+  id: number; action: string; details: string; userEmail: string; timestamp: string;
+}
+
 interface SuperAdminDashboardProps {
   config: PlatformConfig;
   stats: PlatformStats;
+  auditLogs: AuditLog[];
   onUpdateConfig: (newConfig: PlatformConfig) => void;
   view?: 'dashboard' | 'settings';
 }
@@ -21,24 +26,16 @@ interface SuperAdminDashboardProps {
 export default function SuperAdminDashboard({
   config,
   stats,
+  auditLogs,
   onUpdateConfig,
   view = 'dashboard'
 }: SuperAdminDashboardProps) {
   const [editingConfig, setEditingConfig] = useState<PlatformConfig>({ ...config });
-  const [logs, setLogs] = useState([
-    { id: 1, action: 'Auto-Underwrite rules applied to SVM81', time: '10 mins ago', admin: 'AI Engine' },
-    { id: 2, action: 'Interest Matrix adjusted from 5.2% to 5.4%', time: '1 hr ago', admin: 'Admin System' },
-    { id: 3, action: 'Platform collateral audit checks completed', time: '12 hrs ago', admin: 'Compliance bot' },
-  ]);
   const [savedMessage, setSavedMessage] = useState(false);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     onUpdateConfig(editingConfig);
-    setLogs((prev) => [
-      { id: Date.now(), action: `Configuration variables updated systemwide. APR: ${editingConfig.baseInterestRate}%`, time: 'Just now', admin: 'You' },
-      ...prev,
-    ]);
     setSavedMessage(true);
     setTimeout(() => setSavedMessage(false), 2000);
   };
@@ -167,14 +164,16 @@ export default function SuperAdminDashboard({
           </h3>
 
           <div className="divide-y divide-gray-100 space-y-1.5 text-[13.5px] max-h-[320px] overflow-y-auto pr-1">
-            {logs.map((log) => (
+            {auditLogs.length === 0 ? (
+              <p className="text-[#74777b] text-[13px] py-4 text-center">No audit logs yet.</p>
+            ) : auditLogs.map((log) => (
               <div key={log.id} className="py-3 flex justify-between items-start gap-4">
                 <div>
-                  <span className="text-[#181c1e] font-extrabold block">{log.action}</span>
-                  <span className="text-[11px] text-[#74777b] mt-0.5 block">{log.time}</span>
+                  <span className="text-[#181c1e] font-extrabold block">{log.details}</span>
+                  <span className="text-[11px] text-[#74777b] mt-0.5 block">{new Date(log.timestamp).toLocaleString()}</span>
                 </div>
                 <span className="text-[11px] px-2 py-0.5 bg-gray-100 rounded text-slate-600 font-bold shrink-0 self-start">
-                  {log.admin}
+                  {log.userEmail}
                 </span>
               </div>
             ))}

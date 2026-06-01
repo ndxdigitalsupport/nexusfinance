@@ -62,7 +62,8 @@ export default function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [outstandingBalance, setOutstandingBalance] = useState(0);
-  const [walletBalance, setWalletBalance] = useState(8450.25);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [config, setConfig] = useState<PlatformConfig>(DEFAULT_CONFIG);
   const [stats, setStats] = useState<PlatformStats>(DEFAULT_STATS);
 
@@ -82,20 +83,22 @@ export default function App() {
 
   const refetchAll = async () => {
     try {
-      const [loans, txs, tasksData, configData, statsData] = await Promise.all([
+      const [loans, txs, tasksData, configData, statsData, auditData] = await Promise.all([
         apiFetch('/loans'),
         apiFetch('/transactions'),
         apiFetch('/tasks'),
         apiFetch('/config'),
         apiFetch('/stats'),
+        apiFetch('/audit/logs').catch(() => []),
       ]);
       setApplications(loans.map((l: any) => ({ ...l, assignedToMe: l.assignedTo === portalUser?.id })));
       setTransactions(txs);
-      setOutstandingBalance(Math.abs(calcBalance(txs)) || 1200);
-      setWalletBalance(txs.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0) || 8450.25);
+      setOutstandingBalance(Math.abs(calcBalance(txs)));
+      setWalletBalance(txs.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0));
       setTasks(tasksData);
       setConfig(configData);
       setStats(statsData);
+      setAuditLogs(auditData);
     } catch {
       showToast('Some data failed to load. Check your connection.', 'error');
     }
@@ -137,9 +140,10 @@ export default function App() {
     setTasks([]);
     setTransactions([]);
     setOutstandingBalance(0);
-    setWalletBalance(8450.25);
+    setWalletBalance(0);
     setConfig(DEFAULT_CONFIG);
     setStats(DEFAULT_STATS);
+    setAuditLogs([]);
   };
 
   const handleSetPortal = (portal: PortalType) => {
@@ -615,6 +619,7 @@ export default function App() {
               <SuperAdminDashboard
                 config={config}
                 stats={stats}
+                auditLogs={auditLogs}
                 onUpdateConfig={handleUpdateConfig}
                 view="dashboard"
               />
@@ -626,6 +631,7 @@ export default function App() {
               <SuperAdminDashboard
                 config={config}
                 stats={stats}
+                auditLogs={auditLogs}
                 onUpdateConfig={handleUpdateConfig}
                 view="settings"
               />
