@@ -924,18 +924,40 @@ function UsersView() {
       {resetPwUserId !== null && (
         <div className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150" onClick={() => setResetPwUserId(null)}>
           <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl border border-[#c4c7ca] p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="text-[18px] font-extrabold text-[#0F171C] mb-1">Reset Password</h3>
-            <p className="text-[13px] text-[#74777b] mb-4">Enter a new password for this user.</p>
-            <input
-              type="password"
-              value={resetPwPassword}
-              onChange={e => setResetPwPassword(e.target.value)}
-              placeholder="New password (min 6 chars)"
-              className="w-full border border-[#c4c7ca] rounded-xl px-3.5 py-2.5 text-[14px] mb-4 focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20"
-            />
-            <div className="flex gap-2 justify-end">
-              <button onClick={() => setResetPwUserId(null)} className="px-4 py-2 text-[13px] font-bold text-[#74777b] hover:text-[#0F171C] border border-[#c4c7ca] rounded-xl cursor-pointer">Cancel</button>
-              <button onClick={() => resetPassword(resetPwUserId)} disabled={resettingPw} className="px-4 py-2 text-[13px] font-bold bg-[#0F171C] text-white rounded-xl hover:brightness-110 cursor-pointer disabled:opacity-50">{resettingPw ? 'Resetting...' : 'Reset'}</button>
+            <h3 className="text-[18px] font-extrabold text-[#0F171C] mb-1">Reset User Password</h3>
+            <p className="text-[13px] text-[#74777b] mb-4">Send a reset link via email, or set a new password directly.</p>
+
+            <button
+              onClick={async () => {
+                setResettingPw(true);
+                try {
+                  await apiFetch(`/users/${resetPwUserId}/send-reset-link`, { method: 'POST' });
+                  showToast('Reset link sent to user email');
+                  setResetPwUserId(null);
+                } catch (e: any) {
+                  showToast(e.message || 'Failed to send reset link', 'error');
+                } finally { setResettingPw(false); }
+              }}
+              disabled={resettingPw}
+              className="w-full text-left px-4 py-3 rounded-xl border border-[#c4c7ca] hover:border-[#5CF2D0] hover:bg-[#f0fdfa] transition-all cursor-pointer mb-3 disabled:opacity-50"
+            >
+              <span className="font-bold text-[14px] text-[#0F171C]">📧 Send Reset Link</span>
+              <p className="text-[11px] text-[#74777b] mt-0.5">User receives an email to set their own password</p>
+            </button>
+
+            <div className="border-t border-[#e2e8f0] pt-3">
+              <p className="text-[11px] font-bold text-[#94a3b8] uppercase tracking-wider mb-2">Or set manually</p>
+              <input
+                type="password"
+                value={resetPwPassword}
+                onChange={e => setResetPwPassword(e.target.value)}
+                placeholder="New password (min 6 chars)"
+                className="w-full border border-[#c4c7ca] rounded-xl px-3.5 py-2.5 text-[14px] mb-3 focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20"
+              />
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => setResetPwUserId(null)} className="px-4 py-2 text-[13px] font-bold text-[#74777b] hover:text-[#0F171C] border border-[#c4c7ca] rounded-xl cursor-pointer">Cancel</button>
+                <button onClick={() => resetPassword(resetPwUserId)} disabled={resettingPw || !resetPwPassword || resetPwPassword.length < 6} className="px-4 py-2 text-[13px] font-bold bg-[#0F171C] text-white rounded-xl hover:brightness-110 cursor-pointer disabled:opacity-50">{resettingPw ? 'Saving...' : 'Set Password'}</button>
+              </div>
             </div>
           </div>
         </div>

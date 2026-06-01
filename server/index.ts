@@ -453,6 +453,23 @@ app.patch('/api/users/:id/reset-password', authMiddleware, async (req, res) => {
   res.json({ message: 'Password reset successfully.' });
 });
 
+app.post('/api/users/:id/send-reset-link', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
+  const { data: user } = await db.from('nexus_users').select('id, name, email').eq('id', parseInt(req.params.id)).single();
+  if (!user) return res.status(404).json({ error: 'User not found.' });
+  const resetToken = jwt.sign({ id: user.id, purpose: 'password-reset' }, JWT_SECRET, { expiresIn: '15m' });
+  const resetLink = `${process.env.SITE_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+  sendEmail(user.email, 'Reset Your NexusFinance Password',
+    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+      <h2 style="color:#0d9488">NexusFinance</h2>
+      <p>An administrator requested a password reset. Click the link below to set a new password. This link expires in 15 minutes.</p>
+      <a href="${resetLink}" style="display:inline-block;padding:12px 24px;background:#0d9488;color:#fff;text-decoration:none;border-radius:6px;margin:16px 0">Reset Password</a>
+    </div>`
+  );
+  logAudit('password-reset-link', `${user.name} (${user.email}) sent reset link by admin`, req.user);
+  res.json({ message: 'Reset link sent to user email.' });
+});
+
 // ── CONFIG ROUTES (Super Admin) ─────────────────────────────
 
 app.get('/api/config', authMiddleware, async (req, res) => {
