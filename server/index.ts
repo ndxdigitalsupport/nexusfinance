@@ -31,14 +31,23 @@ const SENDGRID_FROM = process.env.SENDGRID_FROM_EMAIL || 'noreply@nexusfinance.c
 
 async function sendEmail(to: string, subject: string, html: string) {
   console.log(`  📧 Sending email to ${to}: ${subject}`);
-  if (process.env.RESEND_API_KEY) {
-    await new Resend(process.env.RESEND_API_KEY).emails.send({
-      from: 'NexusFinance <onboarding@resend.dev>', to, subject, html,
-    });
-  } else if (process.env.SENDGRID_API_KEY) {
-    await sgMail.send({ from: SENDGRID_FROM, to, subject, html });
-  } else {
-    console.log(`  📧 Email would be sent to ${to}: ${subject}`);
+  try {
+    if (process.env.RESEND_API_KEY) {
+      await Promise.race([
+        new Resend(process.env.RESEND_API_KEY).emails.send({
+          from: 'NexusFinance <onboarding@resend.dev>', to, subject, html,
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Resend timeout after 10s')), 10000)),
+      ]);
+      console.log(`  ✅ Email sent to ${to}`);
+    } else if (process.env.SENDGRID_API_KEY) {
+      await sgMail.send({ from: SENDGRID_FROM, to, subject, html });
+      console.log(`  ✅ Email sent to ${to}`);
+    } else {
+      console.log(`  📧 Email would be sent to ${to}: ${subject}`);
+    }
+  } catch (e) {
+    console.error('✉️ Email send error:', e instanceof Error ? e.message : e);
   }
 }
 
