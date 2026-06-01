@@ -52,24 +52,26 @@ app.use(passport.initialize());
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: { error: 'Too many attempts. Try again later.' } });
 const otpLimiter = rateLimit({ windowMs: 5 * 60 * 1000, max: 5, message: { error: 'Too many OTP requests. Try again later.' } });
 
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID!,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-  callbackURL: 'http://localhost:3001/api/auth/google/callback',
-}, async (accessToken, refreshToken, profile, done) => {
-  const email = profile.emails?.[0]?.value || `${profile.id}@google.com`;
-  const { data: existing } = await db.from('nexus_users').select('*').eq('email', email).single();
-  if (existing) return done(null, existing);
+if (process.env.GOOGLE_CLIENT_ID) {
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+    callbackURL: `${corsOrigin}/api/auth/google/callback`,
+  }, async (accessToken, refreshToken, profile, done) => {
+    const email = profile.emails?.[0]?.value || `${profile.id}@google.com`;
+    const { data: existing } = await db.from('nexus_users').select('*').eq('email', email).single();
+    if (existing) return done(null, existing);
 
-  const { data: newUser } = await db.from('nexus_users').insert({
-    name: profile.displayName || email.split('@')[0],
-    email,
-    password: '',
-    role: 'customer',
-  }).select().single();
+    const { data: newUser } = await db.from('nexus_users').insert({
+      name: profile.displayName || email.split('@')[0],
+      email,
+      password: '',
+      role: 'customer',
+    }).select().single();
 
-  done(null, newUser);
-}));
+    done(null, newUser);
+  }));
+}
 
 function logAudit(action: string, details: string, user: any) {
   db.from('nexus_audit_logs').insert({ action, details, userId: user.id, userEmail: user.email }).then(null, () => {});
@@ -255,16 +257,18 @@ app.patch('/api/auth/password', authMiddleware, async (req, res) => {
   res.json({ message: 'Password updated successfully.' });
 });
 
-app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+if (process.env.GOOGLE_CLIENT_ID) {
+  app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-app.get('/api/auth/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: 'http://localhost:3000' }),
-  (req, res) => {
-    const user = req.user as any;
-    const token = jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
-    res.redirect(`http://localhost:3000?google_token=${token}`);
-  }
-);
+  app.get('/api/auth/google/callback',
+    passport.authenticate('google', { session: false, failureRedirect: `${corsOrigin}` }),
+    (req, res) => {
+      const user = req.user as any;
+      const token = jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
+      res.redirect(`${corsOrigin}?google_token=${token}`);
+    }
+  );
+}
 
 // ── LOAN ROUTES ─────────────────────────────────────────────
 
