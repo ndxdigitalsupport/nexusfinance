@@ -509,6 +509,12 @@ app.use((err: any, req: any, res: any, next: any) => {
   res.status(500).json({ error: 'Internal server error.' });
 });
 
+// ── HEALTH CHECK ─────────────────────────────────────────────
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime() });
+});
+
 // ── PRODUCTION: serve frontend build ─────────────────────────
 
 if (process.env.NODE_ENV === 'production') {
@@ -522,22 +528,10 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// ── HEALTH CHECK ─────────────────────────────────────────────
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', uptime: process.uptime() });
-});
-
 // ── 404 catch-all ────────────────────────────────────────────
 
 app.use((req, res) => {
   res.status(404).json({ error: `Route ${req.method} ${req.path} not found.` });
-});
-
-// ── HEALTH CHECK ─────────────────────────────────────────────
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', uptime: process.uptime() });
 });
 
 // ── START THE SERVER ────────────────────────────────────────
