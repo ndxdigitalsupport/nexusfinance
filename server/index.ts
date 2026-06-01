@@ -18,6 +18,11 @@ import { db } from './db.js';
 
 dotenv.config();
 
+// Start Telegram bot (if TELEGRAM_BOT_TOKEN is set)
+if (process.env.TELEGRAM_BOT_TOKEN) {
+  import('./bot.js').catch(() => {});
+}
+
 const sentClient = new SentDm({
   apiKey: process.env.SENT_DM_API_KEY || '',
 });
