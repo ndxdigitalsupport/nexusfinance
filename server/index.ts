@@ -62,6 +62,7 @@ for (const key of requiredEnv) {
   if (!process.env[key]) { console.error(`FATAL: ${key} is not set in .env`); process.exit(1); }
 }
 
+app.set('trust proxy', 1);
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
 app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
