@@ -7,7 +7,8 @@ CREATE TABLE nexus_users (
   email TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL DEFAULT '',
   role TEXT NOT NULL DEFAULT 'customer',
-  phone TEXT DEFAULT ''
+  phone TEXT DEFAULT '',
+  verified BOOLEAN NOT NULL DEFAULT false
 );
 
 -- If nexus_users already exists without phone column, run:
@@ -57,10 +58,10 @@ CREATE TABLE nexus_config (
 );
 
 -- Seed demo users (passwords are bcrypt hashes of "password123")
-INSERT INTO nexus_users (name, email, password, role) VALUES
-  ('Demo Customer', 'customer@nexus.com', '$2b$10$S05PE.WBO8ScFsr7cg25I.QU8MlmL1cDtLGZUUcRUVffUnNRS3jZy', 'customer'),
-  ('Demo Loan Officer', 'officer@nexus.com', '$2b$10$HH57B4fcDKZJPdGlJ4B47.rxYICNOzYePaoRhcyJO2io/HmOHguX6', 'loan-officer'),
-  ('Demo Admin', 'admin@nexus.com', '$2b$10$D/.k3eG.wEcAbdGaYOBHDedRq95ZGv6Z7zC81b/E37nrNhq.nWQDG', 'super-admin');
+INSERT INTO nexus_users (name, email, password, role, verified) VALUES
+  ('Demo Customer', 'customer@nexus.com', '$2b$10$S05PE.WBO8ScFsr7cg25I.QU8MlmL1cDtLGZUUcRUVffUnNRS3jZy', 'customer', true),
+  ('Demo Loan Officer', 'officer@nexus.com', '$2b$10$HH57B4fcDKZJPdGlJ4B47.rxYICNOzYePaoRhcyJO2io/HmOHguX6', 'loan-officer', true),
+  ('Demo Admin', 'admin@nexus.com', '$2b$10$D/.k3eG.wEcAbdGaYOBHDedRq95ZGv6Z7zC81b/E37nrNhq.nWQDG', 'super-admin', true);
 
 -- Seed config
 INSERT INTO nexus_config (id, "baseInterestRate", "maxLoanAmount", "kycRequired", "autoApproveLimit")

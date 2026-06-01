@@ -120,6 +120,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
   const { data: user } = await db.from('nexus_users').select('*').eq('email', email).single();
   if (!user) return res.status(400).json({ error: 'User not found with that email.' });
   if (!bcrypt.compareSync(password, user.password)) return res.status(400).json({ error: 'Wrong password.' });
+  if (!user.verified) return res.status(403).json({ error: 'Please verify your email before logging in.' });
 
   const token = jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
   res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
@@ -132,6 +133,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
 
   const { data: newUser } = await db.from('nexus_users').insert({
     name, email, password: bcrypt.hashSync(password, 10), role: 'customer', phone: phone || '',
+    verified: false,
   }).select().single();
   if (!newUser) return res.status(500).json({ error: 'Registration failed.' });
 
@@ -198,7 +200,7 @@ app.post('/api/auth/send-otp', otpLimiter, (req, res) => {
   res.json({ message: 'OTP sent successfully.' });
 });
 
-app.post('/api/auth/verify-otp', (req, res) => {
+app.post('/api/auth/verify-otp', async (req, res) => {
   const { via, email, phone, code } = req.body;
 
   if (via === 'email') {
@@ -209,6 +211,7 @@ app.post('/api/auth/verify-otp', (req, res) => {
     if (Date.now() > stored.expiresAt) { otpStore.delete(key); return res.status(400).json({ error: 'OTP expired. Request a new one.' }); }
     if (stored.code !== code) return res.status(400).json({ error: 'Invalid verification code.' });
     otpStore.delete(key);
+    await db.from('nexus_users').update({ verified: true }).eq('email', email);
     return res.json({ message: 'Email verified successfully.' });
   }
 
@@ -219,6 +222,7 @@ app.post('/api/auth/verify-otp', (req, res) => {
   if (Date.now() > stored.expiresAt) { otpStore.delete(key); return res.status(400).json({ error: 'OTP expired. Request a new one.' }); }
   if (stored.code !== code) return res.status(400).json({ error: 'Invalid verification code.' });
   otpStore.delete(key);
+  await db.from('nexus_users').update({ verified: true }).eq('phone', phone);
   res.json({ message: 'Phone verified successfully.' });
 });
 
