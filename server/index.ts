@@ -11,6 +11,7 @@ import path from 'path';
 import { db } from './db.js';
 import { updateUserPassword } from './appwrite.js';
 import { sendSMS } from './sms.js';
+import { generateKHQR, verifyKHQR, decodeKHQR, generateDeeplink, checkTransaction } from './khqr.js';
 
 dotenv.config();
 
@@ -380,7 +381,6 @@ if (process.env.NODE_ENV === 'production') {
   // ── KHQR Routes ─────────────────────────────────────────────
   app.get('/api/khqr/generate', (req, res) => {
     try {
-      const { generateKHQR } = require('./khqr');
       const { bakongAccountId, merchantName, merchantCity, currency, amount, countryCode, storeLabel, phone, email } = req.query;
       if (!bakongAccountId || !merchantName) {
         return res.status(400).json({ error: 'bakongAccountId and merchantName are required' });
@@ -404,7 +404,6 @@ if (process.env.NODE_ENV === 'production') {
 
   app.get('/api/khqr/verify', (req, res) => {
     try {
-      const { verifyKHQR } = require('./khqr');
       const { qr } = req.query;
       if (!qr) return res.status(400).json({ error: 'qr parameter is required' });
       const result = verifyKHQR(qr as string);
@@ -416,7 +415,6 @@ if (process.env.NODE_ENV === 'production') {
 
   app.get('/api/khqr/decode', (req, res) => {
     try {
-      const { decodeKHQR } = require('./khqr');
       const { qr } = req.query;
       if (!qr) return res.status(400).json({ error: 'qr parameter is required' });
       const result = decodeKHQR(qr as string);
@@ -428,7 +426,6 @@ if (process.env.NODE_ENV === 'production') {
 
   app.get('/api/khqr/deeplink', (req, res) => {
     try {
-      const { generateDeeplink } = require('./khqr');
       const { qr } = req.query;
       if (!qr) return res.status(400).json({ error: 'qr parameter is required' });
       const result = generateDeeplink(qr as string);
@@ -440,7 +437,6 @@ if (process.env.NODE_ENV === 'production') {
 
   app.get('/api/khqr/check-transaction', (req, res) => {
     try {
-      const { checkTransaction } = require('./khqr');
       const { referenceId } = req.query;
       if (!referenceId) return res.status(400).json({ error: 'referenceId is required' });
       const result = checkTransaction(referenceId as string);
