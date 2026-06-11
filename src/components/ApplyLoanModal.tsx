@@ -34,22 +34,22 @@ function CustomSelect({ value, options, onChange, icon: Icon, className }: {
   return (
     <div ref={ref} className="relative">
       <button type="button" onClick={() => setOpen(!open)}
-        className={`w-full flex items-center gap-2.5 bg-[#f8fafc] border border-[#e2e8f0] hover:border-[#94a3b8] rounded-xl px-3.5 py-3 text-[14px] text-left cursor-pointer transition-all duration-200 focus:bg-white focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 ${className || ''}`}>
-        <Icon className="w-4 h-4 text-[#94a3b8] flex-shrink-0" />
-        <span className="flex-1 text-[#0F171C] font-medium">{selected?.label || value}</span>
-        <ChevronDown className={`w-4 h-4 text-[#94a3b8] transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        className={`w-full flex items-center gap-2.5 bg-[var(--surface-secondary)] border border-[var(--border-primary)] hover:border-[var(--text-tertiary)] rounded-xl px-3.5 py-3 text-[14px] text-left cursor-pointer transition-all duration-200 focus:bg-[var(--surface-card)] focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 ${className || ''}`}>
+        <Icon className="w-4 h-4 text-[var(--text-tertiary)] flex-shrink-0" />
+        <span className="flex-1 text-[var(--text-primary)] font-medium">{selected?.label || value}</span>
+        <ChevronDown className={`w-4 h-4 text-[var(--text-tertiary)] transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#e2e8f0] rounded-xl shadow-xl shadow-black/5 z-20 py-1.5 overflow-hidden animate-dropdown-enter">
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl shadow-xl shadow-black/5 z-20 py-1.5 overflow-hidden animate-dropdown-enter">
           {options.map(opt => (
             <button key={opt.value} type="button" onClick={() => { onChange(opt.value); setOpen(false); }}
-              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[14px] text-left cursor-pointer transition-colors duration-100 hover:bg-[#f8fafc] ${opt.value === value ? 'bg-[#f0fdfa] text-[#0d9488] font-bold' : 'text-[#0F171C] font-medium'}`}>
+              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[14px] text-left cursor-pointer transition-colors duration-100 hover:bg-[var(--surface-secondary)] ${opt.value === value ? 'bg-[#f0fdfa] text-[#0d9488] font-bold' : 'text-[var(--text-primary)] font-medium'}`}>
               <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${opt.value === value ? 'border-[#0d9488] bg-[#0d9488]' : 'border-[#cbd5e1]'}`}>
                 {opt.value === value && <Check className="w-3 h-3 text-white" />}
               </span>
               <div className="flex-1">
                 <span>{opt.label}</span>
-                {opt.sub && <span className="text-[11px] text-[#94a3b8] ml-2 font-normal">{opt.sub}</span>}
+                {opt.sub && <span className="text-[11px] text-[var(--text-tertiary)] ml-2 font-normal">{opt.sub}</span>}
               </div>
             </button>
           ))}
@@ -138,7 +138,7 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
   };
 
   const inputClass = (field: string) =>
-    `w-full bg-[#f8fafc] border rounded-xl px-4 py-3 text-[14px] text-[#0F171C] placeholder:text-[#94a3b8] transition-all duration-200 focus:bg-white focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 ${formErrors[field] ? 'border-red-400 bg-red-50' : 'border-[#e2e8f0] hover:border-[#94a3b8]'}`;
+    `w-full bg-[var(--surface-secondary)] border rounded-xl px-4 py-3 text-[14px] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] transition-all duration-200 focus:bg-[var(--surface-card)] focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 ${formErrors[field] ? 'border-red-400 bg-red-50' : 'border-[var(--border-primary)] hover:border-[var(--text-tertiary)]'}`;
 
   const steps = [
     { num: 1, label: 'Personal Info', icon: User },
@@ -147,8 +147,8 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
 
   return (
     <div className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto animate-in fade-in duration-150" onClick={onClose}>
-      <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-white/20 relative" onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute -top-3 -right-3 z-20 p-3 rounded-full bg-white border border-[#e2e8f0] shadow-lg hover:shadow-xl hover:bg-[#f8fafc] text-[#64748b] hover:text-[#0F171C] transition-all duration-200 cursor-pointer">
+      <div className="bg-[var(--surface-card)] w-full max-w-xl rounded-3xl shadow-2xl border border-white/20 relative" onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute -top-3 -right-3 z-20 p-3 rounded-full bg-[var(--surface-card)] border border-[var(--border-primary)] shadow-lg hover:shadow-xl hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all duration-200 cursor-pointer">
           <X className="w-4 h-4" />
         </button>
 
@@ -157,11 +157,11 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center mb-6 shadow-inner">
               <CheckCircle2 className="w-14 h-14 text-emerald-500" />
             </div>
-            <h3 className="text-[26px] font-extrabold text-[#0F171C] mb-2">Application Submitted!</h3>
-            <p className="text-[15px] text-[#64748b] max-w-sm mx-auto mb-2 leading-relaxed">
-              Your <span className="font-bold text-[#0F171C]">${parseFloat(formData.amount).toLocaleString()} {formData.type}</span> application has been filed.
+            <h3 className="text-[26px] font-extrabold text-[var(--text-primary)] mb-2">Application Submitted!</h3>
+            <p className="text-[15px] text-[var(--text-secondary)] max-w-sm mx-auto mb-2 leading-relaxed">
+              Your <span className="font-bold text-[var(--text-primary)]">${parseFloat(formData.amount).toLocaleString()} {formData.type}</span> application has been filed.
             </p>
-            <p className="text-[13px] text-[#94a3b8] mb-8">Underwriters will perform verification shortly.</p>
+            <p className="text-[13px] text-[var(--text-tertiary)] mb-8">Underwriters will perform verification shortly.</p>
             <button onClick={handleReset} className="px-10 py-3 bg-gradient-to-r from-[#0F171C] to-slate-800 text-white font-bold text-[14px] rounded-xl hover:brightness-110 transition-all shadow-lg shadow-black/10 cursor-pointer">
               Back to Portal
             </button>
@@ -183,14 +183,14 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
             </div>
 
             <div className="px-8 -mt-5 relative z-10">
-              <div className="bg-white rounded-xl shadow-lg border border-[#e2e8f0] p-1.5 flex">
+              <div className="bg-[var(--surface-card)] rounded-xl shadow-lg border border-[var(--border-primary)] p-1.5 flex">
                 {steps.map(s => {
                   const Icon = s.icon;
                   const active = step === s.num;
                   const done = step > s.num;
                   return (
-                    <div key={s.num} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[13px] font-bold transition-all duration-300 ${active ? 'bg-[#0F171C] text-white shadow-md' : done ? 'bg-emerald-50 text-emerald-600' : 'text-[#94a3b8]'}`}>
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-extrabold ${active ? 'bg-white/20 text-white' : done ? 'bg-emerald-200 text-emerald-700' : 'bg-[#e2e8f0] text-[#94a3b8]'}`}>
+                    <div key={s.num} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[13px] font-bold transition-all duration-300 ${active ? 'bg-[#0F171C] text-white shadow-md' : done ? 'bg-emerald-50 text-emerald-600' : 'text-[var(--text-tertiary)]'}`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-extrabold ${active ? 'bg-white/20 text-white' : done ? 'bg-emerald-200 text-emerald-700' : 'bg-[#e2e8f0] text-[var(--text-tertiary)]'}`}>
                         {done ? <CheckCircle2 className="w-3.5 h-3.5" /> : s.num}
                       </div>
                       <span className="hidden sm:inline">{s.label}</span>
@@ -204,17 +204,17 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
               {step === 1 ? (
                 <div className="space-y-4 animate-content-enter">
                   <div>
-                    <label className="block text-[12px] font-bold text-[#64748b] uppercase tracking-wider mb-1.5">Full Name</label>
+                    <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Full Name</label>
                     <div className="relative">
-                      <User className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <User className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="John Doe" className={`${inputClass('name')} pl-10`} />
                     </div>
                     {formErrors.name && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.name}</p>}
                   </div>
                   <div>
-                    <label className="block text-[12px] font-bold text-[#64748b] uppercase tracking-wider mb-1.5">Email Address</label>
+                    <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Email Address</label>
                     <div className="relative">
-                      <Mail className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <Mail className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="name@domain.com" className={`${inputClass('email')} pl-10`} />
                     </div>
                     {formErrors.email && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.email}</p>}
@@ -229,17 +229,17 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                 <div className="space-y-4 animate-content-enter">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[12px] font-bold text-[#64748b] uppercase tracking-wider mb-1.5">Loan Amount</label>
+                      <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Loan Amount</label>
                       <div className="relative">
-                        <DollarSign className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <DollarSign className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
                         <input type="number" name="amount" value={formData.amount} onChange={handleInputChange} placeholder="15000" className={`${inputClass('amount')} pl-10`} />
                       </div>
                       {formErrors.amount && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.amount}</p>}
                     </div>
                     <div>
-                      <label className="block text-[12px] font-bold text-[#64748b] uppercase tracking-wider mb-1.5">Monthly Income</label>
+                      <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Monthly Income</label>
                       <div className="relative">
-                        <DollarSign className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <DollarSign className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
                         <input type="number" name="monthlyIncome" value={formData.monthlyIncome} onChange={handleInputChange} placeholder="5000" className={`${inputClass('monthlyIncome')} pl-10`} />
                       </div>
                       {formErrors.monthlyIncome && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.monthlyIncome}</p>}
@@ -248,19 +248,19 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[12px] font-bold text-[#64748b] uppercase tracking-wider mb-1.5">Loan Category</label>
+                      <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Loan Category</label>
                       <CustomSelect value={formData.type} options={LOAN_TYPES.map(t => ({ value: t, label: t }))} onChange={v => setFormData(prev => ({ ...prev, type: v }))} icon={Briefcase} />
                     </div>
                     <div>
-                      <label className="block text-[12px] font-bold text-[#64748b] uppercase tracking-wider mb-1.5">Duration</label>
+                      <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Duration</label>
                       <CustomSelect value={formData.durationMonths} options={DURATIONS} onChange={v => setFormData(prev => ({ ...prev, durationMonths: v }))} icon={Calendar} />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[12px] font-bold text-[#64748b] uppercase tracking-wider mb-1.5">Loan Purpose</label>
+                    <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Loan Purpose</label>
                     <div className="relative">
-                      <FileText className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-3.5" />
+                      <FileText className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-3.5" />
                       <textarea name="purpose" rows={3} value={formData.purpose} onChange={handleInputChange} placeholder="Describe the purpose of this loan..." className={`${inputClass('purpose')} pl-10 resize-none`} />
                     </div>
                     {formErrors.purpose && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.purpose}</p>}
@@ -270,18 +270,18 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                     <div className="bg-gradient-to-r from-[#f0fdfa] to-white border border-[#5CF2D0]/20 rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Clock className="w-4 h-4 text-[#0d9488]" />
-                        <p className="text-[12px] font-bold text-[#64748b] uppercase tracking-wider">Estimated Payment</p>
+                        <p className="text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Estimated Payment</p>
                       </div>
                       <div className="flex items-baseline gap-3">
-                        <span className="text-[24px] font-extrabold text-[#0F171C]">${Math.round(estimatedPayment.monthly).toLocaleString()}</span>
-                        <span className="text-[13px] text-[#64748b]">/month for {formData.durationMonths} months</span>
+                        <span className="text-[24px] font-extrabold text-[var(--text-primary)]">${Math.round(estimatedPayment.monthly).toLocaleString()}</span>
+                        <span className="text-[13px] text-[var(--text-secondary)]">/month for {formData.durationMonths} months</span>
                       </div>
-                      <p className="text-[12px] text-[#94a3b8] mt-0.5">Total repayment: ${Math.round(estimatedPayment.total).toLocaleString()} · APR 5.4%</p>
+                      <p className="text-[12px] text-[var(--text-tertiary)] mt-0.5">Total repayment: ${Math.round(estimatedPayment.total).toLocaleString()} · APR 5.4%</p>
                     </div>
                   )}
 
                   <div className="pt-2 flex justify-between">
-                    <button type="button" onClick={handlePrev} className="px-6 py-3 border border-[#e2e8f0] text-[#64748b] text-[14px] font-bold rounded-xl hover:bg-[#f8fafc] hover:border-[#94a3b8] transition-all flex items-center gap-2 cursor-pointer">
+                    <button type="button" onClick={handlePrev} className="px-6 py-3 border border-[var(--border-primary)] text-[var(--text-secondary)] text-[14px] font-bold rounded-xl hover:bg-[var(--surface-secondary)] hover:border-[var(--text-tertiary)] transition-all flex items-center gap-2 cursor-pointer">
                       <ArrowLeft className="w-4 h-4" /> Back
                     </button>
                     <button type="submit" disabled={isSubmitting} className="px-7 py-3 bg-gradient-to-r from-[#0F171C] to-slate-800 text-white text-[14px] font-bold rounded-xl hover:brightness-110 transition-all shadow-lg shadow-black/10 disabled:opacity-50 flex items-center gap-2 cursor-pointer">

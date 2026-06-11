@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexusFinance — Web & SMS Playbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-hover: #f8f6ff;
+    --border: #e8e4f0;
+    --border-light: #f2eff8;
+    --text: #1a1035;
+    --text-secondary: #5a4b7a;
+    --text-muted: #9184a8;
+    --accent: #31216a;
+    --primary: #6d4aff;
+    --primary-bg: rgba(109,74,255,0.07);
+    --primary-soft: #eeebff;
+    --rose: #e11d6a;
+    --rose-bg: rgba(225,29,106,0.07);
+    --rose-soft: #ffe8f1;
+    --gold: #b8860b;
+    --gold-bg: rgba(184,134,11,0.07);
+    --gold-soft: #fef7e6;
+    --shadow-sm: 0 1px 2px rgba(49,33,106,0.04);
+    --shadow-md: 0 4px 20px rgba(49,33,106,0.07);
+    --shadow-lg: 0 8px 40px rgba(49,33,106,0.08);
+    --code-bg: #1a1035;
+    --code-text: #e8e4f0;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(255,255,255,0.85); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-light);
+    padding: 0 44px; height: 68px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 14px; }
+  .topbar-mark {
+    width: 34px; height: 34px; background: var(--accent);
+    border-radius: 10px; display: flex;
+    align-items: center; justify-content: center;
+    color: white; font-weight: 900; font-size: 0.85rem;
+  }
+  .topbar-title { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em; }
+  .topbar-title span { color: var(--text-muted); font-weight: 400; margin-left: 8px; }
+  .topbar-right { display: flex; align-items: center; gap: 8px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 20px; border-radius: 10px;
+    font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.2s ease;
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--accent); color: white;
+    box-shadow: 0 2px 8px rgba(49,33,106,0.15);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(49,33,106,0.2); }
+  .btn-secondary {
+    background: transparent; color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--surface-hover); color: var(--text); border-color: var(--primary); }
+  .btn svg { width: 15px; height: 15px; }
+
+  .wrapper { max-width: 1120px; margin: 0 auto; padding: 100px 32px 64px; }
+
+  .hero {
+    position: relative;
+    background: linear-gradient(160deg, #1a1035 0%, #2d1b69 100%);
+    border-radius: 24px;
+    padding: 52px 56px;
+    margin-bottom: 40px;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 500px 300px at 80% 10%, rgba(109,74,255,0.1) 0%, transparent 60%),
+      radial-gradient(ellipse 400px 400px at 20% 90%, rgba(225,29,106,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-grid {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 100px; padding: 5px 16px;
+    font-size: 0.7rem; font-weight: 600; color: rgba(255,255,255,0.45);
+    text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 24px;
+    position: relative;
+  }
+  .hero-tag .dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #a78bfa; animation: flash 1.8s infinite;
+  }
+  @keyframes flash { 0%,100%{opacity:1} 50%{opacity:0.15} }
+  .hero h1 {
+    font-size: 2.6rem; font-weight: 900; letter-spacing: -0.04em;
+    line-height: 1.08; margin-bottom: 12px; position: relative;
+    color: #fff;
+  }
+  .hero h1 .g {
+    background: linear-gradient(135deg, #a78bfa 0%, #f472b6 50%, #fb923c 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero p { color: rgba(255,255,255,0.4); font-size: 0.95rem; position: relative; max-width: 520px; }
+  .hero-strip {
+    display: flex; gap: 36px; margin-top: 28px; padding-top: 22px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    position: relative;
+  }
+  .hero-stat { font-size: 0.82rem; color: rgba(255,255,255,0.3); }
+  .hero-stat strong { color: rgba(255,255,255,0.75); font-weight: 600; }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 44px 48px 48px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s;
+  }
+  .section:hover { box-shadow: var(--shadow-md); }
+
+  .section-head {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 24px; padding-bottom: 20px;
+    border-bottom: 2px solid var(--border-light);
+  }
+  .section-num {
+    flex-shrink: 0; width: 40px; height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; font-weight: 800; color: white;
+    box-shadow: 0 2px 8px rgba(109,74,255,0.15);
+  }
+  .section-title {
+    font-size: 1.3rem; font-weight: 800;
+    letter-spacing: -0.025em; color: var(--text);
+  }
+  .section-title .hl { color: var(--primary); }
+
+  p { margin-bottom: 14px; color: var(--text-secondary); font-size: 1rem; line-height: 1.7; }
+  h3 {
+    font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-muted);
+    margin: 26px 0 10px;
+  }
+  h3::before { content: '\2014\00a0'; }
+
+  .cards {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;
+    margin: 18px 0 22px;
+  }
+  .card {
+    background: var(--bg); border: 1px solid var(--border-light);
+    border-radius: 14px; padding: 28px 24px;
+    transition: all 0.2s ease;
+  }
+  .card:hover { background: var(--surface); border-color: var(--border); box-shadow: var(--shadow-sm); }
+  .card-ico {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; margin-bottom: 14px;
+  }
+  .card h4 { margin: 0 0 6px; font-size: 1rem; font-weight: 700; color: var(--text); }
+  .card p { margin: 0; font-size: 0.88rem; color: var(--text-muted); line-height: 1.55; }
+
+  pre {
+    background: var(--code-bg); border-radius: 12px;
+    padding: 22px 28px; margin: 12px 0 20px;
+    overflow-x: auto; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem; line-height: 1.7; color: var(--code-text);
+    position: relative;
+  }
+  pre .tag-lang {
+    position: absolute; top: 10px; right: 14px;
+    font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: rgba(255,255,255,0.1);
+    font-family: 'Inter', sans-serif;
+  }
+  code {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+    background: var(--primary-soft); padding: 2px 8px;
+    border-radius: 5px; color: var(--primary); font-weight: 500;
+  }
+  pre code { background: none; padding: 0; color: var(--code-text); font-weight: 400; }
+
+  table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.84rem; }
+  thead th {
+    padding: 11px 14px; text-align: left;
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--text-muted);
+    background: var(--bg);
+    border-bottom: 2px solid var(--border);
+  }
+  thead th:first-child { border-radius: 8px 0 0 0; }
+  thead th:last-child { border-radius: 0 8px 0 0; }
+  tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border-light); color: var(--text-secondary); }
+  tbody tr:last-child td:first-child { border-radius: 0 0 0 8px; }
+  tbody tr:last-child td:last-child { border-radius: 0 0 8px 0; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-hover); }
+  tbody td:first-child { font-weight: 600; color: var(--text); white-space: nowrap; }
+  .table-wrap { overflow-x: auto; margin: 10px 0 18px; border-radius: 10px; border: 1px solid var(--border-light); }
+
+  ul, ol { margin: 0 0 16px 20px; color: var(--text-secondary); font-size: 0.9rem; }
+  li { margin-bottom: 5px; }
+  li::marker { color: var(--primary); }
+  li strong { color: var(--text); }
+  a { color: var(--primary); text-decoration: none; font-weight: 500; }
+  a:hover { text-decoration: underline; }
+
+  .tag {
+    display: inline-block; padding: 2px 10px; border-radius: 100px;
+    font-size: 0.67rem; font-weight: 600;
+  }
+  .tag-primary { background: var(--primary-soft); color: var(--primary); }
+  .tag-rose { background: var(--rose-soft); color: var(--rose); }
+  .tag-gold { background: var(--gold-soft); color: var(--gold); }
+
+  blockquote {
+    border-left: 3px solid var(--primary);
+    padding: 14px 22px; margin: 12px 0 0;
+    background: var(--primary-soft); border-radius: 0 10px 10px 0;
+    font-size: 0.88rem; color: var(--text-secondary);
+  }
+  blockquote strong { color: var(--text); }
+
+  .foot {
+    text-align: center; padding: 28px 0 8px;
+    font-size: 0.72rem; color: var(--text-muted);
+  }
+
+  @media (max-width: 680px) {
+    .topbar { padding: 0 16px; height: 60px; }
+    .topbar-title span { display: none; }
+    .wrapper { padding: 80px 12px 48px; }
+    .hero { padding: 28px 22px; border-radius: 18px; margin-bottom: 28px; }
+    .hero h1 { font-size: 1.6rem; }
+    .hero-strip { gap: 16px; flex-wrap: wrap; }
+    .section { padding: 22px 16px 28px; }
+    .section-title { font-size: 1.05rem; }
+    .section-head { gap: 12px; }
+    .section-num { width: 34px; height: 34px; font-size: 0.8rem; }
+    .cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-mark">N</div>
+    <div class="topbar-title">NexusFinance <span>— Playbook</span></div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-primary" id="downloadPng">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      PNG
+    </button>
+    <a class="btn btn-secondary" href="https://nexusfinance-5okf.onrender.com" target="_blank">Live</a>
+  </div>
+</div>
+
+<div id="captureContent" style="padding:40px;background:#fff"><div class="wrapper">
+
+  <div class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-tag"><span class="dot"></span>v1.0 &middot; Web + SMS</div>
+    <h1>NexusFinance <span class="g">Playbook</span></h1>
+    <p>Loan management platform — three portals, 24 API endpoints, Docker sandbox, and Twilio SMS.</p>
+    <div class="hero-strip">
+      <span class="hero-stat"><strong>3</strong> Portals</span>
+      <span class="hero-stat"><strong>24</strong> API Endpoints</span>
+      <span class="hero-stat"><strong>1</strong> SMS Provider</span>
+    </div>
+  </div>
+
+  <div class="section" id="web-overview">
+    <div class="section-head">
+      <div class="section-num">1</div>
+      <div class="section-title">Web <span class="hl">Application</span> Overview</div>
+    </div>
+    <p>Three portals, one platform. NexusFinance connects borrowers, underwriters, and administrators in a single loan management workflow.</p>
+    <div class="cards">
+      <div class="card">
+        <div class="card-ico" style="background:var(--primary-soft);color:var(--primary);">&#x1F465;</div>
+        <h4>Customer</h4>
+        <p>Apply for loans, view wallet, make repayments, and track applications.</p>
+      </div>
+      <div class="card">
+        <div class="card-ico" style="background:var(--gold-soft);color:var(--gold);">&#x1F9D1;&#x200D;&#x2696;&#xFE0F;</div>
+        <h4>Loan Officer</h4>
+        <p>Review, approve/reject/hold, complete KYC tasks, and join meetings.</p>
+      </div>
+      <div class="card">
+        <div class="card-ico" style="background:var(--rose-soft);color:var(--rose);">&#x1F3AF;</div>
+        <h4>Super Admin</h4>
+        <p>Stats, user management, system config, audit logs, and Telegram bot.</p>
+      </div>
+    </div>
+    <h3>Demo Accounts</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Email</th><th>Password</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td>customer@nexus.com</td><td>password123</td><td><span class="tag tag-primary">Customer</span></td></tr>
+        <tr><td>officer@nexus.com</td><td>password123</td><td><span class="tag tag-gold">Loan Officer</span></td></tr>
+        <tr><td>admin@nexus.com</td><td>password123</td><td><span class="tag tag-rose">Super Admin</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="section" id="sms">
+    <div class="section-head">
+      <div class="section-num">2</div>
+      <div class="section-title"><span class="hl">SMS</span> Features</div>
+    </div>
+    <p>NexusFinance uses <strong>Twilio</strong> for SMS messaging. Twilio supports Cambodia (+855) numbers and offers a $15 free trial.</p>
+    <h3>API Endpoint</h3>
+    <p><code>POST /api/sms/send</code> — JWT-protected. Send an SMS to any phone number.</p>
+    <pre><span class="tag-lang">json</span>{
+  "to": "+85512345678",
+  "text": "Your OTP code is 123456"
+}</pre>
+    <h3>Sandbox Mode</h3>
+    <p>No API keys needed for testing. When <code>TWILIO_ACCOUNT_SID</code> is unset, calls log to console.</p>
+    <h3>Going Live</h3>
+    <ol>
+        <li>Sign up at <a href="https://twilio.com">twilio.com</a> (free $15 credit, no card needed)</li>
+      <li>From Twilio Console → grab <strong>Account SID</strong>, <strong>Auth Token</strong>, and your <strong>trial phone number</strong></li>
+      <li>Set all 3 in <code>.env</code> — SMS goes live automatically</li>
+    </ol>
+    <blockquote><strong>Pricing:</strong> $0.4418/SMS to Cambodia. $15 free trial credit — trial includes a free Twilio number, no purchase needed. Trial can only send to verified numbers.</blockquote>
+  </div>
+
+  <div class="section" id="docker">
+    <div class="section-head">
+      <div class="section-num">3</div>
+      <div class="section-title">Docker <span class="hl">Sandbox</span></div>
+    </div>
+    <p>Run the full stack locally. No environment setup needed — just Docker Desktop.</p>
+    <h3>Quick Start</h3>
+    <pre><span class="tag-lang">bash</span>docker compose --env-file docker-compose.env up --build
+
+http://localhost:4001</pre>
+    <h3>Commands</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Command</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><code>docker compose --env-file docker-compose.env up --build -d</code></td><td>Build + start in background</td></tr>
+        <tr><td><code>docker compose down</code></td><td>Stop the container</td></tr>
+        <tr><td><code>docker compose logs -f</code></td><td>Follow live logs</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="section" id="postman">
+    <div class="section-head">
+      <div class="section-num">4</div>
+      <div class="section-title">Postman <span class="hl">API Testing</span></div>
+    </div>
+    <p>Import the collection and test all 24 endpoints in minutes.</p>
+    <h3>Setup</h3>
+    <ol>
+      <li>Open <strong>Postman</strong> → <strong>Import</strong></li>
+      <li>Select <code>postman/nexusfinance.postman_collection.json</code></li>
+      <li>Set <code>base_url</code> to <code>http://localhost:4001</code></li>
+    </ol>
+    <h3>Testing Flow</h3>
+    <pre><span class="tag-lang">flow</span>Session Login → JWT auto-saved → Test any endpoint</pre>
+    <ol>
+      <li>Open <strong>Auth → Session Login</strong>, click <strong>Send</strong></li>
+      <li>JWT saves automatically to collection variables</li>
+      <li>Browse any endpoint — Authorization header auto-injects</li>
+    </ol>
+    <h3>Endpoints</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Folder</th><th>Endpoints</th><th>Auth</th></tr></thead>
+      <tbody>
+        <tr><td>Auth</td><td>Login, Profile</td><td>Public</td></tr>
+        <tr><td>Loans</td><td>List, Create, Approve, Reject, Hold</td><td>JWT</td></tr>
+        <tr><td>Transactions</td><td>List, Repay, Disburse</td><td>JWT</td></tr>
+        <tr><td>Tasks</td><td>List, Complete</td><td>JWT</td></tr>
+        <tr><td>Admin</td><td>Users, Role, Password</td><td>JWT + Admin</td></tr>
+        <tr><td>Config</td><td>Get, Update</td><td>JWT</td></tr>
+        <tr><td>System</td><td>Stats, Notifications, Audit, Support, Health</td><td>Mixed</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <h3>Switch Roles</h3>
+    <p>Edit email in <strong>Auth → Session Login</strong>:</p>
+    <ul>
+      <li><code>admin@nexus.com</code> — <span class="tag tag-rose">Super Admin</span></li>
+      <li><code>officer@nexus.com</code> — <span class="tag tag-gold">Loan Officer</span></li>
+      <li><code>customer@nexus.com</code> — <span class="tag tag-primary">Customer</span></li>
+    </ul>
+  </div>
+
+  <div class="section" id="reference">
+    <div class="section-head">
+      <div class="section-num">5</div>
+      <div class="section-title">Quick <span class="hl">Reference</span></div>
+    </div>
+    <h3>Tech Stack</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Layer</th><th>Technology</th></tr></thead>
+      <tbody>
+        <tr><td>Frontend</td><td>React 19, Tailwind v4, Lucide</td></tr>
+        <tr><td>Backend</td><td>Express, TypeScript</td></tr>
+        <tr><td>Database</td><td>Supabase (PostgreSQL)</td></tr>
+        <tr><td>Auth</td><td>Appwrite + JWT</td></tr>
+        <tr><td>SMS</td><td>Twilio</td></tr>
+        <tr><td>Container</td><td>Docker (node:22-alpine)</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <h3>Links</h3>
+    <ul>
+      <li><strong>Live:</strong> <a href="https://nexusfinance-5okf.onrender.com">nexusfinance-5okf.onrender.com</a></li>
+      <li><strong>Sandbox:</strong> <code>http://localhost:4001</code></li>
+    </ul>
+  </div>
+
+  <div class="foot">NexusFinance &middot; Web &amp; SMS Playbook v1.0</div>
+</div></div>
+
+<script>
+document.getElementById('downloadPng').addEventListener('click', function() {
+  html2canvas(document.getElementById('captureContent'), {
+    backgroundColor: '#ffffff',
+    scale: 2,
+    useCORS: true,
+    logging: false,
+  }).then(c => {
+    const a = document.createElement('a');
+    a.download = 'nexusfinance-playbook.png';
+    a.href = c.toDataURL('image/png');
+    a.click();
+  });
+});
+</script>
+</body>
+</html>

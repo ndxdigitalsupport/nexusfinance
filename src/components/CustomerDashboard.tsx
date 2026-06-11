@@ -56,15 +56,15 @@ export default function CustomerDashboard({
       {/* HUD Header */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 select-none">
         <div>
-          <h2 className="text-[32px] md:text-[36px] font-sans font-extrabold text-[#0f171c] tracking-tight">Welcome, Customer</h2>
-          <p className="text-[14.5px] text-[#44474a] font-medium mt-0.5">Access your outstanding balances, active requests and wallet balances.</p>
+          <h2 className="text-[32px] md:text-[36px] font-sans font-extrabold text-[var(--text-primary)] tracking-tight">Welcome, Customer</h2>
+          <p className="text-[14.5px] text-[var(--text-secondary)] font-medium mt-0.5">Access your outstanding balances, active requests and wallet balances.</p>
         </div>
         <div className="flex gap-2">
-          <div className="bg-white border border-[#c4c7ca] flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-xs">
-            <Coins className="w-5 h-5 text-[#0F171C]" />
+          <div className="bg-white border border-[var(--border-primary)] flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-xs">
+            <Coins className="w-5 h-5 text-[var(--text-primary)]" />
             <div>
-              <span className="text-[10px] text-[#44474a] font-bold uppercase tracking-wider block">Vault Wallet</span>
-                  <span className="text-[14px] font-extrabold font-mono text-[#0F171C]">${walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              <span className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-wider block">Vault Wallet</span>
+                  <span className="text-[14px] font-extrabold font-mono text-[var(--text-primary)]">${walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
             </div>
           </div>
         </div>
@@ -103,7 +103,7 @@ export default function CustomerDashboard({
             <div className="mt-6 md:mt-0 relative z-10 shrink-0">
               <button
                 onClick={onRepayClick}
-                className="w-full sm:w-auto bg-[#5cf2d0] hover:bg-[#41ddbc] text-[#0f171c] font-sans font-extrabold text-[14.5px] px-8 py-3.5 rounded-xl shadow-md transition-all duration-200 select-none hover:shadow-lg hover:scale-102 cursor-pointer"
+                className="w-full sm:w-auto bg-[#5cf2d0] hover:bg-[#41ddbc] text-[var(--text-primary)] font-sans font-extrabold text-[14.5px] px-8 py-3.5 rounded-xl shadow-md transition-all duration-200 select-none hover:shadow-lg hover:scale-102 cursor-pointer"
               >
                 Repay Now
               </button>
@@ -116,45 +116,45 @@ export default function CustomerDashboard({
             {/* Action 1: Apply Loan */}
             <div
               onClick={onApplyLoanClick}
-              className="bg-white border border-[#c4c7ca] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
+              className="bg-white border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[#0F171C] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <PlusCircle className="w-6 h-6 stroke-[2.5]" />
               </div>
-              <span className="text-[13.5px] font-extrabold text-[#0F171C]">Apply Loan</span>
+              <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Apply Loan</span>
             </div>
 
             {/* Action 2: Repay Link */}
             <div
               onClick={onRepayClick}
-              className="bg-white border border-[#c4c7ca] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
+              className="bg-white border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[#0F171C] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <Coins className="w-6 h-6 stroke-[2.5]" />
               </div>
-              <span className="text-[13.5px] font-extrabold text-[#0F171C]">Repay Account</span>
+              <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Repay Account</span>
             </div>
 
             {/* Action 3: Wallet Link */}
             <div
               onClick={() => onSetActiveMenu('wallets')}
-              className="bg-white border border-[#c4c7ca] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
+              className="bg-white border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[#0F171C] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <Wallet className="w-6 h-6 stroke-[2.5]" />
               </div>
-              <span className="text-[13.5px] font-extrabold text-[#0F171C]">My Wallets</span>
+              <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">My Wallets</span>
             </div>
 
             {/* Action 4: Support Link */}
             <div
               onClick={() => onSetActiveMenu('support')}
-              className="bg-white border border-[#c4c7ca] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
+              className="bg-white border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[#0F171C] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <HelpCircle className="w-6 h-6 stroke-[2.5]" />
               </div>
-              <span className="text-[13.5px] font-extrabold text-[#0F171C]">Support Hub</span>
+              <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Support Hub</span>
             </div>
           </div>
 
@@ -187,14 +187,14 @@ export default function CustomerDashboard({
         {/* Right column - Chronicles history lists */}
         <div className="lg:col-span-4 select-none">
           
-          <div className="bg-white border border-[#c4c7ca] rounded-2xl p-6 shadow-xs h-full flex flex-col justify-between">
+          <div className="bg-white border border-[var(--border-primary)] rounded-2xl p-6 shadow-xs h-full flex flex-col justify-between">
             <div className="space-y-4">
               
               {/* Box header toolbar */}
               <div className="flex justify-between items-center pb-2 border-b border-gray-100">
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4.5 h-4.5 text-[#44474a]" />
-                  <h3 className="text-[15px] font-bold text-[#0F171C] uppercase tracking-wider">Recent History</h3>
+                  <Clock className="w-4.5 h-4.5 text-[var(--text-secondary)]" />
+                  <h3 className="text-[15px] font-bold text-[var(--text-primary)] uppercase tracking-wider">Recent History</h3>
                 </div>
                 <button
                   onClick={() => onSetActiveMenu('transactions')}
@@ -210,7 +210,7 @@ export default function CustomerDashboard({
                   transactions.slice(0, 5).map((tx) => {
                     const isPositive = tx.amount > 0;
                     return (
-                      <div key={tx.id} className="flex justify-between items-center py-3.5 group hover:bg-[#f1f4f6]/40 p-1.5 rounded-lg transition-colors">
+                      <div key={tx.id} className="flex justify-between items-center py-3.5 group hover:bg-[var(--surface-secondary)] p-1.5 rounded-lg transition-colors">
                         <div className="flex items-center gap-3">
                           <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
                             isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
@@ -218,8 +218,8 @@ export default function CustomerDashboard({
                             {isPositive ? <ArrowDownLeft className="w-4.5 h-4.5" /> : <ArrowUpRight className="w-4.5 h-4.5" />}
                           </div>
                           <div>
-                            <span className="text-[14px] font-extrabold text-[#0f171c] block">{tx.title}</span>
-                            <span className="text-[11px] text-[#74777b] block mt-0.5">{tx.date}</span>
+                            <span className="text-[14px] font-extrabold text-[var(--text-primary)] block">{tx.title}</span>
+                            <span className="text-[11px] text-[var(--text-tertiary)] block mt-0.5">{tx.date}</span>
                           </div>
                         </div>
 
@@ -232,7 +232,7 @@ export default function CustomerDashboard({
                     );
                   })
                 ) : (
-                  <div className="p-8 text-center text-[12px] text-[#44474a]">
+                  <div className="p-8 text-center text-[12px] text-[var(--text-secondary)]">
                     No recent transaction activities recorded.
                   </div>
                 )}
@@ -300,7 +300,7 @@ export default function CustomerDashboard({
 
                 <button
                   onClick={handleInstantFastCash}
-                  className="w-full bg-[#5cf2d0] hover:bg-[#41ddbc] text-[#0f171c] py-4 rounded-xl font-bold text-[14px] flex items-center justify-center gap-1.5 transition duration-150 cursor-pointer"
+                  className="w-full bg-[#5cf2d0] hover:bg-[#41ddbc] text-[var(--text-primary)] py-4 rounded-xl font-bold text-[14px] flex items-center justify-center gap-1.5 transition duration-150 cursor-pointer"
                 >
                   <Sparkles className="w-5.5 h-5.5" />
                   Request Pre-Approved Disbursement

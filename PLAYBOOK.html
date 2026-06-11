@@ -1,0 +1,1858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexusFinance — Operations Playbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --surface-hover: #f1f5f9;
+    --text: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --border: #e2e8f0;
+    --border-light: #f1f5f9;
+    --accent: #0f171c;
+    --accent-light: #1a2c35;
+    --teal: #5cf2d0;
+    --teal-dim: rgba(92, 242, 208, 0.15);
+    --teal-glow: rgba(92, 242, 208, 0.3);
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+  }
+
+  html.dark {
+    --bg: #0a0f16;
+    --surface: #131a24;
+    --surface-hover: #1a2430;
+    --text: #e8edf2;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border: #1e293b;
+    --border-light: #1a2430;
+    --accent: #5cf2d0;
+    --accent-light: rgba(92, 242, 208, 0.08);
+    --code-bg: #060a10;
+    --code-text: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Top Bar ─────────────────────────────────── */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-light);
+    padding: 0 32px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  html.dark .topbar {
+    background: rgba(10,15,22,0.85);
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .topbar-logo {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--teal);
+    font-weight: 900;
+    font-size: 0.7rem;
+  }
+
+  .topbar-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .topbar-title span {
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-left: 6px;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .topbar-link {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .topbar-link:hover { color: var(--text); }
+
+  .dark-toggle {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+  }
+
+  .dark-toggle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── Layout ──────────────────────────────────── */
+  .wrapper {
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 80px 32px 60px;
+    gap: 40px;
+  }
+
+  /* ── Sidebar Nav ────────────────────────────── */
+  .nav {
+    position: fixed;
+    top: 80px;
+    width: 240px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+
+  .nav::-webkit-scrollbar { width: 4px; }
+  .nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .nav-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .nav a {
+    display: block;
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    margin-bottom: 2px;
+  }
+
+  .nav a:hover {
+    color: var(--text);
+    background: var(--surface-hover);
+    border-left-color: var(--teal);
+  }
+
+  .nav a.nav-h2 {
+    padding-left: 24px;
+    font-size: 0.74rem;
+  }
+
+  /* ── Main Content ────────────────────────────── */
+  .content {
+    flex: 1;
+    margin-left: 260px;
+    min-width: 0;
+  }
+
+  /* ── Hero ────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border-radius: 20px;
+    padding: 48px 56px;
+    color: white;
+    margin-bottom: 48px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -60%; right: -40%;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(92,242,208,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(92,242,208,0.1);
+    border: 1px solid rgba(92,242,208,0.15);
+    border-radius: 100px;
+    padding: 4px 14px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--teal);
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .hero h1 {
+    font-size: 2.4rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin-bottom: 8px;
+    position: relative;
+  }
+
+  .hero h1 span {
+    background: linear-gradient(135deg, var(--teal), #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero p {
+    color: rgba(255,255,255,0.55);
+    font-size: 0.95rem;
+    position: relative;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 24px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    position: relative;
+  }
+
+  .hero-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .hero-meta-item svg {
+    width: 14px; height: 14px;
+    opacity: 0.5;
+  }
+
+  .hero-meta-item strong {
+    color: rgba(255,255,255,0.85);
+    font-weight: 600;
+  }
+
+  /* ── Headings ───────────────────────────────── */
+  h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    margin: 48px 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+    color: var(--text);
+  }
+
+  h2 .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--accent);
+    color: var(--teal);
+    font-size: 0.85rem;
+    font-weight: 800;
+    margin-right: 12px;
+    vertical-align: middle;
+  }
+
+  html.dark h2 .num {
+    background: var(--accent-light);
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 32px 0 12px;
+    color: var(--text);
+  }
+
+  h3 code {
+    font-size: 0.85rem;
+  }
+
+  h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 24px 0 8px;
+    color: var(--text-secondary);
+  }
+
+  /* ── Paragraphs ─────────────────────────────── */
+  p {
+    margin-bottom: 16px;
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+  }
+
+  /* ── Code Blocks ────────────────────────────── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 16px 0 24px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.65;
+    color: var(--code-text);
+    position: relative;
+  }
+
+  pre .lang-tag {
+    position: absolute;
+    top: 10px; right: 14px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    font-family: 'Inter', sans-serif;
+  }
+
+  pre code { background: none; padding: 0; color: inherit; }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    background: var(--surface-hover);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  html.dark code {
+    background: rgba(92,242,208,0.08);
+    color: var(--teal);
+  }
+
+  /* ── Tables ─────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  thead th {
+    background: var(--surface-hover);
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-secondary);
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  tbody tr:hover { background: var(--surface-hover); }
+
+  tbody td:first-child {
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  tbody td:nth-child(2) { color: var(--text); }
+
+  /* ── Ul / Ol ────────────────────────────────── */
+  ul, ol {
+    margin: 0 0 20px 20px;
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+  }
+
+  li { margin-bottom: 6px; }
+
+  li strong { color: var(--text); }
+
+  /* ── Blockquotes ────────────────────────────── */
+  blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 12px 20px;
+    margin: 16px 0 24px;
+    background: var(--surface-hover);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+  }
+
+  /* ── Thematic Break ─────────────────────────── */
+  hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--border) 20%, var(--border) 80%, transparent 100%);
+    margin: 48px 0;
+  }
+
+  /* ── Status Tags ────────────────────────────── */
+  .tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 100px;
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+
+  .tag-green { background: rgba(52, 168, 83, 0.12); color: #16a34a; }
+  .tag-blue { background: rgba(66, 133, 244, 0.12); color: #2563eb; }
+  .tag-red { background: rgba(234, 67, 53, 0.12); color: #dc2626; }
+  .tag-yellow { background: rgba(251, 188, 5, 0.12); color: #b45309; }
+
+  /* ── Schema Badge ───────────────────────────── */
+  .schema {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 12px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+
+  .schema .comment {
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* ── Mobile Nav Toggle ───────────────────────── */
+  .nav-toggle {
+    display: none;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  .nav-toggle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .nav-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 90;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .nav-overlay.open {
+    display: block;
+    opacity: 1;
+  }
+
+  .nav-drawer {
+    display: none;
+  }
+
+  /* ── Scroll Hint for Tables ──────────────────── */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0 24px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+  }
+
+  .table-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 24px;
+    background: linear-gradient(90deg, transparent, var(--surface));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 0 12px 12px 0;
+  }
+
+  .table-wrap.can-scroll::after {
+    opacity: 0.6;
+  }
+
+  /* ── Footer ─────────────────────────────────── */
+  .footer {
+    margin-top: 64px;
+    padding: 32px 0;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+
+  /* ── Responsive ─────────────────────────────── */
+
+  /* Large screens: show fixed sidebar */
+  @media (min-width: 901px) {
+    .nav { display: block !important; }
+    .nav-drawer { display: none !important; }
+    .nav-overlay { display: none !important; }
+    .content { margin-left: 260px; }
+  }
+
+  /* Tablet and below: hamburger nav */
+  @media (max-width: 900px) {
+    .nav { display: none; }
+    .content { margin-left: 0; }
+    .wrapper {
+      padding: 76px 16px 40px;
+      gap: 0;
+    }
+    .hero { padding: 28px 20px; margin-bottom: 32px; }
+    .hero h1 { font-size: 1.6rem; }
+    .hero p { font-size: 0.85rem; }
+    .hero-meta {
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .hero-meta-item { font-size: 0.7rem; }
+    .hero-meta-item svg { width: 12px; height: 12px; }
+
+    .topbar { padding: 0 12px; height: 56px; }
+    .topbar-title span { display: none; }
+    .topbar-title { font-size: 0.82rem; }
+
+    .nav-toggle { display: inline-flex; }
+
+    /* Drawer overlay */
+    .nav-overlay { display: none; }
+    .nav-overlay.open { display: block; }
+
+    .nav-drawer {
+      display: block;
+      position: fixed;
+      top: 0; left: 0;
+      width: 280px;
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 99;
+      padding: 20px;
+      padding-top: 76px;
+      overflow-y: auto;
+      transform: translateX(-100%);
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .nav-drawer.open { transform: translateX(0); }
+
+    .nav-drawer .nav-label {
+      font-size: 0.6rem;
+      margin-bottom: 16px;
+      padding-left: 4px;
+    }
+
+    .nav-drawer a {
+      display: block;
+      padding: 10px 12px;
+      margin-bottom: 2px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-drawer a:hover,
+    .nav-drawer a.active {
+      color: var(--text);
+      background: var(--accent-light);
+      border-left-color: var(--teal);
+    }
+
+    .nav-drawer a.nav-h2 {
+      padding-left: 28px;
+      font-size: 0.8rem;
+    }
+
+    .nav-drawer-close {
+      position: absolute;
+      top: 14px; right: 14px;
+      width: 32px; height: 32px;
+      border: none;
+      background: var(--surface-hover);
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+    }
+
+    h2 { font-size: 1.35rem; margin: 36px 0 16px; }
+    h2 .num { width: 30px; height: 30px; font-size: 0.75rem; margin-right: 10px; }
+    h3 { font-size: 1rem; }
+    p, li { font-size: 0.85rem; }
+    blockquote { font-size: 0.82rem; padding: 10px 16px; }
+    code { font-size: 0.75rem; }
+    pre { padding: 14px 16px; font-size: 0.7rem; }
+    .table-wrap { border-radius: 10px; }
+    thead th { padding: 10px 12px; font-size: 0.62rem; }
+    tbody td { padding: 9px 12px; font-size: 0.78rem; }
+    hr { margin: 36px 0; }
+    .footer { font-size: 0.7rem; padding: 24px 0; }
+    .tag { font-size: 0.6rem; padding: 1px 8px; }
+  }
+
+  /* Small phones */
+  @media (max-width: 480px) {
+    .hero { border-radius: 14px; padding: 24px 16px; }
+    .hero h1 { font-size: 1.25rem; }
+    .hero-tag { font-size: 0.6rem; padding: 3px 10px; }
+    .hero-meta { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .hero-meta-item { gap: 5px; }
+
+    .wrapper { padding: 68px 12px 32px; }
+    h2 { font-size: 1.15rem; margin: 28px 0 12px; }
+    h2 .num { width: 26px; height: 26px; font-size: 0.65rem; margin-right: 8px; }
+    pre { padding: 12px; font-size: 0.65rem; }
+    thead th { padding: 8px 10px; font-size: 0.58rem; }
+    tbody td { padding: 7px 10px; font-size: 0.72rem; }
+    .topbar { height: 48px; }
+    .topbar-title { font-size: 0.75rem; }
+    .dark-toggle { width: 32px; height: 32px; font-size: 0.9rem; }
+    .nav-toggle { width: 32px; height: 32px; font-size: 1rem; }
+    pre .lang-tag { font-size: 0.55rem; top: 6px; right: 8px; }
+    hr { margin: 28px 0; }
+  }
+
+  /* ── Print Styles ──────────────────────────── */
+  @media print {
+    @page {
+      margin: 15mm 12mm;
+    }
+
+    * {
+      background: transparent !important;
+      background-color: #fff !important;
+      color: #000 !important;
+      text-shadow: none !important;
+      box-shadow: none !important;
+    }
+
+    body {
+      background: #fff !important;
+      color: #000 !important;
+      font-size: 11pt;
+      line-height: 1.5;
+    }
+
+    .topbar,
+    .nav-toggle,
+    .dark-toggle,
+    .topbar-link,
+    .nav-overlay,
+    .nav-drawer,
+    .nav-drawer-close,
+    .nav {
+      display: none !important;
+    }
+
+    .wrapper {
+      display: block;
+      max-width: 100%;
+      padding: 0;
+      margin: 0;
+    }
+
+    .content {
+      margin-left: 0 !important;
+    }
+
+    .hero {
+      background: #0f172a !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      padding: 32px 40px;
+      margin-bottom: 32px;
+      border: 1px solid #ddd;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .hero h1,
+    .hero h1 span,
+    .hero p,
+    .hero-meta-item,
+    .hero-meta-item strong,
+    .hero-tag {
+      color: #000 !important;
+      -webkit-text-fill-color: #000 !important;
+    }
+
+    .hero::after { display: none; }
+
+    .hero-tag {
+      border-color: #ccc !important;
+      background: #f5f5f5 !important;
+      color: #333 !important;
+    }
+
+    .hero-meta-item svg { display: none; }
+
+    h2 { font-size: 18pt; margin-top: 24pt; page-break-after: avoid; break-after: avoid; }
+    h2 .num {
+      background: #0f171c !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    h3 { font-size: 14pt; margin-top: 18pt; page-break-after: avoid; break-after: avoid; }
+    h4 { font-size: 12pt; }
+
+    p, li { font-size: 10pt; color: #333 !important; }
+
+    a { color: #000 !important; text-decoration: underline; }
+
+    pre {
+      border: 1px solid #ccc !important;
+      background: #f9f9f9 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      padding: 12pt 14pt;
+      font-size: 8pt;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    pre .lang-tag {
+      color: #999 !important;
+      background: transparent !important;
+    }
+
+    code {
+      background: #f5f5f5 !important;
+      color: #000 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      font-size: 8.5pt;
+    }
+
+    html.dark code {
+      background: #f5f5f5 !important;
+      color: #000 !important;
+    }
+
+    .table-wrap {
+      border: 1px solid #ccc !important;
+      overflow: visible !important;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .table-wrap::after { display: none !important; }
+
+    table { font-size: 8.5pt; width: 100%; }
+
+    thead th {
+      background: #eee !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color: #000 !important;
+      border-bottom: 2px solid #999 !important;
+    }
+
+    tbody td { color: #333 !important; border-bottom-color: #ddd !important; }
+    tbody td:first-child { color: #000 !important; }
+    tbody tr:last-child td { border-bottom: none !important; }
+
+    .tag-green,
+    .tag-blue,
+    .tag-red,
+    .tag-yellow {
+      background: #f5f5f5 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      border: 1px solid #ccc !important;
+    }
+
+    .tag-green { color: #000 !important; }
+    .tag-blue { color: #000 !important; }
+    .tag-red { color: #000 !important; }
+    .tag-yellow { color: #000 !important; }
+
+    .schema {
+      border: 1px solid #ccc !important;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    blockquote {
+      border-left-color: #999 !important;
+      background: #f9f9f9 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    hr {
+      background: #ddd !important;
+      margin: 24pt 0;
+    }
+
+    .footer {
+      border-top-color: #ddd !important;
+      color: #999 !important;
+    }
+
+    section {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    img { max-width: 100% !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ TOPBAR ═══════════════════════════════════ -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">N</div>
+    <div class="topbar-title">
+      NexusFinance
+      <span>— Operations Playbook</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="nav-toggle" id="navToggle" title="Open navigation">&#9776;</button>
+    <a class="topbar-link" href="https://nexusfinance-5okf.onrender.com">Live</a>
+    <a class="topbar-link" href="https://github.com/Not-Juicy/nexusfinance">GitHub</a>
+    <button class="dark-toggle" id="darkToggle" title="Toggle dark mode">&#9790;</button>
+  </div>
+</div>
+
+<!-- ═══ MOBILE NAV DRAWER ═══════════════════════ -->
+<div class="nav-overlay" id="navOverlay"></div>
+<div class="nav-drawer" id="navDrawer">
+  <button class="nav-drawer-close" id="navDrawerClose">&times;</button>
+  <div class="nav-label">Contents</div>
+  <a href="#project-overview">1. Project Overview</a>
+  <a class="nav-h2" href="#project-overview">Demo Accounts</a>
+  <a href="#architecture">2. Architecture</a>
+  <a href="#tech-stack">3. Tech Stack</a>
+  <a href="#scope-of-work">4. Scope of Work</a>
+  <a href="#local-dev">5. Local Development</a>
+  <a class="nav-h2" href="#local-dev">Prerequisites &amp; Commands</a>
+  <a href="#env-vars">6. Environment Variables</a>
+  <a href="#database">7. Database Schema</a>
+  <a href="#api">8. API Reference</a>
+  <a href="#auth-flow">9. Auth Flow</a>
+  <a href="#frontend">10. Frontend Structure</a>
+  <a href="#deployment">11. Deployment</a>
+  <a href="#gcp-migration">12. GCP Migration</a>
+  <a href="#maintenance">13. Maintenance</a>
+  <a href="#troubleshooting">14. Troubleshooting</a>
+</div>
+
+<!-- ═══ LAYOUT ═══════════════════════════════════ -->
+<div class="wrapper">
+
+  <!-- Sidebar -->
+  <nav class="nav" id="sidebar">
+    <div class="nav-label">Contents</div>
+    <a href="#overview">1. Project Overview</a>
+    <a class="nav-h2" href="#demo-accounts">Demo Accounts</a>
+    <a href="#architecture">2. Architecture</a>
+    <a href="#tech-stack">3. Tech Stack</a>
+    <a href="#scope-of-work">4. Scope of Work</a>
+    <a href="#local-dev">5. Local Development</a>
+    <a class="nav-h2" href="#dev-commands">Commands</a>
+    <a href="#env-vars">6. Environment Variables</a>
+    <a href="#database">7. Database Schema</a>
+    <a href="#api">8. API Reference</a>
+    <a href="#auth-flow">9. Auth Flow</a>
+    <a href="#frontend">10. Frontend Structure</a>
+    <a href="#deployment">11. Deployment</a>
+    <a href="#gcp-migration">12. GCP Migration</a>
+    <a href="#maintenance">13. Maintenance</a>
+    <a href="#troubleshooting">14. Troubleshooting</a>
+  </nav>
+
+  <!-- Content -->
+  <main class="content">
+
+    <!-- ══ HERO ══════════════════════════════════ -->
+    <div class="hero" id="overview">
+      <div class="hero-tag">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="3" fill="currentColor"/></svg>
+        v1.0.0 &middot; Production Ready
+      </div>
+      <h1>NexusFinance <span>Operations Playbook</span></h1>
+      <p>Full-stack loan management platform &mdash; architecture, deployment, API reference, and operations guide.</p>
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Updated <strong>June 10, 2026</strong></span>
+        </div>
+        <div class="hero-meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          <span><strong>3</strong> Portals</span>
+        </div>
+        <div class="hero-meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <span><strong>25</strong> API Endpoints</span>
+        </div>
+        <div class="hero-meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          <span><strong>7</strong> Database Tables</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 1. PROJECT OVERVIEW ═══════════════════ -->
+    <section id="project-overview">
+      <h2><span class="num">1</span>Project Overview</h2>
+
+      <p>NexusFinance is a full-stack loan management platform with three portals:</p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Portal</th><th>Role</th><th>Access</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-blue">Customer</span></td><td>Borrower</td><td>Apply for loans, view wallet/balance, make repayments, transaction history</td></tr>
+          <tr><td><span class="tag tag-yellow">Loan Officer</span></td><td>Underwriter</td><td>Review applications (Approve/Reject/Hold), complete KYC tasks, join simulated meetings</td></tr>
+          <tr><td><span class="tag tag-red">Super Admin</span></td><td>Administrator</td><td>Platform stats, user management, system config, audit logs, Telegram bot</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3 id="demo-accounts">Demo Accounts</h3>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Email</th><th>Password</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td>customer@nexus.com</td><td>password123</td><td><span class="tag tag-blue">Customer</span></td></tr>
+          <tr><td>officer@nexus.com</td><td>password123</td><td><span class="tag tag-yellow">Loan Officer</span></td></tr>
+          <tr><td>admin@nexus.com</td><td>password123</td><td><span class="tag tag-red">Super Admin</span></td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ══ 2. ARCHITECTURE ═══════════════════════ -->
+    <section id="architecture">
+      <h2><span class="num">2</span>Architecture</h2>
+      <pre>
+<span class="lang-tag">ASCII</span>┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│  Browser     │────▶│  Express     │────▶│  Supabase    │
+│  (React SPA) │     │  Server      │     │  (Postgres)  │
+└─────────────┘     │  port 3001   │     └─────────────┘
+                    └──────────────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │  Appwrite    │
+                    │  (Auth)      │
+                    └──────────────┘</pre>
+
+      <ul>
+        <li><strong>Frontend</strong>: React 19 SPA, built by Vite into <code>dist/</code>, served by Express in production</li>
+        <li><strong>Backend</strong>: Single Express server (<code>server/index.ts</code>, 397 lines) &mdash; handles API + static file serving</li>
+        <li><strong>Database</strong>: Supabase (PostgreSQL) with 7 tables</li>
+        <li><strong>Auth</strong>: Appwrite handles email/password auth; server issues JWT tokens for API authorization</li>
+      </ul>
+    </section>
+
+    <hr>
+
+    <!-- ══ 3. TECH STACK ════════════════════════ -->
+    <section id="tech-stack">
+      <h2><span class="num">3</span>Tech Stack</h2>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Layer</th><th>Technology</th><th>Version</th></tr></thead>
+        <tbody>
+          <tr><td>Frontend</td><td>React</td><td>19.0.1</td></tr>
+          <tr><td>Build</td><td>Vite</td><td>6.2.3</td></tr>
+          <tr><td>Styling</td><td>Tailwind CSS</td><td>4.1.14</td></tr>
+          <tr><td>Icons</td><td>Lucide React</td><td>0.546.0</td></tr>
+          <tr><td>Server</td><td>Express</td><td>4.21.2</td></tr>
+          <tr><td>Runtime</td><td>Node.js</td><td>22 (Alpine)</td></tr>
+          <tr><td>TypeScript</td><td>tsx / tsc</td><td>4.21 / 5.8</td></tr>
+          <tr><td>Database</td><td>Supabase (PostgreSQL)</td><td>&mdash;</td></tr>
+          <tr><td>Auth</td><td>Appwrite + JWT</td><td>25.2.0</td></tr>
+          <tr><td>Email</td><td>Nodemailer (Gmail SMTP)</td><td>8.0.10</td></tr>
+          <tr><td>SMS</td><td>Twilio</td><td>6.0.2</td></tr>
+          <tr><td>Bot</td><td>node-telegram-bot-api</td><td>0.67.0</td></tr>
+          <tr><td>OAuth</td><td>Passport Google OAuth 2.0</td><td>0.7.0</td></tr>
+          <tr><td>Container</td><td>Docker (node:22-alpine)</td><td>&mdash;</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ══ 4. SCOPE OF WORK ══════════════════════ -->
+    <section id="scope-of-work">
+      <h2><span class="num">4</span>Scope of Work</h2>
+
+      <h3>Frontend (React SPA)</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Area</th><th>Components</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Auth UI</td><td><code>AuthPage.tsx</code> — Login, Register, Forgot Password, Check Email</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Portal Selection</td><td><code>PortalSelection.tsx</code> — Role-based picker (Customer / Officer / Admin)</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Customer Dashboard</td><td><code>CustomerDashboard.tsx</code> — Wallet balance, action grid, recent history, Fast Cash promo</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Loan Officer Dashboard</td><td><code>LoanOfficerDashboard.tsx</code> — Stats cards, filterable loan table, status chart, next task</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Super Admin Dashboard</td><td><code>SuperAdminDashboard.tsx</code> — Stats overview, platform config editor, audit log viewer</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Navigation</td><td><code>Sidebar.tsx</code>, <code>Header.tsx</code> — Role-aware sidebar, top bar with search/notifications/user menu</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Modals</td><td><code>ApplyLoanModal.tsx</code> (multi-step), <code>RepayModal.tsx</code>, <code>ApplicationDetailsModal.tsx</code>, <code>LiveMeetingModal.tsx</code></td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Profile</td><td><code>ProfilePage.tsx</code> — Edit profile fields, change password</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Notifications</td><td><code>Toast.tsx</code> — Success/error/info/warning toasts, notification bell</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Loading States</td><td><code>Skeleton.tsx</code> — Card and table skeleton variants</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Pagination</td><td><code>Pagination.tsx</code> — Reusable page controls</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Dark Mode</td><td>CSS class toggle with custom properties</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Responsive</td><td>Tailwind breakpoints for mobile / tablet / desktop</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Form Validation</td><td>Inline validation in loan application, auth, and profile forms</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Error Handling</td><td>API error toasts, auth failure messages, fallback UI states</td><td><span class="tag tag-green">Done</span></td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>Backend (Express API)</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Area</th><th>Endpoints</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Auth</td><td><code>POST /api/auth/session</code>, <code>GET /api/auth/me</code>, <code>PATCH /api/auth/profile</code></td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Loans</td><td>CRUD + Approve / Reject / Hold</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Transactions</td><td><code>GET</code>, <code>POST /repay</code>, <code>POST /disburse</code></td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Tasks</td><td><code>GET /api/tasks</code>, <code>PATCH /api/tasks/:id/complete</code></td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>User Management</td><td>List users, change role, reset password (Super Admin)</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Config</td><td><code>GET /api/config</code>, <code>PATCH /api/config</code></td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Stats</td><td><code>GET /api/stats</code> — aggregated volume, active customers, outstanding balance</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Notifications</td><td><code>GET /api/notifications</code>, <code>PATCH /api/notifications/:id/read</code></td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Audit Logs</td><td><code>GET /api/audit/logs</code></td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>System</td><td><code>GET /api/health</code>, <code>POST /api/support/message</code></td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Telegram Bot</td><td><code>server/bot.ts</code> — /stats, /loans, /users, /notifications</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Middleware</td><td>JWT verification, CORS, rate limiting, error handling, RBAC</td><td><span class="tag tag-green">Done</span></td></tr>
+          <tr><td>Static Serving</td><td>Serves built SPA from <code>dist/</code>, injects runtime Appwrite config</td><td><span class="tag tag-green">Done</span></td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>What's NOT Built / Needs Work</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Item</th><th>Details</th><th>Priority</th></tr></thead>
+        <tbody>
+          <tr><td>Google OAuth</td><td><code>passport-google-oauth20</code> installed but no route for <code>/api/auth/google</code></td><td><span class="tag tag-blue">Low</span></td></tr>
+          <tr><td>Email Verification</td><td>Appwrite sends verification email, frontend doesn't handle callback</td><td><span class="tag tag-blue">Low</span></td></tr>
+          <tr><td>OTP Flow</td><td>SMS (Twilio) configured but OTP not wired into auth</td><td><span class="tag tag-blue">Low</span></td></tr>
+          <tr><td>Super Admin — Create User</td><td>No API to create users from scratch</td><td><span class="tag tag-yellow">Medium</span></td></tr>
+          <tr><td>Delete Loan</td><td>No endpoint to delete or cancel a loan</td><td><span class="tag tag-blue">Low</span></td></tr>
+          <tr><td>Document Upload</td><td>No file upload for loan supporting documents</td><td><span class="tag tag-yellow">Medium</span></td></tr>
+          <tr><td>Push Notifications</td><td>No WebSocket or push — relies on polling</td><td><span class="tag tag-blue">Low</span></td></tr>
+          <tr><td>Unit Tests</td><td>No test suite configured (jest, vitest, etc.)</td><td><span class="tag tag-yellow">Medium</span></td></tr>
+          <tr><td>CI/CD Pipeline</td><td>Render auto-deploys but no lint/test gates</td><td><span class="tag tag-blue">Low</span></td></tr>
+          <tr><td>API Docs</td><td>No OpenAPI / Swagger spec</td><td><span class="tag tag-blue">Low</span></td></tr>
+          <tr><td>Rate Limit Tuning</td><td>Global limiter installed but not per-endpoint tuned</td><td><span class="tag tag-blue">Low</span></td></tr>
+          <tr><td>Data Export</td><td>No CSV/PDF export for loans, transactions, or audit logs</td><td><span class="tag tag-blue">Low</span></td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ══ 5. LOCAL DEVELOPMENT ══════════════════ -->
+    <section id="local-dev">
+      <h2><span class="num">5</span>Local Development</h2>
+
+      <h3>Prerequisites</h3>
+      <ul>
+        <li>Node.js &gt;= 22</li>
+        <li>npm</li>
+      </ul>
+
+      <h3>Setup</h3>
+      <pre>
+<span class="lang-tag">bash</span># 1. Install dependencies
+npm install
+
+# 2. Create .env from example
+cp .env.example .env
+
+# 3. Start the server (API on port 3001)
+npm run server
+
+# 4. In a separate terminal, start the frontend dev server
+npm run dev</pre>
+
+      <h3 id="dev-commands">Development Commands</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Command</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>npm run dev</code></td><td>Start Vite dev server (port 3000)</td></tr>
+          <tr><td><code>npm run server</code></td><td>Start Express API (port 3001)</td></tr>
+          <tr><td><code>npm run build</code></td><td>Production build (outputs to <code>dist/</code>)</td></tr>
+          <tr><td><code>npm run start</code></td><td>Production mode (build + serve on port 3001)</td></tr>
+          <tr><td><code>npm run lint</code></td><td>Type-check with <code>tsc --noEmit</code></td></tr>
+          <tr><td><code>npm run preview</code></td><td>Preview production build</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ══ 5. ENVIRONMENT VARIABLES ══════════════ -->
+    <section id="env-vars">
+      <h2><span class="num">6</span>Environment Variables</h2>
+
+      <h3>Required</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Variable</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>JWT_SECRET</code></td><td>Secret key for signing auth tokens</td></tr>
+          <tr><td><code>SUPABASE_URL</code></td><td>Supabase project URL</td></tr>
+          <tr><td><code>SUPABASE_ANON_KEY</code></td><td>Supabase anonymous/public key</td></tr>
+          <tr><td><code>SUPABASE_SERVICE_ROLE</code></td><td>Supabase service role key (server-side only)</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>Optional &mdash; Auth &amp; Email</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Variable</th><th>Description</th><th>Default</th></tr></thead>
+        <tbody>
+          <tr><td><code>CORS_ORIGIN</code></td><td>Allowed CORS origin</td><td><code>http://localhost:3000</code></td></tr>
+          <tr><td><code>GOOGLE_CLIENT_ID</code></td><td>Google OAuth client ID</td><td>&mdash;</td></tr>
+          <tr><td><code>GOOGLE_CLIENT_SECRET</code></td><td>Google OAuth client secret</td><td>&mdash;</td></tr>
+          <tr><td><code>SENDGRID_API_KEY</code></td><td>SendGrid email API key</td><td>&mdash;</td></tr>
+          <tr><td><code>SENDGRID_FROM_EMAIL</code></td><td>SendGrid sender email</td><td>&mdash;</td></tr>
+          <tr><td><code>RESEND_API_KEY</code></td><td>Resend email API key (fallback)</td><td>&mdash;</td></tr>
+          <tr><td><code>TWILIO_ACCOUNT_SID</code></td><td>Twilio Account SID</td><td>&mdash;</td></tr>
+          <tr><td><code>TWILIO_AUTH_TOKEN</code></td><td>Twilio Auth Token</td><td>&mdash;</td></tr>
+          <tr><td><code>TWILIO_PHONE_NUMBER</code></td><td>Twilio phone number</td><td>&mdash;</td></tr>
+          <tr><td><code>TELEGRAM_BOT_TOKEN</code></td><td>Telegram bot token (from BotFather)</td><td>&mdash;</td></tr>
+          <tr><td><code>TELEGRAM_ADMIN_ID</code></td><td>Telegram admin user ID</td><td>&mdash;</td></tr>
+          <tr><td><code>SITE_URL</code></td><td>Site URL for Telegram bot web app</td><td>&mdash;</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <blockquote>
+        <strong>Server validates on boot:</strong> <code>SUPABASE_URL</code>, <code>SUPABASE_ANON_KEY</code>, <code>SUPABASE_SERVICE_ROLE</code>, and <code>JWT_SECRET</code> are checked at startup. The server exits immediately if any are missing.
+      </blockquote>
+    </section>
+
+    <hr>
+
+    <!-- ══ 6. DATABASE SCHEMA ════════════════════ -->
+    <section id="database">
+      <h2><span class="num">7</span>Database Schema</h2>
+
+      <p>Seven PostgreSQL tables with seed data in <code>supabase-migration.sql</code>.</p>
+
+      <h3><code>nexus_users</code> &mdash; User accounts</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th></tr></thead>
+        <tbody>
+          <tr><td>id</td><td>SERIAL</td><td>PRIMARY KEY</td></tr>
+          <tr><td>name</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>email</td><td>TEXT</td><td>UNIQUE NOT NULL</td></tr>
+          <tr><td>password</td><td>TEXT</td><td>NOT NULL DEFAULT ''</td></tr>
+          <tr><td>role</td><td>TEXT</td><td>NOT NULL DEFAULT 'customer'</td></tr>
+          <tr><td>phone</td><td>TEXT</td><td>DEFAULT ''</td></tr>
+          <tr><td>verified</td><td>BOOLEAN</td><td>NOT NULL DEFAULT false</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3><code>nexus_loans</code> &mdash; Loan applications</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th></tr></thead>
+        <tbody>
+          <tr><td>id</td><td>TEXT</td><td>PRIMARY KEY (e.g. <code>#77281</code>)</td></tr>
+          <tr><td>applicantName</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>applicantEmail</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>initials</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>amount</td><td>NUMERIC</td><td>NOT NULL</td></tr>
+          <tr><td>type</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>status</td><td>TEXT</td><td>NOT NULL DEFAULT 'New'</td></tr>
+          <tr><td>urgency</td><td>TEXT</td><td>NOT NULL DEFAULT 'Normal'</td></tr>
+          <tr><td>assignedTo</td><td>INT</td><td>FK &rarr; nexus_users(id) ON DELETE SET NULL</td></tr>
+          <tr><td>date</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>purpose</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>creditScore</td><td>INT</td><td>NOT NULL</td></tr>
+          <tr><td>monthlyIncome</td><td>NUMERIC</td><td>NOT NULL</td></tr>
+          <tr><td>durationMonths</td><td>INT</td><td>NOT NULL</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p><strong>Status lifecycle:</strong> <code>New &rarr; Review &rarr; Approved | Rejected | Hold</code></p>
+
+      <h3><code>nexus_transactions</code> &mdash; Financial transactions</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th></tr></thead>
+        <tbody>
+          <tr><td>id</td><td>TEXT</td><td>PRIMARY KEY</td></tr>
+          <tr><td>title</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>date</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>amount</td><td>NUMERIC</td><td>NOT NULL (negative = repayment, positive = disbursement)</td></tr>
+          <tr><td>type</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>userId</td><td>INT</td><td>FK &rarr; nexus_users(id) ON DELETE CASCADE</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3><code>nexus_tasks</code> &mdash; Compliance / KYC tasks</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th></tr></thead>
+        <tbody>
+          <tr><td>id</td><td>TEXT</td><td>PRIMARY KEY</td></tr>
+          <tr><td>title</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>applicant</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>regarding</td><td>TEXT</td><td>NOT NULL (references loan ID)</td></tr>
+          <tr><td>time</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>completed</td><td>BOOLEAN</td><td>NOT NULL DEFAULT false</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3><code>nexus_config</code> &mdash; Platform configuration (singleton)</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th></tr></thead>
+        <tbody>
+          <tr><td>id</td><td>INT</td><td>PRIMARY KEY DEFAULT 1 CHECK (id = 1)</td></tr>
+          <tr><td>baseInterestRate</td><td>NUMERIC</td><td>NOT NULL DEFAULT 5.4</td></tr>
+          <tr><td>maxLoanAmount</td><td>NUMERIC</td><td>NOT NULL DEFAULT 500000</td></tr>
+          <tr><td>kycRequired</td><td>BOOLEAN</td><td>NOT NULL DEFAULT true</td></tr>
+          <tr><td>autoApproveLimit</td><td>NUMERIC</td><td>NOT NULL DEFAULT 5000</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3><code>nexus_audit_logs</code> &mdash; Audit trail</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th></tr></thead>
+        <tbody>
+          <tr><td>id</td><td>SERIAL</td><td>PRIMARY KEY</td></tr>
+          <tr><td>action</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>details</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>userId</td><td>INT</td><td>FK &rarr; nexus_users(id) ON DELETE SET NULL</td></tr>
+          <tr><td>userEmail</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>timestamp</td><td>TIMESTAMPTZ</td><td>NOT NULL DEFAULT NOW()</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3><code>nexus_notifications</code> &mdash; In-app notifications</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th></tr></thead>
+        <tbody>
+          <tr><td>id</td><td>SERIAL</td><td>PRIMARY KEY</td></tr>
+          <tr><td>userId</td><td>INT</td><td>FK &rarr; nexus_users(id) ON DELETE CASCADE</td></tr>
+          <tr><td>text</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>time</td><td>TEXT</td><td>NOT NULL</td></tr>
+          <tr><td>unread</td><td>BOOLEAN</td><td>NOT NULL DEFAULT true</td></tr>
+          <tr><td>createdAt</td><td>TIMESTAMPTZ</td><td>NOT NULL DEFAULT NOW()</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>Seed Data</h3>
+      <p>Located in <code>supabase-migration.sql</code>:</p>
+      <ul>
+        <li>3 demo users (customer, loan-officer, super-admin) &mdash; all password <code>password123</code></li>
+        <li>5 loan applications (various statuses)</li>
+        <li>2 transactions</li>
+        <li>3 compliance tasks</li>
+        <li>1 config row (5.4% interest, $500K max, $5K auto-approve)</li>
+        <li>bcrypt password hashes pre-computed</li>
+      </ul>
+    </section>
+
+    <hr>
+
+    <!-- ══ 7. API REFERENCE ══════════════════════ -->
+    <section id="api">
+      <h2><span class="num">8</span>API Reference</h2>
+
+      <p>All endpoints prefixed with <code>/api</code>. Auth via <code>Authorization: Bearer &lt;token&gt;</code> header.</p>
+
+      <h3>Auth</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-green">POST</span></td><td><code>/api/auth/session</code></td><td>&mdash;</td><td>Exchange Appwrite session for JWT</td></tr>
+          <tr><td><span class="tag tag-blue">GET</span></td><td><code>/api/auth/me</code></td><td>JWT</td><td>Get current user profile</td></tr>
+          <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/api/auth/profile</code></td><td>JWT</td><td>Update name, email, or phone</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>Loans</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-blue">GET</span></td><td><code>/api/loans</code></td><td>JWT</td><td>List loans (scoped by role)</td></tr>
+          <tr><td><span class="tag tag-green">POST</span></td><td><code>/api/loans</code></td><td>JWT</td><td>Create loan application</td></tr>
+          <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/api/loans/:id/approve</code></td><td>JWT</td><td>Approve &rarr; disbursement + notification</td></tr>
+          <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/api/loans/:id/reject</code></td><td>JWT</td><td>Reject &rarr; notifies user</td></tr>
+          <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/api/loans/:id/hold</code></td><td>JWT</td><td>Put on hold</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>Transactions</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-blue">GET</span></td><td><code>/api/transactions</code></td><td>JWT</td><td>List user's transactions</td></tr>
+          <tr><td><span class="tag tag-green">POST</span></td><td><code>/api/transactions/repay</code></td><td>JWT</td><td>Record repayment</td></tr>
+          <tr><td><span class="tag tag-green">POST</span></td><td><code>/api/transactions/disburse</code></td><td>JWT</td><td>Record disbursement</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>Tasks</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-blue">GET</span></td><td><code>/api/tasks</code></td><td>JWT</td><td>List all compliance tasks</td></tr>
+          <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/api/tasks/:id/complete</code></td><td>JWT</td><td>Mark task complete</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>User Management (Super Admin)</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-blue">GET</span></td><td><code>/api/users</code></td><td>JWT + admin</td><td>List all users</td></tr>
+          <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/api/users/:id/role</code></td><td>JWT + admin</td><td>Change user role</td></tr>
+          <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/api/users/:id/reset-password</code></td><td>JWT + admin</td><td>Reset password via Appwrite</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>Config &amp; Stats</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-blue">GET</span></td><td><code>/api/config</code></td><td>JWT</td><td>Get platform configuration</td></tr>
+          <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/api/config</code></td><td>JWT + admin</td><td>Update config</td></tr>
+          <tr><td><span class="tag tag-blue">GET</span></td><td><code>/api/stats</code></td><td>JWT</td><td>Aggregated platform statistics</td></tr>
+          <tr><td><span class="tag tag-blue">GET</span></td><td><code>/api/notifications</code></td><td>JWT</td><td>Last 20 notifications</td></tr>
+          <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/api/notifications/:id/read</code></td><td>JWT</td><td>Mark notification read</td></tr>
+          <tr><td><span class="tag tag-blue">GET</span></td><td><code>/api/audit/logs</code></td><td>JWT + admin</td><td>Last 100 audit log entries</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>System</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-blue">GET</span></td><td><code>/api/health</code></td><td>&mdash;</td><td>Health check: <code>{status: 'ok', uptime: N}</code></td></tr>
+          <tr><td><span class="tag tag-green">POST</span></td><td><code>/api/support/message</code></td><td>JWT</td><td>Submit support message</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ══ 8. AUTH FLOW ══════════════════════════ -->
+    <section id="auth-flow">
+      <h2><span class="num">9</span>Auth Flow</h2>
+
+      <h3>Login Flow</h3>
+      <pre>
+<span class="lang-tag">text</span>User &rarr; Appwrite(email, password) &rarr; Session Token
+     &rarr; POST /api/auth/session &rarr; Server finds/creates user in nexus_users
+     &rarr; Server signs JWT {id, email, name, role}
+     &rarr; Client stores JWT in localStorage (nexus_token)
+     &rarr; All subsequent API calls include Authorization: Bearer &lt;token&gt;</pre>
+
+      <h3>JWT Details</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Secret</td><td><code>JWT_SECRET</code> env var</td></tr>
+          <tr><td>Expiry</td><td>24 hours</td></tr>
+          <tr><td>Payload</td><td><code>{ id, email, name, role }</code></td></tr>
+          <tr><td>Storage</td><td><code>localStorage</code> as <code>nexus_token</code></td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>Role-Based Access</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Role</th><th>Access</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-blue">customer</span></td><td>Own loans, own transactions, own notifications</td></tr>
+          <tr><td><span class="tag tag-yellow">loan-officer</span></td><td>All loans, all tasks, stats</td></tr>
+          <tr><td><span class="tag tag-red">super-admin</span></td><td>All + user management, config, audit logs</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>Password Reset</h3>
+      <ul>
+        <li>Initiated via Appwrite (frontend <code>account.createRecovery()</code>)</li>
+        <li>Super Admin can reset any user's password via Appwrite admin API</li>
+      </ul>
+    </section>
+
+    <hr>
+
+    <!-- ══ 9. FRONTEND STRUCTURE ══════════════════ -->
+    <section id="frontend">
+      <h2><span class="num">10</span>Frontend Structure</h2>
+
+      <pre>
+<span class="lang-tag">tree</span>src/
+&boxv;&brvbar;&brvbar; main.tsx                   # Entry point
+&boxv;&brvbar;&brvbar; App.tsx                    # Root: state, API, routing (~736 lines)
+&boxv;&brvbar;&brvbar; index.css                  # Tailwind v4 + custom theme + dark mode
+&boxv;&brvbar;&brvbar; api.ts                     # API base URL configuration
+&boxv;&brvbar;&brvbar; appwriteClient.ts          # Appwrite frontend client
+&boxv;&brvbar;&brvbar; types.ts                   # TypeScript interfaces
+&boxv;&brvbar;&brvbar; data.ts                    # Fallback/default data
+&boxv;&brvbar;&brvbar; logo.png
+&boxv;&brvbar;&brvbar; components/
+    &boxv;&brvbar;&brvbar; ApplicationDetailsModal.tsx
+    &boxv;&brvbar;&brvbar; ApplyLoanModal.tsx
+    &boxv;&brvbar;&brvbar; AuditLogView.tsx
+    &boxv;&brvbar;&brvbar; AuthPage.tsx
+    &boxv;&brvbar;&brvbar; CustomerDashboard.tsx
+    &boxv;&brvbar;&brvbar; Header.tsx
+    &boxv;&brvbar;&brvbar; LiveMeetingModal.tsx
+    &boxv;&brvbar;&brvbar; LoanOfficerDashboard.tsx
+    &boxv;&brvbar;&brvbar; Logo.tsx
+    &boxv;&brvbar;&brvbar; Pagination.tsx
+    &boxv;&brvbar;&brvbar; PortalSelection.tsx
+    &boxv;&brvbar;&brvbar; ProfilePage.tsx
+    &boxv;&brvbar;&brvbar; RepayModal.tsx
+    &boxv;&brvbar;&brvbar; Sidebar.tsx
+    &boxv;&brvbar;&brvbar; Skeleton.tsx
+    &boxv;&brvbar;&brvbar; SuperAdminDashboard.tsx
+    &boxv;&brvbar;&brvbar; Toast.tsx</pre>
+
+      <h3>State Management</h3>
+      <ul>
+        <li>All state managed via <code>useState</code> in <code>App.tsx</code></li>
+        <li>No Redux, Zustand, or other state library</li>
+        <li>JWT stored in <code>localStorage</code>, loaded on app mount</li>
+        <li>Portal selection persisted in <code>localStorage</code></li>
+      </ul>
+
+      <h3>CSS Architecture</h3>
+      <ul>
+        <li>Tailwind CSS v4 with <code>@import "tailwindcss"</code> (no config file)</li>
+        <li>Custom theme: <code>nexus-navy</code> (#0F171C), <code>nexus-teal</code> (#5CF2D0)</li>
+        <li>Dark mode via CSS class on <code>&lt;html&gt;</code> + CSS custom properties</li>
+        <li>Fonts: Inter (body), JetBrains Mono (code)</li>
+      </ul>
+    </section>
+
+    <hr>
+
+    <!-- ══ 10. DEPLOYMENT ════════════════════════ -->
+    <section id="deployment">
+      <h2><span class="num">11</span>Deployment</h2>
+
+      <h3>Current Platform: Render</h3>
+      <p>Deployed as Docker container on Render Free tier.</p>
+
+      <h4>render.yaml</h4>
+      <pre>
+<span class="lang-tag">yaml</span>services:
+  - type: web
+    name: nexusfinance
+    runtime: docker
+    repo: https://github.com/Not-Juicy/nexusfinance
+    branch: main
+    healthCheckPath: /api/health</pre>
+
+      <p><strong>Deploy URL:</strong> <a href="https://nexusfinance-5okf.onrender.com">nexusfinance-5okf.onrender.com</a></p>
+      <p><strong>How to deploy:</strong> Push to <code>main</code> branch &rarr; Render auto-deploys via webhook.</p>
+
+      <h3>Alternative: Fly.io</h3>
+      <p>Configured in <code>fly.toml</code>. Deploy with <code>flyctl deploy</code>.</p>
+
+      <h3>Docker</h3>
+      <pre>
+<span class="lang-tag">dockerfile</span>FROM node:22-alpine
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm ci
+COPY . .
+RUN npm run build
+EXPOSE 3001
+CMD ["npm", "run", "start"]</pre>
+
+      <blockquote>
+        Build: <code>docker build -t nexusfinance .</code><br>
+        Run: <code>docker run -p 3001:3001 --env-file .env nexusfinance</code>
+      </blockquote>
+
+      <h3>Docker Sandbox (Beta Testing)</h3>
+
+      <p>Use Docker Compose for local sandbox testing without affecting production:</p>
+
+      <pre>
+<span class="lang-tag">bash</span># Create sandbox env from template
+cp docker-compose.env .env.sandbox
+# Edit .env.sandbox with your Supabase/Appwrite credentials
+# Then build and run
+docker compose --env-file .env.sandbox up --build</pre>
+
+      <p>The app runs at <code>http://localhost:3001</code>. Test changes locally before pushing.</p>
+
+      <p><strong>Files:</strong></p>
+      <ul>
+        <li><code>docker-compose.yml</code> — sandbox container config</li>
+        <li><code>docker-compose.env</code> — sandbox environment variables template</li>
+      </ul>
+
+      <p><strong>Postman API testing:</strong></p>
+      <p>Import <code>postman/nexusfinance.postman_collection.json</code> into Postman.</p>
+      <ol>
+        <li>Set <code>base_url</code> collection variable to <code>http://localhost:3001</code></li>
+        <li>Run <strong>Auth → Session Login</strong> to get a JWT token (saves automatically)</li>
+        <li>Run any other endpoint — token auto-injects</li>
+      </ol>
+    </section>
+
+    <hr>
+
+    <!-- ══ 12. GCP MIGRATION GUIDE ═══════════════ -->
+    <section id="gcp-migration">
+      <h2><span class="num">12</span>Google Cloud Migration Guide</h2>
+
+      <h3>Phase 1: Move Container to Cloud Run (No Code Changes)</h3>
+
+      <p>The Dockerfile works as-is. Steps:</p>
+
+      <pre>
+<span class="lang-tag">bash</span># One-time: authenticate
+gcloud auth login
+
+# Set project
+gcloud config set project nexusfinance-499004
+
+# Enable APIs
+gcloud services enable run.googleapis.com \
+  artifactregistry.googleapis.com \
+  cloudbuild.googleapis.com
+
+# Create Artifact Registry repo
+gcloud artifacts repositories create nexusfinance \
+  --repository-format=docker \
+  --location=us-central1
+
+# Build and push (no local Docker needed)
+gcloud builds submit \
+  --tag us-central1-docker.pkg.dev/nexusfinance-499004/nexusfinance/app
+
+# Deploy to Cloud Run
+gcloud run deploy nexusfinance \
+  --image=us-central1-docker.pkg.dev/nexusfinance-499004/nexusfinance/app \
+  --platform=managed \
+  --region=us-central1 \
+  --allow-unauthenticated \
+  --memory=512Mi --cpu=1 \
+  --min-instances=0 --max-instances=10 \
+  --set-env-vars="NODE_ENV=production,PORT=3001"</pre>
+
+      <h3>Phase 2: Migrate Database</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Option</th><th>Cost</th><th>Effort</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-green">Firestore</span></td><td><strong>$0/month</strong></td><td>Rewrite 42 Supabase queries as denormalized Firestore calls</td></tr>
+          <tr><td><span class="tag tag-blue">Cloud SQL</span></td><td>$9-11/month</td><td>Replace <code>server/db.ts</code> with <code>pg</code> (node-postgres), keep SQL schema</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>Cost Summary</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Service</th><th>Free Tier</th><th>Paid (estimate)</th></tr></thead>
+        <tbody>
+          <tr><td>Cloud Run</td><td>2M req/mo, 360K vCPU-s, 180K GB-s</td><td>~$0 at small scale</td></tr>
+          <tr><td>Firestore</td><td>1GB, 50K reads/day, 20K writes/day</td><td>$0</td></tr>
+          <tr><td>Cloud SQL (db-f1-micro)</td><td>None</td><td>$7.67/mo + $1.70 storage</td></tr>
+          <tr><td><strong>Cloud Run + Firestore</strong></td><td colspan="2"><strong>~$0/month</strong></td></tr>
+          <tr><td>Cloud Run + Cloud SQL</td><td colspan="2">$9-11/month</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ══ 12. MAINTENANCE & OPERATIONS ══════════ -->
+    <section id="maintenance">
+      <h2><span class="num">13</span>Maintenance &amp; Operations</h2>
+
+      <h3>Database Backups</h3>
+      <p>Supabase handles automated backups. For self-hosted Postgres:</p>
+      <pre>
+<span class="lang-tag">bash</span>pg_dump --no-owner --no-acl \
+  -h host -U user -d nexusfinance &gt; backup_$(date +%Y%m%d).sql</pre>
+
+      <h3>Monitoring</h3>
+      <ul>
+        <li><strong>Health check</strong>: <code>GET /api/health</code> &rarr; <code>{ status: 'ok', uptime: N }</code></li>
+        <li><strong>Server logs</strong>: Render dashboard</li>
+        <li><strong>Telegram bot</strong>: Super Admin commands if <code>TELEGRAM_BOT_TOKEN</code> is set</li>
+      </ul>
+
+      <h3>TypeScript / Build</h3>
+      <pre>
+<span class="lang-tag">bash</span>npm run lint    # Type-check (tsc --noEmit) — run before commits
+npm run build   # Production build — must succeed before deploy</pre>
+
+      <h3>Updating Dependencies</h3>
+      <pre>
+<span class="lang-tag">bash</span>npm outdated              # Check for outdated packages
+npm update                # Safe updates (patch + minor)
+npm install &lt;pkg&gt;@latest  # Major version upgrade
+npm run lint              # Verify types after any update</pre>
+    </section>
+
+    <hr>
+
+    <!-- ══ 13. TROUBLESHOOTING ═══════════════════ -->
+    <section id="troubleshooting">
+      <h2><span class="num">14</span>Troubleshooting</h2>
+
+      <h3>Blank Page on Deploy</h3>
+      <p>The server injects Appwrite config into HTML at runtime (<code>server/index.ts</code> lines 359-380). If <code>window.__APPWRITE__</code> is missing, Appwrite SDK fails silently.</p>
+      <p><strong>Fix:</strong> Ensure <code>APPWRITE_ENDPOINT</code>, <code>APPWRITE_PROJECT_ID</code>, <code>APPWRITE_API_KEY</code> are set in deployment env.</p>
+
+      <h3>Rate Limiting</h3>
+      <p>Server uses <code>express-rate-limit</code> with <code>trust proxy</code>. Ensure <code>app.set('trust proxy', 1)</code> is present behind a proxy.</p>
+
+      <h3>Database Connection Issues</h3>
+      <ul>
+        <li>Verify <code>SUPABASE_URL</code>, <code>SUPABASE_ANON_KEY</code>, <code>SUPABASE_SERVICE_ROLE</code> are correct</li>
+        <li>Check Supabase dashboard &rarr; Settings &rarr; API for keys</li>
+        <li>Supabase free tier pauses after 1 week of inactivity. Wake via dashboard.</li>
+      </ul>
+
+      <h3>JWT Token Expired</h3>
+      <p>JWT expires after 24 hours. User sees "Invalid or expired token". Login again.</p>
+
+      <h3>Container Fails to Start</h3>
+      <pre>
+<span class="lang-tag">bash</span>docker build -t nexusfinance .
+docker run -p 3001:3001 --env-file .env nexusfinance</pre>
+
+      <h3>Email Not Sending</h3>
+      <p>The app uses Nodemailer with Gmail SMTP. Gmail blocks "less secure apps" by default.</p>
+      <p><strong>Fix:</strong> Use Gmail App Password (requires 2FA) or switch to SendGrid/Resend.</p>
+    </section>
+
+    <div class="footer">
+      NexusFinance &middot; Operations Playbook v1.0.0 &middot; June 2026
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── Dark Mode ─────────────────────────────────
+const toggle = document.getElementById('darkToggle');
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const stored = localStorage.getItem('dark');
+
+if (stored === 'true' || (!stored && prefersDark)) {
+  document.documentElement.classList.add('dark');
+}
+
+toggle.addEventListener('click', () => {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('dark', isDark);
+  toggle.textContent = isDark ? '\u2601' : '\u263e';
+});
+
+toggle.textContent = document.documentElement.classList.contains('dark') ? '\u2601' : '\u263e';
+
+// ── Mobile Nav ────────────────────────────────
+const navToggle = document.getElementById('navToggle');
+const navDrawer = document.getElementById('navDrawer');
+const navOverlay = document.getElementById('navOverlay');
+const navDrawerClose = document.getElementById('navDrawerClose');
+
+function openNav() {
+  navDrawer.classList.add('open');
+  navOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeNav() {
+  navDrawer.classList.remove('open');
+  navOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+navToggle.addEventListener('click', openNav);
+navDrawerClose.addEventListener('click', closeNav);
+navOverlay.addEventListener('click', closeNav);
+
+// Close drawer on link click
+navDrawer.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', closeNav);
+});
+
+// ── Active Nav Highlight ──────────────────────
+const navLinks = document.querySelectorAll('.nav a');
+const drawerLinks = navDrawer.querySelectorAll('a');
+const sections = document.querySelectorAll('section[id]');
+
+const linkSets = [navLinks, drawerLinks];
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      linkSets.forEach(links => {
+        links.forEach(l => {
+          l.style.removeProperty('color');
+          l.style.removeProperty('background');
+          l.classList.remove('active');
+        });
+        const target = document.querySelector(`a[href="#${id}"]`);
+        if (target) {
+          target.style.color = 'var(--accent)';
+          target.style.background = 'var(--accent-light)';
+          target.classList.add('active');
+        }
+      });
+    }
+  });
+}, { rootMargin: '-100px 0px -70% 0px' });
+
+sections.forEach(s => observer.observe(s));
+
+// ── Table Scroll Hint ─────────────────────────
+document.querySelectorAll('.table-wrap').forEach(wrap => {
+  if (wrap.scrollWidth > wrap.clientWidth) {
+    wrap.classList.add('can-scroll');
+  }
+  wrap.addEventListener('scroll', () => {
+    const atEnd = wrap.scrollLeft + wrap.clientWidth >= wrap.scrollWidth - 10;
+    wrap.classList.toggle('can-scroll', !atEnd);
+  });
+});
+</script>
+</body>
+</html>

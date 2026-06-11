@@ -79,21 +79,21 @@ export default function Header({
   const roleLabel = userRole === 'super-admin' ? 'Super Admin' : userRole === 'loan-officer' ? 'Loan Officer' : 'Customer';
 
   return (
-    <header className="flex justify-between items-center px-4 md:px-10 h-16 w-full sticky top-0 z-30 bg-white border-b border-[#c4c7ca]">
+    <header className="flex justify-between items-center px-4 md:px-10 h-16 w-full sticky top-0 z-30 bg-white border-b border-[var(--border-primary)]">
       {/* Mobile Menu Trigger & Logo */}
       <div className="flex items-center gap-3 md:hidden">
         <button 
           onClick={onMobileMenuToggle}
           aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={isMobileMenuOpen}
-          className="p-1 rounded-md text-[#44474a] hover:bg-[#ebeef0] focus:outline-none cursor-pointer"
+          className="p-1 rounded-md text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] focus:outline-none cursor-pointer"
         >
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
         <div className="flex items-center gap-2 select-none">
           <h1 className="font-sans text-[17px] tracking-tight flex items-center">
-            <span className="text-[#0F171C] font-black">Nexus</span>
-            <span className="text-[#0F171C] font-light">finance</span>
+            <span className="text-[var(--text-primary)] font-black">Nexus</span>
+            <span className="text-[var(--text-primary)] font-light">finance</span>
           </h1>
         </div>
       </div>
@@ -102,27 +102,27 @@ export default function Header({
       <div className="hidden md:flex items-center flex-1 gap-4">
         {currentPortal === 'loan-officer' && (
           <div className="relative w-80">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[#44474a]" />
+            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
             <input
               type="text"
               value={searchTermInvoice}
               onChange={(e) => setSearchTermInvoice(e.target.value)}
-              className="w-full bg-white border border-[#c4c7ca] rounded-xl py-2.5 pl-10 pr-20 text-[14px] leading-tight focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all duration-150 shadow-sm placeholder:text-[#74777b]"
+              className="w-full bg-white border border-[var(--border-primary)] rounded-xl py-2.5 pl-10 pr-20 text-[14px] leading-tight focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all duration-150 shadow-sm placeholder:text-[var(--text-tertiary)]"
               placeholder="Search applicants, loans..."
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
               {searchTermInvoice && (
-                <button onClick={() => setSearchTermInvoice('')} className="p-0.5 text-[#74777b] hover:text-[#0F171C] cursor-pointer">
+                <button onClick={() => setSearchTermInvoice('')} className="p-0.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] cursor-pointer">
                   <X className="w-4 h-4" />
                 </button>
               )}
-              <kbd className="hidden sm:inline-flex text-[10px] font-bold text-[#74777b] bg-[#f1f4f6] border border-[#c4c7ca] px-1.5 py-0.5 rounded leading-none">⌘K</kbd>
+              <kbd className="hidden sm:inline-flex text-[10px] font-bold text-[var(--text-tertiary)] bg-[var(--surface-secondary)] border border-[var(--border-primary)] px-1.5 py-0.5 rounded leading-none">⌘K</kbd>
             </div>
           </div>
         )}
         <div className="flex items-center gap-2 text-[12px] font-semibold">
           <span className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-500' : 'bg-red-400'}`} />
-          <span className="text-[#74777b]">{connected ? 'Connected' : 'Disconnected'}</span>
+          <span className="text-[var(--text-tertiary)]">{connected ? 'Connected' : 'Disconnected'}</span>
         </div>
       </div>
 
@@ -132,7 +132,7 @@ export default function Header({
         <button
           onClick={toggleDarkMode}
           aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="p-2 text-[#44474a] hover:bg-[#f1f4f6] rounded-full transition-colors cursor-pointer"
+          className="p-2 text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] rounded-full transition-colors cursor-pointer"
         >
           {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
@@ -144,7 +144,7 @@ export default function Header({
             aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
             aria-expanded={showNotificationsDropdown}
             aria-haspopup="true"
-            className="p-2 text-[#44474a] hover:bg-[#f1f4f6] rounded-full transition-colors cursor-pointer relative"
+            className="p-2 text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] rounded-full transition-colors cursor-pointer relative"
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
@@ -155,28 +155,28 @@ export default function Header({
           </button>
 
           {showNotificationsDropdown && (
-            <div className="absolute right-0 mt-2 w-80 bg-white border border-[#c4c7ca] rounded-xl shadow-lg py-2 z-50 animate-dropdown-enter">
-              <div className="px-4 py-2 border-b border-[#e0e3e5] flex justify-between items-center bg-[#f1f4f6] rounded-t-xl">
-                <span className="font-bold text-[14px] text-[#0F171C]">Notifications</span>
-                {unreadCount > 0 && <span className="text-[11px] text-[#0F171C] bg-[#5CF2D0] font-bold px-2 py-0.5 rounded-full">{unreadCount} new</span>}
+            <div className="absolute right-0 mt-2 w-80 bg-white border border-[var(--border-primary)] rounded-xl shadow-lg py-2 z-50 animate-dropdown-enter">
+              <div className="px-4 py-2 border-b border-[var(--border-primary)] flex justify-between items-center bg-[var(--surface-secondary)] rounded-t-xl">
+                <span className="font-bold text-[14px] text-[var(--text-primary)]">Notifications</span>
+                {unreadCount > 0 && <span className="text-[11px] text-[var(--text-primary)] bg-[#5CF2D0] font-bold px-2 py-0.5 rounded-full">{unreadCount} new</span>}
               </div>
               <div className="divide-y divide-[#e0e3e5] max-h-64 overflow-y-auto">
                 {notifications.length === 0 ? (
-                  <div className="p-6 text-center text-[#74777b] text-[13px]">No notifications yet</div>
+                  <div className="p-6 text-center text-[var(--text-tertiary)] text-[13px]">No notifications yet</div>
                 ) : (
                   notifications.map((notif) => (
                     <div
                       key={notif.id}
                       onClick={() => { if (notif.unread) handleMarkRead(notif.id); }}
-                      className={`p-3 text-[13px] hover:bg-[#f1f4f6] transition-colors cursor-pointer ${notif.unread ? 'bg-blue-50/50' : ''}`}
+                      className={`p-3 text-[13px] hover:bg-[var(--surface-secondary)] transition-colors cursor-pointer ${notif.unread ? 'bg-blue-50/50' : ''}`}
                     >
-                      <p className={`text-[#181c1e] ${notif.unread ? 'font-semibold' : ''}`}>{notif.text}</p>
-                      <span className="text-[10px] text-[#74777b] mt-1 block">{notif.time}</span>
+                      <p className={`text-[var(--text-primary)] ${notif.unread ? 'font-semibold' : ''}`}>{notif.text}</p>
+                      <span className="text-[10px] text-[var(--text-tertiary)] mt-1 block">{notif.time}</span>
                     </div>
                   ))
                 )}
               </div>
-              <div className="p-2 text-center text-[12px] bg-[#f1f4f6]/50 border-t border-[#e0e3e5] rounded-b-xl">
+              <div className="p-2 text-center text-[12px] bg-[var(--surface-secondary)]/50 border-t border-[var(--border-primary)] rounded-b-xl">
                 <button onClick={() => setShowNotificationsDropdown(false)} className="text-gray-600 font-bold hover:underline cursor-pointer">Close</button>
               </div>
             </div>
@@ -193,33 +193,33 @@ export default function Header({
             className="flex items-center gap-2.5 cursor-pointer"
           >
             <div className="hidden md:block text-right">
-              <p className="text-[13px] font-bold text-[#0F171C] leading-tight">{userName || 'User'}</p>
-              <p className="text-[11px] font-semibold text-[#74777b] leading-tight">{roleLabel}</p>
+              <p className="text-[13px] font-bold text-[var(--text-primary)] leading-tight">{userName || 'User'}</p>
+              <p className="text-[11px] font-semibold text-[var(--text-tertiary)] leading-tight">{roleLabel}</p>
             </div>
-            <div className="w-9 h-9 rounded-full bg-[#bfc8ce] overflow-hidden border-2 border-[#e5e9eb] hover:border-[#5CF2D0] transition-colors flex items-center justify-center">
-              <User className="w-5 h-5 text-[#44474a]" />
+            <div className="w-9 h-9 rounded-full bg-[#bfc8ce] overflow-hidden border-2 border-[var(--border-primary)] hover:border-[var(--accent)] transition-colors flex items-center justify-center">
+              <User className="w-5 h-5 text-[var(--text-secondary)]" />
             </div>
           </button>
 
           {showUserMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-[#c4c7ca] rounded-xl shadow-lg py-1 z-50 animate-dropdown-enter">
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-[var(--border-primary)] rounded-xl shadow-lg py-1 z-50 animate-dropdown-enter">
                 <button
                   onClick={() => { setShowUserMenu(false); if (onProfileClick) onProfileClick(); }}
-                  className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-semibold text-[#0F171C] hover:bg-[#f1f4f6] cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] cursor-pointer"
                 >
-                  <User className="w-4 h-4 text-[#44474a]" /> Profile
+                  <User className="w-4 h-4 text-[var(--text-secondary)]" /> Profile
                 </button>
                 {userRole !== 'customer' && (
                   <button
                     onClick={() => { setShowUserMenu(false); if (onPortalSwitchClick) onPortalSwitchClick(); }}
-                    className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-semibold text-[#0F171C] hover:bg-[#f1f4f6] cursor-pointer"
+                    className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] cursor-pointer"
                   >
-                    <Layers className="w-4 h-4 text-[#44474a]" /> Switch Portal
+                    <Layers className="w-4 h-4 text-[var(--text-secondary)]" /> Switch Portal
                   </button>
                 )}
-                <hr className="border-[#e0e3e5] my-1" />
+                <hr className="border-[var(--border-primary)] my-1" />
                 <button
                   onClick={() => { setShowUserMenu(false); if (onLogout) onLogout(); }}
                   className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-semibold text-red-600 hover:bg-red-50 cursor-pointer"

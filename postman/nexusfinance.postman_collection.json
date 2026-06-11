@@ -1,0 +1,525 @@
+{
+  "info": {
+    "name": "NexusFinance API",
+    "description": "Complete API collection for NexusFinance loan management platform. Includes all 25 endpoints across Auth, Loans, Transactions, Tasks, Admin, Config, and System.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001",
+      "type": "default"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "user_role",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "loan_id",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "task_id",
+      "value": "",
+      "type": "default"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "const token = pm.collectionVariables.get('jwt_token');",
+          "const url = pm.request.url.toString();",
+          "",
+          "if (url.includes('/api/health') || url.endsWith('/api/auth/session') || url.includes('/api/auth/google')) {",
+          "  return;",
+          "}",
+          "",
+          "if (token) {",
+          "  pm.request.headers.add({",
+          "    key: 'Authorization',",
+          "    value: 'Bearer ' + token",
+          "  });",
+          "}"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints. Start with Session Login to get a JWT token.",
+      "item": [
+        {
+          "name": "Session Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "  pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "  pm.collectionVariables.set('user_id', String(jsonData.user.id));",
+                  "  pm.collectionVariables.set('user_role', jsonData.user.role);",
+                  "  pm.collectionVariables.set('user_name', jsonData.user.name);",
+                  "  pm.collectionVariables.set('user_email', jsonData.user.email);",
+                  "  pm.collectionVariables.set('loan_id', '');",
+                  "  pm.collectionVariables.set('task_id', '');",
+                  "}",
+                  "pm.test('Returns token', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(jsonData.token).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@nexus.com\",\n  \"name\": \"Admin User\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/session",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "session"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"phone\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Loans",
+      "description": "Loan application CRUD and status management.",
+      "item": [
+        {
+          "name": "List Loans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/loans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "loans"]
+            }
+          }
+        },
+        {
+          "name": "Create Loan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.id || (jsonData.length && jsonData[0])) {",
+                  "  var loan = jsonData.id ? jsonData : jsonData[0];",
+                  "  pm.collectionVariables.set('loan_id', loan.id || '');",
+                  "}",
+                  "pm.test('Loan created', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applicantName\": \"Test User\",\n  \"applicantEmail\": \"customer@nexus.com\",\n  \"amount\": 15000,\n  \"type\": \"Personal\",\n  \"purpose\": \"Home renovation\",\n  \"creditScore\": 720,\n  \"monthlyIncome\": 5000,\n  \"durationMonths\": 12,\n  \"urgency\": \"Normal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/loans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "loans"]
+            }
+          }
+        },
+        {
+          "name": "Approve Loan",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/loans/{{loan_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "loans", "{{loan_id}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Reject Loan",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/loans/{{loan_id}}/reject",
+              "host": ["{{base_url}}"],
+              "path": ["api", "loans", "{{loan_id}}", "reject"]
+            }
+          }
+        },
+        {
+          "name": "Hold Loan",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/loans/{{loan_id}}/hold",
+              "host": ["{{base_url}}"],
+              "path": ["api", "loans", "{{loan_id}}", "hold"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "description": "Financial transactions — list, repay, and disburse.",
+      "item": [
+        {
+          "name": "List Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/transactions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "transactions"]
+            }
+          }
+        },
+        {
+          "name": "Repay Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanId\": \"{{loan_id}}\",\n  \"amount\": 500,\n  \"method\": \"Bank Transfer\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/transactions/repay",
+              "host": ["{{base_url}}"],
+              "path": ["api", "transactions", "repay"]
+            }
+          }
+        },
+        {
+          "name": "Disburse Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanId\": \"{{loan_id}}\",\n  \"amount\": 15000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/transactions/disburse",
+              "host": ["{{base_url}}"],
+              "path": ["api", "transactions", "disburse"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "description": "Compliance and KYC task management.",
+      "item": [
+        {
+          "name": "List Tasks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.length && jsonData.length > 0) {",
+                  "  pm.collectionVariables.set('task_id', jsonData[0].id || '');",
+                  "}",
+                  "pm.test('Tasks returned', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tasks",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tasks"]
+            }
+          }
+        },
+        {
+          "name": "Complete Task",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tasks/{{task_id}}/complete",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tasks", "{{task_id}}", "complete"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "description": "Super Admin user management endpoints.",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            }
+          }
+        },
+        {
+          "name": "Change User Role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"loan-officer\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}/role",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}", "role"]
+            }
+          }
+        },
+        {
+          "name": "Reset User Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"newTempPass123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}/reset-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}", "reset-password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Config",
+      "description": "Platform configuration (read/write, super-admin for write).",
+      "item": [
+        {
+          "name": "Get Config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/config",
+              "host": ["{{base_url}}"],
+              "path": ["api", "config"]
+            }
+          }
+        },
+        {
+          "name": "Update Config",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"baseInterestRate\": 5.4,\n  \"maxLoanAmount\": 500000,\n  \"kycRequired\": true,\n  \"autoApproveLimit\": 5000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/config",
+              "host": ["{{base_url}}"],
+              "path": ["api", "config"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "description": "Platform stats, notifications, audit logs, support, and health.",
+      "item": [
+        {
+          "name": "Get Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stats"]
+            }
+          }
+        },
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/1/read",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "1", "read"]
+            }
+          }
+        },
+        {
+          "name": "Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/audit/logs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "audit", "logs"]
+            }
+          }
+        },
+        {
+          "name": "Send Support Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Test issue\",\n  \"message\": \"This is a test support message from Postman.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/support/message",
+              "host": ["{{base_url}}"],
+              "path": ["api", "support", "message"]
+            }
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            }
+          }
+        },
+        {
+          "name": "Send SMS",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"+85512345678\",\n  \"text\": \"Your OTP code is 123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/sms/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sms", "send"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

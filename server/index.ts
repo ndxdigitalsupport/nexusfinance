@@ -10,6 +10,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { db } from './db.js';
 import { updateUserPassword } from './appwrite.js';
+import { sendSMS } from './sms.js';
 
 dotenv.config();
 
@@ -101,6 +102,20 @@ app.patch('/api/auth/profile', authMiddleware, async (req, res) => {
   const { data: updated } = await db.from('nexus_users').update(updates).eq('id', req.user.id).select('id, name, email, role, phone').single();
   if (!updated) return res.status(404).json({ error: 'User not found.' });
   res.json({ user: updated });
+});
+
+// ── SMS ROUTES ───────────────────────────────────────────────
+
+app.post('/api/sms/send', authMiddleware, async (req, res) => {
+  const { to, text } = req.body;
+  if (!to || !text) return res.status(400).json({ error: 'Phone number and text are required.' });
+  const result = await sendSMS(to, text);
+  if (result.success) {
+    await logAudit('sms_sent', `SMS sent to ${to}`, req.user);
+    res.json(result);
+  } else {
+    res.status(500).json(result);
+  }
 });
 
 // ── LOAN ROUTES ─────────────────────────────────────────────

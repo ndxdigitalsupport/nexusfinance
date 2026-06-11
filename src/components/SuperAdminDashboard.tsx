@@ -52,8 +52,8 @@ export default function SuperAdminDashboard({
       
       {/* Title */}
       <div>
-        <h2 className="text-[32px] md:text-[36px] font-sans font-extrabold text-[#0E171C] tracking-tight">Super Admin Hub</h2>
-        <p className="text-[14.5px] text-[#44474a] font-medium mt-0.5">Global ledger controls, parameters and auto-underwriting engines config.</p>
+        <h2 className="text-[32px] md:text-[36px] font-sans font-extrabold text-[var(--text-primary)] tracking-tight">Super Admin Hub</h2>
+        <p className="text-[14.5px] text-[var(--text-secondary)] font-medium mt-0.5">Global ledger controls, parameters and auto-underwriting engines config.</p>
       </div>
 
       {/* Stats Cards metrics — shown only in dashboard view */}
@@ -83,58 +83,58 @@ export default function SuperAdminDashboard({
       {view === 'settings' && <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* Form panel configuring parameters (Spans 7) */}
-        <form onSubmit={handleSave} className="lg:col-span-7 bg-white border border-[#c4c7ca] rounded-2xl p-6 sm:p-8 space-y-6">
-          <h3 className="text-[18px] font-sans font-bold text-[#0F171C] border-b pb-2 flex items-center gap-2">
-            <Settings2 className="w-5 h-5 text-[#0F171C]" /> System Parameters Adjustments
+        <form onSubmit={handleSave} className="lg:col-span-7 bg-white border border-[var(--border-primary)] rounded-2xl p-6 sm:p-8 space-y-6">
+          <h3 className="text-[18px] font-sans font-bold text-[var(--text-primary)] border-b pb-2 flex items-center gap-2">
+            <Settings2 className="w-5 h-5 text-[var(--text-primary)]" /> System Parameters Adjustments
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="block text-[13px] font-bold text-[#0F171C] mb-1.5">Base System interest Rate (APR %)</label>
+              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Base System interest Rate (APR %)</label>
               <input
                 type="number"
                 step="0.05"
                 value={editingConfig.baseInterestRate}
                 onChange={(e) => setEditingConfig((p) => ({ ...p, baseInterestRate: parseFloat(e.target.value) || 0 }))}
-                className="w-full bg-white border border-[#c4c7ca] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all"
+                className="w-full bg-white border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-[13px] font-bold text-[#0F171C] mb-1.5">Auto-Underwrite Limit (USD)</label>
+              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Auto-Underwrite Limit (USD)</label>
               <input
                 type="number"
                 step="500"
                 value={editingConfig.autoApproveLimit}
                 onChange={(e) => setEditingConfig((p) => ({ ...p, autoApproveLimit: parseFloat(e.target.value) || 0 }))}
-                className="w-full bg-white border border-[#c4c7ca] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all"
+                className="w-full bg-white border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="block text-[13px] font-bold text-[#0F171C] mb-1.5">System Maximum Credit Limit (USD)</label>
+              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">System Maximum Credit Limit (USD)</label>
               <input
                 type="number"
                 step="50000"
                 value={editingConfig.maxLoanAmount}
                 onChange={(e) => setEditingConfig((p) => ({ ...p, maxLoanAmount: parseFloat(e.target.value) || 0 }))}
-                className="w-full bg-white border border-[#c4c7ca] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all"
+                className="w-full bg-white border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-[13px] font-bold text-[#0F171C] mb-1.5">Enforce KYC Compliance Video Calls</label>
+              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Enforce KYC Compliance Video Calls</label>
               <div className="flex items-center gap-2.5 mt-2 select-none">
                 <input
                   type="checkbox"
                   id="kycToggle"
                   checked={editingConfig.kycRequired}
                   onChange={(e) => setEditingConfig((p) => ({ ...p, kycRequired: e.target.checked }))}
-                  className="w-5 h-5 text-[#0F171C] focus:ring-[#5CF2D0] border-[#c4c7ca] rounded"
+                  className="w-5 h-5 text-[var(--text-primary)] focus:ring-[#5CF2D0] border-[var(--border-primary)] rounded"
                 />
-                <label htmlFor="kycToggle" className="text-[13.5px] font-semibold text-[#181c1e]">Active & Mandatory</label>
+                <label htmlFor="kycToggle" className="text-[13.5px] font-semibold text-[var(--text-primary)]">Active & Mandatory</label>
               </div>
             </div>
           </div>
@@ -158,19 +158,19 @@ export default function SuperAdminDashboard({
         </form>
 
         {/* Audit logging trail panel (Spans 5) */}
-        <div className="lg:col-span-5 bg-white border border-[#c4c7ca] rounded-2xl p-6 shadow-xs space-y-5">
-          <h3 className="text-[16px] font-extrabold text-[#0F171C] border-b pb-2 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-[#0F171C]" /> Core Audit Logs Trails
+        <div className="lg:col-span-5 bg-white border border-[var(--border-primary)] rounded-2xl p-6 shadow-xs space-y-5">
+          <h3 className="text-[16px] font-extrabold text-[var(--text-primary)] border-b pb-2 flex items-center gap-2">
+            <Activity className="w-5 h-5 text-[var(--text-primary)]" /> Core Audit Logs Trails
           </h3>
 
           <div className="divide-y divide-gray-100 space-y-1.5 text-[13.5px] max-h-[320px] overflow-y-auto pr-1">
             {auditLogs.length === 0 ? (
-              <p className="text-[#74777b] text-[13px] py-4 text-center">No audit logs yet.</p>
+              <p className="text-[var(--text-tertiary)] text-[13px] py-4 text-center">No audit logs yet.</p>
             ) : auditLogs.map((log) => (
               <div key={log.id} className="py-3 flex justify-between items-start gap-4">
                 <div>
-                  <span className="text-[#181c1e] font-extrabold block">{log.details}</span>
-                  <span className="text-[11px] text-[#74777b] mt-0.5 block">{new Date(log.timestamp).toLocaleString()}</span>
+                  <span className="text-[var(--text-primary)] font-extrabold block">{log.details}</span>
+                  <span className="text-[11px] text-[var(--text-tertiary)] mt-0.5 block">{new Date(log.timestamp).toLocaleString()}</span>
                 </div>
                 <span className="text-[11px] px-2 py-0.5 bg-gray-100 rounded text-slate-600 font-bold shrink-0 self-start">
                   {log.userEmail}

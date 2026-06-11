@@ -45,37 +45,37 @@ export default function AuditLogView() {
     return 'bg-gray-100 text-gray-700';
   };
 
-  if (loading) return <div className="p-12 text-center text-[#44474a] font-medium">Loading audit logs...</div>;
+  if (loading) return <div className="p-12 text-center text-[var(--text-secondary)] font-medium">Loading audit logs...</div>;
 
   return (
     <div className="animate-in fade-in duration-200">
-      <h2 className="text-[28px] font-extrabold text-[#0f171c] mb-6">Audit Log</h2>
-      <div className="bg-white border border-[#c4c7ca] rounded-2xl overflow-hidden">
+      <h2 className="text-[28px] font-extrabold text-[var(--text-primary)] mb-6">Audit Log</h2>
+      <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden">
         {logs.length === 0 ? (
           <div className="p-16 text-center">
-            <ClipboardList className="w-12 h-12 text-[#c4c7ca] mx-auto mb-4" />
-            <p className="text-[#44474a] font-semibold text-[15px]">No audit logs yet</p>
-            <p className="text-[#74777b] text-[13px] mt-1">Actions like loan approvals and role changes will appear here.</p>
+            <ClipboardList className="w-12 h-12 text-[var(--text-tertiary)] mx-auto mb-4" />
+            <p className="text-[var(--text-secondary)] font-semibold text-[15px]">No audit logs yet</p>
+            <p className="text-[var(--text-tertiary)] text-[13px] mt-1">Actions like loan approvals and role changes will appear here.</p>
           </div>
         ) : (
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-[#f1f4f6] text-[11px] uppercase tracking-wider text-[#44474a] font-bold sticky top-0">
+              <tr className="bg-[var(--surface-secondary)] text-[11px] uppercase tracking-wider text-[var(--text-secondary)] font-bold sticky top-0">
                 <th className="px-6 py-4">Action</th>
                 <th className="px-6 py-4">Details</th>
                 <th className="px-6 py-4">By</th>
                 <th className="px-6 py-4">Time</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e0e3e5]">
+            <tbody className="divide-y divide-[var(--border-primary)]">
               {paginated.map((log, idx) => (
-                <tr key={log.id} className={`text-[14px] font-semibold text-[#0f171c] ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f9fa]'}`}>
+                <tr key={log.id} className={`text-[14px] font-semibold text-[var(--text-primary)] ${idx % 2 === 0 ? 'bg-[var(--surface-card)]' : 'bg-[var(--surface-secondary)]'}`}>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold ${actionColor(log.action)}`}>{actionLabel(log.action)}</span>
                   </td>
-                  <td className="px-6 py-4 text-[#44474a] text-[13px] font-medium">{log.details}</td>
-                  <td className="px-6 py-4 text-[#44474a]">{log.userEmail}</td>
-                  <td className="px-6 py-4 text-[#44474a] text-[13px]">{new Date(log.timestamp).toLocaleString()}</td>
+                  <td className="px-6 py-4 text-[var(--text-secondary)] text-[13px] font-medium">{log.details}</td>
+                  <td className="px-6 py-4 text-[var(--text-secondary)]">{log.userEmail}</td>
+                  <td className="px-6 py-4 text-[var(--text-secondary)] text-[13px]">{new Date(log.timestamp).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

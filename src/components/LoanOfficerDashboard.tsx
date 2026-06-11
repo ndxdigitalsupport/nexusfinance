@@ -79,8 +79,8 @@ export default function LoanOfficerDashboard({
       
       {/* Page Title & Heading */}
       <div>
-        <h2 className="text-[32px] md:text-[40px] md:leading-[48px] font-sans font-extrabold text-[#0F171C] tracking-tight mb-2">Pending Applications</h2>
-        <p className="text-[17px] text-[#44474a] font-medium leading-relaxed">Manage and review your assigned loan requests.</p>
+        <h2 className="text-[32px] md:text-[40px] md:leading-[48px] font-sans font-extrabold text-[var(--text-primary)] tracking-tight mb-2">Pending Applications</h2>
+        <p className="text-[17px] text-[var(--text-secondary)] font-medium leading-relaxed">Manage and review your assigned loan requests.</p>
       </div>
 
       {/* Grid Layout Container */}
@@ -106,13 +106,13 @@ export default function LoanOfficerDashboard({
             </div>
 
             {/* Stat Card 2: Neutral card */}
-            <div className="bg-white rounded-2xl p-6 flex flex-col justify-between border border-[#c4c7ca] shadow-xs hover:shadow-md transition-shadow">
+            <div className="bg-white rounded-2xl p-6 flex flex-col justify-between border border-[var(--border-primary)] shadow-xs hover:shadow-md transition-shadow">
               <div className="flex items-center gap-2 mb-4">
-                <FileClock className="text-[#44474a] w-5 h-5" />
-                <span className="font-bold text-[13px] text-[#44474a] uppercase tracking-widest font-sans">Pending requests</span>
+                <FileClock className="text-[var(--text-secondary)] w-5 h-5" />
+                <span className="font-bold text-[13px] text-[var(--text-secondary)] uppercase tracking-widest font-sans">Pending requests</span>
               </div>
               <div className="flex items-baseline gap-3">
-                <span className="text-[64px] font-extrabold text-[#0F171C] leading-none tracking-tighter select-none">
+                <span className="text-[64px] font-extrabold text-[var(--text-primary)] leading-none tracking-tighter select-none">
                   {pendingCount.toString().padStart(2, '0')}
                 </span>
                 <span className="text-[13px] text-red-600 font-bold flex items-center gap-1">
@@ -130,7 +130,7 @@ export default function LoanOfficerDashboard({
               className={`px-6 py-2.5 text-[13px] font-bold rounded-full transition cursor-pointer ${
                 activeTab === 'all'
                   ? 'bg-[#0F171C] text-white shadow-sm'
-                  : 'bg-white text-[#44474a] border border-[#c4c7ca] hover:border-[#0F171C] hover:text-[#0F171C]'
+                  : 'bg-white text-[var(--text-secondary)] border border-[var(--border-primary)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]'
               }`}
             >
               All Applications ({applications.length})
@@ -141,7 +141,7 @@ export default function LoanOfficerDashboard({
               className={`px-6 py-2.5 text-[13px] font-bold rounded-full transition cursor-pointer ${
                 activeTab === 'urgent'
                   ? 'bg-[#0F171C] text-white shadow-sm'
-                  : 'bg-white text-[#44474a] border border-[#c4c7ca] hover:border-[#0F171C] hover:text-[#0F171C]'
+                  : 'bg-white text-[var(--text-secondary)] border border-[var(--border-primary)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]'
               }`}
             >
               Urgent ({applications.filter(a => a.urgency === 'Urgent').length})
@@ -152,7 +152,7 @@ export default function LoanOfficerDashboard({
               className={`px-6 py-2.5 text-[13px] font-bold rounded-full transition cursor-pointer ${
                 activeTab === 'assigned'
                   ? 'bg-[#0F171C] text-white shadow-sm'
-                  : 'bg-white text-[#44474a] border border-[#c4c7ca] hover:border-[#0F171C] hover:text-[#0F171C]'
+                  : 'bg-white text-[var(--text-secondary)] border border-[var(--border-primary)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]'
               }`}
             >
               Assigned to me ({applications.filter(a => a.assignedToMe).length})
@@ -160,12 +160,12 @@ export default function LoanOfficerDashboard({
           </div>
 
           {/* Application Registry Table Panel */}
-          <div className="bg-white rounded-2xl border border-[#c4c7ca] shadow-xs overflow-hidden">
+          <div className="bg-white rounded-2xl border border-[var(--border-primary)] shadow-xs overflow-hidden">
             
             {/* Table headers */}
-            <div className="grid grid-cols-12 bg-[#f1f4f6] px-6 sm:px-8 py-5 border-b border-[#c4c7ca]/85">
-              <div className="col-span-8 text-[12px] text-[#44474a] uppercase tracking-widest font-bold">Applicant / Reference</div>
-              <div className="col-span-4 text-[12px] text-[#44474a] uppercase tracking-widest font-bold text-right">Loan value</div>
+            <div className="grid grid-cols-12 bg-[var(--surface-secondary)] px-6 sm:px-8 py-5 border-b border-[var(--border-primary)]/85">
+              <div className="col-span-8 text-[12px] text-[var(--text-secondary)] uppercase tracking-widest font-bold">Applicant / Reference</div>
+              <div className="col-span-4 text-[12px] text-[var(--text-secondary)] uppercase tracking-widest font-bold text-right">Loan value</div>
             </div>
 
             {/* List collection */}
@@ -177,22 +177,22 @@ export default function LoanOfficerDashboard({
                     <div
                       key={app.id}
                       onClick={() => onOpenDetails(app)}
-                      className={`grid grid-cols-12 px-6 sm:px-8 py-6 items-center hover:bg-[#f1f4f6]/50 transition cursor-pointer border-l-4 ${
+                      className={`grid grid-cols-12 px-6 sm:px-8 py-6 items-center hover:bg-[var(--surface-secondary)]/50 transition cursor-pointer border-l-4 ${
                         isUrgent ? 'border-red-600 bg-red-50/20 hover:bg-red-50/40' : 'border-transparent hover:border-[#5CF2D0]'
                       } group`}
                     >
                       {/* Name / Sub-references */}
                       <div className="col-span-8 flex items-center gap-4 sm:gap-5">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center text-[16px] font-extrabold shadow-xs shrink-0 select-none transition-transform duration-200 group-hover:scale-105 ${
-                          app.initials === 'SV' ? 'bg-[#dbe4eb] text-slate-700' : app.initials === 'NK' ? 'bg-slate-200 text-[#0F171C]' : 'bg-[#62f7d5]/35 text-[#005142]'
+                          app.initials === 'SV' ? 'bg-[#dbe4eb] text-slate-700' : app.initials === 'NK' ? 'bg-slate-200 text-[var(--text-primary)]' : 'bg-[#62f7d5]/35 text-[#005142]'
                         }`}>
                           {app.initials}
                         </div>
                         
                         <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4">
                           <div>
-                            <div className="text-[17px] text-[#0F171C] font-extrabold group-hover:text-emerald-800 transition-colors">{app.applicantName}</div>
-                            <div className="text-[13.5px] text-[#44474a] font-medium mt-0.5">App ID: {app.id}</div>
+                            <div className="text-[17px] text-[var(--text-primary)] font-extrabold group-hover:text-emerald-800 transition-colors">{app.applicantName}</div>
+                            <div className="text-[13.5px] text-[var(--text-secondary)] font-medium mt-0.5">App ID: {app.id}</div>
                           </div>
                           {isUrgent && (
                             <span className="inline-flex px-2 py-0.5 bg-red-100 text-red-600 text-[10px] uppercase tracking-wider font-extrabold rounded border border-red-200 h-fit w-fit select-none shrink-0 leading-none">
@@ -214,16 +214,16 @@ export default function LoanOfficerDashboard({
 
                       {/* Loan values / descriptions */}
                       <div className="col-span-4 text-right">
-                        <div className="text-[19px] sm:text-[21px] text-[#0F171C] font-extrabold tracking-tight">
+                        <div className="text-[19px] sm:text-[21px] text-[var(--text-primary)] font-extrabold tracking-tight">
                           ${app.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </div>
-                        <div className="text-[13.5px] text-[#44474a] font-semibold mt-0.5">{app.type}</div>
+                        <div className="text-[13.5px] text-[var(--text-secondary)] font-semibold mt-0.5">{app.type}</div>
                       </div>
                     </div>
                   );
                 })
               ) : (
-                <div className="p-12 text-center text-[#44474a] font-medium bg-slate-50/50">
+                <div className="p-12 text-center text-[var(--text-secondary)] font-medium bg-slate-50/50">
                   No matching files registered under selection categories.
                 </div>
               )}
@@ -231,8 +231,8 @@ export default function LoanOfficerDashboard({
 
             {/* Pagination Controls HUD */}
             {filteredApps.length > 0 && (
-              <div className="bg-[#f1f4f6]/40 px-6 sm:px-8 py-5 border-t border-[#c4c7ca]/80 flex justify-between items-center">
-                <span className="text-[13.5px] font-medium text-[#44474a] select-none">
+              <div className="bg-[var(--surface-secondary)]/40 px-6 sm:px-8 py-5 border-t border-[var(--border-primary)]/80 flex justify-between items-center">
+                <span className="text-[13.5px] font-medium text-[var(--text-secondary)] select-none">
                   Showing {startIdx}-{endIdx} of {filteredApps.length} applications
                 </span>
                 
@@ -240,19 +240,19 @@ export default function LoanOfficerDashboard({
                   <button
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage((p) => p - 1)}
-                    className="p-1 text-[#44474a] hover:text-[#0F171C] hover:bg-[#e0e3e5] rounded-full transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                    className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-primary)] rounded-full transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
                   >
                     <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
                   </button>
                   
-                  <span className="text-[13.5px] font-bold text-[#0F171C] tracking-wide select-none">
+                  <span className="text-[13.5px] font-bold text-[var(--text-primary)] tracking-wide select-none">
                     Page {currentPage} of {totalPages}
                   </span>
                   
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage((p) => p + 1)}
-                    className="p-1 text-[#44474a] hover:text-[#0F171C] hover:bg-[#e0e3e5] rounded-full transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                    className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-primary)] rounded-full transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
                   >
                     <ChevronRight className="w-5 h-5 stroke-[2.5]" />
                   </button>
@@ -266,15 +266,15 @@ export default function LoanOfficerDashboard({
         <div className="lg:col-span-4 space-y-6">
           
           {/* Visual CSS Status Chart */}
-          <div className="bg-white rounded-2xl p-6 border border-[#c4c7ca] shadow-xs select-none">
+          <div className="bg-white rounded-2xl p-6 border border-[var(--border-primary)] shadow-xs select-none">
             <div className="flex justify-between items-start mb-6">
-              <h3 className="text-[18px] font-extrabold text-[#0F171C] tracking-tight">Applications by Status</h3>
-              <button className="text-[#44474a] hover:text-[#0F171C] hover:bg-[#f1f4f6] p-1.5 rounded-full transition duration-150 cursor-pointer">
+              <h3 className="text-[18px] font-extrabold text-[var(--text-primary)] tracking-tight">Applications by Status</h3>
+              <button className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] p-1.5 rounded-full transition duration-150 cursor-pointer">
                 <MoreVertical className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="h-48 flex items-end justify-between gap-4 px-2 pb-2.5 border-b-2 border-[#c4c7ca] relative mb-2 pr-4">
+            <div className="h-48 flex items-end justify-between gap-4 px-2 pb-2.5 border-b-2 border-[var(--border-primary)] relative mb-2 pr-4">
               
               <div className="absolute w-full h-full flex flex-col justify-between z-0 pointer-events-none pb-2.5 pr-4 left-0">
                 <div className="w-full border-t border-gray-100 border-dashed"></div>
@@ -284,9 +284,9 @@ export default function LoanOfficerDashboard({
               </div>
 
               {[
-                { key: 'new', label: 'New', value: chartStats.new, gradient: 'from-[#dbe4eb] to-[#bfc8ce]', textColor: 'text-[#44474a]', hoverGradient: 'hover:from-[#0F171C] hover:to-[#2a3a44]' },
+                { key: 'new', label: 'New', value: chartStats.new, gradient: 'from-[#dbe4eb] to-[#bfc8ce]', textColor: 'text-[var(--text-secondary)]', hoverGradient: 'hover:from-[#0F171C] hover:to-[#2a3a44]' },
                 { key: 'review', label: 'Review', value: chartStats.review, gradient: 'from-[#0F171C] to-[#1a2a34]', textColor: 'text-[#5CF2D0]', hoverGradient: '' },
-                { key: 'final', label: 'Final', value: chartStats.final, gradient: 'from-[#dbe4eb] to-[#bfc8ce]', textColor: 'text-[#44474a]', hoverGradient: 'hover:from-[#0F171C] hover:to-[#2a3a44]' },
+                { key: 'final', label: 'Final', value: chartStats.final, gradient: 'from-[#dbe4eb] to-[#bfc8ce]', textColor: 'text-[var(--text-secondary)]', hoverGradient: 'hover:from-[#0F171C] hover:to-[#2a3a44]' },
                 { key: 'hold', label: 'Hold', value: chartStats.hold, gradient: 'from-[#bfc8ce] to-[#a0adb5]', textColor: 'text-gray-700', hoverGradient: 'hover:from-[#44474a] hover:to-[#5a6a74]' },
               ].map((bar) => {
                 const pct = chartMaxVal > 0 ? Math.round((bar.value / chartMaxVal) * 100) : 0;
@@ -298,7 +298,7 @@ export default function LoanOfficerDashboard({
                     >
                       {bar.value}
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#44474a]">{bar.label}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">{bar.label}</span>
                     {bar.value > 0 && (
                       <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#0F171C] text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg">
                         {pct}% of total
@@ -318,31 +318,31 @@ export default function LoanOfficerDashboard({
 
           {/* Next Task Call Panel CARD */}
           {nextVideoTask && (
-            <div className="bg-white border border-[#c4c7ca] rounded-2xl p-6 shadow-xs relative overflow-hidden group">
+            <div className="bg-white border border-[var(--border-primary)] rounded-2xl p-6 shadow-xs relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-1 flex h-full bg-[#0F171C]"></div>
               
               <div className="relative z-10 space-y-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="text-[20px] font-extrabold text-[#0F171C] tracking-tight">Next Task</h3>
-                    <p className="text-[11.5px] font-bold text-[#44474a] uppercase tracking-wider mt-0.5">Scheduled: {nextVideoTask.time}</p>
+                    <h3 className="text-[20px] font-extrabold text-[var(--text-primary)] tracking-tight">Next Task</h3>
+                    <p className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mt-0.5">Scheduled: {nextVideoTask.time}</p>
                   </div>
                   <div className="p-2 bg-[#62f7d5]/30 text-[#005142] rounded-full animate-bounce">
                     <BellRing className="w-5 h-5" />
                   </div>
                 </div>
 
-                <div className="bg-[#f1f4f6] border border-[#c4c7ca]/75 rounded-xl p-4.5 hover:border-[#0F171C] transition-colors duration-150">
+                <div className="bg-[var(--surface-secondary)] border border-[var(--border-primary)]/75 rounded-xl p-4.5 hover:border-[var(--text-primary)] transition-colors duration-150">
                   <div className="flex items-center gap-3.5 mb-3">
                     <div className="w-9 h-9 rounded-lg bg-[#0F171C] flex items-center justify-center text-white shadow-xs">
                       <Video className="w-4.5 h-4.5 text-[#5CF2D0]" />
                     </div>
-                    <h4 className="text-[16px] font-extrabold text-[#0F171C] leading-none">{nextVideoTask.title}</h4>
+                    <h4 className="text-[16px] font-extrabold text-[var(--text-primary)] leading-none">{nextVideoTask.title}</h4>
                   </div>
 
                   <div className="space-y-1 text-[13.5px] mb-5 border-b border-gray-200/50 pb-3">
-                    <p className="text-[#44474a]">Applicant: <span className="font-extrabold text-[#0F171C]">{nextVideoTask.applicant}</span></p>
-                    <p className="text-[#44474a]">Regarding: <span className="font-semibold text-slate-600">{nextVideoTask.regarding}</span></p>
+                    <p className="text-[var(--text-secondary)]">Applicant: <span className="font-extrabold text-[var(--text-primary)]">{nextVideoTask.applicant}</span></p>
+                    <p className="text-[var(--text-secondary)]">Regarding: <span className="font-semibold text-slate-600">{nextVideoTask.regarding}</span></p>
                   </div>
 
                   <button

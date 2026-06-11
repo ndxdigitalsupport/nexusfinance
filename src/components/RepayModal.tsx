@@ -53,10 +53,10 @@ export default function RepayModal({
 
   return (
     <div role="dialog" aria-modal="true" aria-label="Repayment modal" className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-[#c4c7ca] relative">
+      <div className="bg-[var(--surface-card)] w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-[var(--border-primary)] relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1 rounded-full text-[#44474a] hover:bg-[#f1f4f6]"
+          className="absolute top-4 right-4 p-1 rounded-full text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]"
         >
           <X className="w-5 h-5" />
         </button>
@@ -67,9 +67,9 @@ export default function RepayModal({
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-6 text-emerald-600 animate-pulse">
               <CheckCircle2 className="w-10 h-10 stroke-[2.5]" />
             </div>
-            <h3 className="text-[20px] font-sans font-bold text-[#0F171C] mb-1">Payment Successful!</h3>
-            <p className="text-[13px] text-[#44474a] mb-6">
-              A transaction of <span className="font-bold text-[#0F171C]">${parseFloat(repayAmount).toFixed(2)} USD</span> has been cleared via your wallet.
+            <h3 className="text-[20px] font-sans font-bold text-[var(--text-primary)] mb-1">Payment Successful!</h3>
+            <p className="text-[13px] text-[var(--text-secondary)] mb-6">
+              A transaction of <span className="font-bold text-[var(--text-primary)]">${parseFloat(repayAmount).toFixed(2)} USD</span> has been cleared via your wallet.
             </p>
             <button
               onClick={handleCloseSuccess}
@@ -81,19 +81,19 @@ export default function RepayModal({
         ) : (
           /* PAYMENT FORM */
           <form onSubmit={handleRepaySubmit} className="p-6 sm:p-8">
-            <h3 className="text-[20px] font-sans font-bold text-[#0F171C] mb-4">Make a Repayment</h3>
+            <h3 className="text-[20px] font-sans font-bold text-[var(--text-primary)] mb-4">Make a Repayment</h3>
 
             {/* Outstandings indicator */}
-            <div className="bg-[#f1f4f6] rounded-xl p-4 mb-6 border border-[#c4c7ca]/60">
-              <span className="text-[11px] font-bold text-[#44474a] uppercase tracking-wider block">Outstanding Balance</span>
-              <span className="text-[28px] font-sans font-bold text-[#0F171C] block">${outstandingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <div className="bg-[var(--surface-secondary)] rounded-xl p-4 mb-6 border border-[var(--border-primary)]/60">
+              <span className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">Outstanding Balance</span>
+              <span className="text-[28px] font-sans font-bold text-[var(--text-primary)] block">${outstandingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
 
             {/* Input field */}
             <div className="mb-6">
-              <label className="block text-[13px] font-bold text-[#0F171C] mb-2">Repayment Amount (USD)</label>
+              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-2">Repayment Amount (USD)</label>
               <div className="relative">
-                <DollarSign className="w-5 h-5 text-[#44474a] absolute left-3 top-1/2 -translate-y-1/2" />
+                <DollarSign className="w-5 h-5 text-[var(--text-secondary)] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="number"
                   step="0.01"
@@ -102,7 +102,7 @@ export default function RepayModal({
                     setRepayAmount(e.target.value);
                     if (errorMsg) setErrorMsg('');
                   }}
-                  className="w-full bg-white border border-[#c4c7ca] rounded-lg pl-9 pr-4 py-3 text-[16px] font-medium text-[#0F171C] focus:outline-none focus:border-[#5CF2D0] focus:ring-1 focus:ring-[#5CF2D0]"
+                  className="w-full bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-lg pl-9 pr-4 py-3 text-[16px] font-medium text-[var(--text-primary)] focus:outline-none focus:border-[#5CF2D0] focus:ring-1 focus:ring-[#5CF2D0]"
                   placeholder="250.00"
                 />
               </div>
@@ -111,39 +111,39 @@ export default function RepayModal({
 
             {/* Payment Method Selector */}
             <div className="mb-8">
-              <label className="block text-[13px] font-bold text-[#0F171C] mb-2">Select Funding Source</label>
+              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-2">Select Funding Source</label>
               <div className="space-y-2">
                 <div
                   onClick={() => setPayMethod('wallet')}
                   className={`flex items-center justify-between p-3.5 border rounded-lg cursor-pointer transition ${
-                    payMethod === 'wallet' ? 'border-[#5CF2D0] bg-[#5CF2D0]/5' : 'border-[#c4c7ca] bg-white'
+                    payMethod === 'wallet' ? 'border-[#5CF2D0] bg-[#5CF2D0]/5' : 'border-[var(--border-primary)] bg-[var(--surface-card)]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Coins className={`w-5 h-5 ${payMethod === 'wallet' ? 'text-[#0F171C]' : 'text-gray-500'}`} />
-                    <span className="text-[13.5px] font-bold text-[#181c1e]">Nexus Digital Vault Wallet</span>
+                    <Coins className={`w-5 h-5 ${payMethod === 'wallet' ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'}`} />
+                    <span className="text-[13.5px] font-bold text-[var(--text-primary)]">Nexus Digital Vault Wallet</span>
                   </div>
-                  <div className="text-[12px] font-sans font-bold bg-[#5CF2D0]/20 text-[#0F171C] px-2.5 py-0.5 rounded-full">Primary</div>
+                  <div className="text-[12px] font-sans font-bold bg-[#5CF2D0]/20 text-[var(--text-primary)] px-2.5 py-0.5 rounded-full">Primary</div>
                 </div>
 
                 <div
                   onClick={() => setPayMethod('card')}
                   className={`flex items-center gap-3 p-3.5 border rounded-lg cursor-pointer transition ${
-                    payMethod === 'card' ? 'border-[#5CF2D0] bg-[#5CF2D0]/5' : 'border-[#c4c7ca] bg-white'
+                    payMethod === 'card' ? 'border-[#5CF2D0] bg-[#5CF2D0]/5' : 'border-[var(--border-primary)] bg-[var(--surface-card)]'
                   }`}
                 >
-                  <CreditCard className="w-5 h-5 text-gray-500" />
-                  <span className="text-[13.5px] font-bold text-[#181c1e]">Linked Debit Card (•••• 1024)</span>
+                  <CreditCard className="w-5 h-5 text-[var(--text-tertiary)]" />
+                  <span className="text-[13.5px] font-bold text-[var(--text-primary)]">Linked Debit Card (•••• 1024)</span>
                 </div>
 
                 <div
                   onClick={() => setPayMethod('bank')}
                   className={`flex items-center gap-3 p-3.5 border rounded-lg cursor-pointer transition ${
-                    payMethod === 'bank' ? 'border-[#5CF2D0] bg-[#5CF2D0]/5' : 'border-[#c4c7ca] bg-white'
+                    payMethod === 'bank' ? 'border-[#5CF2D0] bg-[#5CF2D0]/5' : 'border-[var(--border-primary)] bg-[var(--surface-card)]'
                   }`}
                 >
-                  <Landmark className="w-5 h-5 text-gray-500" />
-                  <span className="text-[13.5px] font-bold text-[#181c1e]">ACH Direct Bank Transfer</span>
+                  <Landmark className="w-5 h-5 text-[var(--text-tertiary)]" />
+                  <span className="text-[13.5px] font-bold text-[var(--text-primary)]">ACH Direct Bank Transfer</span>
                 </div>
               </div>
             </div>
@@ -153,7 +153,7 @@ export default function RepayModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-3 border border-[#c4c7ca] rounded-lg text-[14px] font-semibold text-[#0F171C] hover:bg-[#f1f4f6]"
+                className="flex-1 py-3 border border-[var(--border-primary)] rounded-lg text-[14px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]"
               >
                 Cancel
               </button>

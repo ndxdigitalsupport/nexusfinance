@@ -80,12 +80,12 @@ export default function ProfilePage({ token }: ProfilePageProps) {
 
   return (
     <div className="animate-in fade-in duration-200 max-w-2xl space-y-8">
-      <h2 className="text-[28px] font-extrabold text-[#0f171c]">Profile</h2>
+      <h2 className="text-[28px] font-extrabold text-[var(--text-primary)]">Profile</h2>
 
       {/* Personal Info */}
-      <div className="bg-white border border-[#c4c7ca] rounded-2xl p-8">
-        <h3 className="text-[15px] font-bold text-[#0f171c] mb-6 flex items-center gap-2">
-          <User className="w-5 h-5 text-[#44474a]" /> Personal Information
+      <div className="bg-white border border-[var(--border-primary)] rounded-2xl p-8">
+        <h3 className="text-[15px] font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
+          <User className="w-5 h-5 text-[var(--text-secondary)]" /> Personal Information
         </h3>
         <form onSubmit={handleProfileSave} className="space-y-5">
           <div className="space-y-1.5">
@@ -142,9 +142,9 @@ export default function ProfilePage({ token }: ProfilePageProps) {
       </div>
 
       {/* Change Password */}
-      <div className="bg-white border border-[#c4c7ca] rounded-2xl p-8">
-        <h3 className="text-[15px] font-bold text-[#0f171c] mb-6 flex items-center gap-2">
-          <Lock className="w-5 h-5 text-[#44474a]" /> Change Password
+      <div className="bg-white border border-[var(--border-primary)] rounded-2xl p-8">
+        <h3 className="text-[15px] font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
+          <Lock className="w-5 h-5 text-[var(--text-secondary)]" /> Change Password
         </h3>
         <form onSubmit={handlePasswordSave} className="space-y-5">
           <div className="space-y-1.5">

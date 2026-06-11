@@ -118,7 +118,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-slate-800 font-sans relative overflow-x-hidden auth-page">
+    <div className="min-h-screen flex flex-col justify-between bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans relative overflow-x-hidden auth-page">
       
       {/* Background soft glowing decorative orbs */}
       <div className="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full bg-[#c0f5ea]/40 blur-[120px] pointer-events-none z-0" />
@@ -137,7 +137,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
             </div>
             <button 
               onClick={() => {}} 
-              className="text-[#44474a] font-semibold text-[14px] hover:text-[#0e171c]"
+              className="text-[var(--text-secondary)] font-semibold text-[14px] hover:text-[#0e171c]"
             >
               Support
             </button>
@@ -153,7 +153,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 {/* Title block */}
                 <div className="text-center mb-8">
                   <h2 className="text-[36px] font-extrabold tracking-tight text-[#0e171c]">Login</h2>
-                  <p className="text-[14px] text-slate-500 font-medium mt-1 leading-none">welcome to nexus finance</p>
+                  <p className="text-[14px] text-[var(--text-secondary)] font-medium mt-1 leading-none">welcome to nexus finance</p>
                 </div>
 
                 {/* Form fields */}
@@ -164,7 +164,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                       placeholder="Email / Username"
-                      className="w-full rounded-2xl bg-white border border-slate-200/90 px-6 py-3.5 text-[14px] text-slate-800 placeholder-slate-400/90 focus:outline-none focus:border-[#5CF2D0]/80 focus:ring-2 focus:ring-[#5CF2D0]/20 font-medium transition-all"
+                      className="w-full rounded-2xl bg-white border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-slate-400/90 focus:outline-none focus:border-[#5CF2D0]/80 focus:ring-2 focus:ring-[#5CF2D0]/20 font-medium transition-all"
                       required
                     />
                   </div>
@@ -175,14 +175,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       placeholder="Password"
-                      className="w-full rounded-2xl bg-white border border-slate-200/90 px-6 py-3.5 text-[14px] text-slate-800 placeholder-slate-400/90 focus:outline-none focus:border-[#5CF2D0]/80 focus:ring-2 focus:ring-[#5CF2D0]/20 font-mono transition-all"
+                      className="w-full rounded-2xl bg-white border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-slate-400/90 focus:outline-none focus:border-[#5CF2D0]/80 focus:ring-2 focus:ring-[#5CF2D0]/20 font-mono transition-all"
                       required
                     />
                   </div>
 
                   {/* Utilities */}
                   <div className="flex justify-between items-center text-[13px] px-2 py-1 select-none font-medium">
-                    <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
+                    <label className="flex items-center gap-2 text-[var(--text-secondary)] cursor-pointer">
                       <input
                         type="checkbox"
                         checked={rememberMe}
@@ -191,7 +191,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       />
                       <span>Remember me</span>
                     </label>
-                    <button onClick={() => { setForgotEmail(loginEmail); setView('forgot'); }} className="text-slate-600 hover:text-slate-900 cursor-pointer">
+                    <button onClick={() => { setForgotEmail(loginEmail); setView('forgot'); }} className="text-[var(--text-secondary)] hover:text-slate-900 cursor-pointer">
                       Forgot Password?
                     </button>
                   </div>
@@ -213,7 +213,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 </form>
 
                 {/* Create account trigger */}
-                <div className="text-center mt-6 text-[13.5px] font-semibold text-slate-600">
+                <div className="text-center mt-6 text-[13.5px] font-semibold text-[var(--text-secondary)]">
                   <span>Don’t have an account? </span>
                   <button 
                     onClick={() => setView('register')}
@@ -226,7 +226,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 {/* Divider */}
                 <div className="flex items-center gap-3 my-6">
                   <div className="h-[1px] bg-slate-200/70 flex-grow" />
-                  <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">or</span>
+                  <span className="text-[11px] text-[var(--text-tertiary)] font-bold uppercase tracking-wider">or</span>
                   <div className="h-[1px] bg-slate-200/70 flex-grow" />
                 </div>
 
@@ -234,7 +234,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 <button
                   type="button"
                   onClick={() => window.location.href = API + '/auth/google'}
-                  className="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-[14px] py-3 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-98 shadow-xs cursor-pointer"
+                  className="w-full bg-white hover:bg-slate-50 text-[var(--text-secondary)] border border-[var(--border-primary)] font-bold text-[14px] py-3 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-98 shadow-xs cursor-pointer"
                 >
                   <svg className="w-4 h-4 mr-0.5" viewBox="0 0 24 24">
                     <path
@@ -392,7 +392,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           </main>
 
           {/* Footer of Login Screen */}
-          <footer className="relative z-10 px-6 py-6 sm:px-12 border-t border-slate-200/50 bg-white/40 flex flex-col md:flex-row justify-between items-center gap-4 text-[12px] font-medium text-[#44474a]">
+          <footer className="relative z-10 px-6 py-6 sm:px-12 border-t border-[var(--border-primary)]/50 bg-white/40 flex flex-col md:flex-row justify-between items-center gap-4 text-[12px] font-medium text-[var(--text-secondary)]">
             <div>
               <p>© 2024 Nexus Finance Institutional Group. All rights reserved.</p>
             </div>
@@ -418,7 +418,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 <span className="text-[#0E171C] font-light">Finance</span>
               </span>
             </div>
-            <div className="flex items-center gap-4 text-[#44474a]">
+            <div className="flex items-center gap-4 text-[var(--text-secondary)]">
               <Globe className="w-5 h-5 cursor-pointer hover:text-[#0e171c]" />
               <HelpCircle className="w-5 h-5 cursor-pointer hover:text-[#0e171c]" />
             </div>
@@ -436,11 +436,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 
                 {/* Field: Full Name */}
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider">
+                  <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
                     Full Name
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
                       <User className="w-4.5 h-4.5" />
                     </div>
                     <input
@@ -448,7 +448,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={registerName}
                       onChange={(e) => setRegisterName(e.target.value)}
                       placeholder="Johnathan Doe"
-                      className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-medium transition-all"
+                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
                       required
                     />
                   </div>
@@ -456,11 +456,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                 {/* Field: Email Address */}
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider">
+                  <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
                     Email Address
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
                       <span className="text-[17px] font-light leading-none select-none">@</span>
                     </div>
                     <input
@@ -468,7 +468,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={registerEmail}
                       onChange={(e) => setRegisterEmail(e.target.value)}
                       placeholder="j.doe@nexus.finance"
-                      className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-medium transition-all"
+                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
                       required
                     />
                   </div>
@@ -476,11 +476,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                 {/* Field: Password */}
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider">
+                  <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
                     Password
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
                       <Lock className="w-4.5 h-4.5" />
                     </div>
                     <input
@@ -488,18 +488,18 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={registerPassword}
                       onChange={(e) => setRegisterPassword(e.target.value)}
                       placeholder="••••••••••••"
-                      className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-mono transition-all animate-none"
+                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-mono transition-all animate-none"
                       required
                     />
                   </div>
 
                   {/* Field: Confirm Password */}
                   <div className="space-y-1.5">
-                    <label className="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider">
+                    <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
                       Confirm Password
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
                         <Lock className="w-4.5 h-4.5" />
                       </div>
                       <input
@@ -507,7 +507,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         value={registerConfirmPassword}
                         onChange={(e) => setRegisterConfirmPassword(e.target.value)}
                         placeholder="••••••••••••"
-                        className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-mono transition-all animate-none"
+                        className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-mono transition-all animate-none"
                         required
                       />
                     </div>
@@ -516,11 +516,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                 {/* Field: Phone Number */}
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider">
+                  <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
                     Phone Number
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
                       <Phone className="w-4.5 h-4.5" />
                     </div>
                     <input
@@ -528,7 +528,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={registerPhone}
                       onChange={(e) => setRegisterPhone(e.target.value)}
                       placeholder="+855 12 345 678"
-                      className="w-full bg-[#f1f4f6]/80 border-0 focus:bg-white focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-slate-800 font-medium transition-all"
+                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
                       required
                     />
                   </div>
@@ -551,7 +551,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               </form>
 
               {/* Already have accounts */}
-              <div className="text-center mt-6 text-[13.5px] font-semibold text-slate-600">
+              <div className="text-center mt-6 text-[13.5px] font-semibold text-[var(--text-secondary)]">
                 <span>Already have an account? </span>
                 <button 
                   onClick={() => setView('login')}
@@ -565,7 +565,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           </main>
 
           {/* Footer of Create Account page */}
-          <footer className="relative z-10 px-6 py-6 sm:px-12 border-t border-slate-200/50 bg-white/40 flex flex-col md:flex-row justify-between items-center gap-4 text-[12px] font-semibold tracking-wide text-[#44474a]">
+          <footer className="relative z-10 px-6 py-6 sm:px-12 border-t border-[var(--border-primary)]/50 bg-white/40 flex flex-col md:flex-row justify-between items-center gap-4 text-[12px] font-semibold tracking-wide text-[var(--text-secondary)]">
             <div>
               <p>© 2026 NEXUS FINANCE. PRECISE INTELLIGENCE.</p>
             </div>
@@ -583,7 +583,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         <div className="min-h-screen flex flex-col justify-between w-full h-full">
           <div className="flex-grow flex flex-col justify-center items-center px-4 py-8">
             <div className="bg-white/90 backdrop-blur-md rounded-[32px] border border-white/80 p-8 sm:p-12 w-full max-w-lg shadow-xl shadow-teal-900/5 flex flex-col items-center animate-in zoom-in-95 duration-200">
-              <div className="relative w-16 h-16 bg-[#f1f4f6]/80 rounded-full flex items-center justify-center text-slate-700 border border-slate-200/10 mb-6">
+              <div className="relative w-16 h-16 bg-[var(--surface-secondary)] rounded-full flex items-center justify-center text-[var(--text-secondary)] border border-[var(--border-primary)]/10 mb-6">
                 <Mail className="w-7 h-7" />
                 <div className="absolute top-1 right-1 w-4 h-4 bg-[#5CF2D0] rounded-full flex items-center justify-center">
                   <CheckCircle2 className="w-3 h-3 text-[#0E171C]" />
@@ -592,7 +592,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               <h2 className="text-[28px] sm:text-[32px] font-bold text-[#0E171C] text-center tracking-tight">
                 Check your email
               </h2>
-              <p className="text-[13px] text-slate-500 font-medium text-center mt-3 mb-8 max-w-sm leading-relaxed">
+              <p className="text-[13px] text-[var(--text-secondary)] font-medium text-center mt-3 mb-8 max-w-sm leading-relaxed">
                 We sent a verification link to <strong>{registerEmail}</strong>.<br />
                 Click the link to activate your account.
               </p>
@@ -602,14 +602,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               >
                 GO TO SIGN IN <ArrowRight className="w-5 h-5 stroke-[2.5] inline ml-1" />
               </button>
-              <div className="w-full flex justify-center text-[13px] font-bold text-slate-500 mt-6 pt-6 border-t border-slate-100 select-none">
+              <div className="w-full flex justify-center text-[13px] font-bold text-[var(--text-secondary)] mt-6 pt-6 border-t border-[var(--border-primary)] select-none">
                 <button onClick={() => setView('register')} className="hover:text-[#0e171c] cursor-pointer">
                   Use a different email
                 </button>
               </div>
             </div>
           </div>
-          <footer className="relative z-10 px-6 py-6 sm:px-12 bg-transparent flex justify-center text-[11.5px] font-semibold text-[#44474a]/60">
+          <footer className="relative z-10 px-6 py-6 sm:px-12 bg-transparent flex justify-center text-[11.5px] font-semibold text-[var(--text-secondary)]/60">
             <p>© 2026 NEXUS FINANCE. ALL INTEGRITY SERVED.</p>
           </footer>
         </div>
@@ -620,14 +620,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="flex-grow flex flex-col justify-center items-center px-4 py-8">
             <div className="bg-white/90 backdrop-blur-md rounded-[32px] border border-white/80 p-8 sm:p-12 w-full max-w-lg shadow-xl shadow-teal-900/5 flex flex-col items-center animate-in zoom-in-95 duration-200">
 
-              <div className="relative w-16 h-16 bg-[#f1f4f6]/80 rounded-full flex items-center justify-center text-slate-700 border border-slate-200/10 mb-6">
+              <div className="relative w-16 h-16 bg-[var(--surface-secondary)] rounded-full flex items-center justify-center text-[var(--text-secondary)] border border-[var(--border-primary)]/10 mb-6">
                 <Lock className="w-7 h-7" />
               </div>
 
               <h2 className="text-[28px] sm:text-[32px] font-bold text-[#0E171C] text-center tracking-tight">
                 Reset Password
               </h2>
-              <p className="text-[13px] text-slate-500 font-medium text-center mt-3 mb-8 max-w-sm leading-relaxed">
+              <p className="text-[13px] text-[var(--text-secondary)] font-medium text-center mt-3 mb-8 max-w-sm leading-relaxed">
                 {forgotSent
                   ? 'If an account exists with that email, we\'ve sent a password reset link.'
                   : 'Enter your email and we\'ll send you a password reset link.'}
@@ -636,17 +636,17 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               {!forgotSent ? (
                 <form onSubmit={handleForgotSubmit} className="w-full space-y-5">
                   <div className="space-y-1.5">
-                    <label className="text-[11.5px] font-bold text-slate-500 uppercase tracking-wider ml-1">Email</label>
+                    <label className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Email</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                        <Lock className="w-4 h-4 text-slate-400" />
+                        <Lock className="w-4 h-4 text-[var(--text-tertiary)]" />
                       </div>
                       <input
                         type="email"
                         placeholder="your@email.com"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3.5 bg-white/90 border border-slate-200/90 rounded-2xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all"
+                        className="w-full pl-10 pr-4 py-3.5 bg-white/90 border border-[var(--border-primary)]/90 rounded-2xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-[var(--text-primary)] transition-all"
                         required
                       />
                     </div>
@@ -667,7 +667,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 </button>
               )}
 
-              <div className="w-full flex justify-between items-center text-[13px] font-bold text-slate-500 mt-8 pt-6 border-t border-slate-100 select-none">
+              <div className="w-full flex justify-between items-center text-[13px] font-bold text-[var(--text-secondary)] mt-8 pt-6 border-t border-[var(--border-primary)] select-none">
                 <button onClick={() => setView('login')} className="hover:text-[#0e171c] cursor-pointer">
                   ← Back to Login
                 </button>
@@ -677,7 +677,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               </div>
             </div>
           </div>
-          <footer className="relative z-10 px-6 py-6 sm:px-12 bg-transparent flex justify-center text-[11.5px] font-semibold text-[#44474a]/60">
+          <footer className="relative z-10 px-6 py-6 sm:px-12 bg-transparent flex justify-center text-[11.5px] font-semibold text-[var(--text-secondary)]/60">
             <p>© 2026 NEXUS FINANCE. ALL INTEGRITY SERVED.</p>
           </footer>
         </div>
