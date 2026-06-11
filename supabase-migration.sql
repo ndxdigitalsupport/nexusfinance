@@ -103,3 +103,24 @@ CREATE TABLE nexus_notifications (
 INSERT INTO nexus_transactions (id, title, date, amount, type, "userId") VALUES
   ('tx1', 'Repayment', 'Nov 28, 2023', -250, 'Repayment', 1),
   ('tx2', 'Loan Disbursement', 'Nov 15, 2023', 1200, 'Loan Disbursement', 1);
+
+-- KHQR Transactions Table
+CREATE TABLE nexus_khqr_transactions (
+  id SERIAL PRIMARY KEY,
+  reference_id TEXT UNIQUE NOT NULL,
+  khqr_string TEXT NOT NULL,
+  merchant_name TEXT NOT NULL,
+  merchant_city TEXT DEFAULT 'Phnom Penh',
+  currency TEXT NOT NULL DEFAULT '840',
+  amount NUMERIC,
+  bakong_account_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'PENDING',
+  transaction_id TEXT,
+  deeplink TEXT,
+  user_id INT REFERENCES nexus_users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_khqr_reference_id ON nexus_khqr_transactions(reference_id);
+CREATE INDEX idx_khqr_user_id ON nexus_khqr_transactions(user_id);

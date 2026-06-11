@@ -51,3 +51,65 @@ export interface PlatformStats {
   outstandingBalanceValue: number;
   interestEarned: number;
 }
+
+// ── KHQR Types ──────────────────────────────────────────────
+
+export interface KHQRGenerateRequest {
+  bakongAccountId: string;
+  merchantName: string;
+  merchantCity: string;
+  currency: '840' | '116';
+  amount?: number;
+  countryCode?: string;
+  storeLabel?: string;
+  phone?: string;
+  email?: string;
+}
+
+export interface KHQRGenerateResponse {
+  success: boolean;
+  khqrString: string;
+  referenceId: string;
+  merchantInfo: {
+    name: string;
+    city: string;
+    currency: string;
+    amount?: number;
+  };
+  crc: string;
+}
+
+export interface KHQRVerifyResponse {
+  success: boolean;
+  responseCode: number;
+  responseMessage: string;
+  valid: boolean;
+}
+
+export interface KHQRDecodeResponse {
+  success: boolean;
+  data: Record<string, string>;
+  merchantInfo: {
+    accountId?: string;
+    name?: string;
+    city?: string;
+    currency?: string;
+    amount?: string;
+    country?: string;
+  };
+  crcValid: boolean;
+}
+
+export interface KHQRDeeplinkResponse {
+  success: boolean;
+  deeplink: string;
+  md5: string;
+}
+
+export interface KHQRTransactionCheckResponse {
+  success: boolean;
+  transactionStatus: string;
+  responseCode: number;
+  responseMessage: string;
+  transactionId?: string;
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown } from 'lucide-react';
+import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown, QrCode } from 'lucide-react';
 import AuthPage from './components/AuthPage';
 import Toast, { showToast } from './components/Toast';
 import LoanOfficerDashboard from './components/LoanOfficerDashboard';
@@ -15,6 +15,7 @@ import RepayModal from './components/RepayModal';
 import LiveMeetingModal from './components/LiveMeetingModal';
 import Pagination from './components/Pagination';
 import AuditLogView from './components/AuditLogView';
+import KHQRPage from './components/KHQRPage';
 import { SkeletonTable } from './components/Skeleton';
 import { LoanApplication, Task, Transaction, PlatformConfig, PlatformStats, PortalType } from './types';
 import { DEFAULT_CONFIG, DEFAULT_STATS } from './data';
@@ -360,7 +361,7 @@ export default function App() {
                     ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'tasks', label: 'Compliance Tasks', icon: CheckSquare }]
                     : currentPortal === 'super-admin'
                     ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'users', label: 'Users', icon: Users }, { id: 'audit', label: 'Audit Log', icon: ClipboardList }, { id: 'settings', label: 'Settings', icon: Settings }]
-                    : [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'loans', label: 'Loans Ledger', icon: Landmark }, { id: 'wallets', label: 'Wallets', icon: Wallet }, { id: 'transactions', label: 'History Logs', icon: History }];
+                    : [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'loans', label: 'Loans Ledger', icon: Landmark }, { id: 'wallets', label: 'Wallets', icon: Wallet }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }, { id: 'transactions', label: 'History Logs', icon: History }];
                   return items.map((item) => {
                     const Icon = item.icon;
                     const isActive = activeMenu === item.id;
@@ -574,6 +575,8 @@ export default function App() {
                   </div>
                 </div>
               </div>
+            ) : activeMenu === 'khqr' ? (
+              <div className="animate-content-enter"><KHQRPage /></div>
             ) : activeMenu === 'transactions' ? (
               <div className="animate-content-enter">
                 <h2 className="text-[28px] font-extrabold text-[var(--text-primary)] mb-6">History Logs</h2>
