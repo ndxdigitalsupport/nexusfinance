@@ -341,7 +341,7 @@ export default function App() {
           <>
             <div className="fixed inset-0 bg-black/30 z-40 md:hidden" onClick={() => setMobileMenuOpen(false)} />
             <div className="fixed top-0 left-0 h-full w-72 z-50 animate-in slide-in-from-left duration-200 md:hidden overflow-y-auto"
-              style={{ backgroundColor: 'var(--card-dark-bg)' }}
+              style={{ backgroundColor: '#0b1220', borderRight: '1px solid rgba(255,255,255,0.08)' }}
             >
               <div className="flex items-center justify-between px-5 py-5 border-b border-white/5">
                 <div className="flex items-center gap-3.5">
@@ -388,8 +388,9 @@ export default function App() {
                         onClick={() => { handleSetActiveMenu(item.id); setMobileMenuOpen(false); }}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer ${isActive ? 'bg-[var(--accent)]/20 text-[var(--text-primary)] border border-[var(--accent)]/40 shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] border border-transparent hover:border-[var(--border-primary)]'}`}
                       >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${isActive ? '' : 'bg-white/5 text-white/40'}`}
-                          style={isActive ? { backgroundColor: 'var(--accent)', color: 'var(--text-primary)' } : undefined}
+                        <div
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${isActive ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface-secondary)] text-[var(--text-tertiary)]'}`}
+                          style={isActive ? undefined : undefined}
                         >
                           <Icon className="w-4 h-4" />
                         </div>
