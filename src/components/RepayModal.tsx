@@ -81,7 +81,7 @@ export default function RepayModal({
             </p>
             <button
               onClick={handleCloseSuccess}
-              className="w-full bg-[var(--sidebar-bg)] hover:brightness-125 text-white font-bold py-3 rounded-lg text-[14px]"
+className="w-full premium-btn-primary hover:brightness-110 text-white font-bold py-3 rounded-lg text-[14px]"
             >
               Back to Dashboard
             </button>
