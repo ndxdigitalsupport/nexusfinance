@@ -82,19 +82,19 @@ export default function CustomerDashboard({
           <div className="premium-card-dark text-white rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row justify-between md:items-center relative overflow-hidden group">
 
             <div className="space-y-5 relative z-10">
-              <div>
-                <div className="flex items-center gap-1.5 mb-1" style={{ color: 'var(--card-dark-text)' }}>
-                  <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Outstanding Balance</span>
-                  <Info className="w-4 h-4 cursor-help" title="Current sum total of approved credit lines minus repayments" />
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1" style={{ color: 'var(--text-primary)' }}>
+                  <span className="text-[11px] font-bold uppercase tracking-widest leading-none" style={{ color: 'var(--text-tertiary)' }}>Outstanding Balance</span>
+                  <Info className="w-4 h-4 cursor-help" title="Current sum total of approved credit lines minus repayments" style={{ color: 'var(--text-secondary)' }} />
                 </div>
                 <span className="text-[44px] sm:text-[52px] leading-tight font-extrabold font-sans tracking-tighter">
                   ${outstandingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
 
-              <div className="space-y-0.5 select-none text-[13.5px]">
-                <p style={{ color: 'var(--card-dark-text)' }} className="font-medium">Next scheduled installment</p>
-                <p className="font-bold text-white text-[15px]">{new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+            <div className="space-y-0.5 select-none text-[13.5px]">
+                <p style={{ color: 'var(--text-secondary)' }} className="font-medium">Next scheduled installment</p>
+                <p className="font-bold text-[var(--text-primary)] text-[15px]">{new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
               </div>
             </div>
 
