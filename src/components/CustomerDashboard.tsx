@@ -87,7 +87,10 @@ export default function CustomerDashboard({
                   <span className="text-[11px] font-bold uppercase tracking-widest leading-none" style={{ color: 'var(--text-tertiary)' }}>Outstanding Balance</span>
                   <Info className="w-4 h-4 cursor-help" title="Current sum total of approved credit lines minus repayments" style={{ color: 'var(--text-secondary)' }} />
                 </div>
-                <span className="text-[44px] sm:text-[52px] leading-tight font-extrabold font-sans tracking-tighter">
+                <span
+                  className="text-[44px] sm:text-[52px] leading-tight font-extrabold font-sans tracking-tighter"
+                  style={{ color: 'var(--text-primary)' }}
+                >
                   ${outstandingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
