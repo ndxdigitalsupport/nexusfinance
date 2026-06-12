@@ -340,8 +340,8 @@ export default function App() {
         {mobileMenuOpen && (
           <>
             <div className="fixed inset-0 bg-black/30 z-40 md:hidden" onClick={() => setMobileMenuOpen(false)} />
-            <div className="fixed top-0 left-0 h-full w-72 z-50 animate-in slide-in-from-left duration-200 md:hidden overflow-y-auto"
-              style={{ backgroundColor: '#ffffff', borderRight: '1px solid rgba(15,23,42,0.10)' }}
+              <div className="fixed top-0 left-0 h-full w-72 z-50 animate-in slide-in-from-left duration-200 md:hidden overflow-y-auto"
+              style={{ backgroundColor: 'var(--surface-secondary)', borderRight: '1px solid var(--border-primary)' }}
             >
               <div className="flex items-center justify-between px-5 py-5 border-b border-white/5">
                 <div className="flex items-center gap-3.5">
@@ -405,7 +405,7 @@ export default function App() {
                 <p className="text-[10px] font-bold text-[var(--text-tertiary)] uppercase tracking-widest px-3 pb-1">Account</p>
                 <button
                   onClick={() => { setActiveMenu('profile'); setMobileMenuOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer ${activeMenu === 'profile' ? 'bg-white/10 text-white shadow-sm' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer ${activeMenu === 'profile' ? 'bg-[var(--surface-secondary)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]/70'}`}
                 >
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-white/40">
                     <User className="w-4 h-4" />
