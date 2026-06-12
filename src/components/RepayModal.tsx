@@ -201,7 +201,7 @@ className="w-full premium-btn-primary hover:brightness-110 text-white font-bold 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 py-3 bg-[var(--sidebar-bg)] hover:brightness-125 text-white font-sans font-bold rounded-lg text-[14px] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="flex-1 py-3 premium-btn-primary hover:brightness-110 text-white font-bold rounded-lg text-[14px] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:brightness-95"
               >
                 {isSubmitting ? (
                   <>
