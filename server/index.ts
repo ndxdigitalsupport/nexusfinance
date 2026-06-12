@@ -12,6 +12,7 @@ import { db } from './db.js';
 import { updateUserPassword } from './appwrite.js';
 import { sendSMS } from './sms.js';
 import { generateKHQR, verifyKHQR, decodeKHQR, generateDeeplink, checkTransaction } from './khqr.js';
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import fs from 'fs';
 import cookieParser from 'cookie-parser';
@@ -83,7 +84,6 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
-    const bcrypt = await import('bcryptjs');
     const isValid = await bcrypt.compare(password, dbUser.password || '');
     if (!isValid) {
       return res.status(401).json({ error: 'Invalid email or password.' });
@@ -515,7 +515,6 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'An account with this email already exists.' });
     }
 
-    const bcrypt = await import('bcryptjs');
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const { data: newUser } = await db.from('nexus_users').insert({
