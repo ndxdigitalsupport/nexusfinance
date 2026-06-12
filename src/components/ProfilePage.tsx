@@ -83,7 +83,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
       <h2 className="text-[28px] font-extrabold text-[var(--text-primary)]">Profile</h2>
 
       {/* Personal Info */}
-      <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-8">
+      <div className="stagger-1 premium-card rounded-2xl p-8">
         <h3 className="text-[15px] font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
           <User className="w-5 h-5 text-[var(--text-secondary)]" /> Personal Information
         </h3>
@@ -98,7 +98,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
+                className="premium-input w-full pl-10 pr-4 py-3 rounded-xl"
               />
             </div>
           </div>
@@ -112,7 +112,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
+                className="premium-input w-full pl-10 pr-4 py-3 rounded-xl"
               />
             </div>
           </div>
@@ -126,14 +126,14 @@ export default function ProfilePage({ token }: ProfilePageProps) {
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
+                className="premium-input w-full pl-10 pr-4 py-3 rounded-xl"
               />
             </div>
           </div>
           <button
             type="submit"
             disabled={profileLoading}
-            className="bg-[var(--sidebar-bg)] hover:brightness-125 text-white text-[13px] font-bold px-6 py-3 rounded-xl transition cursor-pointer disabled:opacity-50 flex items-center gap-2"
+            className="premium-btn-primary text-white text-[13px] font-bold px-6 py-3 rounded-xl cursor-pointer disabled:opacity-50 flex items-center gap-2"
           >
             {profileLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {profileLoading ? 'Saving...' : 'Save Changes'}
@@ -141,8 +141,27 @@ export default function ProfilePage({ token }: ProfilePageProps) {
         </form>
       </div>
 
+      {/* Avatar Section */}
+      <div className="stagger-2 premium-card-dark rounded-2xl p-8 flex flex-col sm:flex-row items-center gap-6">
+        <div className="w-20 h-20 rounded-full flex items-center justify-center text-[32px] font-extrabold shadow-lg select-none shrink-0"
+          style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)' }}
+        >
+          {name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+        </div>
+        <div className="text-center sm:text-left">
+          <div className="text-[20px] font-extrabold" style={{ color: 'var(--card-dark-text-bright)' }}>{name}</div>
+          <div className="text-[14px] font-medium mt-1" style={{ color: 'var(--card-dark-text)' }}>{email}</div>
+          <div className="text-[13px] font-medium mt-0.5" style={{ color: 'var(--card-dark-text)' }}>{phone || 'No phone number set'}</div>
+          <span className="premium-badge inline-block mt-3 px-3 py-1 text-[11px] font-bold uppercase tracking-wider"
+            style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)', border: '1px solid var(--accent-muted)' }}
+          >
+            {user.role}
+          </span>
+        </div>
+      </div>
+
       {/* Change Password */}
-      <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-8">
+      <div className="stagger-3 premium-card rounded-2xl p-8">
         <h3 className="text-[15px] font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
           <Lock className="w-5 h-5 text-[var(--text-secondary)]" /> Change Password
         </h3>
@@ -153,7 +172,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
+              className="premium-input w-full px-4 py-3 rounded-xl"
               required
             />
           </div>
@@ -163,7 +182,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
+              className="premium-input w-full px-4 py-3 rounded-xl"
               required
               minLength={6}
             />
@@ -174,7 +193,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
+              className="premium-input w-full px-4 py-3 rounded-xl"
               required
               minLength={6}
             />
@@ -182,7 +201,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
           <button
             type="submit"
             disabled={passwordLoading}
-            className="bg-[var(--sidebar-bg)] hover:brightness-125 text-white text-[13px] font-bold px-6 py-3 rounded-xl transition cursor-pointer disabled:opacity-50 flex items-center gap-2"
+            className="premium-btn-primary text-white text-[13px] font-bold px-6 py-3 rounded-xl cursor-pointer disabled:opacity-50 flex items-center gap-2"
           >
             {passwordLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
             {passwordLoading ? 'Updating...' : 'Update Password'}

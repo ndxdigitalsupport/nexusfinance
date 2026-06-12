@@ -332,14 +332,18 @@ export default function App() {
         {mobileMenuOpen && (
           <>
             <div className="fixed inset-0 bg-black/30 z-40 md:hidden" onClick={() => setMobileMenuOpen(false)} />
-            <div className="fixed top-0 left-0 h-full w-72 bg-[#0F171C] z-50 animate-in slide-in-from-left duration-200 md:hidden overflow-y-auto">
+            <div className="fixed top-0 left-0 h-full w-72 z-50 animate-in slide-in-from-left duration-200 md:hidden overflow-y-auto"
+              style={{ backgroundColor: 'var(--card-dark-bg)' }}
+            >
               <div className="flex items-center justify-between px-5 py-5 border-b border-white/5">
                 <div className="flex items-center gap-3.5">
                   <span className="font-sans text-[18px] tracking-tight flex items-center">
                     <span className="text-white font-black">Nexus</span>
                     <span className="text-white/60 font-light">finance</span>
                   </span>
-                  <span className="text-[9px] font-bold text-[#5CF2D0] uppercase tracking-wider bg-[#5CF2D0]/10 px-2 py-0.5 rounded-full">
+                  <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                    style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)' }}
+                  >
                     {currentPortal === 'loan-officer' ? 'Corporate' : currentPortal === 'super-admin' ? 'Admin' : 'Client'}
                   </span>
                 </div>
@@ -352,7 +356,7 @@ export default function App() {
                 <div className="px-4 pt-4 pb-2">
                   <button
                     onClick={() => { setIsApplyOpen(true); setMobileMenuOpen(false); }}
-                    className="w-full bg-gradient-to-r from-[#5CF2D0] to-[#41ddbc] hover:brightness-105 text-[var(--text-primary)] font-bold text-[14px] py-3 rounded-xl shadow-lg shadow-[#5CF2D0]/20 flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full premium-btn-primary font-bold text-[14px] py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <PlusCircle className="w-4.5 h-4.5" /> Apply for Loan
                   </button>
@@ -376,7 +380,9 @@ export default function App() {
                         onClick={() => { handleSetActiveMenu(item.id); setMobileMenuOpen(false); }}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                       >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${isActive ? 'bg-[#5CF2D0] text-[var(--text-primary)]' : 'bg-white/5 text-white/40'}`}>
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${isActive ? '' : 'bg-white/5 text-white/40'}`}
+                          style={isActive ? { backgroundColor: 'var(--accent)', color: 'var(--text-primary)' } : undefined}
+                        >
                           <Icon className="w-4 h-4" />
                         </div>
                         {item.label}

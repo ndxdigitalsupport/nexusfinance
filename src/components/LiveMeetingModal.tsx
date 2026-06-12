@@ -61,7 +61,7 @@ export default function LiveMeetingModal({
 
   return (
     <div role="dialog" aria-modal="true" aria-label="KYC verification meeting" className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
-      <div className="bg-[#0F171C] text-white w-full max-w-4xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden relative flex flex-col md:flex-row h-[550px] font-sans">
+      <div className="text-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden relative flex flex-col md:flex-row h-[550px] font-sans" style={{ backgroundColor: 'var(--card-dark-bg)', border: '1px solid var(--border-primary)' }}>
         
         {/* Close Button */}
           <button
@@ -73,8 +73,10 @@ export default function LiveMeetingModal({
 
         {showSuccess ? (
           /* Verification complete visualizer */
-          <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0F171C] text-center">
-            <div className="w-20 h-20 rounded-full bg-[#5CF2D0]/10 flex items-center justify-center text-[#5CF2D0] mb-6 animate-bounce">
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center" style={{ backgroundColor: 'var(--card-dark-bg)' }}>
+            <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 animate-bounce"
+              style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)' }}
+            >
               <ShieldCheck className="w-12 h-12 stroke-[2.5]" />
             </div>
             <h3 className="text-[26px] font-bold text-white mb-2">KYC Verified Successfully</h3>
@@ -82,26 +84,28 @@ export default function LiveMeetingModal({
               Auditor signatures applied. {applicantName}'s eligibility assessment is updated with positive KYC approval flag.
             </p>
             <div className="w-24 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-              <div className="h-full bg-[#5CF2D0] rounded-full animate-pulse w-full"></div>
+              <div className="h-full rounded-full animate-pulse w-full" style={{ backgroundColor: 'var(--accent)' }}></div>
             </div>
           </div>
         ) : (
           <>
             {/* Left Box: Video Feeds */}
-            <div className="flex-1 p-6 flex flex-col justify-between border-r border-[#c4c7ca]/10 relative bg-black/30">
+            <div className="flex-1 p-6 flex flex-col justify-between border-r relative bg-black/30" style={{ borderColor: 'var(--border-primary)' }}>
               
               {/* Meeting Header */}
               <div className="flex justify-between items-center mb-4 z-10 bg-black/20 p-2.5 rounded-lg border border-white/5">
                 <div>
-                  <h4 className="text-[13px] text-[#5CF2D0] uppercase tracking-wider font-bold">Secure KYC Terminal</h4>
+                  <h4 className="text-[13px] uppercase tracking-wider font-bold" style={{ color: 'var(--accent)' }}>Secure KYC Terminal</h4>
                   <p className="text-[14px] font-semibold text-white">{regardingLoan}</p>
                 </div>
                 <div className="text-right flex items-center gap-2">
                   <svg className="w-8 h-8 -rotate-90" viewBox="0 0 36 36">
                     <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3" />
-                    <circle cx="18" cy="18" r="15.5" fill="none" stroke="#5CF2D0" strokeWidth="3" strokeDasharray={`${(timerSeconds % 60) / 60 * 97.4} 97.4`} strokeLinecap="round" />
+                    <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--accent)" strokeWidth="3" strokeDasharray={`${(timerSeconds % 60) / 60 * 97.4} 97.4`} strokeLinecap="round" />
                   </svg>
-                  <span className="text-[12px] font-mono select-none px-2.5 py-1 bg-[#5CF2D0]/10 text-[#5CF2D0] rounded">
+                  <span className="text-[12px] font-mono select-none px-2.5 py-1 rounded"
+                    style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)' }}
+                  >
                     {formatTime(timerSeconds)}
                   </span>
                 </div>
@@ -122,8 +126,10 @@ export default function LiveMeetingModal({
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/65 to-transparent z-0">
                         {/* We add a stylish pattern representation for applicant */}
                         <div className="absolute inset-0 flex items-center justify-center bg-teal-900/10">
-                          <div className="w-24 h-24 rounded-full bg-slate-700/50 flex items-center justify-center border-4 border-[#5CF2D0]/30 select-none">
-                            <span className="text-[32px] font-extrabold text-[#5CF2D0] tracking-tight">{applicantName.split(' ').map(n=>n[0]).join('')}</span>
+                        <div className="w-24 h-24 rounded-full bg-slate-700/50 flex items-center justify-center border-4 select-none"
+                          style={{ borderColor: 'var(--accent-muted)' }}
+                        >
+                          <span className="text-[32px] font-extrabold tracking-tight" style={{ color: 'var(--accent)' }}>{applicantName.split(' ').map(n=>n[0]).join('')}</span>
                           </div>
                         </div>
                       </div>
@@ -133,7 +139,7 @@ export default function LiveMeetingModal({
                     Applicant: {applicantName}
                   </span>
                   <div className="z-10 flex items-center gap-1.5 self-end">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#5CF2D0] animate-ping"></span>
+                    <span className="w-2.5 h-2.5 rounded-full animate-ping" style={{ backgroundColor: 'var(--accent)' }}></span>
                     <span className="text-[11px] font-mono text-slate-300">Live Audio Audio stream</span>
                   </div>
                 </div>
@@ -142,8 +148,10 @@ export default function LiveMeetingModal({
                 <div className="bg-slate-800 rounded-xl overflow-hidden border border-white/5 flex flex-col justify-between p-3 relative shadow-inner">
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/65 to-transparent z-0">
                     <div className="absolute inset-0 flex items-center justify-center bg-slate-900/20">
-                      <div className="w-20 h-20 rounded-full bg-[#0F171C] flex items-center justify-center border border-white/10 select-none animate-pulse-subtle">
-                        <Award className="w-10 h-10 text-[#5CF2D0]" />
+                      <div className="w-20 h-20 rounded-full flex items-center justify-center border border-white/10 select-none animate-pulse-subtle"
+                        style={{ backgroundColor: 'var(--card-dark-bg)' }}
+                      >
+                        <Award className="w-10 h-10" style={{ color: 'var(--accent)' }} />
                       </div>
                     </div>
                   </div>
@@ -151,7 +159,7 @@ export default function LiveMeetingModal({
                     You (Nexus Officer)
                   </span>
                   <div className="z-10 flex items-center gap-1.5 self-end text-[11px] font-mono text-slate-300">
-                    {isAudioMuted ? <MicOff className="w-3.5 h-3.5 text-red-500" /> : <Mic className="w-3.5 h-3.5 text-emerald-400" />}
+                    {isAudioMuted ? <MicOff className="w-3.5 h-3.5" style={{ color: 'var(--error)' }} /> : <Mic className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} />}
                     <span>Encrypted</span>
                   </div>
                 </div>
@@ -200,7 +208,7 @@ export default function LiveMeetingModal({
             <div className="w-full md:w-80 bg-slate-900 p-6 flex flex-col justify-between">
               <div>
                 <h3 className="text-[16px] font-bold text-white mb-1.5 flex items-center gap-1.5">
-                  <CheckSquare className="w-4.5 h-4.5 text-[#5CF2D0]" /> Verify Checkpoints
+                  <CheckSquare className="w-4.5 h-4.5" style={{ color: 'var(--accent)' }} /> Verify Checkpoints
                 </h3>
                 <p className="text-[11.5px] text-slate-400 mb-6 font-medium">Toggle these items during interview verification, all indicators must be met.</p>
 
@@ -210,7 +218,7 @@ export default function LiveMeetingModal({
                     className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-800/60 cursor-pointer select-none transition border border-transparent hover:border-white/5"
                   >
                     {checklist.idVerified ? (
-                      <CheckSquare className="w-5 h-5 text-[#5CF2D0] flex-shrink-0 mt-0.5" />
+                      <CheckSquare className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
                     ) : (
                       <Square className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
                     )}
@@ -225,7 +233,7 @@ export default function LiveMeetingModal({
                     className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-800/60 cursor-pointer select-none transition border border-transparent hover:border-white/5"
                   >
                     {checklist.companyDocs ? (
-                      <CheckSquare className="w-5 h-5 text-[#5CF2D0] flex-shrink-0 mt-0.5" />
+                      <CheckSquare className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
                     ) : (
                       <Square className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
                     )}
@@ -240,7 +248,7 @@ export default function LiveMeetingModal({
                     className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-800/60 cursor-pointer select-none transition border border-transparent hover:border-white/5"
                   >
                     {checklist.cashflowApproved ? (
-                      <CheckSquare className="w-5 h-5 text-[#5CF2D0] flex-shrink-0 mt-0.5" />
+                      <CheckSquare className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
                     ) : (
                       <Square className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
                     )}
@@ -255,7 +263,7 @@ export default function LiveMeetingModal({
                     className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-800/60 cursor-pointer select-none transition border border-transparent hover:border-white/5"
                   >
                     {checklist.agreementsSigned ? (
-                      <CheckSquare className="w-5 h-5 text-[#5CF2D0] flex-shrink-0 mt-0.5" />
+                      <CheckSquare className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
                     ) : (
                       <Square className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
                     )}
@@ -274,7 +282,7 @@ export default function LiveMeetingModal({
                   onClick={handleFinishVerification}
                   className={`w-full py-3.5 rounded-xl text-[13.5px] font-sans font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
                     allChecked
-                      ? 'bg-[#5CF2D0] text-[#0F171C] hover:bg-[#41ddbc] shadow-md shadow-[#5CF2D0]/10'
+                      ? 'premium-btn-primary shadow-md'
                       : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-white/5'
                   }`}
                 >

@@ -68,7 +68,7 @@ function StatusBadge({ status, valid }: { status: string; valid?: boolean }) {
   );
 }
 
-const inputClass = "w-full px-4 py-2.5 rounded-xl text-[13px] font-medium outline-none transition-all duration-200 border focus:ring-2";
+const inputClass = "premium-input w-full px-4 py-2.5 rounded-xl text-[13px] font-medium outline-none transition-all duration-200 border focus:ring-2";
 const inputStyle = (focus: boolean) => ({
   backgroundColor: s('surface-secondary'),
   borderColor: focus ? s('accent') : s('border-primary'),
@@ -86,9 +86,9 @@ function FormField({ label, children, icon }: { label: string; children: React.R
   );
 }
 
-function SectionCard({ title, icon, children, color }: { title: string; icon: React.ReactNode; children: React.ReactNode; color?: string }) {
+function SectionCard({ title, icon, children, color, className = '' }: { title: string; icon: React.ReactNode; children: React.ReactNode; color?: string; className?: string }) {
   return (
-    <div className="rounded-2xl border overflow-hidden" style={{ borderColor: s('border-primary'), backgroundColor: s('surface-card') }}>
+    <div className={`stagger-4 premium-card rounded-2xl overflow-hidden ${className}`} style={{ borderColor: s('border-primary') }}>
       <div className="flex items-center gap-2.5 px-5 py-3.5 border-b" style={{ borderColor: s('border-secondary'), backgroundColor: s('surface-secondary') }}>
         {icon}
         <span className="text-[13px] font-bold" style={{ color: s('text-primary') }}>{title}</span>
@@ -224,12 +224,12 @@ export default function KHQRPage() {
 
       {/* Tab Navigation */}
       <div className="flex gap-1 p-1 rounded-xl overflow-x-auto" style={{ backgroundColor: s('surface-tertiary') }}>
-        {tabs.map((tab) => {
+        {tabs.map((tab, idx) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
             <button key={tab.id} onClick={() => { setActiveTab(tab.id); setGenResult(null); setVerifyResult(null); setDecodeResult(null); setDeeplinkResult(null); setTxResult(null); }}
-              className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-[12px] font-semibold transition-all duration-200 whitespace-nowrap cursor-pointer"
+              className={`stagger-${idx + 1} flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-[12px] font-semibold transition-all duration-200 whitespace-nowrap cursor-pointer`}
               style={{
                 backgroundColor: isActive ? s('surface-card') : 'transparent',
                 color: isActive ? tab.color : s('text-tertiary'),
@@ -298,8 +298,8 @@ export default function KHQRPage() {
               </FormField>
             </SectionCard>
             <button onClick={handleGenerate} disabled={loading || !genForm.bakongAccountId || !genForm.merchantName}
-              className="w-full py-3 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer disabled:opacity-40 hover:brightness-95"
-              style={{ backgroundColor: tabColor, color: '#fff' }}>
+              className="w-full premium-btn-primary py-3 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer disabled:opacity-40"
+            >
               {loading ? <span className="flex items-center justify-center gap-2"><Spinner /> Generating...</span> : 'Generate KHQR'}
             </button>
           </div>
@@ -350,9 +350,9 @@ export default function KHQRPage() {
               onChange={(e) => setVerifyQr(e.target.value)} rows={6}
               className={`${inputClass} resize-none font-mono text-[11px]`} style={inputStyle(false)} />
             <button onClick={handleVerify} disabled={loading || !verifyQr}
-              className="w-full py-3 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer disabled:opacity-40 hover:brightness-95"
-              style={{ backgroundColor: tabColor, color: '#fff' }}>
-              {loading ? <span className="flex items-center justify-center gap-2"><Spinner /> Verifying...</span> : 'Verify CRC Checksum'}
+              className="w-full premium-btn-primary py-3 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer disabled:opacity-40"
+            >
+              {loading ? <span className="flex items-center justify-center gap-2"><Spinner /> Verifying...</span> : 'Verify KHQR'}
             </button>
           </SectionCard>
           {verifyResult && (
@@ -389,8 +389,8 @@ export default function KHQRPage() {
               onChange={(e) => setDecodeQr(e.target.value)} rows={6}
               className={`${inputClass} resize-none font-mono text-[11px]`} style={inputStyle(false)} />
             <button onClick={handleDecode} disabled={loading || !decodeQr}
-              className="w-full py-3 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer disabled:opacity-40 hover:brightness-95"
-              style={{ backgroundColor: tabColor, color: '#fff' }}>
+              className="w-full premium-btn-primary py-3 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer disabled:opacity-40"
+            >
               {loading ? <span className="flex items-center justify-center gap-2"><Spinner /> Decoding...</span> : 'Decode QR'}
             </button>
           </SectionCard>
@@ -437,8 +437,8 @@ export default function KHQRPage() {
               onChange={(e) => setDeeplinkQr(e.target.value)} rows={6}
               className={`${inputClass} resize-none font-mono text-[11px]`} style={inputStyle(false)} />
             <button onClick={handleDeeplink} disabled={loading || !deeplinkQr}
-              className="w-full py-3 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer disabled:opacity-40 hover:brightness-95"
-              style={{ backgroundColor: tabColor, color: '#fff' }}>
+              className="w-full premium-btn-primary py-3 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer disabled:opacity-40"
+            >
               {loading ? <span className="flex items-center justify-center gap-2"><Spinner /> Generating...</span> : 'Generate Deeplink'}
             </button>
           </SectionCard>
@@ -472,8 +472,8 @@ export default function KHQRPage() {
                 className={inputClass} style={inputStyle(false)} />
             </FormField>
             <button onClick={handleCheckTx} disabled={loading || !txRefId}
-              className="w-full py-3 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer disabled:opacity-40 hover:brightness-95"
-              style={{ backgroundColor: tabColor, color: '#fff' }}>
+              className="w-full premium-btn-primary py-3 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer disabled:opacity-40"
+            >
               {loading ? <span className="flex items-center justify-center gap-2"><Spinner /> Checking...</span> : 'Check Status'}
             </button>
             <div className="flex items-start gap-2 p-3 rounded-xl" style={{ backgroundColor: 'rgba(245,158,11,0.08)' }}>

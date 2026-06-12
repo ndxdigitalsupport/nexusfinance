@@ -94,15 +94,15 @@ export default function LoanOfficerDashboard({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
             {/* Stat Card 1: Slate Obsidian */}
-            <div className="stagger-1 bg-[#0F171C] rounded-2xl p-6 flex flex-col justify-between shadow-md relative overflow-hidden group">
+            <div className="stagger-1 premium-card-dark rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-bl-full transition-transform duration-300 group-hover:scale-110"></div>
               <div className="flex items-center gap-2 mb-4">
-                <UserCheck2 className="text-[#bfc8ce] w-5 h-5" />
-                <span className="font-bold text-[13px] text-[#bfc8ce] uppercase tracking-widest font-sans">Assigned to database</span>
+                <UserCheck2 className="w-5 h-5" style={{ color: 'var(--card-dark-text)' }} />
+                <span className="font-bold text-[13px] uppercase tracking-widest font-sans" style={{ color: 'var(--card-dark-text)' }}>Assigned to database</span>
               </div>
               <div className="flex items-baseline gap-3">
-                <span className="text-[64px] font-extrabold text-white leading-none tracking-tighter select-none">{assignedCount}</span>
-                <span className="text-[13px] text-[#5CF2D0] font-bold">+2 this week</span>
+                <span className="text-[64px] font-extrabold leading-none tracking-tighter select-none" style={{ color: 'var(--card-dark-text-bright)' }}>{assignedCount}</span>
+                <span className="text-[13px] font-bold" style={{ color: 'var(--accent)' }}>+2 this week</span>
               </div>
             </div>
 
@@ -130,8 +130,8 @@ export default function LoanOfficerDashboard({
               onClick={() => { setActiveTab('all'); setCurrentPage(1); }}
               className={`px-6 py-2.5 text-[13px] font-bold rounded-full transition cursor-pointer ${
                 activeTab === 'all'
-                  ? 'bg-[#0F171C] text-white shadow-sm'
-                  : 'bg-white text-[var(--text-secondary)] border border-[var(--border-primary)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]'
+                  ? 'bg-[var(--card-dark-bg)] text-white shadow-sm'
+                  : 'text-[var(--text-secondary)] border border-[var(--border-primary)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]'
               }`}
             >
               All Applications ({applications.length})
@@ -141,8 +141,8 @@ export default function LoanOfficerDashboard({
               onClick={() => { setActiveTab('urgent'); setCurrentPage(1); }}
               className={`px-6 py-2.5 text-[13px] font-bold rounded-full transition cursor-pointer ${
                 activeTab === 'urgent'
-                  ? 'bg-[#0F171C] text-white shadow-sm'
-                  : 'bg-white text-[var(--text-secondary)] border border-[var(--border-primary)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]'
+                  ? 'bg-[var(--card-dark-bg)] text-white shadow-sm'
+                  : 'text-[var(--text-secondary)] border border-[var(--border-primary)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]'
               }`}
             >
               Urgent ({applications.filter(a => a.urgency === 'Urgent').length})
@@ -152,8 +152,8 @@ export default function LoanOfficerDashboard({
               onClick={() => { setActiveTab('assigned'); setCurrentPage(1); }}
               className={`px-6 py-2.5 text-[13px] font-bold rounded-full transition cursor-pointer ${
                 activeTab === 'assigned'
-                  ? 'bg-[#0F171C] text-white shadow-sm'
-                  : 'bg-white text-[var(--text-secondary)] border border-[var(--border-primary)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]'
+                  ? 'bg-[var(--card-dark-bg)] text-white shadow-sm'
+                  : 'text-[var(--text-secondary)] border border-[var(--border-primary)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]'
               }`}
             >
               Assigned to me ({applications.filter(a => a.assignedToMe).length})
@@ -170,7 +170,7 @@ export default function LoanOfficerDashboard({
             </div>
 
             {/* List collection */}
-            <div className="divide-y divide-[#c4c7ca]/70 select-none">
+            <div className="divide-y divide-[var(--border-primary)]/70 select-none">
               {paginatedApps.length > 0 ? (
                 paginatedApps.map((app) => {
                   const isUrgent = app.urgency === 'Urgent' && (app.status === 'New' || app.status === 'Review');
@@ -184,29 +184,38 @@ export default function LoanOfficerDashboard({
                     >
                       {/* Name / Sub-references */}
                       <div className="sm:col-span-8 flex items-center gap-4 sm:gap-5">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-[16px] font-extrabold shadow-xs shrink-0 select-none transition-transform duration-200 group-hover:scale-105 ${
-                          app.initials === 'SV' ? 'bg-[#dbe4eb] text-slate-700' : app.initials === 'NK' ? 'bg-slate-200 text-[var(--text-primary)]' : 'bg-[#62f7d5]/35 text-[#005142]'
-                        }`}>
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-[16px] font-extrabold shadow-xs shrink-0 select-none transition-transform duration-200 group-hover:scale-105`}
+                          style={{
+                            backgroundColor: app.initials === 'SV' ? 'var(--surface-tertiary)' : app.initials === 'NK' ? 'var(--surface-secondary)' : 'var(--accent-muted)',
+                            color: app.initials === 'SV' ? 'var(--text-primary)' : app.initials === 'NK' ? 'var(--text-primary)' : 'var(--accent)',
+                          }}
+                        >
                           {app.initials}
                         </div>
                         
                         <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4">
                           <div>
-                            <div className="text-[17px] text-[var(--text-primary)] font-extrabold group-hover:text-emerald-800 transition-colors">{app.applicantName}</div>
+                            <div className="text-[17px] text-[var(--text-primary)] font-extrabold transition-colors">{app.applicantName}</div>
                             <div className="text-[13.5px] text-[var(--text-secondary)] font-medium mt-0.5">App ID: {app.id}</div>
                           </div>
                           {isUrgent && (
-                            <span className="inline-flex px-2 py-0.5 bg-red-100 text-red-600 text-[10px] uppercase tracking-wider font-extrabold rounded border border-red-200 h-fit w-fit select-none shrink-0 leading-none">
+                            <span className="premium-badge px-2 py-0.5 h-fit w-fit select-none shrink-0 leading-none"
+                              style={{ backgroundColor: 'var(--error-bg)', color: 'var(--error-text)', border: '1px solid var(--error-bg)' }}
+                            >
                               Urgent
                             </span>
                           )}
                           {app.status === 'Approved' && (
-                            <span className="inline-flex px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] uppercase tracking-wider font-extrabold rounded border border-emerald-200 h-fit w-fit select-none shrink-0 leading-none">
+                            <span className="premium-badge px-2 py-0.5 h-fit w-fit select-none shrink-0 leading-none"
+                              style={{ backgroundColor: 'var(--success-bg)', color: 'var(--success-text)', border: '1px solid var(--success-bg)' }}
+                            >
                               Approved
                             </span>
                           )}
                           {app.status === 'Rejected' && (
-                            <span className="inline-flex px-2 py-0.5 bg-red-100 text-red-700 text-[10px] uppercase tracking-wider font-extrabold rounded border border-red-200 h-fit w-fit select-none shrink-0 leading-none">
+                            <span className="premium-badge px-2 py-0.5 h-fit w-fit select-none shrink-0 leading-none"
+                              style={{ backgroundColor: 'var(--error-bg)', color: 'var(--error-text)', border: '1px solid var(--error-bg)' }}
+                            >
                               Rejected
                             </span>
                           )}
@@ -224,7 +233,7 @@ export default function LoanOfficerDashboard({
                   );
                 })
               ) : (
-                <div className="p-12 text-center text-[var(--text-secondary)] font-medium bg-slate-50/50">
+                <div className="p-12 text-center text-[var(--text-secondary)] font-medium">
                   No matching files registered under selection categories.
                 </div>
               )}
@@ -304,7 +313,7 @@ export default function LoanOfficerDashboard({
           {/* Next Task Call Panel CARD */}
           {nextVideoTask && (
             <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 shadow-xs relative overflow-hidden group">
-              <div className="absolute top-0 left-0 w-1 flex h-full bg-[#0F171C]"></div>
+              <div className="absolute top-0 left-0 w-1 h-full rounded-r" style={{ backgroundColor: 'var(--accent)' }}></div>
               
               <div className="relative z-10 space-y-4">
                 <div className="flex justify-between items-start">
@@ -312,15 +321,19 @@ export default function LoanOfficerDashboard({
                     <h3 className="text-[20px] font-extrabold text-[var(--text-primary)] tracking-tight">Next Task</h3>
                     <p className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mt-0.5">Scheduled: {nextVideoTask.time}</p>
                   </div>
-                  <div className="p-2 bg-[#62f7d5]/30 text-[#005142] rounded-full animate-bounce">
+                  <div className="p-2 rounded-full animate-bounce"
+                    style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)' }}
+                  >
                     <BellRing className="w-5 h-5" />
                   </div>
                 </div>
 
                 <div className="bg-[var(--surface-secondary)] border border-[var(--border-primary)]/75 rounded-xl p-4.5 hover:border-[var(--text-primary)] transition-colors duration-150">
                   <div className="flex items-center gap-3.5 mb-3">
-                    <div className="w-9 h-9 rounded-lg bg-[#0F171C] flex items-center justify-center text-white shadow-xs">
-                      <Video className="w-4.5 h-4.5 text-[#5CF2D0]" />
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white shadow-xs"
+                      style={{ backgroundColor: 'var(--card-dark-bg)' }}
+                    >
+                      <Video className="w-4.5 h-4.5" style={{ color: 'var(--accent)' }} />
                     </div>
                     <h4 className="text-[16px] font-extrabold text-[var(--text-primary)] leading-none">{nextVideoTask.title}</h4>
                   </div>
@@ -332,9 +345,9 @@ export default function LoanOfficerDashboard({
 
                   <button
                     onClick={() => onJoinMeeting(nextVideoTask)}
-                    className="w-full bg-[#0F171C] hover:bg-slate-800 text-white font-bold text-[14.5px] py-3.5 rounded-lg transition shadow-sm hover:shadow-md flex justify-center items-center gap-2 group cursor-pointer"
+                    className="w-full premium-btn-primary text-white py-3.5 rounded-lg flex justify-center items-center gap-2 group cursor-pointer"
                   >
-                    <Video className="w-4.5 h-4.5 text-[#5CF2D0] group-hover:scale-105" />
+                    <Video className="w-4.5 h-4.5 group-hover:scale-105" style={{ color: 'var(--accent)' }} />
                     JOIN MEETING
                   </button>
                 </div>

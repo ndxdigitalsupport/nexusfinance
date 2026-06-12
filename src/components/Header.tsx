@@ -79,7 +79,7 @@ export default function Header({
   const roleLabel = userRole === 'super-admin' ? 'Super Admin' : userRole === 'loan-officer' ? 'Loan Officer' : 'Customer';
 
   return (
-    <header className="flex justify-between items-center px-4 md:px-10 h-16 w-full sticky top-0 z-30 bg-[var(--surface-card)] border-b border-[var(--border-primary)]">
+    <header className="flex justify-between items-center px-4 md:px-10 h-16 w-full sticky top-0 z-30 bg-[var(--surface-card)]/80 backdrop-blur-xl border-b border-[var(--border-primary)]">
       {/* Mobile Menu Trigger & Logo */}
       <div className="flex items-center gap-3 md:hidden">
         <button 
@@ -121,7 +121,7 @@ export default function Header({
           </div>
         )}
         <div className="flex items-center gap-2 text-[12px] font-semibold">
-          <span className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-500' : 'bg-red-400'}`} />
+          <span className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-500 animate-glow-pulse' : 'bg-red-400'}`} />
           <span className="text-[var(--text-tertiary)]">{connected ? 'Connected' : 'Disconnected'}</span>
         </div>
       </div>
@@ -148,7 +148,7 @@ export default function Header({
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] text-[10px] font-bold bg-red-600 text-white rounded-full flex items-center justify-center px-1 border-2 border-[var(--surface-card)]">
+              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] text-[10px] font-bold bg-red-600 text-white rounded-full flex items-center justify-center px-1 border-2 border-[var(--surface-card)] animate-check-bounce">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
@@ -196,7 +196,9 @@ export default function Header({
               <p className="text-[13px] font-bold text-[var(--text-primary)] leading-tight">{userName || 'User'}</p>
               <p className="text-[11px] font-semibold text-[var(--text-tertiary)] leading-tight">{roleLabel}</p>
             </div>
-            <div className="w-9 h-9 rounded-full bg-[#bfc8ce] overflow-hidden border-2 border-[var(--border-primary)] hover:border-[var(--accent)] transition-colors flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-[var(--border-primary)] hover:border-[var(--accent)] transition-colors flex items-center justify-center"
+              style={{ backgroundColor: 'var(--avatar-bg)', color: 'var(--avatar-text)' }}
+            >
               <User className="w-5 h-5 text-[var(--text-secondary)]" />
             </div>
           </button>

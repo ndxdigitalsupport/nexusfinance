@@ -15,21 +15,21 @@ export default function PortalSelection({ onSelectPortal, userRole }: PortalSele
       title: 'CUSTOMER',
       description: 'Access your loans, wallet & history',
       icon: User,
-      color: 'text-[#5CF2D0] bg-[#5CF2D0]/10',
+      colorVar: 'var(--accent)',
     },
     {
       id: 'loan-officer' as PortalType,
       title: 'LOAN OFFICER',
       description: 'Review applications & manage clients',
       icon: ShieldCheck,
-      color: 'text-blue-500 bg-blue-500/10',
+      colorVar: 'var(--info)',
     },
     {
       id: 'super-admin' as PortalType,
       title: 'SUPER ADMIN',
       description: 'Global configurations & reports',
       icon: Landmark,
-      color: 'text-purple-500 bg-purple-500/10',
+      colorVar: 'var(--warning)',
     },
   ];
 
@@ -47,10 +47,12 @@ export default function PortalSelection({ onSelectPortal, userRole }: PortalSele
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 relative z-10 font-sans">
-      <div className="w-full max-w-lg mx-auto bg-[var(--surface-card)] rounded-2xl shadow-xl shadow-[#0F171C]/5 border border-[var(--border-primary)] p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
+      <div className="w-full max-w-lg mx-auto rounded-2xl shadow-xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200"
+        style={{ backgroundColor: 'var(--surface-card)', border: '1px solid var(--border-primary)' }}
+      >
         
         {/* Logo & Header */}
-        <div className="text-center mb-5">
+        <div className="text-center mb-5 stagger-1">
           <div className="mb-3 select-none transition-transform hover:scale-105 duration-200">
             <Logo size={90} showText={true} showTagline={true} variant="gradient" />
           </div>
@@ -60,24 +62,26 @@ export default function PortalSelection({ onSelectPortal, userRole }: PortalSele
 
         {/* Portal Cards Group */}
         <div className="space-y-3 mb-6">
-          {options.map((option) => {
+          {options.map((option, idx) => {
             const Icon = option.icon;
             const isSelected = selected === option.id;
             return (
               <div
                 key={option.id}
                 onClick={() => setSelected(option.id)}
-                className={`group flex items-center gap-3 p-3 border-2 rounded-xl transition-all duration-200 cursor-pointer select-none ${
+                className={`stagger-${idx + 2} group flex items-center gap-3 p-3 border-2 rounded-xl transition-all duration-200 cursor-pointer select-none ${
                   isSelected
-                    ? 'border-[#5CF2D0] bg-[var(--surface-secondary)] shadow-md shadow-[#5CF2D0]/10'
-                    : 'border-[var(--border-primary)] bg-[var(--surface-card)] hover:border-[var(--text-tertiary)] hover:shadow-sm'
+                    ? 'border-[var(--accent)] shadow-md'
+                    : 'hover:border-[var(--text-tertiary)] hover:shadow-sm'
                 }`}
+                style={{
+                  borderColor: isSelected ? option.colorVar : undefined,
+                  backgroundColor: isSelected ? 'var(--surface-secondary)' : 'var(--surface-card)',
+                }}
               >
                 {/* Visual Icon Box */}
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
-                  isSelected ? 'bg-[#5CF2D0]/20 text-[#0F171C]' : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)]'
-                }`}>
-                  <Icon className="w-5 h-5" />
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all`}>
+                  <Icon className="w-5 h-5" style={{ color: isSelected ? option.colorVar : 'var(--text-secondary)' }} />
                 </div>
                 
                 {/* Metadatas */}
@@ -89,9 +93,11 @@ export default function PortalSelection({ onSelectPortal, userRole }: PortalSele
                 {/* Status indicator */}
                 <div className="flex items-center justify-center">
                   {isSelected ? (
-                    <CheckCircle2 className="w-5 h-5 text-[#0F171C] fill-[#5CF2D0]" />
+                    <CheckCircle2 className="w-5 h-5" style={{ color: option.colorVar }} />
                   ) : (
-                    <div className="w-4 h-4 rounded-full border-2 border-[var(--border-primary)] group-hover:border-[var(--text-tertiary)] transition-colors" />
+                    <div className="w-4 h-4 rounded-full border-2 group-hover:border-[var(--text-tertiary)] transition-colors"
+                      style={{ borderColor: 'var(--border-primary)' }}
+                    />
                   )}
                 </div>
               </div>
@@ -102,20 +108,20 @@ export default function PortalSelection({ onSelectPortal, userRole }: PortalSele
         {/* Action Button */}
         <button
           onClick={handleContinue}
-          className="w-full text-[14px] font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer select-none text-[#0F171C] bg-gradient-to-r from-[#5CF2D0] to-[#41ddbc] hover:brightness-105 shadow-md shadow-[#5CF2D0]/20 hover:shadow-lg hover:shadow-[#5CF2D0]/30 active:scale-95"
+          className="stagger-5 w-full premium-btn-primary text-[14px] font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer select-none active:scale-95"
         >
           Continue
           <ArrowRight className="w-5 h-5 stroke-[2.5]" />
         </button>
 
         {/* Legal Disclaimer */}
-        <p className="text-center text-[11px] text-[var(--text-secondary)] font-medium leading-relaxed mt-4">
+        <p className="stagger-6 text-center text-[11px] text-[var(--text-secondary)] font-medium leading-relaxed mt-4">
           By continuing, you agree to our{' '}
-          <a href="#" className="font-semibold text-[#0F171C] hover:underline" onClick={(e) => e.preventDefault()}>
+          <a href="#" className="font-semibold hover:underline" style={{ color: 'var(--accent)' }} onClick={(e) => e.preventDefault()}>
             Terms of Service
           </a>{' '}
           and{' '}
-          <a href="#" className="font-semibold text-[#0F171C] hover:underline" onClick={(e) => e.preventDefault()}>
+          <a href="#" className="font-semibold hover:underline" style={{ color: 'var(--accent)' }} onClick={(e) => e.preventDefault()}>
             Privacy Policy
           </a>
           .

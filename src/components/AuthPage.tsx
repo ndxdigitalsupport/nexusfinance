@@ -55,6 +55,21 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [loginLoading, setLoginLoading] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
 
+  // Password strength
+  const getPasswordStrength = (pw: string): { score: number; label: string; color: string } => {
+    let score = 0;
+    if (pw.length >= 6) score++;
+    if (pw.length >= 10) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    if (score <= 1) return { score: 1, label: 'Weak', color: '#EF4444' };
+    if (score <= 2) return { score: 2, label: 'Fair', color: '#F59E0B' };
+    if (score <= 3) return { score: 3, label: 'Good', color: '#3B82F6' };
+    return { score: 4, label: 'Strong', color: '#10B981' };
+  };
+  const passwordStrength = registerPassword ? getPasswordStrength(registerPassword) : null;
+
   // Login handler — uses Appwrite Auth
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,7 +163,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
             
             {/* Form Left Row (Column 5) */}
             <div className="lg:col-span-5 flex justify-center lg:justify-start">
-              <div className="bg-[var(--surface-card)]/80 backdrop-blur-md rounded-3xl p-8 sm:p-10 w-full max-w-md shadow-2xl shadow-teal-900/5 border border-[var(--border-primary)]/60 animate-in fade-in slide-in-from-left duration-500">
+              <div className="bg-[var(--surface-card)]/80 backdrop-blur-xl rounded-3xl p-8 sm:p-10 w-full max-w-md shadow-2xl shadow-teal-900/5 border border-[var(--border-primary)]/60 animate-in fade-in slide-in-from-left duration-500">
                 
                 {/* Title block */}
                 <div className="text-center mb-8">
@@ -316,7 +331,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                 {/* Floating Isometric 3D Boards & Grids */}
                 {/* 3D Glass Dashboard in foreground left */}
-                <g class="animate-bounce" style={{ animationDuration: '6s' }}>
+                <g className="animate-bounce" style={{ animationDuration: '6s' }}>
                   <polygon points="120,400 280,320 320,380 160,460" fill="white" fillOpacity="0.7" stroke="white" strokeWidth="2" />
                   <polygon points="135,410 215,370 235,400 155,440" fill="url(#chart-grad-green)" opacity="0.8" />
                   <circle cx="260" cy="360" r="12" fill="#00bfa5" />
@@ -431,7 +446,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
             </h2>
 
             {/* Custom Create account white frame card */}
-            <div className="bg-[var(--surface-card)]/80 backdrop-blur-md rounded-[32px] shadow-xl shadow-teal-900/5 border border-[var(--border-primary)]/60 p-8 sm:p-10 w-full max-w-lg animate-in fade-in zoom-in-95 duration-300">
+            <div className="bg-[var(--surface-card)]/80 backdrop-blur-xl rounded-[32px] shadow-xl shadow-teal-900/5 border border-[var(--border-primary)]/60 p-8 sm:p-10 w-full max-w-lg animate-in fade-in zoom-in-95 duration-300">
               <form onSubmit={handleRegisterSubmit} className="space-y-6">
                 
                 {/* Field: Full Name */}
@@ -492,6 +507,24 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       required
                     />
                   </div>
+
+                  {/* Password Strength Indicator */}
+                  {passwordStrength && (
+                    <div className="mt-2 space-y-1">
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4].map(i => (
+                          <div key={i} className="h-1 flex-1 rounded-full transition-all duration-300"
+                            style={{
+                              backgroundColor: i <= passwordStrength.score ? passwordStrength.color : 'var(--border-primary)',
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-[11px] font-bold" style={{ color: passwordStrength.color }}>
+                        {passwordStrength.label}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Field: Confirm Password */}
                   <div className="space-y-1.5">
@@ -567,7 +600,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           {/* Footer of Create Account page */}
           <footer className="relative z-10 px-6 py-6 sm:px-12 border-t border-[var(--border-primary)]/50 bg-[var(--surface-card)]/40 flex flex-col md:flex-row justify-between items-center gap-4 text-[12px] font-semibold tracking-wide text-[var(--text-secondary)]">
             <div>
-              <p>© 2026 NEXUS FINANCE. PRECISE INTELLIGENCE.</p>
+              <p>© 2026 Nexus Finance. All rights reserved.</p>
             </div>
             <div className="flex gap-6">
               <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Privacy Policy</a>
@@ -582,7 +615,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       {view === 'check-email' && (
         <div className="min-h-screen flex flex-col justify-between w-full h-full">
           <div className="flex-grow flex flex-col justify-center items-center px-4 py-8">
-            <div className="bg-[var(--surface-card)]/90 backdrop-blur-md rounded-[32px] border border-[var(--border-primary)]/80 p-8 sm:p-12 w-full max-w-lg shadow-xl shadow-teal-900/5 flex flex-col items-center animate-in zoom-in-95 duration-200">
+            <div className="bg-[var(--surface-card)]/90 backdrop-blur-xl rounded-[32px] border border-[var(--border-primary)]/80 p-8 sm:p-12 w-full max-w-lg shadow-xl shadow-teal-900/5 flex flex-col items-center animate-in zoom-in-95 duration-200">
               <div className="relative w-16 h-16 bg-[var(--surface-secondary)] rounded-full flex items-center justify-center text-[var(--text-secondary)] border border-[var(--border-primary)]/10 mb-6">
                 <Mail className="w-7 h-7" />
                 <div className="absolute top-1 right-1 w-4 h-4 bg-[var(--accent)] rounded-full flex items-center justify-center">
@@ -610,7 +643,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
             </div>
           </div>
           <footer className="relative z-10 px-6 py-6 sm:px-12 bg-transparent flex justify-center text-[11.5px] font-semibold text-[var(--text-secondary)]/60">
-            <p>© 2026 NEXUS FINANCE. ALL INTEGRITY SERVED.</p>
+            <p>© 2026 Nexus Finance. All rights reserved.</p>
           </footer>
         </div>
       )}
@@ -618,7 +651,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       {view === 'forgot' && (
         <div className="min-h-screen flex flex-col justify-between w-full h-full">
           <div className="flex-grow flex flex-col justify-center items-center px-4 py-8">
-            <div className="bg-[var(--surface-card)]/90 backdrop-blur-md rounded-[32px] border border-[var(--border-primary)]/80 p-8 sm:p-12 w-full max-w-lg shadow-xl shadow-teal-900/5 flex flex-col items-center animate-in zoom-in-95 duration-200">
+            <div className="bg-[var(--surface-card)]/90 backdrop-blur-xl rounded-[32px] border border-[var(--border-primary)]/80 p-8 sm:p-12 w-full max-w-lg shadow-xl shadow-teal-900/5 flex flex-col items-center animate-in zoom-in-95 duration-200">
 
               <div className="relative w-16 h-16 bg-[var(--surface-secondary)] rounded-full flex items-center justify-center text-[var(--text-secondary)] border border-[var(--border-primary)]/10 mb-6">
                 <Lock className="w-7 h-7" />
@@ -678,7 +711,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
             </div>
           </div>
           <footer className="relative z-10 px-6 py-6 sm:px-12 bg-transparent flex justify-center text-[11.5px] font-semibold text-[var(--text-secondary)]/60">
-            <p>© 2026 NEXUS FINANCE. ALL INTEGRITY SERVED.</p>
+            <p>© 2026 Nexus Finance. All rights reserved.</p>
           </footer>
         </div>
       )}

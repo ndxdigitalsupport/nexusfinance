@@ -25,10 +25,10 @@ export default function ApplicationDetailsModal({
 
   // Credit rating score badge style solver
   const getCreditScoreStyling = (score: number) => {
-    if (score >= 720) return { text: 'Excellent', color: 'text-emerald-700 bg-emerald-50 border-emerald-200', scoreBg: 'bg-emerald-500' };
-    if (score >= 680) return { text: 'Good', color: 'text-teal-700 bg-teal-50 border-teal-200', scoreBg: 'bg-teal-500' };
-    if (score >= 620) return { text: 'Fair', color: 'text-amber-700 bg-amber-50 border-amber-200', scoreBg: 'bg-amber-500' };
-    return { text: 'Substandard', color: 'text-red-700 bg-red-50 border-red-200', scoreBg: 'bg-red-500' };
+    if (score >= 720) return { text: 'Excellent', color: 'var(--success-text)', bg: 'var(--success-bg)', scoreBg: 'var(--success)' };
+    if (score >= 680) return { text: 'Good', color: 'var(--accent)', bg: 'var(--accent-muted)', scoreBg: 'var(--accent)' };
+    if (score >= 620) return { text: 'Fair', color: 'var(--warning-text)', bg: 'var(--warning-bg)', scoreBg: 'var(--warning)' };
+    return { text: 'Substandard', color: 'var(--error-text)', bg: 'var(--error-bg)', scoreBg: 'var(--error)' };
   };
 
   const scoreInfo = getCreditScoreStyling(application.creditScore);
@@ -54,11 +54,13 @@ export default function ApplicationDetailsModal({
         {/* Header toolbar */}
         <div className="bg-[var(--sidebar-bg)] text-white px-6 py-5 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className={`text-[12px] font-sans font-bold px-3 py-1 uppercase tracking-wider rounded-md border ${
-              application.urgency === 'Urgent'
-                ? 'bg-red-500/20 text-red-300 border-red-500/30'
-                : 'bg-blue-500/20 text-blue-300 border-blue-500/30'
-            }`}>
+            <div className="premium-badge text-[12px] font-sans font-bold px-3 py-1 uppercase tracking-wider rounded-md border"
+              style={{
+                backgroundColor: application.urgency === 'Urgent' ? 'var(--error-bg)' : 'var(--info-bg)',
+                color: application.urgency === 'Urgent' ? 'var(--error-text)' : 'var(--info-text)',
+                borderColor: application.urgency === 'Urgent' ? 'var(--error-bg)' : 'var(--info-bg)',
+              }}
+            >
               {application.urgency}
             </div>
             <h3 className="text-[18px] font-sans font-bold leading-tight">Details for {application.id}</h3>
@@ -81,9 +83,13 @@ export default function ApplicationDetailsModal({
               { label: 'Category', value: application.type, icon: '📋' },
               { label: 'Current status', value: application.status, icon: '●', color: 'var(--warning-text)' },
             ].map((s, i) => (
-              <div key={s.label} className={`stagger-${i + 1} bg-[var(--surface-secondary)] rounded-xl p-3 border border-[var(--border-primary)]`}>
-                <span className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">{s.label}</span>
-                <span className="text-[18px] font-sans font-bold text-[var(--text-primary)] block" style={s.color ? { color: s.color } : undefined}>
+              <div key={s.label} className={`stagger-${i + 1} premium-card-dark rounded-xl p-3`}>
+                <span className="text-[11px] font-bold uppercase tracking-wider block"
+                  style={{ color: 'var(--card-dark-text)' }}
+                >{s.label}</span>
+                <span className="text-[18px] font-sans font-bold block"
+                  style={{ color: s.color ? s.color : 'var(--card-dark-text-bright)' }}
+                >
                   {s.value}
                 </span>
               </div>
@@ -111,7 +117,7 @@ export default function ApplicationDetailsModal({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[var(--text-secondary)] font-medium">Monthly Income:</span>
-                  <span className="font-bold text-emerald-700 font-mono">${application.monthlyIncome.toLocaleString()} / mo</span>
+                  <span className="font-bold font-mono" style={{ color: 'var(--accent)' }}>${application.monthlyIncome.toLocaleString()} / mo</span>
                 </div>
               </div>
             </div>
@@ -125,7 +131,9 @@ export default function ApplicationDetailsModal({
                 {/* Credit Score */}
                 <div className="flex justify-between items-center">
                   <span className="text-[var(--text-secondary)] font-medium">Credit Score limit:</span>
-                  <div className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${scoreInfo.color}`}>
+                  <div className="premium-badge px-2.5 py-0.5 rounded-full text-[11px] font-bold border"
+                    style={{ backgroundColor: scoreInfo.bg, color: scoreInfo.color, borderColor: scoreInfo.bg }}
+                  >
                     {application.creditScore} - {scoreInfo.text}
                   </div>
                 </div>
@@ -133,15 +141,15 @@ export default function ApplicationDetailsModal({
                 {/* Visual score range */}
                 <div className="w-full h-2.5 bg-[var(--surface-secondary)] rounded-full overflow-hidden relative border border-[var(--border-primary)]">
                   <div 
-                    className={`h-full ${scoreInfo.scoreBg} transition-all duration-500`}
-                    style={{ width: `${Math.max(10, Math.min(100, ((application.creditScore - 300) / 550) * 100))}%` }}
+                    className="h-full transition-all duration-500 rounded-full"
+                    style={{ width: `${Math.max(10, Math.min(100, ((application.creditScore - 300) / 550) * 100))}%`, backgroundColor: scoreInfo.scoreBg }}
                   ></div>
                 </div>
 
                 {/* DTI */}
                 <div className="flex justify-between items-center pt-2">
                   <span className="text-[var(--text-secondary)] font-medium">Debt-to-Income (DTI):</span>
-                  <span className={`font-bold ${parseFloat(dtiRatio) > 35 ? 'text-red-600' : 'text-emerald-700'}`}>
+                  <span className="font-bold" style={{ color: parseFloat(dtiRatio) > 35 ? 'var(--error-text)' : 'var(--success-text)' }}>
                     {dtiRatio}% ({dtiRisk})
                   </span>
                 </div>
@@ -173,7 +181,7 @@ export default function ApplicationDetailsModal({
               <button
                 disabled={submittingAction !== null}
                 onClick={() => handleActionClick('hold')}
-                className="px-4 py-2 bg-[var(--surface-card)] border border-[var(--border-primary)] text-[13px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-tertiary)] rounded-lg transition disabled:opacity-50 cursor-pointer"
+                className="px-4 py-2 premium-card border border-[var(--border-primary)] text-[13px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-tertiary)] rounded-lg transition disabled:opacity-50 cursor-pointer"
               >
                 {submittingAction === 'hold' ? 'Suspending...' : 'Put on Hold'}
               </button>
@@ -181,7 +189,8 @@ export default function ApplicationDetailsModal({
               <button
                 disabled={submittingAction !== null}
                 onClick={() => handleActionClick('reject')}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-[13px] font-bold rounded-lg transition disabled:opacity-50 cursor-pointer"
+                className="px-4 py-2 text-white text-[13px] font-bold rounded-lg transition disabled:opacity-50 cursor-pointer"
+                style={{ backgroundColor: 'var(--error)', color: '#fff' }}
               >
                 {submittingAction === 'reject' ? 'Denying...' : 'Reject Loan'}
               </button>
@@ -189,7 +198,7 @@ export default function ApplicationDetailsModal({
               <button
                 disabled={submittingAction !== null}
                 onClick={() => handleActionClick('approve')}
-                className="px-5 py-2 bg-[var(--accent)] hover:brightness-95 text-[var(--text-inverse)] text-[13px] font-bold rounded-lg transition disabled:opacity-50 flex items-center gap-1 cursor-pointer"
+                className="px-5 py-2 premium-btn-primary text-[13px] font-bold rounded-lg transition disabled:opacity-50 flex items-center gap-1 cursor-pointer"
               >
                 {submittingAction === 'approve' ? (
                   'Confirming...'

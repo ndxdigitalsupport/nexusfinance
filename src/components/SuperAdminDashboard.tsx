@@ -41,10 +41,10 @@ export default function SuperAdminDashboard({
   };
 
   const currentStatsItems = [
-    { label: 'Total Volume under Management', value: `$${stats.totalVolume.toLocaleString()}`, change: '+14% mom', icon: Database, gradient: 'from-[#0e1720] to-[#1a2a37]' },
-    { label: 'Active Enrolled Customers', value: stats.activeCustomers.toString(), change: '+8 this week', icon: Users, gradient: 'from-[#1a3a4a] to-[#0f2a38]' },
-    { label: 'Outstanding Portfolio', value: `$${stats.outstandingBalanceValue.toLocaleString()}`, change: '-5% repayments', icon: FileCheck2, gradient: 'from-[#0f171c] to-[#1a2a30]' },
-    { label: 'Gross Yields (APR)', value: `$${stats.interestEarned.toLocaleString()}`, change: '+18% yoy', icon: TrendingUp, gradient: 'from-[#0a2028] to-[#153038]' },
+    { label: 'Total Volume under Management', value: `$${stats.totalVolume.toLocaleString()}`, change: '+14% mom', icon: Database },
+    { label: 'Active Enrolled Customers', value: stats.activeCustomers.toString(), change: '+8 this week', icon: Users },
+    { label: 'Outstanding Portfolio', value: `$${stats.outstandingBalanceValue.toLocaleString()}`, change: '-5% repayments', icon: FileCheck2 },
+    { label: 'Gross Yields (APR)', value: `$${stats.interestEarned.toLocaleString()}`, change: '+18% yoy', icon: TrendingUp },
   ];
 
   return (
@@ -61,17 +61,25 @@ export default function SuperAdminDashboard({
         {currentStatsItems.map((st, i) => {
           const Icon = st.icon;
           return (
-            <div key={i} className={`stagger-${i + 1} bg-gradient-to-br ${st.gradient} rounded-2xl p-5 shadow-md flex flex-col justify-between relative overflow-hidden group`}>
-              <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-bl-full transition-transform duration-300 group-hover:scale-110" />
+            <div key={i} className={`stagger-${i + 1} premium-card-dark rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden group`}>
+              <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-full transition-transform duration-300 group-hover:scale-110"
+                style={{ backgroundColor: 'var(--accent-muted)' }}
+              />
               <div className="flex justify-between items-start mb-4 relative z-10">
-                <span className="text-[11px] font-bold text-[#8fa8b5] uppercase tracking-wider max-w-[140px] leading-tight">{st.label}</span>
-                <div className="p-2.5 rounded-xl bg-white/10 text-[#5cf2d0]">
+                <span className="text-[11px] font-bold uppercase tracking-wider max-w-[140px] leading-tight"
+                  style={{ color: 'var(--card-dark-text)' }}
+                >{st.label}</span>
+                <div className="p-2.5 rounded-xl" style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)' }}>
                   <Icon className="w-5 h-5" />
                 </div>
               </div>
               <div className="relative z-10">
-                <span className="text-[24px] font-extrabold text-white font-mono block leading-none tracking-tight">{st.value}</span>
-                <span className="text-[11px] text-[#5cf2d0] font-bold block mt-1.5 flex items-center gap-1">
+                <span className="text-[24px] font-extrabold font-mono block leading-none tracking-tight"
+                  style={{ color: 'var(--card-dark-text-bright)' }}
+                >{st.value}</span>
+                <span className="text-[11px] font-bold block mt-1.5 flex items-center gap-1"
+                  style={{ color: 'var(--accent)' }}
+                >
                   <ArrowUpRight className="w-3.5 h-3.5" /> {st.change}
                 </span>
               </div>
@@ -150,7 +158,7 @@ export default function SuperAdminDashboard({
             
             <button
               type="submit"
-              className="px-6 py-3 bg-[var(--sidebar-bg)] text-white hover:brightness-125 transition duration-150 rounded-lg text-[13.5px] font-bold cursor-pointer"
+              className="px-6 py-3 premium-btn-primary text-white rounded-lg text-[13.5px] font-bold cursor-pointer"
             >
               Apply System Parameters
             </button>

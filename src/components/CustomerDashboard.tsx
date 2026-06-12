@@ -77,7 +77,7 @@ export default function CustomerDashboard({
         <div className="lg:col-span-8 space-y-6">
           
           {/* Main Outstanding balance card */}
-          <div className="bg-[#0f171c]/95 brightness-95 text-white rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row justify-between md:items-center shadow-lg relative overflow-hidden group">
+          <div className="premium-card-dark text-white rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row justify-between md:items-center relative overflow-hidden group">
             {/* Visual landmark background emblem */}
             <div className="absolute top-1/2 -translate-y-1/2 right-12 w-48 h-48 bg-white/5 rounded-full flex items-center justify-center pointer-events-none z-0">
               <PlusCircle className="w-24 h-24 stroke-[1]" />
@@ -85,7 +85,7 @@ export default function CustomerDashboard({
 
             <div className="space-y-5 relative z-10">
               <div>
-                <div className="flex items-center gap-1.5 mb-1 text-[#bfc8ce]">
+                <div className="flex items-center gap-1.5 mb-1" style={{ color: 'var(--card-dark-text)' }}>
                   <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Outstanding Balance</span>
                   <Info className="w-4 h-4 cursor-help" title="Current sum total of approved credit lines minus repayments" />
                 </div>
@@ -95,7 +95,7 @@ export default function CustomerDashboard({
               </div>
 
               <div className="space-y-0.5 select-none text-[13.5px]">
-                <p className="text-[#bfc8ce] font-medium">Next scheduled installment</p>
+                <p style={{ color: 'var(--card-dark-text)' }} className="font-medium">Next scheduled installment</p>
                 <p className="font-bold text-white text-[15px]">{new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
               </div>
             </div>
@@ -103,7 +103,7 @@ export default function CustomerDashboard({
             <div className="mt-6 md:mt-0 relative z-10 shrink-0">
               <button
                 onClick={onRepayClick}
-                className="w-full sm:w-auto bg-[#5cf2d0] hover:bg-[#41ddbc] text-[var(--text-primary)] font-sans font-extrabold text-[14.5px] px-8 py-3.5 rounded-xl shadow-md transition-all duration-200 select-none hover:shadow-lg hover:scale-105 cursor-pointer"
+                className="premium-btn-primary w-full sm:w-auto px-8 py-3.5 text-[14.5px] select-none"
               >
                 Repay Now
               </button>
@@ -113,7 +113,7 @@ export default function CustomerDashboard({
           {/* Core Action Squares layout */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 select-none">
             <button onClick={onApplyLoanClick}
-              className="stagger-1 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
+              className="stagger-1 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift hover:border-[var(--accent)] group cursor-pointer"
             >
               <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <PlusCircle className="w-6 h-6 stroke-[2.5]" />
@@ -121,7 +121,7 @@ export default function CustomerDashboard({
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Apply Loan</span>
             </button>
             <button onClick={onRepayClick}
-              className="stagger-2 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
+              className="stagger-2 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift hover:border-[var(--accent)] group cursor-pointer"
             >
               <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <Coins className="w-6 h-6 stroke-[2.5]" />
@@ -129,7 +129,7 @@ export default function CustomerDashboard({
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Repay Account</span>
             </button>
             <button onClick={() => onSetActiveMenu('wallets')}
-              className="stagger-3 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
+              className="stagger-3 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift hover:border-[var(--accent)] group cursor-pointer"
             >
               <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <Wallet className="w-6 h-6 stroke-[2.5]" />
@@ -137,7 +137,7 @@ export default function CustomerDashboard({
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">My Wallets</span>
             </button>
             <button onClick={() => onSetActiveMenu('support')}
-              className="stagger-4 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
+              className="stagger-4 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift hover:border-[var(--accent)] group cursor-pointer"
             >
               <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <HelpCircle className="w-6 h-6 stroke-[2.5]" />
@@ -149,21 +149,26 @@ export default function CustomerDashboard({
           {/* Interactive Fast Cash promotion banner (gorgeous streak background style) */}
           <button 
             onClick={() => setShowFastCashPromo(true)} 
-            className="w-full text-left bg-gradient-to-r from-[#0E202B] via-[#0F171C] to-[#123E4C] rounded-2xl p-6 relative overflow-hidden group cursor-pointer shadow-md select-none hover:shadow-lg transition duration-200 border border-teal-500/10"
+            className="w-full text-left rounded-2xl p-6 relative overflow-hidden group cursor-pointer shadow-md select-none hover:shadow-lg transition duration-200 border"
+            style={{ backgroundColor: 'var(--card-dark-bg)', borderColor: 'var(--card-dark-border)' }}
           >
             {/* Visual streak lights styled in CSS */}
-            <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-[#5cf2d0]/15 to-transparent skew-x-12 pointer-events-none group-hover:opacity-100 opacity-60 duration-300"></div>
+            <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-[var(--accent)]/15 to-transparent skew-x-12 pointer-events-none group-hover:opacity-100 opacity-60 duration-300"></div>
 
             <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="space-y-2">
-                <span className="inline-flex px-2.5 py-1 bg-[#5cf2d0]/10 text-[#5cf2d0] text-[11px] font-sans font-extrabold rounded-full border border-[#5cf2d0]/25 uppercase tracking-wider">
+                <span className="inline-flex px-2.5 py-1 text-[11px] font-sans font-extrabold rounded-full border uppercase tracking-wider"
+                  style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)', borderColor: 'rgba(92, 242, 208, 0.25)' }}
+                >
                   LIMITED OFFER
                 </span>
-                <h3 className="text-[22px] font-sans font-bold text-white tracking-tight">Fast Cash Loan</h3>
-                <p className="text-[13.5px] text-[#bfc8ce] max-w-sm">Instant pre-approved microloans up to $5,000 sent directly to your active wallets in minutes.</p>
+                <h3 className="text-[22px] font-sans font-bold tracking-tight" style={{ color: 'var(--card-dark-text-bright)' }}>Fast Cash Loan</h3>
+                <p className="text-[13.5px] max-w-sm" style={{ color: 'var(--card-dark-text)' }}>Instant pre-approved microloans up to $5,000 sent directly to your active wallets in minutes.</p>
               </div>
 
-              <div className="text-[#5cf2d0] hover:text-white font-bold text-[14px] flex items-center gap-1 shrink-0 group-hover:translate-x-1 transition-transform">
+              <div className="font-bold text-[14px] flex items-center gap-1 shrink-0 transition-transform group-hover:translate-x-1"
+                style={{ color: 'var(--accent)' }}
+              >
                 <span>Learn More</span>
                 <ArrowRight className="w-4 h-4 stroke-[2.5]" />
               </div>
@@ -195,10 +200,10 @@ export default function CustomerDashboard({
               {/* Transactions feed list */}
               <div className="divide-y divide-[var(--border-primary)] space-y-1.5">
                 {transactions.length > 0 ? (
-                  transactions.slice(0, 5).map((tx) => {
+                  transactions.slice(0, 5).map((tx, idx) => {
                     const isPositive = tx.amount > 0;
                     return (
-                      <div key={tx.id} className="flex justify-between items-center py-3.5 group hover:bg-[var(--surface-secondary)] p-1.5 rounded-lg transition-colors">
+                      <div key={tx.id} className={`stagger-${Math.min(idx + 1, 6)} flex justify-between items-center py-3.5 group hover:bg-[var(--surface-secondary)] p-1.5 rounded-lg transition-colors`}>
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
                             style={{
