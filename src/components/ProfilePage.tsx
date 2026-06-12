@@ -83,57 +83,57 @@ export default function ProfilePage({ token }: ProfilePageProps) {
       <h2 className="text-[28px] font-extrabold text-[var(--text-primary)]">Profile</h2>
 
       {/* Personal Info */}
-      <div className="bg-white border border-[var(--border-primary)] rounded-2xl p-8">
+      <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-8">
         <h3 className="text-[15px] font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
           <User className="w-5 h-5 text-[var(--text-secondary)]" /> Personal Information
         </h3>
         <form onSubmit={handleProfileSave} className="space-y-5">
           <div className="space-y-1.5">
-            <label className="text-[11.5px] font-bold text-slate-500 uppercase tracking-wider ml-1">Name</label>
+            <label className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Name</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                <User className="w-4 h-4 text-slate-400" />
+                <User className="w-4 h-4 text-[var(--text-tertiary)]" />
               </div>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
               />
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[11.5px] font-bold text-slate-500 uppercase tracking-wider ml-1">Email</label>
+            <label className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Email</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                <Mail className="w-4 h-4 text-slate-400" />
+                <Mail className="w-4 h-4 text-[var(--text-tertiary)]" />
               </div>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
               />
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[11.5px] font-bold text-slate-500 uppercase tracking-wider ml-1">Phone</label>
+            <label className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Phone</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                <Phone className="w-4 h-4 text-slate-400" />
+                <Phone className="w-4 h-4 text-[var(--text-tertiary)]" />
               </div>
               <input
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
               />
             </div>
           </div>
           <button
             type="submit"
             disabled={profileLoading}
-            className="bg-[#0F171C] hover:bg-slate-800 text-white text-[13px] font-bold px-6 py-3 rounded-xl transition cursor-pointer disabled:opacity-50 flex items-center gap-2"
+            className="bg-[var(--sidebar-bg)] hover:brightness-125 text-white text-[13px] font-bold px-6 py-3 rounded-xl transition cursor-pointer disabled:opacity-50 flex items-center gap-2"
           >
             {profileLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {profileLoading ? 'Saving...' : 'Save Changes'}
@@ -142,39 +142,39 @@ export default function ProfilePage({ token }: ProfilePageProps) {
       </div>
 
       {/* Change Password */}
-      <div className="bg-white border border-[var(--border-primary)] rounded-2xl p-8">
+      <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-8">
         <h3 className="text-[15px] font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
           <Lock className="w-5 h-5 text-[var(--text-secondary)]" /> Change Password
         </h3>
         <form onSubmit={handlePasswordSave} className="space-y-5">
           <div className="space-y-1.5">
-            <label className="text-[11.5px] font-bold text-slate-500 uppercase tracking-wider ml-1">Current Password</label>
+            <label className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Current Password</label>
             <input
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all"
+              className="w-full px-4 py-3 bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
               required
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-[11.5px] font-bold text-slate-500 uppercase tracking-wider ml-1">New Password</label>
+            <label className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">New Password</label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all"
+              className="w-full px-4 py-3 bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
               required
               minLength={6}
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-[11.5px] font-bold text-slate-500 uppercase tracking-wider ml-1">Confirm New Password</label>
+            <label className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Confirm New Password</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-slate-800 transition-all"
+              className="w-full px-4 py-3 bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
               required
               minLength={6}
             />
@@ -182,7 +182,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
           <button
             type="submit"
             disabled={passwordLoading}
-            className="bg-[#0F171C] hover:bg-slate-800 text-white text-[13px] font-bold px-6 py-3 rounded-xl transition cursor-pointer disabled:opacity-50 flex items-center gap-2"
+            className="bg-[var(--sidebar-bg)] hover:brightness-125 text-white text-[13px] font-bold px-6 py-3 rounded-xl transition cursor-pointer disabled:opacity-50 flex items-center gap-2"
           >
             {passwordLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
             {passwordLoading ? 'Updating...' : 'Update Password'}

@@ -113,9 +113,8 @@ export default function RepayModal({
             <div className="mb-8">
               <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-2">Select Funding Source</label>
               <div className="space-y-2">
-                <div
-                  onClick={() => setPayMethod('wallet')}
-                  className={`flex items-center justify-between p-3.5 border rounded-lg cursor-pointer transition ${
+                <button onClick={() => setPayMethod('wallet')}
+                  className={`w-full flex items-center justify-between p-3.5 border rounded-lg cursor-pointer transition ${
                     payMethod === 'wallet' ? 'border-[#5CF2D0] bg-[#5CF2D0]/5' : 'border-[var(--border-primary)] bg-[var(--surface-card)]'
                   }`}
                 >
@@ -124,27 +123,25 @@ export default function RepayModal({
                     <span className="text-[13.5px] font-bold text-[var(--text-primary)]">Nexus Digital Vault Wallet</span>
                   </div>
                   <div className="text-[12px] font-sans font-bold bg-[#5CF2D0]/20 text-[var(--text-primary)] px-2.5 py-0.5 rounded-full">Primary</div>
-                </div>
+                </button>
 
-                <div
-                  onClick={() => setPayMethod('card')}
-                  className={`flex items-center gap-3 p-3.5 border rounded-lg cursor-pointer transition ${
+                <button onClick={() => setPayMethod('card')}
+                  className={`w-full flex items-center gap-3 p-3.5 border rounded-lg cursor-pointer transition ${
                     payMethod === 'card' ? 'border-[#5CF2D0] bg-[#5CF2D0]/5' : 'border-[var(--border-primary)] bg-[var(--surface-card)]'
                   }`}
                 >
                   <CreditCard className="w-5 h-5 text-[var(--text-tertiary)]" />
                   <span className="text-[13.5px] font-bold text-[var(--text-primary)]">Linked Debit Card (•••• 1024)</span>
-                </div>
+                </button>
 
-                <div
-                  onClick={() => setPayMethod('bank')}
-                  className={`flex items-center gap-3 p-3.5 border rounded-lg cursor-pointer transition ${
+                <button onClick={() => setPayMethod('bank')}
+                  className={`w-full flex items-center gap-3 p-3.5 border rounded-lg cursor-pointer transition ${
                     payMethod === 'bank' ? 'border-[#5CF2D0] bg-[#5CF2D0]/5' : 'border-[var(--border-primary)] bg-[var(--surface-card)]'
                   }`}
                 >
                   <Landmark className="w-5 h-5 text-[var(--text-tertiary)]" />
                   <span className="text-[13.5px] font-bold text-[var(--text-primary)]">ACH Direct Bank Transfer</span>
-                </div>
+                </button>
               </div>
             </div>
 

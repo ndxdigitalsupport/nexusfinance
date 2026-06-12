@@ -14,7 +14,7 @@ export default function Pagination({ currentPage, totalPages, totalItems, itemsP
   const start = (currentPage - 1) * itemsPerPage + 1;
   const end = Math.min(currentPage * itemsPerPage, totalItems);
   return (
-    <div className="flex items-center justify-between px-6 py-3 border-t border-[var(--border-primary)] bg-white rounded-b-2xl">
+    <div className="flex items-center justify-between px-6 py-3 border-t border-[var(--border-primary)] bg-[var(--surface-card)] rounded-b-2xl">
       <span className="text-[12px] text-[var(--text-tertiary)] font-medium">Showing {start}-{end} of {totalItems}</span>
       <div className="flex items-center gap-2">
         <button

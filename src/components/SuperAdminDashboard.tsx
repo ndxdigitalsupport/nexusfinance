@@ -83,7 +83,7 @@ export default function SuperAdminDashboard({
       {view === 'settings' && <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* Form panel configuring parameters (Spans 7) */}
-        <form onSubmit={handleSave} className="lg:col-span-7 bg-white border border-[var(--border-primary)] rounded-2xl p-6 sm:p-8 space-y-6">
+        <form onSubmit={handleSave} className="lg:col-span-7 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 sm:p-8 space-y-6">
           <h3 className="text-[18px] font-sans font-bold text-[var(--text-primary)] border-b pb-2 flex items-center gap-2">
             <Settings2 className="w-5 h-5 text-[var(--text-primary)]" /> System Parameters Adjustments
           </h3>
@@ -96,7 +96,7 @@ export default function SuperAdminDashboard({
                 step="0.05"
                 value={editingConfig.baseInterestRate}
                 onChange={(e) => setEditingConfig((p) => ({ ...p, baseInterestRate: parseFloat(e.target.value) || 0 }))}
-                className="w-full bg-white border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all"
+                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
               />
             </div>
 
@@ -107,7 +107,7 @@ export default function SuperAdminDashboard({
                 step="500"
                 value={editingConfig.autoApproveLimit}
                 onChange={(e) => setEditingConfig((p) => ({ ...p, autoApproveLimit: parseFloat(e.target.value) || 0 }))}
-                className="w-full bg-white border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all"
+                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
               />
             </div>
           </div>
@@ -120,7 +120,7 @@ export default function SuperAdminDashboard({
                 step="50000"
                 value={editingConfig.maxLoanAmount}
                 onChange={(e) => setEditingConfig((p) => ({ ...p, maxLoanAmount: parseFloat(e.target.value) || 0 }))}
-                className="w-full bg-white border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all"
+                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
               />
             </div>
 
@@ -132,17 +132,17 @@ export default function SuperAdminDashboard({
                   id="kycToggle"
                   checked={editingConfig.kycRequired}
                   onChange={(e) => setEditingConfig((p) => ({ ...p, kycRequired: e.target.checked }))}
-                  className="w-5 h-5 text-[var(--text-primary)] focus:ring-[#5CF2D0] border-[var(--border-primary)] rounded"
+                  className="w-5 h-5 text-[var(--accent)] focus:ring-[var(--accent)] border-[var(--border-primary)] rounded"
                 />
                 <label htmlFor="kycToggle" className="text-[13.5px] font-semibold text-[var(--text-primary)]">Active & Mandatory</label>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+          <div className="flex justify-between items-center pt-4 border-t border-[var(--border-primary)]">
             <div>
               {savedMessage && (
-                <span className="text-emerald-700 font-bold text-[13px] flex items-center gap-1 animate-pulse">
+                <span className="font-bold text-[13px] flex items-center gap-1 animate-pulse" style={{color: 'var(--success-text)'}}>
                   <ShieldCheck className="w-4 h-4" /> Parameters saved successfully!
                 </span>
               )}
@@ -150,7 +150,7 @@ export default function SuperAdminDashboard({
             
             <button
               type="submit"
-              className="px-6 py-3 bg-[#0F171C] text-white hover:bg-slate-800 transition duration-150 rounded-lg text-[13.5px] font-bold cursor-pointer"
+              className="px-6 py-3 bg-[var(--sidebar-bg)] text-white hover:brightness-125 transition duration-150 rounded-lg text-[13.5px] font-bold cursor-pointer"
             >
               Apply System Parameters
             </button>
@@ -158,12 +158,12 @@ export default function SuperAdminDashboard({
         </form>
 
         {/* Audit logging trail panel (Spans 5) */}
-        <div className="lg:col-span-5 bg-white border border-[var(--border-primary)] rounded-2xl p-6 shadow-xs space-y-5">
+        <div className="lg:col-span-5 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 shadow-xs space-y-5">
           <h3 className="text-[16px] font-extrabold text-[var(--text-primary)] border-b pb-2 flex items-center gap-2">
             <Activity className="w-5 h-5 text-[var(--text-primary)]" /> Core Audit Logs Trails
           </h3>
 
-          <div className="divide-y divide-gray-100 space-y-1.5 text-[13.5px] max-h-[320px] overflow-y-auto pr-1">
+          <div className="divide-y divide-[var(--border-primary)] space-y-1.5 text-[13.5px] max-h-[320px] overflow-y-auto pr-1">
             {auditLogs.length === 0 ? (
               <p className="text-[var(--text-tertiary)] text-[13px] py-4 text-center">No audit logs yet.</p>
             ) : auditLogs.map((log) => (
@@ -172,7 +172,8 @@ export default function SuperAdminDashboard({
                   <span className="text-[var(--text-primary)] font-extrabold block">{log.details}</span>
                   <span className="text-[11px] text-[var(--text-tertiary)] mt-0.5 block">{new Date(log.timestamp).toLocaleString()}</span>
                 </div>
-                <span className="text-[11px] px-2 py-0.5 bg-gray-100 rounded text-slate-600 font-bold shrink-0 self-start">
+                <span className="text-[11px] px-2 py-0.5 rounded font-bold shrink-0 self-start"
+                  style={{backgroundColor: 'var(--surface-tertiary)', color: 'var(--text-secondary)'}}>
                   {log.userEmail}
                 </span>
               </div>

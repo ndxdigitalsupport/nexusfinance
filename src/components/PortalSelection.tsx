@@ -102,7 +102,7 @@ export default function PortalSelection({ onSelectPortal, userRole }: PortalSele
         {/* Action Button */}
         <button
           onClick={handleContinue}
-          className="w-full text-[14px] font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer select-none text-[#0F171C] bg-gradient-to-r from-[#5CF2D0] to-[#41ddbc] hover:brightness-105 shadow-md shadow-[#5CF2D0]/20 hover:shadow-lg hover:shadow-[#5CF2D0]/30 active:scale-98"
+          className="w-full text-[14px] font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer select-none text-[#0F171C] bg-gradient-to-r from-[#5CF2D0] to-[#41ddbc] hover:brightness-105 shadow-md shadow-[#5CF2D0]/20 hover:shadow-lg hover:shadow-[#5CF2D0]/30 active:scale-95"
         >
           Continue
           <ArrowRight className="w-5 h-5 stroke-[2.5]" />

@@ -23,18 +23,11 @@ const icons = {
   warning: AlertTriangle,
 };
 
-const styles = {
-  success: 'bg-emerald-50 border-emerald-200 text-emerald-800',
-  error: 'bg-red-50 border-red-200 text-red-800',
-  info: 'bg-blue-50 border-blue-200 text-blue-800',
-  warning: 'bg-amber-50 border-amber-200 text-amber-800',
-};
-
-const iconColors = {
-  success: 'text-emerald-600',
-  error: 'text-red-600',
-  info: 'text-blue-600',
-  warning: 'text-amber-600',
+const styleMap: Record<ToastType, { bg: string; border: string; text: string; icon: string }> = {
+  success: { bg: 'var(--success-bg)', border: 'var(--success-bg)', text: 'var(--success-text)', icon: 'var(--success-text)' },
+  error: { bg: 'var(--error-bg)', border: 'var(--error-bg)', text: 'var(--error-text)', icon: 'var(--error-text)' },
+  info: { bg: 'var(--info-bg)', border: 'var(--info-bg)', text: 'var(--info-text)', icon: 'var(--info-text)' },
+  warning: { bg: 'var(--warning-bg)', border: 'var(--warning-bg)', text: 'var(--warning-text)', icon: 'var(--warning-text)' },
 };
 
 export default function Toast() {
@@ -66,14 +59,20 @@ export default function Toast() {
     <div role="status" aria-live="polite" className="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
       {toasts.map(t => {
         const Icon = icons[t.type];
+        const s = styleMap[t.type];
         return (
           <div
             key={t.id}
-            className={`pointer-events-auto flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-xl border backdrop-blur-md transition-all duration-300 ${
-              t.exiting ? 'opacity-0 translate-x-8 scale-95' : 'opacity-100 translate-x-0 scale-100 animate-in slide-in-from-right-8 fade-in duration-200'
-            } ${styles[t.type]}`}
+            className="pointer-events-auto flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-xl border backdrop-blur-md transition-all duration-300"
+            style={{
+              backgroundColor: s.bg,
+              borderColor: s.border,
+              color: s.text,
+              opacity: t.exiting ? 0 : 1,
+              transform: t.exiting ? 'translateX(2rem) scale(0.95)' : 'translateX(0) scale(1)',
+            }}
           >
-            <Icon className={`w-5 h-5 shrink-0 ${iconColors[t.type]}`} />
+            <Icon className="w-5 h-5 shrink-0" style={{ color: s.icon }} />
             <span className="text-[14px] font-semibold flex-1">{t.message}</span>
             <button onClick={() => remove(t.id)} className="ml-1 p-0.5 rounded hover:bg-black/5 cursor-pointer shrink-0">
               <X className="w-4 h-4 opacity-60" />

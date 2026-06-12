@@ -79,7 +79,7 @@ export default function CustomerDashboard({
           {/* Main Outstanding balance card */}
           <div className="bg-[#0f171c]/95 brightness-95 text-white rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row justify-between md:items-center shadow-lg relative overflow-hidden group">
             {/* Visual landmark background emblem */}
-            <div className="absolute top-1/2 -translate-y-1/2 right-12 w-48 h-48 bg-white opacity-2.5 rounded-full flex items-center justify-center pointer-events-none z-0">
+            <div className="absolute top-1/2 -translate-y-1/2 right-12 w-48 h-48 bg-white/5 rounded-full flex items-center justify-center pointer-events-none z-0">
               <PlusCircle className="w-24 h-24 stroke-[1]" />
             </div>
 
@@ -103,7 +103,7 @@ export default function CustomerDashboard({
             <div className="mt-6 md:mt-0 relative z-10 shrink-0">
               <button
                 onClick={onRepayClick}
-                className="w-full sm:w-auto bg-[#5cf2d0] hover:bg-[#41ddbc] text-[var(--text-primary)] font-sans font-extrabold text-[14.5px] px-8 py-3.5 rounded-xl shadow-md transition-all duration-200 select-none hover:shadow-lg hover:scale-102 cursor-pointer"
+                className="w-full sm:w-auto bg-[#5cf2d0] hover:bg-[#41ddbc] text-[var(--text-primary)] font-sans font-extrabold text-[14.5px] px-8 py-3.5 rounded-xl shadow-md transition-all duration-200 select-none hover:shadow-lg hover:scale-105 cursor-pointer"
               >
                 Repay Now
               </button>
@@ -112,56 +112,44 @@ export default function CustomerDashboard({
 
           {/* Core Action Squares layout */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 select-none">
-            
-            {/* Action 1: Apply Loan */}
-            <div
-              onClick={onApplyLoanClick}
-              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group"
+            <button onClick={onApplyLoanClick}
+              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
             >
               <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <PlusCircle className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Apply Loan</span>
-            </div>
-
-            {/* Action 2: Repay Link */}
-            <div
-              onClick={onRepayClick}
-              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group"
+            </button>
+            <button onClick={onRepayClick}
+              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
             >
               <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <Coins className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Repay Account</span>
-            </div>
-
-            {/* Action 3: Wallet Link */}
-            <div
-              onClick={() => onSetActiveMenu('wallets')}
-              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group"
+            </button>
+            <button onClick={() => onSetActiveMenu('wallets')}
+              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
             >
               <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <Wallet className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">My Wallets</span>
-            </div>
-
-            {/* Action 4: Support Link */}
-            <div
-              onClick={() => onSetActiveMenu('support')}
-              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group"
+            </button>
+            <button onClick={() => onSetActiveMenu('support')}
+              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
             >
               <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <HelpCircle className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Support Hub</span>
-            </div>
+            </button>
           </div>
 
           {/* Interactive Fast Cash promotion banner (gorgeous streak background style) */}
-          <div 
+          <button 
             onClick={() => setShowFastCashPromo(true)} 
-            className="bg-gradient-to-r from-[#0E202B] via-[#0F171C] to-[#123E4C] rounded-2xl p-6 relative overflow-hidden group cursor-pointer shadow-md select-none hover:shadow-lg transition duration-200 border border-teal-500/10"
+            className="w-full text-left bg-gradient-to-r from-[#0E202B] via-[#0F171C] to-[#123E4C] rounded-2xl p-6 relative overflow-hidden group cursor-pointer shadow-md select-none hover:shadow-lg transition duration-200 border border-teal-500/10"
           >
             {/* Visual streak lights styled in CSS */}
             <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-[#5cf2d0]/15 to-transparent skew-x-12 pointer-events-none group-hover:opacity-100 opacity-60 duration-300"></div>
@@ -180,7 +168,7 @@ export default function CustomerDashboard({
                 <ArrowRight className="w-4 h-4 stroke-[2.5]" />
               </div>
             </div>
-          </div>
+          </button>
 
         </div>
 

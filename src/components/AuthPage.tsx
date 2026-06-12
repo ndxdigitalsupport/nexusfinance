@@ -201,7 +201,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     <button
                       type="submit"
                       disabled={loginLoading}
-                      className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-black text-[15.5px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[var(--accent)]/20 active:scale-98 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                      className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-black text-[15.5px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[var(--accent)]/20 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                     >
                       {loginLoading ? (
                         <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> SIGNING IN...</span>
@@ -234,7 +234,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 <button
                   type="button"
                   onClick={() => window.location.href = API + '/auth/google'}
-                  className="w-full bg-white hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] border border-[var(--border-primary)] font-bold text-[14px] py-3 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-98 shadow-xs cursor-pointer"
+                  className="w-full bg-white hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] border border-[var(--border-primary)] font-bold text-[14px] py-3 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-95 shadow-xs cursor-pointer"
                 >
                   <svg className="w-4 h-4 mr-0.5" viewBox="0 0 24 24">
                     <path
@@ -539,7 +539,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   <button
                     type="submit"
                     disabled={registerLoading}
-                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-98 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {registerLoading ? (
                       <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> CREATING...</span>
@@ -598,7 +598,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               </p>
               <button
                 onClick={() => { setView('login'); setRegisterDone(false); }}
-                className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
+                className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl transition active:scale-95 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
               >
                 GO TO SIGN IN <ArrowRight className="w-5 h-5 stroke-[2.5] inline ml-1" />
               </button>
@@ -653,7 +653,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   </div>
                   <button
                     type="submit"
-                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
+                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
                   >
                     SEND RESET LINK <ArrowRight className="w-5 h-5 stroke-[2.5]" />
                   </button>
@@ -661,7 +661,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               ) : (
                 <button
                   onClick={() => setView('login')}
-                  className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
+                  className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl transition active:scale-95 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
                 >
                   BACK TO LOGIN
                 </button>

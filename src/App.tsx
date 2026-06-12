@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown, QrCode } from 'lucide-react';
+import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown, QrCode, Mail, HelpCircle as HelpIcon } from 'lucide-react';
 import AuthPage from './components/AuthPage';
 import Toast, { showToast } from './components/Toast';
 import LoanOfficerDashboard from './components/LoanOfficerDashboard';
@@ -17,6 +17,11 @@ import Pagination from './components/Pagination';
 import AuditLogView from './components/AuditLogView';
 import KHQRPage from './components/KHQRPage';
 import { SkeletonTable } from './components/Skeleton';
+import Modal from './components/Modal';
+import EmptyState from './components/EmptyState';
+import StatusBadge from './components/StatusBadge';
+import Heading from './components/Heading';
+import Table from './components/Table';
 import { LoanApplication, Task, Transaction, PlatformConfig, PlatformStats, PortalType } from './types';
 import { DEFAULT_CONFIG, DEFAULT_STATS } from './data';
 import { API } from './api';
@@ -427,26 +432,14 @@ export default function App() {
               />
             ) : activeMenu === 'tasks' ? (
               <div className="animate-content-enter">
-                <h2 className="text-[28px] font-extrabold text-[var(--text-primary)] mb-6">Compliance Tasks</h2>
+                <Heading>Compliance Tasks</Heading>
                 <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden">
                   {tasks.length === 0 ? (
-                    <div className="p-16 text-center flex flex-col items-center">
-                      <div className="w-20 h-20 bg-[var(--surface-secondary)] rounded-2xl flex items-center justify-center mb-5 border border-[var(--border-primary)]/50">
-                        <CheckSquare className="w-10 h-10 text-[var(--text-tertiary)]" />
-                      </div>
-                      <p className="text-[var(--text-primary)] font-extrabold text-[17px]">No compliance tasks</p>
-                      <p className="text-[var(--text-tertiary)] text-[13px] mt-1.5 max-w-xs">Tasks will appear here automatically when loans require review or verification.</p>
-                    </div>
+                    <EmptyState icon={CheckSquare} title="No compliance tasks" description="Tasks will appear here automatically when loans require review or verification." />
                   ) : (() => {
                     const pending = tasks.filter(t => !t.completed);
                     if (pending.length === 0) return (
-                      <div className="p-12 text-center flex flex-col items-center">
-                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 border" style={{backgroundColor: 'var(--success-bg)', borderColor: 'var(--success-bg)'}}>
-                          <CheckSquare className="w-8 h-8" style={{color: 'var(--success-text)'}} />
-                        </div>
-                        <p className="font-extrabold text-[16px]" style={{color: 'var(--success-text)'}}>All tasks completed</p>
-                        <p className="text-[var(--text-tertiary)] text-[13px] mt-1">Nothing requires your attention right now.</p>
-                      </div>
+                      <EmptyState icon={CheckSquare} title="All tasks completed" description="Nothing requires your attention right now." />
                     );
                     const itemsPerPage = 5;
                     const totalPages = Math.ceil(pending.length / itemsPerPage) || 1;
@@ -508,18 +501,12 @@ export default function App() {
               />
             ) : activeMenu === 'loans' ? (
               <div className="animate-content-enter">
-                <h2 className="text-[28px] font-extrabold text-[var(--text-primary)] mb-6">Loans Ledger</h2>
+                <Heading>Loans Ledger</Heading>
                 <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden">
                   {(() => {
                     const filtered = applications.filter(a => a.applicantEmail === (portalUser?.email || ''));
                     if (filtered.length === 0) return (
-                      <div className="p-16 text-center flex flex-col items-center">
-                        <div className="w-20 h-20 bg-[var(--surface-secondary)] rounded-2xl flex items-center justify-center mb-5 border border-[var(--border-primary)]/50">
-                          <Landmark className="w-10 h-10 text-[var(--text-tertiary)]" />
-                        </div>
-                        <p className="text-[var(--text-primary)] font-extrabold text-[17px]">No loan applications yet</p>
-                        <p className="text-[var(--text-tertiary)] text-[13px] mt-1.5 max-w-xs">Apply for your first loan to get started with Nexus Finance.</p>
-                      </div>
+                      <EmptyState icon={Landmark} title="No loan applications yet" description="Apply for your first loan to get started with Nexus Finance." />
                     );
                     const itemsPerPage = 5;
                     const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
@@ -542,16 +529,10 @@ export default function App() {
                             <td className="px-5 py-3.5">${app.amount.toLocaleString()}</td>
                             <td className="px-5 py-3.5 text-[var(--text-secondary)]">{app.type}</td>
                             <td className="px-5 py-3.5">
-                              <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold`}
-                                style={{
-                                  backgroundColor: app.status === 'Approved' ? 'var(--success-bg)' :
-                                    app.status === 'Rejected' ? 'var(--error-bg)' :
-                                    app.status === 'Hold' ? 'var(--warning-bg)' : 'var(--info-bg)',
-                                  color: app.status === 'Approved' ? 'var(--success-text)' :
-                                    app.status === 'Rejected' ? 'var(--error-text)' :
-                                    app.status === 'Hold' ? 'var(--warning-text)' : 'var(--info-text)'
-                                }}
-                              >{app.status}</span>
+                              <StatusBadge
+                                variant={app.status === 'Approved' ? 'success' : app.status === 'Rejected' ? 'error' : app.status === 'Hold' ? 'warning' : 'info'}
+                                label={app.status}
+                              />
                             </td>
                             <td className="px-5 py-3.5 text-[var(--text-secondary)]">{app.date}</td>
                           </tr>
@@ -565,7 +546,7 @@ export default function App() {
               </div>
             ) : activeMenu === 'wallets' ? (
               <div className="animate-content-enter">
-                <h2 className="text-[28px] font-extrabold text-[var(--text-primary)] mb-6">Wallets</h2>
+                <Heading>Wallets</Heading>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-8">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">Vault Wallet</p>
@@ -583,16 +564,10 @@ export default function App() {
               <div className="animate-content-enter"><KHQRPage /></div>
             ) : activeMenu === 'transactions' ? (
               <div className="animate-content-enter">
-                <h2 className="text-[28px] font-extrabold text-[var(--text-primary)] mb-6">History Logs</h2>
+                <Heading>History Logs</Heading>
                 <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden">
                   {transactions.length === 0 ? (
-                    <div className="p-16 text-center flex flex-col items-center">
-                      <div className="w-20 h-20 bg-[var(--surface-secondary)] rounded-2xl flex items-center justify-center mb-5 border border-[var(--border-primary)]/50">
-                        <History className="w-10 h-10 text-[var(--text-tertiary)]" />
-                      </div>
-                      <p className="text-[var(--text-primary)] font-extrabold text-[17px]">No transactions yet</p>
-                      <p className="text-[var(--text-tertiary)] text-[13px] mt-1.5 max-w-xs">Your financial activity will appear here once you make a transaction.</p>
-                    </div>
+                    <EmptyState icon={History} title="No transactions yet" description="Your financial activity will appear here once you make a transaction." />
                   ) : (() => {
                     const itemsPerPage = 10;
                     const totalPages = Math.ceil(transactions.length / itemsPerPage) || 1;
@@ -715,7 +690,7 @@ function SupportView() {
 
   return (
     <div className="animate-in fade-in duration-200 max-w-3xl mx-auto">
-      <h2 className="text-[28px] font-extrabold text-[var(--text-primary)] mb-6">Support & Contact</h2>
+      <Heading>Support & Contact</Heading>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 space-y-4">
           <h3 className="text-[15px] font-bold text-[var(--text-primary)] uppercase tracking-wider">Get in Touch</h3>
@@ -938,8 +913,8 @@ function UsersView() {
         )}
 
       {resetPwUserId !== null && (
-        <div className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150" onClick={() => setResetPwUserId(null)}>
-          <div className="bg-[var(--surface-card)] w-full max-w-sm rounded-2xl shadow-xl border border-[var(--border-primary)] p-6" onClick={e => e.stopPropagation()}>
+        <Modal isOpen={true} onClose={() => setResetPwUserId(null)} maxWidth="max-w-sm">
+          <div className="p-6">
             <h3 className="text-[18px] font-extrabold text-[var(--text-primary)] mb-1">Reset User Password</h3>
             <p className="text-[13px] text-[var(--text-tertiary)] mb-4">Send a reset link via email, or set a new password directly.</p>
 
@@ -957,7 +932,7 @@ function UsersView() {
               disabled={resettingPw}
               className="w-full text-left px-4 py-3 rounded-xl border border-[var(--border-primary)] hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] transition-all cursor-pointer mb-3 disabled:opacity-50"
             >
-              <span className="font-bold text-[14px] text-[var(--text-primary)]">📧 Send Reset Link</span>
+              <span className="font-bold text-[14px] text-[var(--text-primary)] flex items-center gap-2"><Mail className="w-4 h-4" /> Send Reset Link</span>
               <p className="text-[11px] text-[var(--text-tertiary)] mt-0.5">User receives an email to set their own password</p>
             </button>
 
@@ -976,7 +951,7 @@ function UsersView() {
               </div>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       </div>
