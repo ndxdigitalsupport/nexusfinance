@@ -82,7 +82,7 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
                 <Icon className="w-4 h-4" />
               </div>
               <span className="flex-1">{item.label}</span>
-              {isActive && <ChevronRight className="w-3.5 h-3.5" style={{ color: s('sidebar-text-muted') }} />}
+              {isActive && <ChevronRight className="w-3.5 h-3.5 animate-scale-in" style={{ color: s('sidebar-text-muted') }} />}
             </button>
           );
         })}

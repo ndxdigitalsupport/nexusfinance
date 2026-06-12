@@ -113,7 +113,7 @@ export default function CustomerDashboard({
           {/* Core Action Squares layout */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 select-none">
             <button onClick={onApplyLoanClick}
-              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
+              className="stagger-1 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
             >
               <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <PlusCircle className="w-6 h-6 stroke-[2.5]" />
@@ -121,7 +121,7 @@ export default function CustomerDashboard({
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Apply Loan</span>
             </button>
             <button onClick={onRepayClick}
-              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
+              className="stagger-2 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
             >
               <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <Coins className="w-6 h-6 stroke-[2.5]" />
@@ -129,7 +129,7 @@ export default function CustomerDashboard({
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Repay Account</span>
             </button>
             <button onClick={() => onSetActiveMenu('wallets')}
-              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
+              className="stagger-3 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
             >
               <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <Wallet className="w-6 h-6 stroke-[2.5]" />
@@ -137,7 +137,7 @@ export default function CustomerDashboard({
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">My Wallets</span>
             </button>
             <button onClick={() => onSetActiveMenu('support')}
-              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
+              className="stagger-4 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
             >
               <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <HelpCircle className="w-6 h-6 stroke-[2.5]" />

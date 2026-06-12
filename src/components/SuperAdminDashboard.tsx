@@ -61,7 +61,7 @@ export default function SuperAdminDashboard({
         {currentStatsItems.map((st, i) => {
           const Icon = st.icon;
           return (
-            <div key={i} className={`bg-gradient-to-br ${st.gradient} rounded-2xl p-5 shadow-md flex flex-col justify-between relative overflow-hidden group`}>
+            <div key={i} className={`stagger-${i + 1} bg-gradient-to-br ${st.gradient} rounded-2xl p-5 shadow-md flex flex-col justify-between relative overflow-hidden group`}>
               <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-bl-full transition-transform duration-300 group-hover:scale-110" />
               <div className="flex justify-between items-start mb-4 relative z-10">
                 <span className="text-[11px] font-bold text-[#8fa8b5] uppercase tracking-wider max-w-[140px] leading-tight">{st.label}</span>

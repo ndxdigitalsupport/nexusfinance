@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { 
   ChevronRight, 
   ChevronLeft, 
@@ -89,11 +90,11 @@ export default function LoanOfficerDashboard({
         {/* Left Column (Spans 8 grids) */}
         <div className="lg:col-span-8 space-y-6">
           
-          {/* Stats Cards row */}
+            {/* Stats Cards row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
             {/* Stat Card 1: Slate Obsidian */}
-            <div className="bg-[#0F171C] rounded-2xl p-6 flex flex-col justify-between shadow-md relative overflow-hidden group">
+            <div className="stagger-1 bg-[#0F171C] rounded-2xl p-6 flex flex-col justify-between shadow-md relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-bl-full transition-transform duration-300 group-hover:scale-110"></div>
               <div className="flex items-center gap-2 mb-4">
                 <UserCheck2 className="text-[#bfc8ce] w-5 h-5" />
@@ -106,7 +107,7 @@ export default function LoanOfficerDashboard({
             </div>
 
             {/* Stat Card 2: Neutral card */}
-            <div className="bg-white rounded-2xl p-6 flex flex-col justify-between border border-[var(--border-primary)] shadow-xs hover:shadow-md transition-shadow">
+            <div className="stagger-2 bg-[var(--surface-card)] rounded-2xl p-6 flex flex-col justify-between border border-[var(--border-primary)] shadow-xs hover:shadow-md transition-shadow">
               <div className="flex items-center gap-2 mb-4">
                 <FileClock className="text-[var(--text-secondary)] w-5 h-5" />
                 <span className="font-bold text-[13px] text-[var(--text-secondary)] uppercase tracking-widest font-sans">Pending requests</span>
@@ -160,10 +161,10 @@ export default function LoanOfficerDashboard({
           </div>
 
           {/* Application Registry Table Panel */}
-          <div className="bg-white rounded-2xl border border-[var(--border-primary)] shadow-xs overflow-hidden">
+          <div className="bg-[var(--surface-card)] rounded-2xl border border-[var(--border-primary)] shadow-xs overflow-hidden">
             
             {/* Table headers */}
-            <div className="grid grid-cols-12 bg-[var(--surface-secondary)] px-6 sm:px-8 py-5 border-b border-[var(--border-primary)]/85">
+            <div className="hidden sm:grid grid-cols-12 bg-[var(--surface-secondary)] px-6 sm:px-8 py-5 border-b border-[var(--border-primary)]/85">
               <div className="col-span-8 text-[12px] text-[var(--text-secondary)] uppercase tracking-widest font-bold">Applicant / Reference</div>
               <div className="col-span-4 text-[12px] text-[var(--text-secondary)] uppercase tracking-widest font-bold text-right">Loan value</div>
             </div>
@@ -177,12 +178,12 @@ export default function LoanOfficerDashboard({
                     <div
                       key={app.id}
                       onClick={() => onOpenDetails(app)}
-                      className={`grid grid-cols-12 px-6 sm:px-8 py-6 items-center hover:bg-[var(--surface-secondary)]/50 transition cursor-pointer border-l-4 ${
+                      className={`flex flex-col sm:grid sm:grid-cols-12 px-4 sm:px-8 py-4 sm:py-6 gap-2 sm:gap-0 items-start sm:items-center hover:bg-[var(--surface-secondary)]/50 transition cursor-pointer border-l-4 ${
                         isUrgent ? 'border-red-600 bg-red-50/20 hover:bg-red-50/40' : 'border-transparent hover:border-[#5CF2D0]'
                       } group`}
                     >
                       {/* Name / Sub-references */}
-                      <div className="col-span-8 flex items-center gap-4 sm:gap-5">
+                      <div className="sm:col-span-8 flex items-center gap-4 sm:gap-5">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center text-[16px] font-extrabold shadow-xs shrink-0 select-none transition-transform duration-200 group-hover:scale-105 ${
                           app.initials === 'SV' ? 'bg-[#dbe4eb] text-slate-700' : app.initials === 'NK' ? 'bg-slate-200 text-[var(--text-primary)]' : 'bg-[#62f7d5]/35 text-[#005142]'
                         }`}>
@@ -213,7 +214,7 @@ export default function LoanOfficerDashboard({
                       </div>
 
                       {/* Loan values / descriptions */}
-                      <div className="col-span-4 text-right">
+                      <div className="sm:col-span-4 text-left sm:text-right ml-16 sm:ml-0">
                         <div className="text-[19px] sm:text-[21px] text-[var(--text-primary)] font-extrabold tracking-tight">
                           ${app.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </div>
@@ -265,60 +266,44 @@ export default function LoanOfficerDashboard({
         {/* Right Sidebar Column (Spans 4 grids) */}
         <div className="lg:col-span-4 space-y-6">
           
-          {/* Visual CSS Status Chart */}
-          <div className="bg-white rounded-2xl p-6 border border-[var(--border-primary)] shadow-xs select-none">
+          {/* Visual Status Chart with Recharts */}
+          <div className="bg-[var(--surface-card)] rounded-2xl p-6 border border-[var(--border-primary)] shadow-xs select-none">
             <div className="flex justify-between items-start mb-6">
               <h3 className="text-[18px] font-extrabold text-[var(--text-primary)] tracking-tight">Applications by Status</h3>
-              <button className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] p-1.5 rounded-full transition duration-150 cursor-pointer">
-                <MoreVertical className="w-4 h-4" />
-              </button>
             </div>
 
-            <div className="h-48 flex items-end justify-between gap-4 px-2 pb-2.5 border-b-2 border-[var(--border-primary)] relative mb-2 pr-4">
-              
-              <div className="absolute w-full h-full flex flex-col justify-between z-0 pointer-events-none pb-2.5 pr-4 left-0">
-                <div className="w-full border-t border-gray-100 border-dashed"></div>
-                <div className="w-full border-t border-gray-100 border-dashed"></div>
-                <div className="w-full border-t border-gray-100 border-dashed"></div>
-                <div className="w-full"></div>
-              </div>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={[
+                { name: 'New', value: chartStats.new, fill: '#bfc8ce' },
+                { name: 'Review', value: chartStats.review, fill: '#0F171C' },
+                { name: 'Final', value: chartStats.final, fill: '#bfc8ce' },
+                { name: 'Hold', value: chartStats.hold, fill: '#8a9aa5' },
+              ]} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
+                <XAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                <YAxis hide />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--surface-elevated)',
+                    border: '1px solid var(--border-primary)',
+                    borderRadius: 8,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: 'var(--text-primary)',
+                  }}
+                  formatter={(val: number) => [`${val} applications`, 'Count']}
+                />
+                <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={48} />
+              </BarChart>
+            </ResponsiveContainer>
 
-              {[
-                { key: 'new', label: 'New', value: chartStats.new, gradient: 'from-[#dbe4eb] to-[#bfc8ce]', textColor: 'text-[var(--text-secondary)]', hoverGradient: 'hover:from-[#0F171C] hover:to-[#2a3a44]' },
-                { key: 'review', label: 'Review', value: chartStats.review, gradient: 'from-[#0F171C] to-[#1a2a34]', textColor: 'text-[#5CF2D0]', hoverGradient: '' },
-                { key: 'final', label: 'Final', value: chartStats.final, gradient: 'from-[#dbe4eb] to-[#bfc8ce]', textColor: 'text-[var(--text-secondary)]', hoverGradient: 'hover:from-[#0F171C] hover:to-[#2a3a44]' },
-                { key: 'hold', label: 'Hold', value: chartStats.hold, gradient: 'from-[#bfc8ce] to-[#a0adb5]', textColor: 'text-gray-700', hoverGradient: 'hover:from-[#44474a] hover:to-[#5a6a74]' },
-              ].map((bar) => {
-                const pct = chartMaxVal > 0 ? Math.round((bar.value / chartMaxVal) * 100) : 0;
-                return (
-                  <div key={bar.key} className="flex flex-col items-center gap-2.5 z-10 group w-1/4 relative">
-                    <div
-                      className={`w-full max-w-[40px] bg-gradient-to-t ${bar.gradient} ${bar.hoverGradient} rounded-t-md transition-all duration-300 font-mono font-bold text-[11px] ${bar.textColor} flex flex-col justify-start items-center pt-1.5 shadow-inner cursor-default`}
-                      style={{ height: `${Math.max((bar.value / chartMaxVal) * 110 + 15, 24)}px` }}
-                    >
-                      {bar.value}
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">{bar.label}</span>
-                    {bar.value > 0 && (
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#0F171C] text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg">
-                        {pct}% of total
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Chart Subtitle summary */}
-            <div className="flex justify-between items-center px-1 text-[11px] font-semibold text-slate-500 pt-2 border-t border-slate-50 select-text">
+            <div className="flex justify-between items-center text-[11px] font-semibold pt-3 border-t border-[var(--border-primary)]" style={{color: 'var(--text-tertiary)'}}>
               <span>Total recorded: {applications.length} loan applications</span>
-              <span className="text-emerald-700 font-bold font-mono">Durable Storage</span>
             </div>
           </div>
 
           {/* Next Task Call Panel CARD */}
           {nextVideoTask && (
-            <div className="bg-white border border-[var(--border-primary)] rounded-2xl p-6 shadow-xs relative overflow-hidden group">
+            <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 shadow-xs relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-1 flex h-full bg-[#0F171C]"></div>
               
               <div className="relative z-10 space-y-4">

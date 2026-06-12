@@ -5,6 +5,15 @@ import type { KHQRGenerateResponse, KHQRVerifyResponse, KHQRDecodeResponse, KHQR
 
 const s = (name: string) => `var(--${name})`;
 
+function Spinner({ size = 14 }: { size?: number }) {
+  return (
+    <svg className="animate-spin" width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.25" />
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 type TabId = 'generate' | 'verify' | 'decode' | 'deeplink' | 'check';
 
 const tabs: { id: TabId; label: string; icon: React.ElementType; color: string }[] = [
@@ -291,7 +300,7 @@ export default function KHQRPage() {
             <button onClick={handleGenerate} disabled={loading || !genForm.bakongAccountId || !genForm.merchantName}
               className="w-full py-3 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer disabled:opacity-40 hover:brightness-95"
               style={{ backgroundColor: tabColor, color: '#fff' }}>
-              {loading ? <span className="flex items-center justify-center gap-2">Generating...</span> : 'Generate KHQR'}
+              {loading ? <span className="flex items-center justify-center gap-2"><Spinner /> Generating...</span> : 'Generate KHQR'}
             </button>
           </div>
           <div className="lg:col-span-2 space-y-4">
@@ -343,7 +352,7 @@ export default function KHQRPage() {
             <button onClick={handleVerify} disabled={loading || !verifyQr}
               className="w-full py-3 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer disabled:opacity-40 hover:brightness-95"
               style={{ backgroundColor: tabColor, color: '#fff' }}>
-              {loading ? 'Verifying...' : 'Verify CRC Checksum'}
+              {loading ? <span className="flex items-center justify-center gap-2"><Spinner /> Verifying...</span> : 'Verify CRC Checksum'}
             </button>
           </SectionCard>
           {verifyResult && (
@@ -382,7 +391,7 @@ export default function KHQRPage() {
             <button onClick={handleDecode} disabled={loading || !decodeQr}
               className="w-full py-3 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer disabled:opacity-40 hover:brightness-95"
               style={{ backgroundColor: tabColor, color: '#fff' }}>
-              {loading ? 'Decoding...' : 'Decode QR'}
+              {loading ? <span className="flex items-center justify-center gap-2"><Spinner /> Decoding...</span> : 'Decode QR'}
             </button>
           </SectionCard>
           {decodeResult && decodeResult.success && (
@@ -430,7 +439,7 @@ export default function KHQRPage() {
             <button onClick={handleDeeplink} disabled={loading || !deeplinkQr}
               className="w-full py-3 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer disabled:opacity-40 hover:brightness-95"
               style={{ backgroundColor: tabColor, color: '#fff' }}>
-              {loading ? 'Generating...' : 'Generate Deeplink'}
+              {loading ? <span className="flex items-center justify-center gap-2"><Spinner /> Generating...</span> : 'Generate Deeplink'}
             </button>
           </SectionCard>
           {deeplinkResult && deeplinkResult.success && (
@@ -465,7 +474,7 @@ export default function KHQRPage() {
             <button onClick={handleCheckTx} disabled={loading || !txRefId}
               className="w-full py-3 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer disabled:opacity-40 hover:brightness-95"
               style={{ backgroundColor: tabColor, color: '#fff' }}>
-              {loading ? 'Checking...' : 'Check Status'}
+              {loading ? <span className="flex items-center justify-center gap-2"><Spinner /> Checking...</span> : 'Check Status'}
             </button>
             <div className="flex items-start gap-2 p-3 rounded-xl" style={{ backgroundColor: 'rgba(245,158,11,0.08)' }}>
               <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: '#F59E0B' }} />
