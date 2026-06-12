@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, CreditCard, Landmark, Coins, DollarSign } from 'lucide-react';
 
 interface RepayModalProps {
@@ -19,6 +19,14 @@ export default function RepayModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      setShowSuccess(false);
+      setIsSubmitting(false);
+      setErrorMsg('');
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -124,7 +132,7 @@ export default function RepayModal({
             <div className="mb-8">
               <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-2">Select Funding Source</label>
               <div className="space-y-2">
-                <button onClick={() => setPayMethod('wallet')}
+                <button type="button" onClick={() => setPayMethod('wallet')}
                   className={`w-full flex items-center justify-between p-3.5 border rounded-lg cursor-pointer transition-all duration-200 ${
                     payMethod === 'wallet'
                       ? 'border-[var(--accent)] bg-[var(--accent)]/5 shadow-sm'
@@ -143,7 +151,7 @@ export default function RepayModal({
                   <div className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${payMethod === 'wallet' ? 'bg-[var(--accent)]/20 text-[var(--accent)]' : 'bg-[var(--surface-secondary)] text-[var(--text-tertiary)]'}`}>Primary</div>
                 </button>
 
-                <button onClick={() => setPayMethod('card')}
+                <button type="button" onClick={() => setPayMethod('card')}
                   className={`w-full flex items-center justify-between p-3.5 border rounded-lg cursor-pointer transition-all duration-200 ${
                     payMethod === 'card'
                       ? 'border-[var(--accent)] bg-[var(--accent)]/5 shadow-sm'
@@ -161,7 +169,7 @@ export default function RepayModal({
                   </div>
                 </button>
 
-                <button onClick={() => setPayMethod('bank')}
+                <button type="button" onClick={() => setPayMethod('bank')}
                   className={`w-full flex items-center justify-between p-3.5 border rounded-lg cursor-pointer transition-all duration-200 ${
                     payMethod === 'bank'
                       ? 'border-[var(--accent)] bg-[var(--accent)]/5 shadow-sm'
