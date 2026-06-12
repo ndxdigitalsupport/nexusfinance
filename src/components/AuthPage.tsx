@@ -118,7 +118,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans relative auth-page overflow-hidden">
+    <div className="h-screen grid grid-rows-[auto_1fr_auto] bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans relative auth-page overflow-hidden">
       
       {/* Background soft glowing decorative orbs */}
       <div className="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full bg-[#c0f5ea]/40 blur-[120px] pointer-events-none z-0" />
@@ -144,7 +144,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           </header>
 
           {/* Main content grid */}
-          <main className="relative z-10 flex-1 grid grid-cols-1 lg:grid-cols-12 items-center px-6 sm:px-12 max-w-7xl mx-auto w-full gap-8 lg:gap-16 py-4 overflow-y-auto">
+          <main className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center px-6 sm:px-12 max-w-7xl mx-auto w-full gap-8 lg:gap-16 py-4">
             
             {/* Form Left Row (Column 5) */}
             <div className="lg:col-span-5 flex justify-center lg:justify-start">
