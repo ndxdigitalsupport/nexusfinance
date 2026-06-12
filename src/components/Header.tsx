@@ -107,7 +107,7 @@ export default function Header({
               type="text"
               value={searchTermInvoice}
               onChange={(e) => setSearchTermInvoice(e.target.value)}
-              className="w-full bg-white border border-[var(--border-primary)] rounded-xl py-2.5 pl-10 pr-20 text-[14px] leading-tight focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all duration-150 shadow-sm placeholder:text-[var(--text-tertiary)]"
+              className="w-full bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl py-2.5 pl-10 pr-20 text-[14px] leading-tight focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all duration-150 shadow-sm placeholder:text-[var(--text-tertiary)]"
               placeholder="Search applicants, loans..."
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">

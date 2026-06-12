@@ -126,18 +126,18 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
       {/* VIEW: LOGIN */}
       {view === 'login' && (
-        <>
+        <React.Fragment key="login">
           {/* Header */}
           <header className="relative z-10 px-6 py-5 sm:px-12 flex justify-between items-center bg-transparent">
             <div className="flex items-center gap-2">
               <span className="font-sans text-[20px] tracking-tight flex items-center">
-                <span className="text-[#0E171C] font-black">Nexus</span>
-                <span className="text-[#0E171C] font-light">Finance</span>
+                <span className="text-[var(--text-primary)] font-black">Nexus</span>
+                <span className="text-[var(--text-secondary)] font-light">Finance</span>
               </span>
             </div>
             <button 
               onClick={() => {}} 
-              className="text-[var(--text-secondary)] font-semibold text-[14px] hover:text-[#0e171c]"
+              className="text-[var(--text-tertiary)] font-semibold text-[14px] hover:text-[var(--text-primary)]"
             >
               Support
             </button>
@@ -148,11 +148,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
             
             {/* Form Left Row (Column 5) */}
             <div className="lg:col-span-5 flex justify-center lg:justify-start">
-              <div className="bg-white/70 backdrop-blur-md rounded-3xl p-8 sm:p-10 w-full max-w-md shadow-2xl shadow-teal-900/5 border border-white/80 animate-in fade-in slide-in-from-left duration-500">
+              <div className="bg-[var(--surface-card)]/80 backdrop-blur-md rounded-3xl p-8 sm:p-10 w-full max-w-md shadow-2xl shadow-teal-900/5 border border-[var(--border-primary)]/60 animate-in fade-in slide-in-from-left duration-500">
                 
                 {/* Title block */}
                 <div className="text-center mb-8">
-                  <h2 className="text-[36px] font-extrabold tracking-tight text-[#0e171c]">Login</h2>
+                  <h2 className="text-[36px] font-extrabold tracking-tight text-[var(--text-primary)]">Login</h2>
                   <p className="text-[14px] text-[var(--text-secondary)] font-medium mt-1 leading-none">welcome to nexus finance</p>
                 </div>
 
@@ -164,7 +164,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                       placeholder="Email / Username"
-                      className="w-full rounded-2xl bg-white border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-medium transition-all"
+                      className="w-full rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-medium transition-all"
                       required
                     />
                   </div>
@@ -175,7 +175,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       placeholder="Password"
-                      className="w-full rounded-2xl bg-white border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-mono transition-all"
+                      className="w-full rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-mono transition-all"
                       required
                     />
                   </div>
@@ -234,7 +234,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 <button
                   type="button"
                   onClick={() => window.location.href = API + '/auth/google'}
-                  className="w-full bg-white hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] border border-[var(--border-primary)] font-bold text-[14px] py-3 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-95 shadow-xs cursor-pointer"
+                  className="w-full bg-[var(--surface-card)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] border border-[var(--border-primary)] font-bold text-[14px] py-3 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-95 shadow-xs cursor-pointer"
                 >
                   <svg className="w-4 h-4 mr-0.5" viewBox="0 0 24 24">
                     <path
@@ -392,7 +392,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           </main>
 
           {/* Footer of Login Screen */}
-          <footer className="relative z-10 px-6 py-6 sm:px-12 border-t border-[var(--border-primary)]/50 bg-white/40 flex flex-col md:flex-row justify-between items-center gap-4 text-[12px] font-medium text-[var(--text-secondary)]">
+          <footer className="relative z-10 px-6 py-6 sm:px-12 border-t border-[var(--border-primary)]/50 bg-[var(--surface-card)]/40 flex flex-col md:flex-row justify-between items-center gap-4 text-[12px] font-medium text-[var(--text-secondary)]">
             <div>
               <p>© 2024 Nexus Finance Institutional Group. All rights reserved.</p>
             </div>
@@ -414,24 +414,24 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <header className="relative z-10 px-6 py-5 sm:px-12 flex justify-between items-center bg-transparent">
             <div className="flex items-center gap-2">
               <span className="font-sans text-[20px] tracking-tight flex items-center">
-                <span className="text-[#0E171C] font-black">Nexus</span>
-                <span className="text-[#0E171C] font-light">Finance</span>
+                <span className="text-[var(--text-primary)] font-black">Nexus</span>
+                <span className="text-[var(--text-primary)] font-light">Finance</span>
               </span>
             </div>
             <div className="flex items-center gap-4 text-[var(--text-secondary)]">
-              <Globe className="w-5 h-5 cursor-pointer hover:text-[#0e171c]" />
-              <HelpCircle className="w-5 h-5 cursor-pointer hover:text-[#0e171c]" />
+              <Globe className="w-5 h-5 cursor-pointer hover:text-[var(--text-primary)]" />
+              <HelpCircle className="w-5 h-5 cursor-pointer hover:text-[var(--text-primary)]" />
             </div>
           </header>
 
           {/* Main Container */}
           <main className="relative z-10 flex-grow flex flex-col justify-center items-center px-4 py-8">
-            <h2 className="text-[32px] sm:text-[36px] font-bold text-[#0E171C] mb-8 text-center tracking-tight">
+            <h2 className="text-[32px] sm:text-[36px] font-bold text-[var(--text-primary)] mb-8 text-center tracking-tight">
               Create your account
             </h2>
 
             {/* Custom Create account white frame card */}
-            <div className="bg-white/80 backdrop-blur-md rounded-[32px] shadow-xl shadow-teal-900/5 border border-white/60 p-8 sm:p-10 w-full max-w-lg animate-in fade-in zoom-in-95 duration-300">
+            <div className="bg-[var(--surface-card)]/80 backdrop-blur-md rounded-[32px] shadow-xl shadow-teal-900/5 border border-[var(--border-primary)]/60 p-8 sm:p-10 w-full max-w-lg animate-in fade-in zoom-in-95 duration-300">
               <form onSubmit={handleRegisterSubmit} className="space-y-6">
                 
                 {/* Field: Full Name */}
@@ -565,7 +565,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           </main>
 
           {/* Footer of Create Account page */}
-          <footer className="relative z-10 px-6 py-6 sm:px-12 border-t border-[var(--border-primary)]/50 bg-white/40 flex flex-col md:flex-row justify-between items-center gap-4 text-[12px] font-semibold tracking-wide text-[var(--text-secondary)]">
+          <footer className="relative z-10 px-6 py-6 sm:px-12 border-t border-[var(--border-primary)]/50 bg-[var(--surface-card)]/40 flex flex-col md:flex-row justify-between items-center gap-4 text-[12px] font-semibold tracking-wide text-[var(--text-secondary)]">
             <div>
               <p>© 2026 NEXUS FINANCE. PRECISE INTELLIGENCE.</p>
             </div>
@@ -582,14 +582,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       {view === 'check-email' && (
         <div className="min-h-screen flex flex-col justify-between w-full h-full">
           <div className="flex-grow flex flex-col justify-center items-center px-4 py-8">
-            <div className="bg-white/90 backdrop-blur-md rounded-[32px] border border-white/80 p-8 sm:p-12 w-full max-w-lg shadow-xl shadow-teal-900/5 flex flex-col items-center animate-in zoom-in-95 duration-200">
+            <div className="bg-[var(--surface-card)]/90 backdrop-blur-md rounded-[32px] border border-[var(--border-primary)]/80 p-8 sm:p-12 w-full max-w-lg shadow-xl shadow-teal-900/5 flex flex-col items-center animate-in zoom-in-95 duration-200">
               <div className="relative w-16 h-16 bg-[var(--surface-secondary)] rounded-full flex items-center justify-center text-[var(--text-secondary)] border border-[var(--border-primary)]/10 mb-6">
                 <Mail className="w-7 h-7" />
-                <div className="absolute top-1 right-1 w-4 h-4 bg-[#5CF2D0] rounded-full flex items-center justify-center">
-                  <CheckCircle2 className="w-3 h-3 text-[#0E171C]" />
+                <div className="absolute top-1 right-1 w-4 h-4 bg-[var(--accent)] rounded-full flex items-center justify-center">
+                  <CheckCircle2 className="w-3 h-3 text-[var(--text-primary)]" />
                 </div>
               </div>
-              <h2 className="text-[28px] sm:text-[32px] font-bold text-[#0E171C] text-center tracking-tight">
+              <h2 className="text-[28px] sm:text-[32px] font-bold text-[var(--text-primary)] text-center tracking-tight">
                 Check your email
               </h2>
               <p className="text-[13px] text-[var(--text-secondary)] font-medium text-center mt-3 mb-8 max-w-sm leading-relaxed">
@@ -618,13 +618,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       {view === 'forgot' && (
         <div className="min-h-screen flex flex-col justify-between w-full h-full">
           <div className="flex-grow flex flex-col justify-center items-center px-4 py-8">
-            <div className="bg-white/90 backdrop-blur-md rounded-[32px] border border-white/80 p-8 sm:p-12 w-full max-w-lg shadow-xl shadow-teal-900/5 flex flex-col items-center animate-in zoom-in-95 duration-200">
+            <div className="bg-[var(--surface-card)]/90 backdrop-blur-md rounded-[32px] border border-[var(--border-primary)]/80 p-8 sm:p-12 w-full max-w-lg shadow-xl shadow-teal-900/5 flex flex-col items-center animate-in zoom-in-95 duration-200">
 
               <div className="relative w-16 h-16 bg-[var(--surface-secondary)] rounded-full flex items-center justify-center text-[var(--text-secondary)] border border-[var(--border-primary)]/10 mb-6">
                 <Lock className="w-7 h-7" />
               </div>
 
-              <h2 className="text-[28px] sm:text-[32px] font-bold text-[#0E171C] text-center tracking-tight">
+              <h2 className="text-[28px] sm:text-[32px] font-bold text-[var(--text-primary)] text-center tracking-tight">
                 Reset Password
               </h2>
               <p className="text-[13px] text-[var(--text-secondary)] font-medium text-center mt-3 mb-8 max-w-sm leading-relaxed">
@@ -646,7 +646,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         placeholder="your@email.com"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3.5 bg-white/90 border border-[var(--border-primary)]/90 rounded-2xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
+                        className="w-full pl-10 pr-4 py-3.5 bg-[var(--surface-card)]/90 border border-[var(--border-primary)]/90 rounded-2xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
                         required
                       />
                     </div>

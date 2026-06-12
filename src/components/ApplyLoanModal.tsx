@@ -202,7 +202,7 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
 
             <form onSubmit={handleFormSubmit} className="px-8 pb-8 pt-6 space-y-5">
               {step === 1 ? (
-                <div className="space-y-4 animate-content-enter">
+                <div className="space-y-4 animate-content-enter" key="step1">
                   <div>
                     <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Full Name</label>
                     <div className="relative">
@@ -226,13 +226,21 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4 animate-content-enter">
+                <div className="space-y-4 animate-content-enter" key="step2">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Loan Amount</label>
                       <div className="relative">
                         <DollarSign className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
                         <input type="number" name="amount" value={formData.amount} onChange={handleInputChange} placeholder="15000" className={`${inputClass('amount')} pl-10`} />
+                      </div>
+                      <div className="flex gap-1.5 mt-2">
+                        {[5000, 10000, 25000, 50000].map(v => (
+                          <button key={v} type="button" onClick={() => setFormData(prev => ({ ...prev, amount: String(v) }))}
+                            className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-all cursor-pointer ${formData.amount === String(v) ? 'bg-[var(--accent)] text-[var(--text-inverse)]' : 'bg-[var(--surface-secondary)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}>
+                            ${(v / 1000).toFixed(0)}k
+                          </button>
+                        ))}
                       </div>
                       {formErrors.amount && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.amount}</p>}
                     </div>

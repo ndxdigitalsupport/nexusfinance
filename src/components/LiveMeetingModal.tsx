@@ -64,10 +64,10 @@ export default function LiveMeetingModal({
       <div className="bg-[#0F171C] text-white w-full max-w-4xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden relative flex flex-col md:flex-row h-[550px] font-sans">
         
         {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-50 p-1.5 rounded-full bg-black/40 hover:bg-black/60 text-gray-300"
-        >
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 z-50 p-1.5 rounded-full bg-black/40 hover:bg-black/60 text-white/70 hover:text-white transition"
+          >
           <X className="w-5 h-5" />
         </button>
 
@@ -96,8 +96,14 @@ export default function LiveMeetingModal({
                   <h4 className="text-[13px] text-[#5CF2D0] uppercase tracking-wider font-bold">Secure KYC Terminal</h4>
                   <p className="text-[14px] font-semibold text-white">{regardingLoan}</p>
                 </div>
-                <div className="text-right text-[12px] font-mono select-none px-2.5 py-1 bg-[#5CF2D0]/10 text-[#5CF2D0] rounded">
-                  {formatTime(timerSeconds)}
+                <div className="text-right flex items-center gap-2">
+                  <svg className="w-8 h-8 -rotate-90" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3" />
+                    <circle cx="18" cy="18" r="15.5" fill="none" stroke="#5CF2D0" strokeWidth="3" strokeDasharray={`${(timerSeconds % 60) / 60 * 97.4} 97.4`} strokeLinecap="round" />
+                  </svg>
+                  <span className="text-[12px] font-mono select-none px-2.5 py-1 bg-[#5CF2D0]/10 text-[#5CF2D0] rounded">
+                    {formatTime(timerSeconds)}
+                  </span>
                 </div>
               </div>
 

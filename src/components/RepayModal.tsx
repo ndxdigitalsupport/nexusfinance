@@ -73,7 +73,7 @@ export default function RepayModal({
             </p>
             <button
               onClick={handleCloseSuccess}
-              className="w-full bg-[#0F171C] hover:bg-slate-800 text-white font-bold py-3 rounded-lg text-[14px]"
+              className="w-full bg-[var(--sidebar-bg)] hover:brightness-125 text-white font-bold py-3 rounded-lg text-[14px]"
             >
               Back to Dashboard
             </button>
@@ -102,9 +102,20 @@ export default function RepayModal({
                     setRepayAmount(e.target.value);
                     if (errorMsg) setErrorMsg('');
                   }}
-                  className="w-full bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-lg pl-9 pr-4 py-3 text-[16px] font-medium text-[var(--text-primary)] focus:outline-none focus:border-[#5CF2D0] focus:ring-1 focus:ring-[#5CF2D0]"
+                  className="w-full bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-lg pl-9 pr-4 py-3 text-[16px] font-medium text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
                   placeholder="250.00"
                 />
+              </div>
+              <div className="flex gap-1.5 mt-2">
+                {[0.25, 0.5, 0.75, 1].map(f => {
+                  const amt = Math.round(outstandingBalance * f * 100) / 100;
+                  return (
+                    <button key={f} type="button" onClick={() => setRepayAmount(amt.toFixed(2))}
+                      className={`flex-1 px-2 py-1.5 text-[10px] font-bold rounded-lg transition-all cursor-pointer ${parseFloat(repayAmount) === amt ? 'bg-[var(--accent)] text-[var(--text-inverse)]' : 'bg-[var(--surface-secondary)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}>
+                      {f === 1 ? 'Full' : `${f * 100}%`}
+                    </button>
+                  );
+                })}
               </div>
               {errorMsg && <p className="text-red-500 text-[11px] mt-1.5 font-semibold">{errorMsg}</p>}
             </div>
@@ -114,33 +125,58 @@ export default function RepayModal({
               <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-2">Select Funding Source</label>
               <div className="space-y-2">
                 <button onClick={() => setPayMethod('wallet')}
-                  className={`w-full flex items-center justify-between p-3.5 border rounded-lg cursor-pointer transition ${
-                    payMethod === 'wallet' ? 'border-[#5CF2D0] bg-[#5CF2D0]/5' : 'border-[var(--border-primary)] bg-[var(--surface-card)]'
+                  className={`w-full flex items-center justify-between p-3.5 border rounded-lg cursor-pointer transition-all duration-200 ${
+                    payMethod === 'wallet'
+                      ? 'border-[var(--accent)] bg-[var(--accent)]/5 shadow-sm'
+                      : 'border-[var(--border-primary)] bg-[var(--surface-card)] hover:border-[var(--text-tertiary)]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Coins className={`w-5 h-5 ${payMethod === 'wallet' ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'}`} />
-                    <span className="text-[13.5px] font-bold text-[var(--text-primary)]">Nexus Digital Vault Wallet</span>
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${payMethod === 'wallet' ? 'bg-[var(--accent)] text-[var(--text-inverse)]' : 'bg-[var(--surface-secondary)] text-[var(--text-tertiary)]'}`}>
+                      <Coins className="w-4.5 h-4.5" />
+                    </div>
+                    <div>
+                      <span className="text-[13.5px] font-bold text-[var(--text-primary)] block">Nexus Digital Vault Wallet</span>
+                      <span className="text-[10px] text-[var(--text-tertiary)]">Instant · No fees</span>
+                    </div>
                   </div>
-                  <div className="text-[12px] font-sans font-bold bg-[#5CF2D0]/20 text-[var(--text-primary)] px-2.5 py-0.5 rounded-full">Primary</div>
+                  <div className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${payMethod === 'wallet' ? 'bg-[var(--accent)]/20 text-[var(--accent)]' : 'bg-[var(--surface-secondary)] text-[var(--text-tertiary)]'}`}>Primary</div>
                 </button>
 
                 <button onClick={() => setPayMethod('card')}
-                  className={`w-full flex items-center gap-3 p-3.5 border rounded-lg cursor-pointer transition ${
-                    payMethod === 'card' ? 'border-[#5CF2D0] bg-[#5CF2D0]/5' : 'border-[var(--border-primary)] bg-[var(--surface-card)]'
+                  className={`w-full flex items-center justify-between p-3.5 border rounded-lg cursor-pointer transition-all duration-200 ${
+                    payMethod === 'card'
+                      ? 'border-[var(--accent)] bg-[var(--accent)]/5 shadow-sm'
+                      : 'border-[var(--border-primary)] bg-[var(--surface-card)] hover:border-[var(--text-tertiary)]'
                   }`}
                 >
-                  <CreditCard className="w-5 h-5 text-[var(--text-tertiary)]" />
-                  <span className="text-[13.5px] font-bold text-[var(--text-primary)]">Linked Debit Card (•••• 1024)</span>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${payMethod === 'card' ? 'bg-[var(--accent)] text-[var(--text-inverse)]' : 'bg-[var(--surface-secondary)] text-[var(--text-tertiary)]'}`}>
+                      <CreditCard className="w-4.5 h-4.5" />
+                    </div>
+                    <div>
+                      <span className="text-[13.5px] font-bold text-[var(--text-primary)] block">Linked Debit Card</span>
+                      <span className="text-[10px] text-[var(--text-tertiary)]">Visa •••• 1024 · 1.5% fee</span>
+                    </div>
+                  </div>
                 </button>
 
                 <button onClick={() => setPayMethod('bank')}
-                  className={`w-full flex items-center gap-3 p-3.5 border rounded-lg cursor-pointer transition ${
-                    payMethod === 'bank' ? 'border-[#5CF2D0] bg-[#5CF2D0]/5' : 'border-[var(--border-primary)] bg-[var(--surface-card)]'
+                  className={`w-full flex items-center justify-between p-3.5 border rounded-lg cursor-pointer transition-all duration-200 ${
+                    payMethod === 'bank'
+                      ? 'border-[var(--accent)] bg-[var(--accent)]/5 shadow-sm'
+                      : 'border-[var(--border-primary)] bg-[var(--surface-card)] hover:border-[var(--text-tertiary)]'
                   }`}
                 >
-                  <Landmark className="w-5 h-5 text-[var(--text-tertiary)]" />
-                  <span className="text-[13.5px] font-bold text-[var(--text-primary)]">ACH Direct Bank Transfer</span>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${payMethod === 'bank' ? 'bg-[var(--accent)] text-[var(--text-inverse)]' : 'bg-[var(--surface-secondary)] text-[var(--text-tertiary)]'}`}>
+                      <Landmark className="w-4.5 h-4.5" />
+                    </div>
+                    <div>
+                      <span className="text-[13.5px] font-bold text-[var(--text-primary)] block">ACH Direct Bank Transfer</span>
+                      <span className="text-[10px] text-[var(--text-tertiary)]">2-3 business days · Free</span>
+                    </div>
+                  </div>
                 </button>
               </div>
             </div>
@@ -157,11 +193,11 @@ export default function RepayModal({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 py-3 bg-[#0F171C] hover:bg-[#181c1e] text-[#5CF2D0] font-sans font-bold rounded-lg text-[14px] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="flex-1 py-3 bg-[var(--sidebar-bg)] hover:brightness-125 text-white font-sans font-bold rounded-lg text-[14px] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-[#5CF2D0] border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     Clearing...
                   </>
                 ) : (
