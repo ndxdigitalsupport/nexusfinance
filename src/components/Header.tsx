@@ -79,7 +79,7 @@ export default function Header({
   const roleLabel = userRole === 'super-admin' ? 'Super Admin' : userRole === 'loan-officer' ? 'Loan Officer' : 'Customer';
 
   return (
-    <header className="flex justify-between items-center px-4 md:px-10 h-16 w-full sticky top-0 z-30 bg-white border-b border-[var(--border-primary)]">
+    <header className="flex justify-between items-center px-4 md:px-10 h-16 w-full sticky top-0 z-30 bg-[var(--surface-card)] border-b border-[var(--border-primary)]">
       {/* Mobile Menu Trigger & Logo */}
       <div className="flex items-center gap-3 md:hidden">
         <button 
@@ -107,7 +107,7 @@ export default function Header({
               type="text"
               value={searchTermInvoice}
               onChange={(e) => setSearchTermInvoice(e.target.value)}
-              className="w-full bg-white border border-[var(--border-primary)] rounded-xl py-2.5 pl-10 pr-20 text-[14px] leading-tight focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all duration-150 shadow-sm placeholder:text-[var(--text-tertiary)]"
+              className="w-full bg-white border border-[var(--border-primary)] rounded-xl py-2.5 pl-10 pr-20 text-[14px] leading-tight focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all duration-150 shadow-sm placeholder:text-[var(--text-tertiary)]"
               placeholder="Search applicants, loans..."
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
@@ -148,19 +148,19 @@ export default function Header({
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] text-[10px] font-bold bg-red-600 text-white rounded-full flex items-center justify-center px-1 border-2 border-white">
+              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] text-[10px] font-bold bg-red-600 text-white rounded-full flex items-center justify-center px-1 border-2 border-[var(--surface-card)]">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
           </button>
 
           {showNotificationsDropdown && (
-            <div className="absolute right-0 mt-2 w-80 bg-white border border-[var(--border-primary)] rounded-xl shadow-lg py-2 z-50 animate-dropdown-enter">
+            <div className="absolute right-0 mt-2 w-80 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl shadow-lg py-2 z-50 animate-dropdown-enter">
               <div className="px-4 py-2 border-b border-[var(--border-primary)] flex justify-between items-center bg-[var(--surface-secondary)] rounded-t-xl">
                 <span className="font-bold text-[14px] text-[var(--text-primary)]">Notifications</span>
-                {unreadCount > 0 && <span className="text-[11px] text-[var(--text-primary)] bg-[#5CF2D0] font-bold px-2 py-0.5 rounded-full">{unreadCount} new</span>}
+                {unreadCount > 0 && <span className="text-[11px] text-[var(--text-primary)] bg-[var(--accent)] font-bold px-2 py-0.5 rounded-full">{unreadCount} new</span>}
               </div>
-              <div className="divide-y divide-[#e0e3e5] max-h-64 overflow-y-auto">
+              <div className="divide-y divide-[var(--border-primary)] max-h-64 overflow-y-auto">
                 {notifications.length === 0 ? (
                   <div className="p-6 text-center text-[var(--text-tertiary)] text-[13px]">No notifications yet</div>
                 ) : (
@@ -168,7 +168,7 @@ export default function Header({
                     <div
                       key={notif.id}
                       onClick={() => { if (notif.unread) handleMarkRead(notif.id); }}
-                      className={`p-3 text-[13px] hover:bg-[var(--surface-secondary)] transition-colors cursor-pointer ${notif.unread ? 'bg-blue-50/50' : ''}`}
+                      className={`p-3 text-[13px] hover:bg-[var(--surface-secondary)] transition-colors cursor-pointer ${notif.unread ? 'bg-[var(--accent-muted)]' : ''}`}
                     >
                       <p className={`text-[var(--text-primary)] ${notif.unread ? 'font-semibold' : ''}`}>{notif.text}</p>
                       <span className="text-[10px] text-[var(--text-tertiary)] mt-1 block">{notif.time}</span>
@@ -177,7 +177,7 @@ export default function Header({
                 )}
               </div>
               <div className="p-2 text-center text-[12px] bg-[var(--surface-secondary)]/50 border-t border-[var(--border-primary)] rounded-b-xl">
-                <button onClick={() => setShowNotificationsDropdown(false)} className="text-gray-600 font-bold hover:underline cursor-pointer">Close</button>
+                <button onClick={() => setShowNotificationsDropdown(false)} className="text-[var(--text-secondary)] font-bold hover:underline cursor-pointer">Close</button>
               </div>
             </div>
           )}
@@ -204,7 +204,7 @@ export default function Header({
           {showUserMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-[var(--border-primary)] rounded-xl shadow-lg py-1 z-50 animate-dropdown-enter">
+              <div className="absolute right-0 mt-2 w-48 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl shadow-lg py-1 z-50 animate-dropdown-enter">
                 <button
                   onClick={() => { setShowUserMenu(false); if (onProfileClick) onProfileClick(); }}
                   className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] cursor-pointer"
@@ -222,7 +222,7 @@ export default function Header({
                 <hr className="border-[var(--border-primary)] my-1" />
                 <button
                   onClick={() => { setShowUserMenu(false); if (onLogout) onLogout(); }}
-                  className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-semibold text-red-600 hover:bg-red-50 cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-semibold text-[var(--error-text)] hover:bg-[var(--error-bg)] cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" /> Logout
                 </button>

@@ -60,7 +60,7 @@ export default function CustomerDashboard({
           <p className="text-[14.5px] text-[var(--text-secondary)] font-medium mt-0.5">Access your outstanding balances, active requests and wallet balances.</p>
         </div>
         <div className="flex gap-2">
-          <div className="bg-white border border-[var(--border-primary)] flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-xs">
+          <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-xs">
             <Coins className="w-5 h-5 text-[var(--text-primary)]" />
             <div>
               <span className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-wider block">Vault Wallet</span>
@@ -116,9 +116,9 @@ export default function CustomerDashboard({
             {/* Action 1: Apply Loan */}
             <div
               onClick={onApplyLoanClick}
-              className="bg-white border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
+              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <PlusCircle className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Apply Loan</span>
@@ -127,9 +127,9 @@ export default function CustomerDashboard({
             {/* Action 2: Repay Link */}
             <div
               onClick={onRepayClick}
-              className="bg-white border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
+              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <Coins className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Repay Account</span>
@@ -138,9 +138,9 @@ export default function CustomerDashboard({
             {/* Action 3: Wallet Link */}
             <div
               onClick={() => onSetActiveMenu('wallets')}
-              className="bg-white border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
+              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <Wallet className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">My Wallets</span>
@@ -149,9 +149,9 @@ export default function CustomerDashboard({
             {/* Action 4: Support Link */}
             <div
               onClick={() => onSetActiveMenu('support')}
-              className="bg-white border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[#5cf2d0] hover:shadow-md hover:-translate-y-0.5 group"
+              className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center flex flex-col items-center justify-center cursor-pointer transition shadow-xs hover:border-[var(--accent)] hover:shadow-md hover:-translate-y-0.5 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#5cf2d0]/10 text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <HelpCircle className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Support Hub</span>
@@ -187,34 +187,37 @@ export default function CustomerDashboard({
         {/* Right column - Chronicles history lists */}
         <div className="lg:col-span-4 select-none">
           
-          <div className="bg-white border border-[var(--border-primary)] rounded-2xl p-6 shadow-xs h-full flex flex-col justify-between">
+          <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 shadow-xs h-full flex flex-col justify-between">
             <div className="space-y-4">
               
               {/* Box header toolbar */}
-              <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+              <div className="flex justify-between items-center pb-2 border-b border-[var(--border-primary)]">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4.5 h-4.5 text-[var(--text-secondary)]" />
                   <h3 className="text-[15px] font-bold text-[var(--text-primary)] uppercase tracking-wider">Recent History</h3>
                 </div>
                 <button
                   onClick={() => onSetActiveMenu('transactions')}
-                  className="text-slate-600 font-bold hover:underline text-[12px] cursor-pointer"
+                  className="text-[var(--text-secondary)] font-bold hover:underline text-[12px] cursor-pointer"
                 >
                   View All
                 </button>
               </div>
 
               {/* Transactions feed list */}
-              <div className="divide-y divide-gray-100 space-y-1.5">
+              <div className="divide-y divide-[var(--border-primary)] space-y-1.5">
                 {transactions.length > 0 ? (
                   transactions.slice(0, 5).map((tx) => {
                     const isPositive = tx.amount > 0;
                     return (
                       <div key={tx.id} className="flex justify-between items-center py-3.5 group hover:bg-[var(--surface-secondary)] p-1.5 rounded-lg transition-colors">
                         <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                            isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-                          }`}>
+                          <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                            style={{
+                              backgroundColor: isPositive ? 'var(--success-bg)' : 'var(--error-bg)',
+                              color: isPositive ? 'var(--success-text)' : 'var(--error-text)'
+                            }}
+                          >
                             {isPositive ? <ArrowDownLeft className="w-4.5 h-4.5" /> : <ArrowUpRight className="w-4.5 h-4.5" />}
                           </div>
                           <div>
@@ -223,9 +226,9 @@ export default function CustomerDashboard({
                           </div>
                         </div>
 
-                        <span className={`text-[15.5px] font-bold font-mono ${
-                          isPositive ? 'text-emerald-700' : 'text-rose-600'
-                        }`}>
+                        <span className="text-[15.5px] font-bold font-mono"
+                          style={{color: isPositive ? 'var(--success-text)' : 'var(--error-text)'}}
+                        >
                           {isPositive ? '+' : '-'}${Math.abs(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </span>
                       </div>

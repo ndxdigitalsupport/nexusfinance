@@ -57,6 +57,14 @@
   --sidebar-header-muted: #8a9aa5;
   --bg-body: #f4f7f9;
   --overlay-backdrop: rgba(0, 0, 0, 0.5);
+  --success-bg: rgba(16, 185, 129, 0.12);
+  --success-text: #10B981;
+  --error-bg: rgba(239, 68, 68, 0.12);
+  --error-text: #EF4444;
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --warning-text: #F59E0B;
+  --info-bg: rgba(59, 130, 246, 0.12);
+  --info-text: #3B82F6;
 }
 
 html.dark {
@@ -90,6 +98,14 @@ html.dark {
   --sidebar-header-muted: rgba(255,255,255,0.5);
   --bg-body: #0a0e12;
   --overlay-backdrop: rgba(0, 0, 0, 0.7);
+  --success-bg: rgba(16, 185, 129, 0.2);
+  --success-text: #34d399;
+  --error-bg: rgba(239, 68, 68, 0.2);
+  --error-text: #fb7185;
+  --warning-bg: rgba(245, 158, 11, 0.2);
+  --warning-text: #fbbf24;
+  --info-bg: rgba(59, 130, 246, 0.2);
+  --info-text: #60a5fa;
 }
 
 body {
@@ -177,54 +193,6 @@ input:focus, select:focus, textarea:focus, button:focus-visible {
   animation: float 3s ease-in-out infinite;
 }
 
-/* Dark mode overrides for Tailwind utility colors */
-html.dark .text-slate-800,
-html.dark .text-slate-700 {
-  color: var(--text-primary) !important;
-}
-html.dark .text-slate-600,
-html.dark .text-slate-500 {
-  color: var(--text-secondary) !important;
-}
-html.dark .text-slate-400 {
-  color: var(--text-tertiary) !important;
-}
-html.dark .border-slate-200,
-html.dark .border-slate-300 {
-  border-color: var(--border-primary) !important;
-}
-html.dark .bg-slate-200,
-html.dark .bg-slate-100,
-html.dark .bg-slate-50 {
-  background-color: var(--surface-secondary) !important;
-}
-html.dark .hover\:bg-slate-50:hover,
-html.dark .hover\:bg-\[\#f8fafc\]:hover {
-  background-color: var(--surface-secondary) !important;
-}
-html.dark .hover\:bg-\[\#f0fdfa\]:hover {
-  background-color: var(--accent-muted) !important;
-}
-html.dark .hover\:hover\:border-slate-200:hover {
-  border-color: var(--border-primary) !important;
-}
-html.dark .bg-white {
-  background-color: var(--surface-card) !important;
-}
-html.dark .divide-gray-100 > *,
-html.dark .divide-slate-100 > * {
-  border-color: var(--border-primary) !important;
-}
-html.dark .text-gray-700 {
-  color: var(--text-primary) !important;
-}
-html.dark .text-gray-500 {
-  color: var(--text-secondary) !important;
-}
-html.dark .border-gray-100,
-html.dark .border-gray-200 {
-  border-color: var(--border-primary) !important;
-}
 html.dark input:not(.dark\:bg-transparent):not([class*="bg-black"]),
 html.dark textarea:not(.dark\:bg-transparent):not([class*="bg-black"]) {
   background-color: var(--surface-secondary) !important;
@@ -234,28 +202,6 @@ html.dark textarea:not(.dark\:bg-transparent):not([class*="bg-black"]) {
 html.dark input::placeholder,
 html.dark textarea::placeholder {
   color: var(--text-tertiary) !important;
-}
-
-html.dark .text-emerald-700,
-html.dark .text-emerald-600 {
-  color: #34d399 !important;
-}
-html.dark .text-rose-600 {
-  color: #fb7185 !important;
-}
-html.dark .text-amber-700 {
-  color: #fbbf24 !important;
-}
-html.dark .text-blue-700 {
-  color: #60a5fa !important;
-}
-
-html.dark .bg-\[\#0F171C\]:not(.dark\:bg-transparent) {
-  background-color: #1a2a34 !important;
-}
-
-html.dark .bg-\[\#5CF2D0\] {
-  background-color: #3dba9e !important;
 }
 
 #root {

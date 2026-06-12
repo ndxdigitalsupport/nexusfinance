@@ -164,7 +164,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                       placeholder="Email / Username"
-                      className="w-full rounded-2xl bg-white border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-slate-400/90 focus:outline-none focus:border-[#5CF2D0]/80 focus:ring-2 focus:ring-[#5CF2D0]/20 font-medium transition-all"
+                      className="w-full rounded-2xl bg-white border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-medium transition-all"
                       required
                     />
                   </div>
@@ -175,7 +175,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       placeholder="Password"
-                      className="w-full rounded-2xl bg-white border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-slate-400/90 focus:outline-none focus:border-[#5CF2D0]/80 focus:ring-2 focus:ring-[#5CF2D0]/20 font-mono transition-all"
+                      className="w-full rounded-2xl bg-white border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-mono transition-all"
                       required
                     />
                   </div>
@@ -187,11 +187,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         type="checkbox"
                         checked={rememberMe}
                         onChange={(e) => setRememberMe(e.target.checked)}
-                        className="w-4.5 h-4.5 rounded text-[#5CF2D0] border-slate-300 focus:ring-[#5CF2D0]"
+                        className="w-4.5 h-4.5 rounded text-[var(--accent)] border-[var(--border-primary)] focus:ring-[var(--accent)]"
                       />
                       <span>Remember me</span>
                     </label>
-                    <button onClick={() => { setForgotEmail(loginEmail); setView('forgot'); }} className="text-[var(--text-secondary)] hover:text-slate-900 cursor-pointer">
+                    <button onClick={() => { setForgotEmail(loginEmail); setView('forgot'); }} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer">
                       Forgot Password?
                     </button>
                   </div>
@@ -201,7 +201,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     <button
                       type="submit"
                       disabled={loginLoading}
-                      className="w-full bg-[#5CF2D0] hover:bg-[#6ff5da] text-[#0e171c] font-black text-[15.5px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-teal-400/20 active:scale-98 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                      className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-black text-[15.5px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[var(--accent)]/20 active:scale-98 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                     >
                       {loginLoading ? (
                         <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> SIGNING IN...</span>
@@ -217,7 +217,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   <span>Don’t have an account? </span>
                   <button 
                     onClick={() => setView('register')}
-                    className="text-[#0e171c] underline hover:text-teal-700 cursor-pointer font-bold"
+                    className="text-[var(--text-primary)] underline hover:text-[var(--accent-hover)] cursor-pointer font-bold"
                   >
                     create account
                   </button>
@@ -225,16 +225,16 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                 {/* Divider */}
                 <div className="flex items-center gap-3 my-6">
-                  <div className="h-[1px] bg-slate-200/70 flex-grow" />
+                  <div className="h-[1px] bg-[var(--border-primary)] flex-grow" />
                   <span className="text-[11px] text-[var(--text-tertiary)] font-bold uppercase tracking-wider">or</span>
-                  <div className="h-[1px] bg-slate-200/70 flex-grow" />
+                  <div className="h-[1px] bg-[var(--border-primary)] flex-grow" />
                 </div>
 
                 {/* Google Sign In — redirects to real Google OAuth */}
                 <button
                   type="button"
                   onClick={() => window.location.href = API + '/auth/google'}
-                  className="w-full bg-white hover:bg-slate-50 text-[var(--text-secondary)] border border-[var(--border-primary)] font-bold text-[14px] py-3 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-98 shadow-xs cursor-pointer"
+                  className="w-full bg-white hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] border border-[var(--border-primary)] font-bold text-[14px] py-3 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-98 shadow-xs cursor-pointer"
                 >
                   <svg className="w-4 h-4 mr-0.5" viewBox="0 0 24 24">
                     <path
@@ -397,11 +397,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               <p>© 2024 Nexus Finance Institutional Group. All rights reserved.</p>
             </div>
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-slate-900 transition">Privacy Policy</a>
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-slate-900 transition">Terms of Service</a>
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-slate-900 transition">Regulatory Disclosure</a>
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-slate-900 transition">Cookie Settings</a>
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-slate-900 transition">Security</a>
+              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Privacy Policy</a>
+              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Terms of Service</a>
+              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Regulatory Disclosure</a>
+              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Cookie Settings</a>
+              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Security</a>
             </div>
           </footer>
         </>
@@ -448,7 +448,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={registerName}
                       onChange={(e) => setRegisterName(e.target.value)}
                       placeholder="Johnathan Doe"
-                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
+                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
                       required
                     />
                   </div>
@@ -468,7 +468,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={registerEmail}
                       onChange={(e) => setRegisterEmail(e.target.value)}
                       placeholder="j.doe@nexus.finance"
-                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
+                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
                       required
                     />
                   </div>
@@ -488,7 +488,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={registerPassword}
                       onChange={(e) => setRegisterPassword(e.target.value)}
                       placeholder="••••••••••••"
-                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-mono transition-all animate-none"
+                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-mono transition-all animate-none"
                       required
                     />
                   </div>
@@ -507,7 +507,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         value={registerConfirmPassword}
                         onChange={(e) => setRegisterConfirmPassword(e.target.value)}
                         placeholder="••••••••••••"
-                        className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-mono transition-all animate-none"
+                        className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-mono transition-all animate-none"
                         required
                       />
                     </div>
@@ -528,7 +528,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={registerPhone}
                       onChange={(e) => setRegisterPhone(e.target.value)}
                       placeholder="+855 12 345 678"
-                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[#5CF2D0]/20 focus:outline-[#5CF2D0]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
+                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
                       required
                     />
                   </div>
@@ -539,7 +539,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   <button
                     type="submit"
                     disabled={registerLoading}
-                    className="w-full bg-[#5CF2D0] hover:bg-[#6ff5da] text-[#0e171c] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-98 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-98 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {registerLoading ? (
                       <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> CREATING...</span>
@@ -555,7 +555,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 <span>Already have an account? </span>
                 <button 
                   onClick={() => setView('login')}
-                  className="text-[#0e171c] hover:text-teal-700 cursor-pointer font-bold ml-0.5"
+                  className="text-[var(--text-primary)] hover:text-[var(--accent-hover)] cursor-pointer font-bold ml-0.5"
                 >
                   Log In
                 </button>
@@ -570,9 +570,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               <p>© 2026 NEXUS FINANCE. PRECISE INTELLIGENCE.</p>
             </div>
             <div className="flex gap-6">
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-slate-900 transition">Privacy Policy</a>
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-slate-900 transition">Terms of Service</a>
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-slate-900 transition">Security</a>
+              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Privacy Policy</a>
+              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Terms of Service</a>
+              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Security</a>
             </div>
           </footer>
         </>
@@ -598,12 +598,12 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               </p>
               <button
                 onClick={() => { setView('login'); setRegisterDone(false); }}
-                className="w-full bg-[#5CF2D0] hover:bg-[#6ff5da] text-[#0e171c] font-bold py-4 rounded-2xl transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
+                className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
               >
                 GO TO SIGN IN <ArrowRight className="w-5 h-5 stroke-[2.5] inline ml-1" />
               </button>
               <div className="w-full flex justify-center text-[13px] font-bold text-[var(--text-secondary)] mt-6 pt-6 border-t border-[var(--border-primary)] select-none">
-                <button onClick={() => setView('register')} className="hover:text-[#0e171c] cursor-pointer">
+                <button onClick={() => setView('register')} className="hover:text-[var(--text-primary)] cursor-pointer">
                   Use a different email
                 </button>
               </div>
@@ -646,14 +646,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         placeholder="your@email.com"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3.5 bg-white/90 border border-[var(--border-primary)]/90 rounded-2xl text-[14px] font-medium focus:outline-none focus:border-[#5CF2D0] focus:ring-4 focus:ring-[#5CF2D0]/10 text-[var(--text-primary)] transition-all"
+                        className="w-full pl-10 pr-4 py-3.5 bg-white/90 border border-[var(--border-primary)]/90 rounded-2xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
                         required
                       />
                     </div>
                   </div>
                   <button
                     type="submit"
-                    className="w-full bg-[#5CF2D0] hover:bg-[#6ff5da] text-[#0e171c] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
+                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
                   >
                     SEND RESET LINK <ArrowRight className="w-5 h-5 stroke-[2.5]" />
                   </button>
@@ -661,17 +661,17 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               ) : (
                 <button
                   onClick={() => setView('login')}
-                  className="w-full bg-[#5CF2D0] hover:bg-[#6ff5da] text-[#0e171c] font-bold py-4 rounded-2xl transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
+                  className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl transition active:scale-98 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
                 >
                   BACK TO LOGIN
                 </button>
               )}
 
               <div className="w-full flex justify-between items-center text-[13px] font-bold text-[var(--text-secondary)] mt-8 pt-6 border-t border-[var(--border-primary)] select-none">
-                <button onClick={() => setView('login')} className="hover:text-[#0e171c] cursor-pointer">
+                <button onClick={() => setView('login')} className="hover:text-[var(--text-primary)] cursor-pointer">
                   ← Back to Login
                 </button>
-                <button onClick={() => setView('register')} className="hover:text-[#0e171c] cursor-pointer">
+                <button onClick={() => setView('register')} className="hover:text-[var(--text-primary)] cursor-pointer">
                   Create Account
                 </button>
               </div>

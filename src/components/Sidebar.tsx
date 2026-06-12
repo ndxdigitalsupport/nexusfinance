@@ -67,15 +67,13 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
           const isActive = activeMenu === item.id;
           return (
             <button key={item.id} onClick={() => setActiveMenu(item.id)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer group"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer group hover:bg-[var(--sidebar-active-bg)] hover:text-[var(--sidebar-text-hover)]"
               style={{
                 backgroundColor: isActive ? s('sidebar-active-bg') : 'transparent',
                 color: isActive ? s('sidebar-text-active') : s('sidebar-text'),
               }}
-              onMouseEnter={(e) => { if (!isActive) { e.currentTarget.style.backgroundColor = 'var(--sidebar-active-bg)'; e.currentTarget.style.color = 'var(--sidebar-text-hover)'; }}}
-              onMouseLeave={(e) => { if (!isActive) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text)'; }}}
             >
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 group-hover:bg-[var(--sidebar-icon-bg)] group-hover:text-[var(--sidebar-icon-text)]"
                 style={{
                   backgroundColor: isActive ? s('sidebar-icon-active-bg') : s('sidebar-icon-bg'),
                   color: isActive ? s('sidebar-icon-active-text') : s('sidebar-icon-text'),
@@ -101,15 +99,13 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
           const isActive = activeMenu === item.id;
           return (
             <button key={item.id} onClick={() => setActiveMenu(item.id)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer group"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer group hover:bg-[var(--sidebar-active-bg)] hover:text-[var(--sidebar-text-hover)]"
               style={{
                 backgroundColor: isActive ? s('sidebar-active-bg') : 'transparent',
                 color: isActive ? s('sidebar-text-active') : s('sidebar-text'),
               }}
-              onMouseEnter={(e) => { if (!isActive) { e.currentTarget.style.backgroundColor = 'var(--sidebar-active-bg)'; e.currentTarget.style.color = 'var(--sidebar-text-hover)'; }}}
-              onMouseLeave={(e) => { if (!isActive) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text)'; }}}
             >
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 group-hover:bg-[var(--sidebar-icon-bg)] group-hover:text-[var(--sidebar-icon-text)]"
                 style={{
                   backgroundColor: isActive ? s('sidebar-icon-active-bg') : s('sidebar-icon-bg'),
                   color: isActive ? s('sidebar-icon-active-text') : s('sidebar-icon-text'),
@@ -122,12 +118,10 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
           );
         })}
         <button onClick={onLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer group"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer group hover:bg-red-500/10 hover:text-red-400"
           style={{ color: 'rgba(239, 68, 68, 0.6)' }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#ef4444'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'rgba(239, 68, 68, 0.6)'; }}
         >
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 group-hover:bg-red-500/10 group-hover:text-red-400"
             style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'rgba(239, 68, 68, 0.6)' }}
           >
             <LogOut className="w-4 h-4" />

@@ -428,7 +428,7 @@ export default function App() {
             ) : activeMenu === 'tasks' ? (
               <div className="animate-content-enter">
                 <h2 className="text-[28px] font-extrabold text-[var(--text-primary)] mb-6">Compliance Tasks</h2>
-                <div className="bg-white border border-[var(--border-primary)] rounded-2xl overflow-hidden">
+                <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden">
                   {tasks.length === 0 ? (
                     <div className="p-16 text-center flex flex-col items-center">
                       <div className="w-20 h-20 bg-[var(--surface-secondary)] rounded-2xl flex items-center justify-center mb-5 border border-[var(--border-primary)]/50">
@@ -441,10 +441,10 @@ export default function App() {
                     const pending = tasks.filter(t => !t.completed);
                     if (pending.length === 0) return (
                       <div className="p-12 text-center flex flex-col items-center">
-                        <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mb-4 border border-emerald-200">
-                          <CheckSquare className="w-8 h-8 text-emerald-500" />
+                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 border" style={{backgroundColor: 'var(--success-bg)', borderColor: 'var(--success-bg)'}}>
+                          <CheckSquare className="w-8 h-8" style={{color: 'var(--success-text)'}} />
                         </div>
-                        <p className="text-emerald-800 font-extrabold text-[16px]">All tasks completed</p>
+                        <p className="font-extrabold text-[16px]" style={{color: 'var(--success-text)'}}>All tasks completed</p>
                         <p className="text-[var(--text-tertiary)] text-[13px] mt-1">Nothing requires your attention right now.</p>
                       </div>
                     );
@@ -463,22 +463,22 @@ export default function App() {
                           <th className="px-5 py-3.5"></th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#e0e3e5]">
+                      <tbody className="divide-y divide-[var(--border-primary)]">
                         {paginated.map((task) => (
-                          <tr key={task.id} className="text-[14px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]/70 transition-colors bg-white">
+                          <tr key={task.id} className="text-[14px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]/70 transition-colors bg-[var(--surface-card)]">
                             <td className="px-5 py-3.5">{task.title}</td>
                             <td className="px-5 py-3.5 text-[var(--text-secondary)]">{task.applicant}</td>
                             <td className="px-5 py-3.5 text-[var(--text-secondary)]">{task.regarding}</td>
                             <td className="px-5 py-3.5 text-[var(--text-secondary)]">{task.time}</td>
                             <td className="px-5 py-3.5">
-                              <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-100 text-amber-700">Pending</span>
+                              <span className="px-2.5 py-1 rounded-md text-[11px] font-bold" style={{backgroundColor: 'var(--warning-bg)', color: 'var(--warning-text)'}}>Pending</span>
                             </td>
                             <td className="px-5 py-3.5">
                               {task.title.toLowerCase().includes('verification') && (
-                                <button
-                                  onClick={() => handleJoinMeeting(task)}
-                                  className="bg-[#0F171C] hover:bg-slate-800 text-white text-[12px] font-bold px-4 py-2 rounded-lg transition cursor-pointer"
-                                >
+                                  <button
+                                    onClick={() => handleJoinMeeting(task)}
+                                    className="bg-[var(--sidebar-bg)] hover:brightness-125 text-white text-[12px] font-bold px-4 py-2 rounded-lg transition cursor-pointer"
+                                  >
                                   Join Meeting
                                 </button>
                               )}
@@ -509,7 +509,7 @@ export default function App() {
             ) : activeMenu === 'loans' ? (
               <div className="animate-content-enter">
                 <h2 className="text-[28px] font-extrabold text-[var(--text-primary)] mb-6">Loans Ledger</h2>
-                <div className="bg-white border border-[var(--border-primary)] rounded-2xl overflow-hidden">
+                <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden">
                   {(() => {
                     const filtered = applications.filter(a => a.applicantEmail === (portalUser?.email || ''));
                     if (filtered.length === 0) return (
@@ -535,19 +535,23 @@ export default function App() {
                           <th className="px-5 py-3.5">Date</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#e0e3e5]">
+                      <tbody className="divide-y divide-[var(--border-primary)]">
                         {paginated.map((app) => (
-                          <tr key={app.id} className="text-[14px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]/70 transition-colors bg-white">
+                          <tr key={app.id} className="text-[14px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]/70 transition-colors bg-[var(--surface-card)]">
                             <td className="px-5 py-3.5">{app.id}</td>
                             <td className="px-5 py-3.5">${app.amount.toLocaleString()}</td>
                             <td className="px-5 py-3.5 text-[var(--text-secondary)]">{app.type}</td>
                             <td className="px-5 py-3.5">
-                              <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold ${
-                                app.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
-                                app.status === 'Rejected' ? 'bg-red-100 text-red-700' :
-                                app.status === 'Hold' ? 'bg-amber-100 text-amber-700' :
-                                'bg-blue-100 text-blue-700'
-                              }`}>{app.status}</span>
+                              <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold`}
+                                style={{
+                                  backgroundColor: app.status === 'Approved' ? 'var(--success-bg)' :
+                                    app.status === 'Rejected' ? 'var(--error-bg)' :
+                                    app.status === 'Hold' ? 'var(--warning-bg)' : 'var(--info-bg)',
+                                  color: app.status === 'Approved' ? 'var(--success-text)' :
+                                    app.status === 'Rejected' ? 'var(--error-text)' :
+                                    app.status === 'Hold' ? 'var(--warning-text)' : 'var(--info-text)'
+                                }}
+                              >{app.status}</span>
                             </td>
                             <td className="px-5 py-3.5 text-[var(--text-secondary)]">{app.date}</td>
                           </tr>
@@ -563,12 +567,12 @@ export default function App() {
               <div className="animate-content-enter">
                 <h2 className="text-[28px] font-extrabold text-[var(--text-primary)] mb-6">Wallets</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white border border-[var(--border-primary)] rounded-2xl p-8">
+                  <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-8">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">Vault Wallet</p>
                     <p className="text-[36px] font-extrabold text-[var(--text-primary)] mt-2">$8,450.25</p>
                     <p className="text-[13px] text-[var(--text-secondary)] mt-1">Primary checking & savings</p>
                   </div>
-                  <div className="bg-white border border-[var(--border-primary)] rounded-2xl p-8">
+                  <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-8">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">Outstanding Balance</p>
                     <p className="text-[36px] font-extrabold text-[var(--text-primary)] mt-2">${outstandingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                     <p className="text-[13px] text-[var(--text-secondary)] mt-1">Total credit in use</p>
@@ -580,7 +584,7 @@ export default function App() {
             ) : activeMenu === 'transactions' ? (
               <div className="animate-content-enter">
                 <h2 className="text-[28px] font-extrabold text-[var(--text-primary)] mb-6">History Logs</h2>
-                <div className="bg-white border border-[var(--border-primary)] rounded-2xl overflow-hidden">
+                <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden">
                   {transactions.length === 0 ? (
                     <div className="p-16 text-center flex flex-col items-center">
                       <div className="w-20 h-20 bg-[var(--surface-secondary)] rounded-2xl flex items-center justify-center mb-5 border border-[var(--border-primary)]/50">
@@ -602,12 +606,12 @@ export default function App() {
                           <th className="px-5 py-3.5">Amount</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#e0e3e5]">
+                      <tbody className="divide-y divide-[var(--border-primary)]">
                         {paginated.map((tx) => (
-                          <tr key={tx.id} className="text-[14px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]/70 transition-colors bg-white">
+                          <tr key={tx.id} className="text-[14px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]/70 transition-colors bg-[var(--surface-card)]">
                             <td className="px-5 py-3.5">{tx.title}</td>
                             <td className="px-5 py-3.5 text-[var(--text-secondary)]">{tx.date}</td>
-                            <td className={`px-5 py-3.5 font-mono ${tx.amount > 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                            <td className="px-5 py-3.5 font-mono" style={{color: tx.amount > 0 ? 'var(--success-text)' : 'var(--error-text)'}}>
                               {tx.amount > 0 ? '+' : '-'}${Math.abs(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </td>
                           </tr>
@@ -713,7 +717,7 @@ function SupportView() {
     <div className="animate-in fade-in duration-200 max-w-3xl mx-auto">
       <h2 className="text-[28px] font-extrabold text-[var(--text-primary)] mb-6">Support & Contact</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white border border-[var(--border-primary)] rounded-2xl p-6 space-y-4">
+        <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 space-y-4">
           <h3 className="text-[15px] font-bold text-[var(--text-primary)] uppercase tracking-wider">Get in Touch</h3>
           <div className="space-y-3 text-[14px]">
             <p><span className="font-bold text-[var(--text-secondary)]">Phone:</span> +1 (800) 555-NEXUS</p>
@@ -722,13 +726,13 @@ function SupportView() {
             <p><span className="font-bold text-[var(--text-secondary)]">Address:</span> 100 Finance Ave, Suite 400, New York, NY 10005</p>
           </div>
         </div>
-        <div className="bg-white border border-[var(--border-primary)] rounded-2xl p-6 space-y-4">
+        <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 space-y-4">
           <h3 className="text-[15px] font-bold text-[var(--text-primary)] uppercase tracking-wider">Send a Message</h3>
           <form onSubmit={handleSubmit} className="space-y-3">
-            <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Your Name" required className="w-full border border-[var(--border-primary)] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all" />
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Your Email" required className="w-full border border-[var(--border-primary)] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all" />
-            <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Message" rows={4} required className="w-full border border-[var(--border-primary)] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all resize-none" />
-            <button type="submit" className="bg-[#5CF2D0] hover:bg-[#41ddbc] text-[var(--text-primary)] font-bold text-[14px] px-6 py-3 rounded-xl transition cursor-pointer">
+            <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Your Name" required className="w-full border border-[var(--border-primary)] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all" />
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Your Email" required className="w-full border border-[var(--border-primary)] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all" />
+            <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Message" rows={4} required className="w-full border border-[var(--border-primary)] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all resize-none" />
+            <button type="submit" className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[14px] px-6 py-3 rounded-xl transition cursor-pointer">
               {sent ? 'Message Sent!' : 'Send Message'}
             </button>
           </form>
@@ -825,26 +829,26 @@ function UsersView() {
     <div className="animate-in fade-in duration-200">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-[28px] font-extrabold text-[var(--text-primary)]">User Management</h2>
-        <button onClick={() => setShowCreate(!showCreate)} className="flex items-center gap-2 bg-[#0F171C] hover:bg-slate-800 text-white text-[13px] font-bold px-4 py-2.5 rounded-lg transition cursor-pointer">
+        <button onClick={() => setShowCreate(!showCreate)} className="flex items-center gap-2 bg-[var(--sidebar-bg)] hover:brightness-125 text-white text-[13px] font-bold px-4 py-2.5 rounded-lg transition cursor-pointer">
           <PlusCircle className="w-4 h-4" /> {showCreate ? 'Cancel' : 'Create Loan Officer'}
         </button>
       </div>
 
       {showCreate && (
-        <form onSubmit={handleCreateOfficer} className="bg-white border border-[var(--border-primary)] rounded-2xl p-6 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
+        <form onSubmit={handleCreateOfficer} className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
           <h3 className="font-bold text-[var(--text-primary)] mb-4">New Loan Officer</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Full Name" className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[#5CF2D0]" />
-            <input value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="Email" type="email" className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[#5CF2D0]" />
-            <input value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Password" type="password" className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[#5CF2D0]" />
+            <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Full Name" className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[var(--accent)]" />
+            <input value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="Email" type="email" className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[var(--accent)]" />
+            <input value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Password" type="password" className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[var(--accent)]" />
           </div>
-          <button type="submit" disabled={creating} className="bg-[#5CF2D0] hover:bg-[#41ddbc] text-[var(--text-primary)] font-bold text-[14px] px-6 py-2.5 rounded-lg transition cursor-pointer disabled:opacity-50">
+          <button type="submit" disabled={creating} className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[14px] px-6 py-2.5 rounded-lg transition cursor-pointer disabled:opacity-50">
             {creating ? 'Creating...' : 'Create Officer'}
           </button>
         </form>
       )}
 
-      <div className="bg-white border border-[var(--border-primary)] rounded-2xl overflow-hidden">
+      <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden">
         {users.length === 0 ? (
           <div className="p-16 text-center flex flex-col items-center">
             <div className="w-20 h-20 bg-[var(--surface-secondary)] rounded-2xl flex items-center justify-center mb-5 border border-[var(--border-primary)]/50">
@@ -865,29 +869,35 @@ function UsersView() {
               <th className="px-5 py-3.5"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#e0e3e5]">
+          <tbody className="divide-y divide-[var(--border-primary)]">
               {paginatedUsers.map((u) => (
-                  <tr key={u.id} className="text-[14px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]/70 transition-colors bg-white">
+                  <tr key={u.id} className="text-[14px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]/70 transition-colors bg-[var(--surface-card)]">
                 <td className="px-5 py-3.5">{u.name}</td>
                 <td className="px-5 py-3.5 text-[var(--text-secondary)]">{u.email}</td>
                 <td className="px-5 py-3.5">
-                  <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold ${
-                    u.role === 'super-admin' ? 'bg-purple-100 text-purple-700' :
-                    u.role === 'loan-officer' ? 'bg-blue-100 text-blue-700' :
-                    'bg-emerald-100 text-emerald-700'
-                  }`}>{u.role}</span>
+                  <span className="px-2.5 py-1 rounded-md text-[11px] font-bold"
+                    style={{
+                      backgroundColor: u.role === 'super-admin' ? 'var(--info-bg)' :
+                        u.role === 'loan-officer' ? 'var(--info-bg)' : 'var(--success-bg)',
+                      color: u.role === 'super-admin' ? 'var(--info-text)' :
+                        u.role === 'loan-officer' ? 'var(--info-text)' : 'var(--success-text)'
+                    }}
+                  >{u.role}</span>
                 </td>
                 <td className="px-5 py-3.5">
                   {u.role !== 'super-admin' && (
                     <div className="relative">
                       <button
                         onClick={(e) => { e.stopPropagation(); setRoleDropdownId(roleDropdownId === u.id ? null : u.id); }}
-                        className="flex items-center gap-1.5 text-[12px] font-bold border border-[var(--border-primary)] rounded-xl px-2.5 py-1.5 bg-white hover:border-[#94a3b8] focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 transition-all cursor-pointer min-w-[120px]"
+                        className="flex items-center gap-1.5 text-[12px] font-bold border border-[var(--border-primary)] rounded-xl px-2.5 py-1.5 bg-[var(--surface-card)] hover:border-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all cursor-pointer min-w-[120px]"
                       >
                         <ShieldCheck className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
-                        <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
-                          u.role === 'loan-officer' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'
-                        }`}>{u.role === 'loan-officer' ? 'Loan Officer' : 'Customer'}</span>
+                        <span className="px-2 py-0.5 rounded-md text-[11px] font-bold"
+                          style={{
+                            backgroundColor: u.role === 'loan-officer' ? 'var(--info-bg)' : 'var(--success-bg)',
+                            color: u.role === 'loan-officer' ? 'var(--info-text)' : 'var(--success-text)'
+                          }}
+                        >{u.role === 'loan-officer' ? 'Loan Officer' : 'Customer'}</span>
                         <ChevronDown className={`w-3.5 h-3.5 text-[var(--text-tertiary)] ml-auto transition-transform duration-150 ${roleDropdownId === u.id ? 'rotate-180' : ''}`} />
                       </button>
                       {roleDropdownId === u.id && (
@@ -913,7 +923,7 @@ function UsersView() {
                   {u.role !== 'super-admin' && (
                     <button
                       onClick={() => { setResetPwUserId(u.id); setResetPwPassword(''); }}
-                      className="text-[11px] font-bold text-[var(--text-tertiary)] hover:text-[var(--text-primary)] border border-[var(--border-primary)] rounded-lg px-2.5 py-1.5 hover:border-[#94a3b8] transition-all cursor-pointer"
+                      className="text-[11px] font-bold text-[var(--text-tertiary)] hover:text-[var(--text-primary)] border border-[var(--border-primary)] rounded-lg px-2.5 py-1.5 hover:border-[var(--text-tertiary)] transition-all cursor-pointer"
                     >
                       Reset PW
                     </button>
@@ -929,7 +939,7 @@ function UsersView() {
 
       {resetPwUserId !== null && (
         <div className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150" onClick={() => setResetPwUserId(null)}>
-          <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl border border-[var(--border-primary)] p-6" onClick={e => e.stopPropagation()}>
+          <div className="bg-[var(--surface-card)] w-full max-w-sm rounded-2xl shadow-xl border border-[var(--border-primary)] p-6" onClick={e => e.stopPropagation()}>
             <h3 className="text-[18px] font-extrabold text-[var(--text-primary)] mb-1">Reset User Password</h3>
             <p className="text-[13px] text-[var(--text-tertiary)] mb-4">Send a reset link via email, or set a new password directly.</p>
 
@@ -945,7 +955,7 @@ function UsersView() {
                 } finally { setResettingPw(false); }
               }}
               disabled={resettingPw}
-              className="w-full text-left px-4 py-3 rounded-xl border border-[var(--border-primary)] hover:border-[#5CF2D0] hover:bg-[#f0fdfa] transition-all cursor-pointer mb-3 disabled:opacity-50"
+              className="w-full text-left px-4 py-3 rounded-xl border border-[var(--border-primary)] hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] transition-all cursor-pointer mb-3 disabled:opacity-50"
             >
               <span className="font-bold text-[14px] text-[var(--text-primary)]">📧 Send Reset Link</span>
               <p className="text-[11px] text-[var(--text-tertiary)] mt-0.5">User receives an email to set their own password</p>
@@ -958,11 +968,11 @@ function UsersView() {
                 value={resetPwPassword}
                 onChange={e => setResetPwPassword(e.target.value)}
                 placeholder="New password (min 6 chars)"
-                className="w-full border border-[var(--border-primary)] rounded-xl px-3.5 py-2.5 text-[14px] mb-3 focus:outline-none focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20"
+                className="w-full border border-[var(--border-primary)] rounded-xl px-3.5 py-2.5 text-[14px] mb-3 focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
               />
               <div className="flex gap-2 justify-end">
                 <button onClick={() => setResetPwUserId(null)} className="px-4 py-2 text-[13px] font-bold text-[var(--text-tertiary)] hover:text-[var(--text-primary)] border border-[var(--border-primary)] rounded-xl cursor-pointer">Cancel</button>
-                <button onClick={() => resetPassword(resetPwUserId)} disabled={resettingPw || !resetPwPassword || resetPwPassword.length < 6} className="px-4 py-2 text-[13px] font-bold bg-[#0F171C] text-white rounded-xl hover:brightness-110 cursor-pointer disabled:opacity-50">{resettingPw ? 'Saving...' : 'Set Password'}</button>
+                <button onClick={() => resetPassword(resetPwUserId)} disabled={resettingPw || !resetPwPassword || resetPwPassword.length < 6} className="px-4 py-2 text-[13px] font-bold bg-[var(--sidebar-bg)] text-white rounded-xl hover:brightness-110 cursor-pointer disabled:opacity-50">{resettingPw ? 'Saving...' : 'Set Password'}</button>
               </div>
             </div>
           </div>
