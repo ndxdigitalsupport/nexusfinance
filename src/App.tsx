@@ -112,6 +112,18 @@ export default function App() {
     const savedMenu = localStorage.getItem('nexus_active_menu');
     if (savedPortal) setCurrentPortal(savedPortal as PortalType);
     if (savedMenu) setActiveMenu(savedMenu);
+
+    // Check for Google OAuth callback token
+    const params = new URLSearchParams(window.location.search);
+    const googleToken = params.get('google_token');
+    const googleError = params.get('error');
+    if (googleToken) {
+      handleLoginSuccess(googleToken);
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (googleError) {
+      console.error('Google OAuth error:', googleError);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, []);
 
   const saveToStorage = (key: string, val: string) => localStorage.setItem(key, val);

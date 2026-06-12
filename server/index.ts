@@ -12,6 +12,8 @@ import { db } from './db.js';
 import { updateUserPassword } from './appwrite.js';
 import { sendSMS } from './sms.js';
 import { generateKHQR, verifyKHQR, decodeKHQR, generateDeeplink, checkTransaction } from './khqr.js';
+import crypto from 'crypto';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -35,7 +37,8 @@ for (const key of requiredEnv) {
 
 app.set('trust proxy', 1);
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
-app.use(cors({ origin: corsOrigin }));
+app.use(cors({ origin: corsOrigin, credentials: true }));
+app.use(cookieParser());
 app.use(express.json());
 
 function logAudit(action: string, details: string, user: any) {
@@ -103,6 +106,97 @@ app.patch('/api/auth/profile', authMiddleware, async (req, res) => {
   const { data: updated } = await db.from('nexus_users').update(updates).eq('id', req.user.id).select('id, name, email, role, phone').single();
   if (!updated) return res.status(404).json({ error: 'User not found.' });
   res.json({ user: updated });
+});
+
+// ── GOOGLE OAUTH ROUTES ──────────────────────────────────────
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || 'https://nexusfinance-5okf.onrender.com/api/auth/google/callback';
+const FRONTEND_URL = process.env.CORS_ORIGIN || 'https://nexusfinancefintech.vercel.app';
+
+// Step 1: Redirect user to Google consent screen
+app.get('/api/auth/google', (req, res) => {
+  if (!GOOGLE_CLIENT_ID) return res.status(500).json({ error: 'Google OAuth not configured.' });
+
+  const state = crypto.randomBytes(16).toString('hex');
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: GOOGLE_CALLBACK_URL,
+    response_type: 'code',
+    scope: 'openid email profile',
+    access_type: 'offline',
+    prompt: 'consent',
+    state,
+  });
+
+  // Store state in a cookie for CSRF protection (simple approach)
+  res.cookie('google_oauth_state', state, { httpOnly: true, secure: true, sameSite: 'lax', maxAge: 60000 });
+  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
+});
+
+// Step 2: Handle Google callback
+app.get('/api/auth/google/callback', async (req, res) => {
+  try {
+    const { code, state } = req.query;
+    const savedState = req.cookies?.google_oauth_state;
+
+    // Basic state validation
+    if (state && savedState && state !== savedState) {
+      return res.redirect(`${FRONTEND_URL}?error=invalid_state`);
+    }
+
+    if (!code) return res.redirect(`${FRONTEND_URL}?error=no_code`);
+
+    // Exchange authorization code for tokens
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code: code as string,
+        client_id: GOOGLE_CLIENT_ID!,
+        client_secret: GOOGLE_CLIENT_SECRET!,
+        redirect_uri: GOOGLE_CALLBACK_URL,
+        grant_type: 'authorization_code',
+      }),
+    });
+
+    const tokens = await tokenRes.json();
+    if (!tokens.access_token) return res.redirect(`${FRONTEND_URL}?error=token_exchange_failed`);
+
+    // Fetch user info from Google
+    const userRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${tokens.access_token}` },
+    });
+    const googleUser = await userRes.json();
+
+    if (!googleUser.email) return res.redirect(`${FRONTEND_URL}?error=no_email`);
+
+    // Find or create user in database
+    let { data: dbUser } = await db.from('nexus_users').select('*').eq('email', googleUser.email).maybeSingle();
+    if (!dbUser) {
+      const { data: newUser } = await db.from('nexus_users').insert({
+        name: googleUser.name || googleUser.email.split('@')[0],
+        email: googleUser.email,
+        role: 'customer',
+        phone: '',
+      }).select().single();
+      dbUser = newUser;
+    }
+
+    // Generate JWT
+    const token = jwt.sign(
+      { id: dbUser!.id, email: dbUser!.email, name: dbUser!.name, role: dbUser!.role },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    // Redirect back to frontend with token
+    res.redirect(`${FRONTEND_URL}?google_token=${token}`);
+  } catch (err) {
+    console.error('Google OAuth callback error:', err);
+    res.redirect(`${FRONTEND_URL}?error=oauth_failed`);
+  }
 });
 
 // ── SMS ROUTES ───────────────────────────────────────────────
