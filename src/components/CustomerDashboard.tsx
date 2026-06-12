@@ -16,6 +16,7 @@ import {
 import { Transaction } from '../types';
 
 interface CustomerDashboardProps {
+  userName: string;
   outstandingBalance: number;
   walletBalance: number;
   transactions: Transaction[];
@@ -26,6 +27,7 @@ interface CustomerDashboardProps {
 }
 
 export default function CustomerDashboard({
+  userName,
   outstandingBalance,
   walletBalance,
   transactions,
@@ -56,15 +58,15 @@ export default function CustomerDashboard({
       {/* HUD Header */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 select-none">
         <div>
-          <h2 className="text-[32px] md:text-[36px] font-sans font-extrabold text-[var(--text-primary)] tracking-tight">Welcome, Customer</h2>
+          <h2 className="text-[32px] md:text-[36px] font-sans font-extrabold text-[var(--text-primary)] tracking-tight">Welcome, {userName.split(' ')[0]}</h2>
           <p className="text-[14.5px] text-[var(--text-secondary)] font-medium mt-0.5">Access your outstanding balances, active requests and wallet balances.</p>
         </div>
         <div className="flex gap-2">
-          <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-xs">
-            <Coins className="w-5 h-5 text-[var(--text-primary)]" />
+          <div className="premium-card flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-xs">
+            <Coins className="w-5 h-5" style={{ color: 'var(--accent)' }} />
             <div>
               <span className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-wider block">Vault Wallet</span>
-                  <span className="text-[14px] font-extrabold font-mono text-[var(--text-primary)]">${walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              <span className="text-[14px] font-extrabold font-mono text-[var(--text-primary)]">${walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
             </div>
           </div>
         </div>
@@ -78,10 +80,6 @@ export default function CustomerDashboard({
           
           {/* Main Outstanding balance card */}
           <div className="premium-card-dark text-white rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row justify-between md:items-center relative overflow-hidden group">
-            {/* Visual landmark background emblem */}
-            <div className="absolute top-1/2 -translate-y-1/2 right-12 w-48 h-48 bg-white/5 rounded-full flex items-center justify-center pointer-events-none z-0">
-              <PlusCircle className="w-24 h-24 stroke-[1]" />
-            </div>
 
             <div className="space-y-5 relative z-10">
               <div>
@@ -113,63 +111,72 @@ export default function CustomerDashboard({
           {/* Core Action Squares layout */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 select-none">
             <button onClick={onApplyLoanClick}
-              className="stagger-1 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift hover:border-[var(--accent)] group cursor-pointer"
+              className="stagger-1 p-5 text-center flex flex-col items-center justify-center hover-lift group cursor-pointer rounded-2xl transition-all duration-200"
+              style={{ backgroundColor: 'var(--accent)', color: 'var(--text-inverse)' }}
             >
-              <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
                 <PlusCircle className="w-6 h-6 stroke-[2.5]" />
               </div>
-              <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Apply Loan</span>
+              <span className="text-[13.5px] font-extrabold">Apply Loan</span>
             </button>
             <button onClick={onRepayClick}
-              className="stagger-2 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift hover:border-[var(--accent)] group cursor-pointer"
+              className="stagger-2 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift group cursor-pointer"
+              style={{ borderColor: 'rgba(59, 130, 246, 0.3)' }}
             >
-              <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3 group-hover:scale-105 duration-200"
+                style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}
+              >
                 <Coins className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Repay Account</span>
             </button>
             <button onClick={() => onSetActiveMenu('wallets')}
-              className="stagger-3 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift hover:border-[var(--accent)] group cursor-pointer"
+              className="stagger-3 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift group cursor-pointer"
+              style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}
             >
-              <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3 group-hover:scale-105 duration-200"
+                style={{ backgroundColor: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}
+              >
                 <Wallet className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">My Wallets</span>
             </button>
             <button onClick={() => onSetActiveMenu('support')}
-              className="stagger-4 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift hover:border-[var(--accent)] group cursor-pointer"
+              className="stagger-4 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift group cursor-pointer"
+              style={{ borderColor: 'rgba(245, 158, 11, 0.3)' }}
             >
-              <div className="w-12 h-12 rounded-xl bg-[var(--accent-muted)] text-[var(--text-primary)] flex items-center justify-center mb-3 group-hover:scale-105 duration-200">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3 group-hover:scale-105 duration-200"
+                style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}
+              >
                 <HelpCircle className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Support Hub</span>
             </button>
           </div>
 
-          {/* Interactive Fast Cash promotion banner (gorgeous streak background style) */}
+          {/* Fast Cash quick-access banner */}
           <button 
             onClick={() => setShowFastCashPromo(true)} 
             className="w-full text-left rounded-2xl p-6 relative overflow-hidden group cursor-pointer shadow-md select-none hover:shadow-lg transition duration-200 border"
             style={{ backgroundColor: 'var(--card-dark-bg)', borderColor: 'var(--card-dark-border)' }}
           >
-            {/* Visual streak lights styled in CSS */}
-            <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-[var(--accent)]/15 to-transparent skew-x-12 pointer-events-none group-hover:opacity-100 opacity-60 duration-300"></div>
+            <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-[var(--accent)]/10 to-transparent skew-x-12 pointer-events-none group-hover:opacity-100 opacity-40 duration-300"></div>
 
             <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="space-y-2">
                 <span className="inline-flex px-2.5 py-1 text-[11px] font-sans font-extrabold rounded-full border uppercase tracking-wider"
                   style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)', borderColor: 'rgba(92, 242, 208, 0.25)' }}
                 >
-                  LIMITED OFFER
+                  Quick Access
                 </span>
                 <h3 className="text-[22px] font-sans font-bold tracking-tight" style={{ color: 'var(--card-dark-text-bright)' }}>Fast Cash Loan</h3>
-                <p className="text-[13.5px] max-w-sm" style={{ color: 'var(--card-dark-text)' }}>Instant pre-approved microloans up to $5,000 sent directly to your active wallets in minutes.</p>
+                <p className="text-[13.5px] max-w-sm" style={{ color: 'var(--card-dark-text)' }}>Need funds quickly? Request a microloan up to $5,000 — auto-approved and deposited to your wallet in minutes.</p>
               </div>
 
               <div className="font-bold text-[14px] flex items-center gap-1 shrink-0 transition-transform group-hover:translate-x-1"
                 style={{ color: 'var(--accent)' }}
               >
-                <span>Learn More</span>
+                <span>Apply Now</span>
                 <ArrowRight className="w-4 h-4 stroke-[2.5]" />
               </div>
             </div>
@@ -180,7 +187,7 @@ export default function CustomerDashboard({
         {/* Right column - Chronicles history lists */}
         <div className="lg:col-span-4 select-none">
           
-          <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 shadow-xs h-full flex flex-col justify-between">
+          <div className="premium-card rounded-2xl p-6 shadow-xs h-full flex flex-col justify-between">
             <div className="space-y-4">
               
               {/* Box header toolbar */}

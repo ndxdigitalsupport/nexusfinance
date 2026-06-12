@@ -76,7 +76,7 @@ export default function Header({
     setShowNotificationsDropdown(!showNotificationsDropdown);
   };
 
-  const roleLabel = userRole === 'super-admin' ? 'Super Admin' : userRole === 'loan-officer' ? 'Loan Officer' : 'Customer';
+  const roleLabel = currentPortal === 'super-admin' ? 'Super Admin' : currentPortal === 'loan-officer' ? 'Loan Officer' : 'Customer';
 
   return (
     <header className="flex justify-between items-center px-4 md:px-10 h-16 w-full sticky top-0 z-30 bg-[var(--surface-card)]/80 backdrop-blur-xl border-b border-[var(--border-primary)]">
