@@ -632,7 +632,7 @@ export default function App() {
           )}
 
           {activeMenu === 'profile' && (
-            <div className="animate-content-enter"><ProfilePage token={token} /></div>
+            <div className="animate-content-enter"><ProfilePage token={token} user={portalUser} /></div>
           )}
 
           {activeMenu === 'support' && (

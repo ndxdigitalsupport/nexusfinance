@@ -7,9 +7,10 @@ import { API } from '../api';
 
 interface ProfilePageProps {
   token: string;
+  user?: { name: string; role: string } | null;
 }
 
-export default function ProfilePage({ token }: ProfilePageProps) {
+export default function ProfilePage({ token, user }: ProfilePageProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -155,7 +156,7 @@ export default function ProfilePage({ token }: ProfilePageProps) {
           <span className="premium-badge inline-block mt-3 px-3 py-1 text-[11px] font-bold uppercase tracking-wider"
             style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)', border: '1px solid var(--accent-muted)' }}
           >
-            {user.role}
+            {user?.role || 'customer'}
           </span>
         </div>
       </div>
