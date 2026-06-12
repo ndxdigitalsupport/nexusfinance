@@ -13,6 +13,7 @@ import { updateUserPassword } from './appwrite.js';
 import { sendSMS } from './sms.js';
 import { generateKHQR, verifyKHQR, decodeKHQR, generateDeeplink, checkTransaction } from './khqr.js';
 import crypto from 'crypto';
+import fs from 'fs';
 import cookieParser from 'cookie-parser';
 
 dotenv.config();
@@ -442,6 +443,59 @@ app.get('/api/audit/logs', authMiddleware, async (req, res) => {
   res.json(logs || []);
 });
 
+// ── REGISTER ROUTE ────────────────────────────────────────
+
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Name, email, and password are required.' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    }
+
+    const { data: existing } = await db.from('nexus_users').select('id').eq('email', email).maybeSingle();
+    if (existing) {
+      return res.status(400).json({ error: 'An account with this email already exists.' });
+    }
+
+    const bcrypt = await import('bcryptjs');
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const { data: newUser } = await db.from('nexus_users').insert({
+      name,
+      email,
+      password: hashedPassword,
+      role: 'customer',
+      phone: '',
+      verified: false,
+    }).select('id, name, email, role').single();
+
+    res.status(201).json({ user: newUser });
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// ── SEND PASSWORD RESET LINK (stub — logs to console) ──────
+
+app.post('/api/users/:id/send-reset-link', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
+  const { data: user } = await db.from('nexus_users').select('id, name, email').eq('id', parseInt(req.params.id)).single();
+  if (!user) return res.status(404).json({ error: 'User not found.' });
+
+  // In production, send an email with a reset link via SendGrid/Resend.
+  // For now, log it so admins can see it worked.
+  console.log(`\n  🔗 Password reset link requested for ${user.name} (${user.email})`);
+  console.log(`  └─ In production, an email would be sent here.`);
+
+  logAudit('password-reset-link', `Reset link sent to ${user.email}`, req.user);
+  notifyUser(user.id, 'A password reset link has been sent to your email.');
+  res.json({ message: 'Reset link sent successfully.' });
+});
+
 // ── SUPPORT ROUTES ─────────────────────────────────────────
 
 app.post('/api/support/message', authMiddleware, (req, res) => {
@@ -464,6 +518,74 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 
+// ── KHQR Routes (available in all environments) ────────────
+app.get('/api/khqr/generate', (req, res) => {
+  try {
+    const { bakongAccountId, merchantName, merchantCity, currency, amount, countryCode, storeLabel, phone, email } = req.query;
+    if (!bakongAccountId || !merchantName) {
+      return res.status(400).json({ error: 'bakongAccountId and merchantName are required' });
+    }
+    const result = generateKHQR({
+      bakongAccountId: bakongAccountId as string,
+      merchantName: merchantName as string,
+      merchantCity: (merchantCity as string) || 'Phnom Penh',
+      currency: (currency as '840' | '116') || '840',
+      amount: amount ? parseFloat(amount as string) : undefined,
+      countryCode: (countryCode as string) || 'KH',
+      storeLabel: storeLabel as string,
+      phone: phone as string,
+      email: email as string,
+    });
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to generate KHQR' });
+  }
+});
+
+app.get('/api/khqr/verify', (req, res) => {
+  try {
+    const { qr } = req.query;
+    if (!qr) return res.status(400).json({ error: 'qr parameter is required' });
+    const result = verifyKHQR(qr as string);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to verify KHQR' });
+  }
+});
+
+app.get('/api/khqr/decode', (req, res) => {
+  try {
+    const { qr } = req.query;
+    if (!qr) return res.status(400).json({ error: 'qr parameter is required' });
+    const result = decodeKHQR(qr as string);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to decode KHQR' });
+  }
+});
+
+app.get('/api/khqr/deeplink', (req, res) => {
+  try {
+    const { qr } = req.query;
+    if (!qr) return res.status(400).json({ error: 'qr parameter is required' });
+    const result = generateDeeplink(qr as string);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to generate deeplink' });
+  }
+});
+
+app.get('/api/khqr/check-transaction', (req, res) => {
+  try {
+    const { referenceId } = req.query;
+    if (!referenceId) return res.status(400).json({ error: 'referenceId is required' });
+    const result = checkTransaction(referenceId as string);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to check transaction' });
+  }
+});
+
 // ── PRODUCTION: serve frontend build ─────────────────────────
 
 if (process.env.NODE_ENV === 'production') {
@@ -472,73 +594,6 @@ if (process.env.NODE_ENV === 'production') {
     projectId: process.env.APPWRITE_PROJECT_ID,
   });
   const distDir = path.join(process.cwd(), 'dist');
-  // ── KHQR Routes ─────────────────────────────────────────────
-  app.get('/api/khqr/generate', (req, res) => {
-    try {
-      const { bakongAccountId, merchantName, merchantCity, currency, amount, countryCode, storeLabel, phone, email } = req.query;
-      if (!bakongAccountId || !merchantName) {
-        return res.status(400).json({ error: 'bakongAccountId and merchantName are required' });
-      }
-      const result = generateKHQR({
-        bakongAccountId: bakongAccountId as string,
-        merchantName: merchantName as string,
-        merchantCity: (merchantCity as string) || 'Phnom Penh',
-        currency: (currency as '840' | '116') || '840',
-        amount: amount ? parseFloat(amount as string) : undefined,
-        countryCode: (countryCode as string) || 'KH',
-        storeLabel: storeLabel as string,
-        phone: phone as string,
-        email: email as string,
-      });
-      res.json(result);
-    } catch (err: any) {
-      res.status(500).json({ error: err.message || 'Failed to generate KHQR' });
-    }
-  });
-
-  app.get('/api/khqr/verify', (req, res) => {
-    try {
-      const { qr } = req.query;
-      if (!qr) return res.status(400).json({ error: 'qr parameter is required' });
-      const result = verifyKHQR(qr as string);
-      res.json(result);
-    } catch (err: any) {
-      res.status(500).json({ error: err.message || 'Failed to verify KHQR' });
-    }
-  });
-
-  app.get('/api/khqr/decode', (req, res) => {
-    try {
-      const { qr } = req.query;
-      if (!qr) return res.status(400).json({ error: 'qr parameter is required' });
-      const result = decodeKHQR(qr as string);
-      res.json(result);
-    } catch (err: any) {
-      res.status(500).json({ error: err.message || 'Failed to decode KHQR' });
-    }
-  });
-
-  app.get('/api/khqr/deeplink', (req, res) => {
-    try {
-      const { qr } = req.query;
-      if (!qr) return res.status(400).json({ error: 'qr parameter is required' });
-      const result = generateDeeplink(qr as string);
-      res.json(result);
-    } catch (err: any) {
-      res.status(500).json({ error: err.message || 'Failed to generate deeplink' });
-    }
-  });
-
-  app.get('/api/khqr/check-transaction', (req, res) => {
-    try {
-      const { referenceId } = req.query;
-      if (!referenceId) return res.status(400).json({ error: 'referenceId is required' });
-      const result = checkTransaction(referenceId as string);
-      res.json(result);
-    } catch (err: any) {
-      res.status(500).json({ error: err.message || 'Failed to check transaction' });
-    }
-  });
 
   // ── SPA catch-all ────────────────────────────────────────────
   app.use(express.static(distDir));
@@ -547,8 +602,8 @@ if (process.env.NODE_ENV === 'production') {
       res.status(404).json({ error: `Route ${req.method} ${req.path} not found.` });
     } else {
       const indexPath = path.join(distDir, 'index.html');
-      if (require('fs').existsSync(indexPath)) {
-        let html = require('fs').readFileSync(indexPath, 'utf-8');
+      if (fs.existsSync(indexPath)) {
+        let html = fs.readFileSync(indexPath, 'utf-8');
         html = html.replace('</head>', `<script>window.__APPWRITE__=${appwriteConfig}</script></head>`);
         res.type('html').send(html);
       } else {
