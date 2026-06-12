@@ -152,10 +152,6 @@ export default function App() {
 
   const handleLogout = async () => {
     document.documentElement.classList.remove('dark');
-    try {
-      const { account } = await import('./appwriteClient');
-      await account.deleteSessions();
-    } catch { /* Appwrite session may already be gone */ }
     setIsLoggedIn(false);
     setToken(null);
     ['nexus_token', 'nexus_portal', 'nexus_active_menu'].forEach(k => localStorage.removeItem(k));
@@ -509,6 +505,7 @@ export default function App() {
           {currentPortal === 'customer' && (
             activeMenu === 'dashboard' ? (
               <CustomerDashboard
+                userName={portalUser?.name || 'Customer'}
                 outstandingBalance={outstandingBalance}
                 walletBalance={walletBalance}
                 transactions={transactions}

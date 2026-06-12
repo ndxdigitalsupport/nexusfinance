@@ -64,8 +64,41 @@ function authMiddleware(req: any, res: any, next: any) {
   }
 }
 
-// ── AUTH ROUTES (Appwrite-backed) ──────────────────────────
+// ── AUTH ROUTES ────────────────────────────────────────────
 
+function generateToken(user: { id: number; email: string; name: string; role: string; }) {
+  return jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
+}
+
+// Login with email + password (bcrypt verified against database)
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    const { data: dbUser } = await db.from('nexus_users').select('*').eq('email', email).maybeSingle();
+    if (!dbUser) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    const bcrypt = await import('bcryptjs');
+    const isValid = await bcrypt.compare(password, dbUser.password || '');
+    if (!isValid) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    const token = generateToken({ id: dbUser.id, email: dbUser.email, name: dbUser.name, role: dbUser.role });
+    logAudit('login', `User ${dbUser.email} logged in`, { id: dbUser.id, email: dbUser.email, name: dbUser.name, role: dbUser.role });
+    res.json({ token, user: { id: dbUser.id, name: dbUser.name, email: dbUser.email, role: dbUser.role } });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// Session exchange for users authenticated via Appwrite (legacy) or Google OAuth
 app.post('/api/auth/session', async (req, res) => {
   try {
     const { email, name } = req.body;
@@ -80,7 +113,7 @@ app.post('/api/auth/session', async (req, res) => {
       dbUser = newUser;
     }
 
-    const token = jwt.sign({ id: dbUser!.id, email: dbUser!.email, name: dbUser!.name, role: dbUser!.role }, JWT_SECRET, { expiresIn: '24h' });
+    const token = generateToken({ id: dbUser!.id, email: dbUser!.email, name: dbUser!.name, role: dbUser!.role });
     res.json({ token, user: { id: dbUser!.id, name: dbUser!.name, email: dbUser!.email, role: dbUser!.role } });
   } catch (err) {
     console.error('Session exchange error:', err);
@@ -107,6 +140,28 @@ app.patch('/api/auth/profile', authMiddleware, async (req, res) => {
   const { data: updated } = await db.from('nexus_users').update(updates).eq('id', req.user.id).select('id, name, email, role, phone').single();
   if (!updated) return res.status(404).json({ error: 'User not found.' });
   res.json({ user: updated });
+});
+
+// ── FORGOT PASSWORD ──────────────────────────────────────
+
+app.post('/api/auth/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required.' });
+
+    const { data: dbUser } = await db.from('nexus_users').select('id, email').eq('email', email).maybeSingle();
+    if (dbUser) {
+      // In production, send email via SendGrid/Resend. For now, log it.
+      console.log(`\n  🔑 Password reset requested for ${email}`);
+      logAudit('password-reset-request', `Reset email sent to ${email}`, { id: dbUser.id, email: dbUser.email, name: '', role: 'customer' });
+    }
+
+    // Always return success to prevent email enumeration
+    res.json({ message: 'If an account exists with this email, a password reset link has been sent.' });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
 });
 
 // ── GOOGLE OAUTH ROUTES ──────────────────────────────────────

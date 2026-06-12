@@ -11,18 +11,17 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { showToast } from './Toast';
-import { account, ID } from '../appwriteClient';
 import { API } from '../api';
 
-async function exchangeSession(email: string, name: string) {
-  const res = await fetch(`${API}/auth/session`, {
+async function apiFetch(path: string, body: any) {
+  const res = await fetch(`${API}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, name }),
+    body: JSON.stringify(body),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Session exchange failed');
-  return data.token;
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
 }
 
 interface AuthPageProps {
@@ -70,16 +69,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   };
   const passwordStrength = registerPassword ? getPasswordStrength(registerPassword) : null;
 
-  // Login handler — uses Appwrite Auth
+  // Login handler — calls server API with bcrypt password verification
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginLoading(true);
     try {
-      try { await account.deleteSessions(); } catch {}
-      await account.createEmailPasswordSession(loginEmail, loginPassword);
-      const user = await account.get();
-      const token = await exchangeSession(user.email, user.name);
-      onLoginSuccess(token);
+      const data = await apiFetch('/auth/login', { email: loginEmail, password: loginPassword });
+      onLoginSuccess(data.token);
     } catch (err: any) {
       showToast(err?.message || 'Login failed. Check your credentials.', 'error');
     } finally {
@@ -87,18 +83,21 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     }
   };
 
-  // Register handler — uses Appwrite Auth
+  // Register handler — calls server API with bcrypt password hashing
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (registerPassword !== registerConfirmPassword) return showToast('Passwords do not match', 'error');
+    if (registerPassword.length < 6) return showToast('Password must be at least 6 characters', 'error');
     setRegisterLoading(true);
     try {
-      await account.create(ID.unique(), registerEmail, registerPassword, registerName);
-      try { await account.createEmailPasswordSession(registerEmail, registerPassword); } catch {}
-      await account.createVerification(window.location.origin);
-      try { await account.deleteSessions(); } catch {}
+      const data = await apiFetch('/auth/register', {
+        name: registerName,
+        email: registerEmail,
+        password: registerPassword,
+      });
+      showToast('Account created! You can now sign in.', 'success');
       setRegisterDone(true);
-      setView('check-email');
+      setView('login');
     } catch (err: any) {
       showToast(err?.message || 'Registration failed.', 'error');
     } finally {
@@ -106,13 +105,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     }
   };
 
-  // Forgot password handler — uses Appwrite Auth
+  // Forgot password handler — calls server API
   const handleForgotSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotEmail) return showToast('Enter your email address', 'error');
     setLoginLoading(true);
     try {
-      await account.createRecovery(forgotEmail, `${window.location.origin}/`);
+      await apiFetch('/auth/forgot-password', { email: forgotEmail });
       setForgotSent(true);
     } catch (err: any) {
       showToast(err?.message || 'Failed to send recovery email.', 'error');
@@ -120,17 +119,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       setLoginLoading(false);
     }
   };
-
-  // Handle Appwrite email verification redirect
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('userId') && params.get('secret')) {
-      account.updateVerification(params.get('userId')!, params.get('secret')!)
-        .then(() => showToast('Email verified! You can now sign in.', 'success'))
-        .catch(() => showToast('Email verified! You can now sign in.', 'success'));
-      window.history.replaceState({}, '', '/');
-    }
-  }, []);
 
   return (
     <div className="h-screen grid grid-rows-[auto_1fr_auto] bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans relative auth-page overflow-hidden">
@@ -626,8 +614,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 Check your email
               </h2>
               <p className="text-[13px] text-[var(--text-secondary)] font-medium text-center mt-3 mb-8 max-w-sm leading-relaxed">
-                We sent a verification link to <strong>{registerEmail}</strong>.<br />
-                Click the link to activate your account.
+                Your account has been created!<br />
+                You can now sign in with your email and password.
               </p>
               <button
                 onClick={() => { setView('login'); setRegisterDone(false); }}
