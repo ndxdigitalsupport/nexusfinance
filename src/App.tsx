@@ -434,7 +434,7 @@ export default function App() {
           </>
         )}
 
-        <main className="p-4 md:p-6 max-w-7xl mx-auto animate-content-enter">
+        <main className="p-4 md:p-8 w-full max-w-7xl mx-auto animate-content-enter flex-1">
           {currentPortal === 'loan-officer' && (
             activeMenu === 'dashboard' ? (
               <LoanOfficerDashboard
