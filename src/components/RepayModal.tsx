@@ -194,7 +194,7 @@ className="w-full premium-btn-primary hover:brightness-110 text-white font-bold 
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-3 border border-[var(--border-primary)] rounded-lg text-[14px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]"
+                className="flex-1 py-3 rounded-lg text-[14px] font-bold premium-btn-ghost border border-[var(--border-primary)] hover:border-[var(--accent)] hover:bg-[var(--accent-muted)]/50 transition cursor-pointer"
               >
                 Cancel
               </button>
