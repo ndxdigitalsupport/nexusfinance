@@ -404,7 +404,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Security</a>
             </div>
           </footer>
-        </>
+        </React.Fragment>
       )}
 
       {/* VIEW: REGISTER / CREATE ACCOUNT */}
