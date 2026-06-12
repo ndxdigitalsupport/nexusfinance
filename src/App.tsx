@@ -386,7 +386,7 @@ export default function App() {
                       <button
                         key={item.id}
                         onClick={() => { handleSetActiveMenu(item.id); setMobileMenuOpen(false); }}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer ${isActive ? 'bg-[var(--accent)]/20 text-[var(--text-primary)] border border-[var(--accent)]/40 shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] border border-transparent hover:border-[var(--border-primary)]'}`}
                       >
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${isActive ? '' : 'bg-white/5 text-white/40'}`}
                           style={isActive ? { backgroundColor: 'var(--accent)', color: 'var(--text-primary)' } : undefined}
@@ -400,8 +400,8 @@ export default function App() {
                 })()}
               </div>
 
-              <div className="px-3 py-3 border-t border-white/5 space-y-0.5">
-                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 pb-1">Account</p>
+              <div className="px-3 py-3 border-t border-[var(--border-primary)]/60 space-y-0.5">
+                <p className="text-[10px] font-bold text-[var(--text-tertiary)] uppercase tracking-widest px-3 pb-1">Account</p>
                 <button
                   onClick={() => { setActiveMenu('profile'); setMobileMenuOpen(false); }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer ${activeMenu === 'profile' ? 'bg-white/10 text-white shadow-sm' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
