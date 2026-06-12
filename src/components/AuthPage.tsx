@@ -118,7 +118,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans relative overflow-x-hidden auth-page">
+    <div className="min-h-screen flex flex-col bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans relative auth-page">
       
       {/* Background soft glowing decorative orbs */}
       <div className="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full bg-[#c0f5ea]/40 blur-[120px] pointer-events-none z-0" />
@@ -144,7 +144,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           </header>
 
           {/* Main content grid */}
-          <main className="relative z-10 flex-grow grid grid-cols-1 lg:grid-cols-12 items-center px-6 sm:px-12 py-6 max-w-7xl mx-auto w-full gap-8 lg:gap-16">
+          <main className="relative z-10 flex-1 grid grid-cols-1 lg:grid-cols-12 items-center px-6 sm:px-12 max-w-7xl mx-auto w-full gap-8 lg:gap-16 py-4">
             
             {/* Form Left Row (Column 5) */}
             <div className="lg:col-span-5 flex justify-center lg:justify-start">
@@ -394,7 +394,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           {/* Footer of Login Screen */}
           <footer className="relative z-10 px-6 py-6 sm:px-12 border-t border-[var(--border-primary)]/50 bg-[var(--surface-card)]/40 flex flex-col md:flex-row justify-between items-center gap-4 text-[12px] font-medium text-[var(--text-secondary)]">
             <div>
-              <p>© 2024 Nexus Finance Institutional Group. All rights reserved.</p>
+              <p>© 2026 Nexus Finance. All rights reserved.</p>
             </div>
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
               <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Privacy Policy</a>
