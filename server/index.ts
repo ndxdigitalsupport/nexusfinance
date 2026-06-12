@@ -11,7 +11,8 @@ import path from 'path';
 import { db } from './db.js';
 import { updateUserPassword } from './appwrite.js';
 import { sendSMS } from './sms.js';
-import { generateKHQR, verifyKHQR, decodeKHQR, generateDeeplink, checkTransaction } from './khqr.js';
+import { verifyKHQR, decodeKHQR, generateDeeplink } from './khqr.js';
+import { generateKHQR, checkTransaction } from './bakong.js';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import fs from 'fs';
@@ -573,19 +574,18 @@ app.get('/api/health', (req, res) => {
 });
 
 // ── KHQR Routes (available in all environments) ────────────
-app.get('/api/khqr/generate', (req, res) => {
+app.get('/api/khqr/generate', async (req, res) => {
   try {
     const { bakongAccountId, merchantName, merchantCity, currency, amount, countryCode, storeLabel, phone, email } = req.query;
     if (!bakongAccountId || !merchantName) {
       return res.status(400).json({ error: 'bakongAccountId and merchantName are required' });
     }
-    const result = generateKHQR({
+    const result = await generateKHQR({
       bakongAccountId: bakongAccountId as string,
       merchantName: merchantName as string,
       merchantCity: (merchantCity as string) || 'Phnom Penh',
       currency: (currency as '840' | '116') || '840',
       amount: amount ? parseFloat(amount as string) : undefined,
-      countryCode: (countryCode as string) || 'KH',
       storeLabel: storeLabel as string,
       phone: phone as string,
       email: email as string,
