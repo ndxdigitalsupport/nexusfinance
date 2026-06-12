@@ -210,14 +210,14 @@ export default function Header({
                 <div className="absolute right-0 mt-2 w-48 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-[16px] shadow-xl py-1 z-50 animate-dropdown-enter backdrop-blur-xl">
                   <button
                     onClick={() => { setShowUserMenu(false); if (onProfileClick) onProfileClick(); }}
-                    className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] cursor-pointer"
+                    className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-semibold text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] cursor-pointer"
                   >
                     <User className="w-4 h-4 text-[var(--text-secondary)]" /> Profile
                   </button>
                   {userRole !== 'customer' && (
                     <button
                       onClick={() => { setShowUserMenu(false); if (onPortalSwitchClick) onPortalSwitchClick(); }}
-                      className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] cursor-pointer"
+                      className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-semibold text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] cursor-pointer"
                     >
                       <Layers className="w-4 h-4 text-[var(--text-secondary)]" /> Switch Portal
                     </button>
