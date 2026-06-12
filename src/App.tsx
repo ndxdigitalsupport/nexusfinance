@@ -341,7 +341,7 @@ export default function App() {
           <>
             <div className="fixed inset-0 bg-black/30 z-40 md:hidden" onClick={() => setMobileMenuOpen(false)} />
             <div className="fixed top-0 left-0 h-full w-72 z-50 animate-in slide-in-from-left duration-200 md:hidden overflow-y-auto"
-              style={{ backgroundColor: '#0b1220', borderRight: '1px solid rgba(255,255,255,0.08)' }}
+              style={{ backgroundColor: '#ffffff', borderRight: '1px solid rgba(15,23,42,0.10)' }}
             >
               <div className="flex items-center justify-between px-5 py-5 border-b border-white/5">
                 <div className="flex items-center gap-3.5">
