@@ -36,6 +36,7 @@ function QRPreview({ text, size = 220 }: { text: string; size?: number }) {
 }
 
 export default function KHQRPage() {
+  const [paymentMode, setPaymentMode] = useState<'installment' | 'full'>('installment');
   const [loading, setLoading] = useState(true);
   const [genResult, setGenResult] = useState<KHQRGenerateResponse | null>(null);
 
@@ -48,15 +49,17 @@ export default function KHQRPage() {
   };
 
   useEffect(() => {
-    // Generate the payment QR automatically on load
+    // Generate the payment QR automatically on load and when payment mode changes
     const generateQR = async () => {
+      setLoading(true);
       try {
+        const amount = paymentMode === 'installment' ? loanData.nextInstallment : loanData.totalOutstanding;
         const params = new URLSearchParams({
           bakongAccountId: 'nexusfinance@aclb',
           merchantName: 'Nexus Finance',
           merchantCity: 'Phnom Penh',
           currency: '840',
-          amount: loanData.nextInstallment,
+          amount: amount,
           storeLabel: loanData.loanId,
         });
         const res = await fetch(`/api/khqr/generate?${params.toString()}`);
@@ -69,7 +72,7 @@ export default function KHQRPage() {
       }
     };
     generateQR();
-  }, []);
+  }, [paymentMode]);
 
   const handleDeeplink = async () => {
     if (!genResult?.khqrString) return;
@@ -140,9 +143,15 @@ export default function KHQRPage() {
               <h3 className="text-sm font-bold" style={{ color: s('text-primary') }}>Payment Amount</h3>
             </div>
             <div className="p-3">
-              <label className="flex items-center justify-between p-4 rounded-2xl cursor-pointer border-2 transition-all duration-200" style={{ borderColor: s('accent'), backgroundColor: 'rgba(14,165,233,0.05)' }}>
+              <label 
+                onClick={() => setPaymentMode('installment')}
+                className="flex items-center justify-between p-4 rounded-2xl cursor-pointer border-2 transition-all duration-200" 
+                style={{ 
+                  borderColor: paymentMode === 'installment' ? s('accent') : 'transparent', 
+                  backgroundColor: paymentMode === 'installment' ? 'rgba(14,165,233,0.05)' : 'transparent' 
+                }}>
                 <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full border-4 flex items-center justify-center" style={{ borderColor: s('accent') }} />
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center ${paymentMode === 'installment' ? 'border-4' : 'border-2'}`} style={{ borderColor: paymentMode === 'installment' ? s('accent') : s('border-primary') }} />
                   <div>
                     <p className="text-sm font-bold" style={{ color: s('text-primary') }}>Pay Next Installment</p>
                     <p className="text-xs font-medium mt-0.5" style={{ color: s('text-secondary') }}>Standard monthly payment</p>
@@ -151,9 +160,15 @@ export default function KHQRPage() {
                 <span className="text-lg font-bold" style={{ color: s('text-primary') }}>${loanData.nextInstallment}</span>
               </label>
 
-              <label className="flex items-center justify-between p-4 rounded-2xl cursor-pointer border-2 border-transparent hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-200 mt-2">
+              <label 
+                onClick={() => setPaymentMode('full')}
+                className="flex items-center justify-between p-4 rounded-2xl cursor-pointer border-2 transition-all duration-200 mt-2" 
+                style={{ 
+                  borderColor: paymentMode === 'full' ? s('accent') : 'transparent', 
+                  backgroundColor: paymentMode === 'full' ? 'rgba(14,165,233,0.05)' : 'transparent' 
+                }}>
                 <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full border-2" style={{ borderColor: s('border-primary') }} />
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center ${paymentMode === 'full' ? 'border-4' : 'border-2'}`} style={{ borderColor: paymentMode === 'full' ? s('accent') : s('border-primary') }} />
                   <div>
                     <p className="text-sm font-bold" style={{ color: s('text-primary') }}>Pay Full Balance</p>
                     <p className="text-xs font-medium mt-0.5" style={{ color: s('text-secondary') }}>Clear your entire loan early</p>
