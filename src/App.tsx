@@ -322,7 +322,7 @@ export default function App() {
         onLogout={handleLogout}
       />
 
-      <div className="md:pl-64 app-content">
+      <div className="md:pl-72 app-content min-h-screen flex flex-col">
         <Header
           currentPortal={currentPortal}
           searchTermInvoice={searchTermInvoice}

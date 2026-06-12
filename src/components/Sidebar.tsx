@@ -27,8 +27,8 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
 
   return (
     <nav role="navigation" aria-label="Main navigation"
-      className="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 py-0 z-40 transition-colors duration-200"
-      style={{ backgroundColor: s('sidebar-bg') }}
+      className="hidden md:flex flex-col h-[calc(100vh-32px)] w-64 fixed left-4 top-4 rounded-[24px] z-40 transition-all duration-300 shadow-2xl backdrop-blur-xl border overflow-hidden"
+      style={{ backgroundColor: s('sidebar-bg'), borderColor: s('sidebar-border') }}
     >
       <div className="px-6 py-6 flex items-center gap-3.5 border-b transition-colors duration-200"
         style={{ borderColor: s('sidebar-border') }}

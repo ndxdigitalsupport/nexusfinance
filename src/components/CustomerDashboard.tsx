@@ -157,10 +157,13 @@ export default function CustomerDashboard({
           {/* Fast Cash quick-access banner */}
           <button 
             onClick={() => setShowFastCashPromo(true)} 
-            className="w-full text-left rounded-2xl p-6 relative overflow-hidden group cursor-pointer shadow-md select-none hover:shadow-lg transition duration-200 border"
-            style={{ backgroundColor: 'var(--card-dark-bg)', borderColor: 'var(--card-dark-border)' }}
+            className="w-full text-left rounded-[24px] p-6 relative overflow-hidden group cursor-pointer shadow-md select-none hover:shadow-xl transition duration-300 border border-[var(--border-primary)]"
+            style={{ backgroundColor: 'var(--surface-card)' }}
           >
-            <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-[var(--accent)]/10 to-transparent skew-x-12 pointer-events-none group-hover:opacity-100 opacity-40 duration-300"></div>
+            {/* Animated Aurora Background Sweep */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--accent)]/10 via-[var(--accent-secondary)]/10 to-[var(--accent-tertiary)]/10 bg-[length:200%_200%] animate-aurora-sweep pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
+            
+            <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-[var(--accent)]/20 to-transparent skew-x-12 pointer-events-none group-hover:translate-x-4 transition-transform duration-500"></div>
 
             <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="space-y-2">
