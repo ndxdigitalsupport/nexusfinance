@@ -127,11 +127,11 @@ export default function CustomerDashboard({
               style={{ borderColor: 'rgba(59, 130, 246, 0.3)' }}
             >
               <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3 group-hover:scale-105 duration-200"
-                style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}
+                style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent)' }}
               >
-                <Coins className="w-6 h-6 stroke-[2.5]" />
+                <Coins className="w-6 h-6 stroke-[2.5]" style={{ color: 'var(--accent)' }} />
               </div>
-              <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">Repay Account</span>
+              <span className="text-[13.5px] font-extrabold" style={{ color: 'var(--text-primary)' }}>Repay Account</span>
             </button>
             <button onClick={() => onSetActiveMenu('wallets')}
               className="stagger-3 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift group cursor-pointer"
