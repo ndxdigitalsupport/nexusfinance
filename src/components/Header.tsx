@@ -150,7 +150,7 @@ export default function Header({
             </button>
 
             {showNotificationsDropdown && (
-              <div className="fixed md:absolute left-4 md:left-auto right-4 md:right-0 top-20 md:top-auto md:mt-2 w-[calc(100vw-2rem)] md:w-80 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-[20px] shadow-xl py-2 z-50 animate-dropdown-enter backdrop-blur-xl">
+              <div className="fixed md:absolute left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-0 top-20 md:top-auto md:mt-2 w-[calc(100vw-2rem)] md:w-80 bg-[var(--surface-elevated)] border border-[var(--border-primary)] rounded-[20px] shadow-xl py-2 z-50 animate-dropdown-enter">
                 <div className="px-4 py-2 border-b border-[var(--border-primary)] flex justify-between items-center bg-[var(--surface-secondary)] rounded-t-[20px]">
                   <span className="font-bold text-[14px] text-[var(--text-primary)]">Notifications</span>
                   {unreadCount > 0 && <span className="text-[11px] text-[var(--text-inverse)] bg-[var(--accent)] font-bold px-2 py-0.5 rounded-[8px]">{unreadCount} new</span>}
