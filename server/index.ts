@@ -14,6 +14,7 @@ import { updateUserPassword } from './appwrite.js';
 import { sendSMS } from './sms.js';
 import { verifyKHQR, decodeKHQR, generateDeeplink } from './khqr.js';
 import { generateKHQR, checkTransaction } from './bakong.js';
+import { sendEmail, emailTemplates } from './email.js';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import fs from 'fs';
@@ -57,10 +58,10 @@ function logAudit(action: string, details: string, user: any) {
   db.from('nexus_audit_logs').insert({ action, details, userId: user.id, userEmail: user.email }).then(null, (err) => console.error('logAudit failed:', err));
 }
 
-function notifyUser(userId: number, text: string) {
+let notifyUser = function(userId: number, text: string) {
   const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
   db.from('nexus_notifications').insert({ userId, text, time }).then(null, (err) => console.error('notifyUser failed:', err));
-}
+};
 
 function authMiddleware(req: any, res: any, next: any) {
   const authHeader = req.headers.authorization;
@@ -159,14 +160,13 @@ app.post('/api/auth/forgot-password', authLimiter, async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email is required.' });
 
-    const { data: dbUser } = await db.from('nexus_users').select('id, email').eq('email', email).maybeSingle();
+    const { data: dbUser } = await db.from('nexus_users').select('id, name, email').eq('email', email).maybeSingle();
     if (dbUser) {
-      // In production, send email via SendGrid/Resend. For now, log it.
-      console.log(`\n  🔑 Password reset requested for ${email}`);
+      const tmpl = emailTemplates.passwordReset(dbUser.name, dbUser.email);
+      await sendEmail(dbUser.email, tmpl.subject, tmpl.html);
       logAudit('password-reset-request', `Reset email sent to ${email}`, { id: dbUser.id, email: dbUser.email, name: '', role: 'customer' });
     }
 
-    // Always return success to prevent email enumeration
     res.json({ message: 'If an account exists with this email, a password reset link has been sent.' });
   } catch (err) {
     console.error('Forgot password error:', err);
@@ -322,6 +322,7 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
     completed: false,
   });
 
+  dispatchWebhook('loan.created', { loanId: newLoan.id, applicant: newLoan.applicantName, amount: newLoan.amount, type: newLoan.type });
   res.status(201).json(newLoan);
 });
 
@@ -332,7 +333,7 @@ app.patch('/api/loans/:id/approve', authMiddleware, async (req, res) => {
   await db.from('nexus_loans').update({ status: 'Approved', assignedTo: req.user.id }).eq('id', req.params.id);
   logAudit('loan-approved', `Loan ${loan.id} (${loan.type}) for ${loan.applicantName} approved`, req.user);
 
-  const { data: applicantUser } = await db.from('nexus_users').select('id').eq('email', loan.applicantEmail).single();
+  const { data: applicantUser } = await db.from('nexus_users').select('id, name, email').eq('email', loan.applicantEmail).single();
   await db.from('nexus_transactions').insert({
     id: 'tx_fst' + Date.now().toString().slice(-6),
     title: 'Loan Disbursement',
@@ -341,8 +342,12 @@ app.patch('/api/loans/:id/approve', authMiddleware, async (req, res) => {
     type: 'Loan Disbursement',
     userId: applicantUser?.id || 1,
   });
-  if (applicantUser) notifyUser(applicantUser.id, `Your loan ${loan.id} has been approved — $${loan.amount.toLocaleString()} disbursed.`);
-
+  if (applicantUser) {
+    notifyUser(applicantUser.id, `Your loan ${loan.id} has been approved — $${loan.amount.toLocaleString()} disbursed.`);
+    const tmpl = emailTemplates.loanApproved(applicantUser.name, loan.id, loan.amount);
+    await sendEmail(applicantUser.email, tmpl.subject, tmpl.html);
+  }
+  dispatchWebhook('loan.approved', { loanId: loan.id, applicant: loan.applicantName, amount: loan.amount, type: loan.type });
   res.json({ ...loan, status: 'Approved', assignedTo: req.user.id });
 });
 
@@ -351,8 +356,13 @@ app.patch('/api/loans/:id/reject', authMiddleware, async (req, res) => {
   if (!loan) return res.status(404).json({ error: 'Loan not found.' });
   await db.from('nexus_loans').update({ status: 'Rejected' }).eq('id', req.params.id);
   logAudit('loan-rejected', `Loan ${loan.id} (${loan.type}) for ${loan.applicantName} rejected`, req.user);
-  const { data: applicantUser } = await db.from('nexus_users').select('id').eq('email', loan.applicantEmail).single();
-  if (applicantUser) notifyUser(applicantUser.id, `Your loan ${loan.id} application has been rejected.`);
+  const { data: applicantUser } = await db.from('nexus_users').select('id, name, email').eq('email', loan.applicantEmail).single();
+  if (applicantUser) {
+    notifyUser(applicantUser.id, `Your loan ${loan.id} application has been rejected.`);
+    const tmpl = emailTemplates.loanRejected(applicantUser.name, loan.id);
+    await sendEmail(applicantUser.email, tmpl.subject, tmpl.html);
+  }
+  dispatchWebhook('loan.rejected', { loanId: loan.id, applicant: loan.applicantName, type: loan.type });
   res.json({ ...loan, status: 'Rejected' });
 });
 
@@ -442,6 +452,8 @@ app.patch('/api/users/:id/role', authMiddleware, async (req, res) => {
   await db.from('nexus_users').update({ role: req.body.role }).eq('id', user.id);
   logAudit('role-changed', `${user.name} (${user.email}) role changed to ${req.body.role}`, req.user);
   notifyUser(user.id, `Your role has been updated to ${req.body.role.replace('-', ' ')}.`);
+  const tmpl = emailTemplates.roleChanged(user.name, req.body.role);
+  await sendEmail(user.email, tmpl.subject, tmpl.html);
   res.json({ id: user.id, ...req.body });
 });
 
@@ -500,6 +512,121 @@ app.patch('/api/notifications/:id/read', authMiddleware, async (req, res) => {
   res.json({ ok: true });
 });
 
+// ── WEBHOOK SYSTEM ──────────────────────────────────────────
+
+interface WebhookRegistration {
+  id: number;
+  userId: number;
+  url: string;
+  events: string[];
+  secret: string;
+  active: boolean;
+  createdAt: string;
+}
+
+let webhookIdCounter = 1;
+// In production, store webhooks in nexus_webhooks table in Supabase.
+// For simplicity, use in-memory storage that resets on server restart.
+const webhooks: WebhookRegistration[] = [];
+
+function generateWebhookSecret(): string {
+  return crypto.randomBytes(24).toString('hex');
+}
+
+app.post('/api/webhooks/register', authMiddleware, async (req, res) => {
+  const { url, events } = req.body;
+  if (!url || !events?.length) return res.status(400).json({ error: 'url and events are required.' });
+  const webhook: WebhookRegistration = {
+    id: webhookIdCounter++,
+    userId: req.user.id,
+    url,
+    events,
+    secret: generateWebhookSecret(),
+    active: true,
+    createdAt: new Date().toISOString(),
+  };
+  webhooks.push(webhook);
+  logAudit('webhook-registered', `Webhook registered for events: ${events.join(', ')} at ${url}`, req.user);
+  res.status(201).json(webhook);
+});
+
+app.get('/api/webhooks', authMiddleware, async (req, res) => {
+  const userWebhooks = webhooks.filter(w => w.userId === req.user.id || req.user.role === 'super-admin');
+  res.json(userWebhooks.map(w => ({ ...w, secret: undefined })));
+});
+
+app.delete('/api/webhooks/:id', authMiddleware, async (req, res) => {
+  const idx = webhooks.findIndex(w => w.id === parseInt(req.params.id));
+  if (idx === -1) return res.status(404).json({ error: 'Webhook not found.' });
+  if (webhooks[idx].userId !== req.user.id && req.user.role !== 'super-admin') {
+    return res.status(403).json({ error: 'Access denied.' });
+  }
+  webhooks.splice(idx, 1);
+  res.json({ message: 'Webhook deleted.' });
+});
+
+// Dispatch webhook events
+async function dispatchWebhook(event: string, payload: Record<string, any>) {
+  const targets = webhooks.filter(w => w.active && w.events.includes(event));
+  for (const wh of targets) {
+    const body = JSON.stringify({ event, timestamp: new Date().toISOString(), payload });
+    const signature = crypto.createHmac('sha256', wh.secret).update(body).digest('hex');
+    fetch(wh.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Nexus-Signature': signature, 'X-Nexus-Event': event },
+      body,
+    }).catch(() => {}); // fire-and-forget
+  }
+}
+
+// ── SSE (Server-Sent Events) for real-time notifications ──
+
+const sseClients = new Map<number, Set<any>>();
+
+app.get('/api/notifications/stream', (req, res) => {
+  const token = (req.query.token as string) || req.headers.authorization?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ error: 'No token provided.' });
+  let user: any;
+  try { user = jwt.verify(token, JWT_SECRET); } catch { return res.status(403).json({ error: 'Invalid or expired token.' }); }
+
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    Connection: 'keep-alive',
+    'X-Accel-Buffering': 'no',
+  });
+  res.write('data: {"type":"connected"}\n\n');
+
+  if (!sseClients.has(user.id)) sseClients.set(user.id, new Set());
+  sseClients.get(user.id)!.add(res);
+
+  const keepAlive = setInterval(() => res.write(': keepalive\n\n'), 30000);
+
+  req.on('close', () => {
+    clearInterval(keepAlive);
+    sseClients.get(user.id)?.delete(res);
+    if (sseClients.get(user.id)?.size === 0) sseClients.delete(user.id);
+  });
+});
+
+// Notify SSE clients in real time
+function notifyUserRealtime(userId: number, text: string) {
+  const clients = sseClients.get(userId);
+  if (clients) {
+    const data = JSON.stringify({ type: 'notification', text, time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) });
+    for (const client of clients) {
+      client.write(`data: ${data}\n\n`);
+    }
+  }
+}
+
+// Patch notifyUser to push via SSE in addition to DB
+const _origNotifyUser = notifyUser;
+notifyUser = (userId: number, text: string) => {
+  _origNotifyUser(userId, text);
+  notifyUserRealtime(userId, text);
+};
+
 // ── AUDIT LOG ROUTES (Super Admin) ─────────────────────────
 
 app.get('/api/audit/logs', authMiddleware, async (req, res) => {
@@ -550,14 +677,59 @@ app.post('/api/users/:id/send-reset-link', authMiddleware, async (req, res) => {
   const { data: user } = await db.from('nexus_users').select('id, name, email').eq('id', parseInt(req.params.id)).single();
   if (!user) return res.status(404).json({ error: 'User not found.' });
 
-  // In production, send an email with a reset link via SendGrid/Resend.
-  // For now, log it so admins can see it worked.
-  console.log(`\n  🔗 Password reset link requested for ${user.name} (${user.email})`);
-  console.log(`  └─ In production, an email would be sent here.`);
+  const tmpl = emailTemplates.passwordReset(user.name, user.email);
+  await sendEmail(user.email, tmpl.subject, tmpl.html);
 
   logAudit('password-reset-link', `Reset link sent to ${user.email}`, req.user);
   notifyUser(user.id, 'A password reset link has been sent to your email.');
   res.json({ message: 'Reset link sent successfully.' });
+});
+
+// ── DOCUMENT UPLOAD (KYC) ──────────────────────────────────
+
+app.post('/api/documents/upload', authMiddleware, async (req, res) => {
+  const { fileName, fileType, fileData, docCategory } = req.body;
+  if (!fileName || !fileType || !fileData) {
+    return res.status(400).json({ error: 'fileName, fileType, and fileData are required.' });
+  }
+  const { data: doc } = await db.from('nexus_documents').insert({
+    userId: req.user.id,
+    userEmail: req.user.email,
+    fileName,
+    fileType,
+    fileData,
+    docCategory: docCategory || 'other',
+    uploadedAt: new Date().toISOString(),
+  }).select().single();
+  logAudit('document-uploaded', `${fileName} (${docCategory}) uploaded by ${req.user.email}`, req.user);
+  res.status(201).json(doc);
+});
+
+app.get('/api/documents', authMiddleware, async (req, res) => {
+  const { data: docs } = await db.from('nexus_documents').select('id, fileName, fileType, docCategory, uploadedAt, userEmail').eq('userId', req.user.id).order('id', { ascending: false });
+  res.json(docs || []);
+});
+
+app.delete('/api/documents/:id', authMiddleware, async (req, res) => {
+  const { data: doc } = await db.from('nexus_documents').select('userId').eq('id', parseInt(req.params.id)).single();
+  if (!doc) return res.status(404).json({ error: 'Document not found.' });
+  if (doc.userId !== req.user.id && req.user.role !== 'super-admin') {
+    return res.status(403).json({ error: 'Access denied.' });
+  }
+  await db.from('nexus_documents').delete().eq('id', parseInt(req.params.id));
+  res.json({ message: 'Document deleted.' });
+});
+
+app.get('/api/documents/:id/view', authMiddleware, async (req, res) => {
+  const { data: doc } = await db.from('nexus_documents').select('*').eq('id', parseInt(req.params.id)).single();
+  if (!doc) return res.status(404).json({ error: 'Document not found.' });
+  if (doc.userId !== req.user.id && req.user.role !== 'super-admin') {
+    return res.status(403).json({ error: 'Access denied.' });
+  }
+  const buf = Buffer.from(doc.fileData, 'base64');
+  res.set('Content-Type', doc.fileType);
+  res.set('Content-Disposition', `inline; filename="${doc.fileName}"`);
+  res.send(buf);
 });
 
 // ── SUPPORT ROUTES ─────────────────────────────────────────

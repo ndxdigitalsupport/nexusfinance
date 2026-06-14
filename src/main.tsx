@@ -8,6 +8,13 @@ import './index.css';
 declare global { interface Window { Telegram?: any; } }
 try { window.Telegram?.WebApp?.expand(); } catch {}
 
+// Register service worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js');
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>

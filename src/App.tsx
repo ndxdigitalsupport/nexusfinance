@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown, QrCode, Mail, HelpCircle as HelpIcon } from 'lucide-react';
+import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown, QrCode, Mail, HelpCircle as HelpIcon, Download, FileText, Calculator, Webhook } from 'lucide-react';
 import AuthPage from './components/AuthPage';
 import Toast, { showToast } from './components/Toast';
 import LoanOfficerDashboard from './components/LoanOfficerDashboard';
@@ -16,6 +16,10 @@ import LiveMeetingModal from './components/LiveMeetingModal';
 import Pagination from './components/Pagination';
 import AuditLogView from './components/AuditLogView';
 import KHQRPage from './components/KHQRPage';
+import KYCDocumentsPage from './components/KYCDocumentsPage';
+import LoanCalculator from './components/LoanCalculator';
+import LoanManagement from './components/LoanManagement';
+import WebhooksPage from './components/WebhooksPage';
 import { SkeletonTable } from './components/Skeleton';
 import Modal from './components/Modal';
 import EmptyState from './components/EmptyState';
@@ -25,6 +29,7 @@ import Table from './components/Table';
 import { LoanApplication, Task, Transaction, PlatformConfig, PlatformStats, PortalType } from './types';
 import { DEFAULT_CONFIG, DEFAULT_STATS } from './data';
 import { API, apiFetch } from './api';
+import { downloadCSV, formatCurrency } from './utils';
 
 const enc = (id: string) => encodeURIComponent(id);
 
@@ -358,10 +363,10 @@ export default function App() {
                 <p className="text-[10px] font-bold uppercase tracking-widest px-3 pb-2 pt-1" style={{ color: 'var(--sidebar-text-muted)' }}>Menu</p>
                 {(() => {
                   const items = currentPortal === 'loan-officer'
-                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'tasks', label: 'Compliance Tasks', icon: CheckSquare }]
+                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'manage', label: 'Loan Management', icon: ClipboardList }, { id: 'webhooks', label: 'Webhooks', icon: Webhook }, { id: 'tasks', label: 'Compliance Tasks', icon: CheckSquare }]
                     : currentPortal === 'super-admin'
-                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'users', label: 'Users', icon: Users }, { id: 'audit', label: 'Audit Log', icon: ClipboardList }, { id: 'settings', label: 'Settings', icon: Settings }]
-                    : [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'loans', label: 'Loans Ledger', icon: Landmark }, { id: 'wallets', label: 'Wallets', icon: Wallet }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }, { id: 'transactions', label: 'History Logs', icon: History }];
+                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'manage', label: 'Loan Management', icon: ClipboardList }, { id: 'webhooks', label: 'Webhooks', icon: Webhook }, { id: 'users', label: 'Users', icon: Users }, { id: 'audit', label: 'Audit Log', icon: ClipboardList }, { id: 'settings', label: 'Settings', icon: Settings }]
+                    : [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'loans', label: 'Loans Ledger', icon: Landmark }, { id: 'documents', label: 'KYC Documents', icon: FileText }, { id: 'calculator', label: 'Loan Calculator', icon: Calculator }, { id: 'wallets', label: 'Wallets', icon: Wallet }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }, { id: 'transactions', label: 'History Logs', icon: History }];
                   return items.map((item) => {
                     const Icon = item.icon;
                     const isActive = activeMenu === item.id;
@@ -436,6 +441,10 @@ export default function App() {
                 onOpenDetails={handleOpenApplicationDetails}
                 onJoinMeeting={handleJoinMeeting}
               />
+            ) : activeMenu === 'webhooks' ? (
+              <WebhooksPage />
+            ) : activeMenu === 'manage' ? (
+              <LoanManagement applications={applications} onRefresh={refetchAll} />
             ) : activeMenu === 'tasks' ? (
               <div className="animate-content-enter">
                 <Heading>Compliance Tasks</Heading>
@@ -508,7 +517,12 @@ export default function App() {
               />
             ) : activeMenu === 'loans' ? (
               <div className="animate-content-enter">
-                <Heading>Loans Ledger</Heading>
+                <div className="flex items-center justify-between mb-2">
+                  <Heading>Loans Ledger</Heading>
+                  <button onClick={() => downloadCSV(applications.filter(a => a.applicantEmail === (portalUser?.email || '')), 'loans_ledger.csv')} className="flex items-center gap-1.5 text-[12px] font-bold text-[var(--text-secondary)] bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl px-3 py-2 hover:bg-[var(--surface-card)] transition-colors cursor-pointer">
+                    <Download className="w-3.5 h-3.5" /> Export CSV
+                  </button>
+                </div>
                 <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-x-auto">
                   {(() => {
                     const filtered = applications.filter(a => a.applicantEmail === (portalUser?.email || ''));
@@ -551,18 +565,22 @@ export default function App() {
                   })()}
                 </div>
               </div>
+            ) : activeMenu === 'documents' ? (
+              <KYCDocumentsPage />
+            ) : activeMenu === 'calculator' ? (
+              <LoanCalculator />
             ) : activeMenu === 'wallets' ? (
               <div className="animate-content-enter">
                 <Heading>Wallets</Heading>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-8">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">Vault Wallet</p>
-                    <p className="text-[36px] font-extrabold text-[var(--text-primary)] mt-2">${walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    <p className="text-[36px] font-extrabold text-[var(--text-primary)] mt-2">{formatCurrency(walletBalance)}</p>
                     <p className="text-[13px] text-[var(--text-secondary)] mt-1">Primary checking & savings</p>
                   </div>
                   <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-8">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">Outstanding Balance</p>
-                    <p className="text-[36px] font-extrabold text-[var(--text-primary)] mt-2">${outstandingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    <p className="text-[36px] font-extrabold text-[var(--text-primary)] mt-2">{formatCurrency(outstandingBalance)}</p>
                     <p className="text-[13px] text-[var(--text-secondary)] mt-1">Total credit in use</p>
                   </div>
                 </div>
@@ -571,7 +589,12 @@ export default function App() {
               <div className="animate-content-enter"><KHQRPage /></div>
             ) : activeMenu === 'transactions' ? (
               <div className="animate-content-enter">
-                <Heading>History Logs</Heading>
+                <div className="flex items-center justify-between mb-2">
+                  <Heading>History Logs</Heading>
+                  <button onClick={() => downloadCSV(transactions, 'transaction_history.csv')} className="flex items-center gap-1.5 text-[12px] font-bold text-[var(--text-secondary)] bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl px-3 py-2 hover:bg-[var(--surface-card)] transition-colors cursor-pointer">
+                    <Download className="w-3.5 h-3.5" /> Export CSV
+                  </button>
+                </div>
                 <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-x-auto">
                   {transactions.length === 0 ? (
                     <EmptyState icon={History} title="No transactions yet" description="Your financial activity will appear here once you make a transaction." />

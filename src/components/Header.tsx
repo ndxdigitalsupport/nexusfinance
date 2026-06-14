@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Menu, X, User, LogOut, Layers, Sun, Moon } from 'lucide-react';
+import { Search, Bell, Menu, X, User, LogOut, Layers, Sun, Moon, DollarSign } from 'lucide-react';
 import { PortalType } from '../types';
 import { API, apiFetch } from '../api';
+import { getCurrency, setCurrency, formatCurrencyShort } from '../utils';
 
 interface HeaderProps {
   currentPortal: PortalType;
@@ -34,12 +35,21 @@ export default function Header({
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [connected, setConnected] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => document.documentElement.classList.contains('dark'));
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('nexus_dark_mode');
+    if (saved !== null) {
+      const isDark = saved === 'true';
+      document.documentElement.classList.toggle('dark', isDark);
+      return isDark;
+    }
+    return document.documentElement.classList.contains('dark');
+  });
 
   const toggleDarkMode = () => {
     const next = !darkMode;
     setDarkMode(next);
     document.documentElement.classList.toggle('dark', next);
+    localStorage.setItem('nexus_dark_mode', String(next));
   };
 
   useEffect(() => {
@@ -57,6 +67,25 @@ export default function Header({
     poll();
     const interval = setInterval(poll, 15000);
     return () => clearInterval(interval);
+  }, []);
+
+  // SSE real-time notifications
+  useEffect(() => {
+    const t = localStorage.getItem('nexus_token');
+    if (!t) return;
+    let es: EventSource;
+    try {
+      es = new EventSource(`${API}/notifications/stream?token=${encodeURIComponent(t)}`);
+      es.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.type === 'notification') {
+            setNotifications(prev => [{ id: Date.now(), text: data.text, time: data.time, unread: true }, ...prev]);
+          }
+        } catch {}
+      };
+    } catch {}
+    return () => { es?.close(); };
   }, []);
 
   const unreadCount = notifications.filter(n => n.unread).length;
@@ -130,6 +159,15 @@ export default function Header({
             className="p-2 text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] rounded-full transition-colors cursor-pointer"
           >
             {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+
+          {/* Currency Toggle */}
+          <button
+            onClick={() => setCurrency(getCurrency() === 'USD' ? 'KHR' : 'USD')}
+            aria-label="Toggle currency"
+            className="px-2 py-1.5 text-[11px] font-bold text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] rounded-lg transition-colors cursor-pointer border border-[var(--border-primary)]"
+          >
+            {getCurrency() === 'USD' ? '៛ KHR' : '$ USD'}
           </button>
 
           {/* Notifications */}

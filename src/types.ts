@@ -52,6 +52,10 @@ export interface PlatformStats {
   interestEarned: number;
 }
 
+export type CurrencyCode = 'USD' | 'KHR';
+
+export const EXCHANGE_RATE_KHR = 4100; // 1 USD = 4,100 KHR (approximate)
+
 // ── KHQR Types ──────────────────────────────────────────────
 
 export interface KHQRGenerateRequest {
