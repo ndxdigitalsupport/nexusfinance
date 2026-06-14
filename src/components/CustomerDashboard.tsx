@@ -303,7 +303,7 @@ export default function CustomerDashboard({
                   <div className="text-[11px] text-slate-400 leading-tight space-y-1.5 border-t border-white/5 pt-3">
                     <p>• Fixed APR: <span className="text-white font-bold">5.4% flat</span></p>
                     <p>• Installment schedules: <span className="text-white font-bold">12 monthly auto-payment terms</span></p>
-                    <p>• Processing fee: <span className="text-white font-bold">$0.00 waivered</span></p>
+                    <p>• Processing fee: <span className="text-white font-bold">$0.00 waived</span></p>
                   </div>
                 </div>
 

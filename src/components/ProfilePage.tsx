@@ -3,33 +3,7 @@ import { User, Mail, Phone, Lock, Save, RefreshCw, CheckCircle2 } from 'lucide-r
 import { showToast } from './Toast';
 import { SkeletonCard } from './Skeleton';
 
-import { API } from '../api';
-
-async function authFetch(path: string, token: string, options?: RequestInit) {
-  const res = await fetch(`${API}${path}`, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(options?.headers || {}) },
-  });
-  if (res.status === 401) {
-    localStorage.removeItem('nexus_token');
-    localStorage.removeItem('nexus_portal');
-    localStorage.removeItem('nexus_active_menu');
-    window.location.reload();
-    throw new Error('Session expired');
-  }
-  if (res.status === 403) {
-    const body = await res.json().catch(() => ({}));
-    if (body.error === 'Invalid or expired token.' || body.error === 'No token provided. Login first.') {
-      localStorage.removeItem('nexus_token');
-      localStorage.removeItem('nexus_portal');
-      localStorage.removeItem('nexus_active_menu');
-      window.location.reload();
-      throw new Error('Session expired');
-    }
-    throw new Error(body.error || 'Access denied.');
-  }
-  return res;
-}
+import { apiFetch } from '../api';
 
 interface ProfilePageProps {
   token: string;
@@ -48,8 +22,7 @@ export default function ProfilePage({ token, user }: ProfilePageProps) {
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    authFetch('/auth/me', token)
-      .then((r) => r.json())
+    apiFetch('/auth/me')
       .then((data) => {
         setName(data.name || '');
         setEmail(data.email || '');
@@ -63,12 +36,10 @@ export default function ProfilePage({ token, user }: ProfilePageProps) {
     e.preventDefault();
     setProfileLoading(true);
     try {
-      const res = await authFetch('/auth/profile', token, {
+      await apiFetch('/auth/profile', {
         method: 'PATCH',
         body: JSON.stringify({ name, email, phone }),
       });
-      const data = await res.json();
-      if (!res.ok) return showToast(data.error || 'Failed to update profile', 'error');
       showToast('Profile updated successfully');
     } catch {
       showToast('Could not connect to server.', 'error');
@@ -82,12 +53,10 @@ export default function ProfilePage({ token, user }: ProfilePageProps) {
     if (newPassword !== confirmPassword) return showToast('New passwords do not match', 'error');
     setPasswordLoading(true);
     try {
-      const res = await authFetch('/auth/password', token, {
+      await apiFetch('/auth/password', {
         method: 'PATCH',
         body: JSON.stringify({ currentPassword, newPassword }),
       });
-      const data = await res.json();
-      if (!res.ok) return showToast(data.error || 'Failed to update password', 'error');
       showToast('Password updated successfully');
       setCurrentPassword('');
       setNewPassword('');

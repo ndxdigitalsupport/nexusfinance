@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown, QrCode, Mail, HelpCircle as HelpIcon } from 'lucide-react';
 import AuthPage from './components/AuthPage';
 import Toast, { showToast } from './components/Toast';
@@ -24,40 +24,9 @@ import Heading from './components/Heading';
 import Table from './components/Table';
 import { LoanApplication, Task, Transaction, PlatformConfig, PlatformStats, PortalType } from './types';
 import { DEFAULT_CONFIG, DEFAULT_STATS } from './data';
-import { API } from './api';
+import { API, apiFetch } from './api';
 
 const enc = (id: string) => encodeURIComponent(id);
-
-async function apiFetch(path: string, options?: RequestInit) {
-  const token = localStorage.getItem('nexus_token');
-  const res = await fetch(`${API}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options?.headers || {}),
-    },
-  });
-  if (res.status === 401) {
-    localStorage.removeItem('nexus_token');
-    localStorage.removeItem('nexus_portal');
-    localStorage.removeItem('nexus_active_menu');
-    throw new Error('Session expired. Please login again.');
-  }
-  if (res.status === 403) {
-    const body = await res.json().catch(() => ({}));
-    if (body.error === 'Invalid or expired token.' || body.error === 'No token provided. Login first.') {
-      localStorage.removeItem('nexus_token');
-      localStorage.removeItem('nexus_portal');
-      localStorage.removeItem('nexus_active_menu');
-      throw new Error('Session expired. Please login again.');
-    }
-    throw new Error(body.error || 'Access denied.');
-  }
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Request failed');
-  return data;
-}
 
 export default function App() {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('nexus_token'));
@@ -307,7 +276,7 @@ export default function App() {
     setIsMeetingOpen(true);
   };
 
-  const portalUser = userData || (() => {
+  const portalUser = useMemo(() => userData || (() => {
     if (!token) return null;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
@@ -318,7 +287,7 @@ export default function App() {
         role: (payload as any).role || 'customer',
       };
     } catch { return null; }
-  })();
+  })(), [token, userData]);
 
   return (
     <div className="min-h-screen bg-[var(--surface-secondary)] app-root">
@@ -588,7 +557,7 @@ export default function App() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-8">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">Vault Wallet</p>
-                    <p className="text-[36px] font-extrabold text-[var(--text-primary)] mt-2">$8,450.25</p>
+                    <p className="text-[36px] font-extrabold text-[var(--text-primary)] mt-2">${walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                     <p className="text-[13px] text-[var(--text-secondary)] mt-1">Primary checking & savings</p>
                   </div>
                   <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-8">

@@ -6,6 +6,7 @@ import 'express-async-errors';
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import { db } from './db.js';
@@ -38,6 +39,14 @@ for (const key of requiredEnv) {
   if (!process.env[key]) { console.error(`FATAL: ${key} is not set in .env`); process.exit(1); }
 }
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Try again later.' },
+});
+
 app.set('trust proxy', 1);
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
 app.use(cors({ origin: corsOrigin, credentials: true }));
@@ -45,12 +54,12 @@ app.use(cookieParser());
 app.use(express.json());
 
 function logAudit(action: string, details: string, user: any) {
-  db.from('nexus_audit_logs').insert({ action, details, userId: user.id, userEmail: user.email }).then(null, () => {});
+  db.from('nexus_audit_logs').insert({ action, details, userId: user.id, userEmail: user.email }).then(null, (err) => console.error('logAudit failed:', err));
 }
 
 function notifyUser(userId: number, text: string) {
   const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-  db.from('nexus_notifications').insert({ userId, text, time }).then(null, () => {});
+  db.from('nexus_notifications').insert({ userId, text, time }).then(null, (err) => console.error('notifyUser failed:', err));
 }
 
 function authMiddleware(req: any, res: any, next: any) {
@@ -73,7 +82,7 @@ function generateToken(user: { id: number; email: string; name: string; role: st
 }
 
 // Login with email + password (bcrypt verified against database)
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -100,7 +109,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // Session exchange for users authenticated via Appwrite (legacy) or Google OAuth
-app.post('/api/auth/session', async (req, res) => {
+app.post('/api/auth/session', authLimiter, async (req, res) => {
   try {
     const { email, name } = req.body;
     if (!email) return res.status(400).json({ error: 'Email is required.' });
@@ -145,7 +154,7 @@ app.patch('/api/auth/profile', authMiddleware, async (req, res) => {
 
 // ── FORGOT PASSWORD ──────────────────────────────────────
 
-app.post('/api/auth/forgot-password', async (req, res) => {
+app.post('/api/auth/forgot-password', authLimiter, async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email is required.' });
@@ -501,7 +510,7 @@ app.get('/api/audit/logs', authMiddleware, async (req, res) => {
 
 // ── REGISTER ROUTE ────────────────────────────────────────
 
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', authLimiter, async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
     if (!name || !email || !password) {
