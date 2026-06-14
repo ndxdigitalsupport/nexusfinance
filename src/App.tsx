@@ -78,26 +78,23 @@ export default function App() {
     txs.reduce((sum, t) => sum + t.amount, 0);
 
   const refetchAll = async () => {
-    try {
-      const [loans, txs, tasksData, configData, statsData, auditData] = await Promise.all([
-        apiFetch('/loans'),
-        apiFetch('/transactions'),
-        apiFetch('/tasks'),
-        apiFetch('/config'),
-        apiFetch('/stats'),
-        apiFetch('/audit/logs').catch(() => []),
-      ]);
-      setApplications(loans.map((l: any) => ({ ...l, assignedToMe: l.assignedTo === portalUser?.id })));
-      setTransactions(txs);
-      setOutstandingBalance(Math.abs(calcBalance(txs)));
-      setWalletBalance(txs.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0));
-      setTasks(tasksData);
-      setConfig(configData);
-      setStats(statsData);
-      setAuditLogs(auditData);
-    } catch {
-      showToast('Some data failed to load. Check your connection.', 'error');
-    }
+    const defaults = { loans: [], txs: [], tasks: [], config: null, stats: null, audit: [] };
+    const [loans, txs, tasksData, configData, statsData, auditData] = await Promise.all([
+      apiFetch('/loans').catch(() => { showToast('Failed to load loans', 'error'); return defaults.loans; }),
+      apiFetch('/transactions').catch(() => { showToast('Failed to load transactions', 'error'); return defaults.txs; }),
+      apiFetch('/tasks').catch(() => { showToast('Failed to load tasks', 'error'); return defaults.tasks; }),
+      apiFetch('/config').catch(() => null),
+      apiFetch('/stats').catch(() => null),
+      apiFetch('/audit/logs').catch(() => []),
+    ]);
+    setApplications(loans.map((l: any) => ({ ...l, assignedToMe: l.assignedTo === portalUser?.id })));
+    setTransactions(txs);
+    setOutstandingBalance(Math.abs(calcBalance(txs)));
+    setWalletBalance(txs.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0));
+    setTasks(tasksData);
+    setConfig(configData || DEFAULT_CONFIG);
+    setStats(statsData || DEFAULT_STATS);
+    setAuditLogs(auditData);
   };
 
   useEffect(() => {
