@@ -494,7 +494,7 @@ app.patch('/api/notifications/:id/read', authMiddleware, async (req, res) => {
 // ── AUDIT LOG ROUTES (Super Admin) ─────────────────────────
 
 app.get('/api/audit/logs', authMiddleware, async (req, res) => {
-  if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
+  if (req.user.role !== 'super-admin') return res.json([]);
   const { data: logs } = await db.from('nexus_audit_logs').select('*').order('id', { ascending: false }).limit(100);
   res.json(logs || []);
 });

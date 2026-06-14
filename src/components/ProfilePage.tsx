@@ -10,12 +10,23 @@ async function authFetch(path: string, token: string, options?: RequestInit) {
     ...options,
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(options?.headers || {}) },
   });
-  if (res.status === 401 || res.status === 403) {
+  if (res.status === 401) {
     localStorage.removeItem('nexus_token');
     localStorage.removeItem('nexus_portal');
     localStorage.removeItem('nexus_active_menu');
     window.location.reload();
     throw new Error('Session expired');
+  }
+  if (res.status === 403) {
+    const body = await res.json().catch(() => ({}));
+    if (body.error === 'Invalid or expired token.' || body.error === 'No token provided. Login first.') {
+      localStorage.removeItem('nexus_token');
+      localStorage.removeItem('nexus_portal');
+      localStorage.removeItem('nexus_active_menu');
+      window.location.reload();
+      throw new Error('Session expired');
+    }
+    throw new Error(body.error || 'Access denied.');
   }
   return res;
 }
