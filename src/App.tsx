@@ -38,6 +38,12 @@ async function apiFetch(path: string, options?: RequestInit) {
       ...(options?.headers || {}),
     },
   });
+  if (res.status === 401 || res.status === 403) {
+    localStorage.removeItem('nexus_token');
+    localStorage.removeItem('nexus_portal');
+    localStorage.removeItem('nexus_active_menu');
+    throw new Error('Session expired. Please login again.');
+  }
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Request failed');
   return data;
@@ -80,13 +86,14 @@ export default function App() {
   const refetchAll = async () => {
     const defaults = { loans: [], txs: [], tasks: [], config: null, stats: null, audit: [] };
     const [loans, txs, tasksData, configData, statsData, auditData] = await Promise.all([
-      apiFetch('/loans').catch(() => { showToast('Failed to load loans', 'error'); return defaults.loans; }),
-      apiFetch('/transactions').catch(() => { showToast('Failed to load transactions', 'error'); return defaults.txs; }),
-      apiFetch('/tasks').catch(() => { showToast('Failed to load tasks', 'error'); return defaults.tasks; }),
+      apiFetch('/loans').catch(() => defaults.loans),
+      apiFetch('/transactions').catch(() => defaults.txs),
+      apiFetch('/tasks').catch(() => defaults.tasks),
       apiFetch('/config').catch(() => null),
       apiFetch('/stats').catch(() => null),
       apiFetch('/audit/logs').catch(() => []),
     ]);
+    if (!localStorage.getItem('nexus_token')) { handleLogout(); return; }
     setApplications(loans.map((l: any) => ({ ...l, assignedToMe: l.assignedTo === portalUser?.id })));
     setTransactions(txs);
     setOutstandingBalance(Math.abs(calcBalance(txs)));
