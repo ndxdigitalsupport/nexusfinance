@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { QrCode, Smartphone, DollarSign, Calendar, CreditCard, History, CheckCircle2, Download, Settings, Clock, Copy, Check, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import { QrCode, Smartphone, DollarSign, Calendar, CreditCard, History, CheckCircle2, Download, Settings, Clock, Copy, Check } from 'lucide-react';
 import QRCode from 'qrcode';
 import type { KHQRGenerateResponse } from '../types';
+import { API } from '../api';
 
 const s = (name: string) => `var(--${name})`;
 
@@ -79,7 +80,7 @@ export default function KHQRPage() {
           amount: amount,
           storeLabel: loanData.loanId,
         });
-        const res = await fetch(`/api/khqr/generate?${params.toString()}`);
+        const res = await fetch(`${API}/khqr/generate?${params.toString()}`);
         const result = await res.json();
         setGenResult(result);
         setGenTime(new Date());
@@ -109,7 +110,7 @@ export default function KHQRPage() {
   const handleDeeplink = async () => {
     if (!genResult?.khqrString) return;
     try {
-      const res = await fetch(`/api/khqr/deeplink?qr=${encodeURIComponent(genResult.khqrString)}`);
+      const res = await fetch(`${API}/khqr/deeplink?qr=${encodeURIComponent(genResult.khqrString)}`);
       const data = await res.json();
       if (data.success && data.deeplink) {
         window.open(data.deeplink, '_blank');

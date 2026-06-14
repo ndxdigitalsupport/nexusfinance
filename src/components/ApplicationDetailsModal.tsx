@@ -25,10 +25,10 @@ export default function ApplicationDetailsModal({
 
   // Credit rating score badge style solver
   const getCreditScoreStyling = (score: number) => {
-    if (score >= 720) return { text: 'Excellent', color: 'var(--success-text)', bg: 'var(--success-bg)', scoreBg: 'var(--success)' };
+    if (score >= 720) return { text: 'Excellent', color: 'var(--success-text)', bg: 'var(--success-bg)', scoreBg: 'var(--success-text)' };
     if (score >= 680) return { text: 'Good', color: 'var(--accent)', bg: 'var(--accent-muted)', scoreBg: 'var(--accent)' };
-    if (score >= 620) return { text: 'Fair', color: 'var(--warning-text)', bg: 'var(--warning-bg)', scoreBg: 'var(--warning)' };
-    return { text: 'Substandard', color: 'var(--error-text)', bg: 'var(--error-bg)', scoreBg: 'var(--error)' };
+    if (score >= 620) return { text: 'Fair', color: 'var(--warning-text)', bg: 'var(--warning-bg)', scoreBg: 'var(--warning-text)' };
+    return { text: 'Substandard', color: 'var(--error-text)', bg: 'var(--error-bg)', scoreBg: 'var(--error-text)' };
   };
 
   const scoreInfo = getCreditScoreStyling(application.creditScore);
@@ -190,7 +190,7 @@ export default function ApplicationDetailsModal({
                 disabled={submittingAction !== null}
                 onClick={() => handleActionClick('reject')}
                 className="px-4 py-2 text-white text-[13px] font-bold rounded-lg transition disabled:opacity-50 cursor-pointer"
-                style={{ backgroundColor: 'var(--error)', color: '#fff' }}
+                style={{ backgroundColor: 'var(--error-bg)', color: 'var(--error-text)' }}
               >
                 {submittingAction === 'reject' ? 'Denying...' : 'Reject Loan'}
               </button>

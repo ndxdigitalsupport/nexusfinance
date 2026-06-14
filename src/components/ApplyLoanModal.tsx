@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { X, Sparkles, User, Mail, DollarSign, Briefcase, Calendar, FileText, CheckCircle2, ArrowRight, ArrowLeft, Clock, ChevronDown, Check } from 'lucide-react';
 import { LoanApplication } from '../types';
+import { showToast } from './Toast';
 
 interface ApplyLoanModalProps {
   isOpen: boolean;
@@ -128,7 +129,7 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
         durationMonths: parseInt(formData.durationMonths, 10),
       });
       setShowSuccess(true);
-    } catch { setIsSubmitting(false); }
+    } catch { setIsSubmitting(false); showToast('Failed to submit loan application', 'error'); }
   };
 
   const handleReset = () => {

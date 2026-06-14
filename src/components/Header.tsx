@@ -6,6 +6,12 @@ import { API } from '../api';
 async function apiFetch(path: string, options?: RequestInit) {
   const token = localStorage.getItem('nexus_token');
   const res = await fetch(`${API}${path}`, { ...options, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options?.headers || {}) } });
+  if (res.status === 401 || res.status === 403) {
+    localStorage.removeItem('nexus_token');
+    localStorage.removeItem('nexus_portal');
+    localStorage.removeItem('nexus_active_menu');
+    throw new Error('Session expired. Please login again.');
+  }
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Request failed');
   return data;
@@ -51,7 +57,7 @@ export default function Header({
   };
 
   useEffect(() => {
-    fetch(`${API}/config`, { signal: AbortSignal.timeout(3000) })
+    fetch(`${API}/health`, { signal: AbortSignal.timeout(3000) })
       .then(() => setConnected(true))
       .catch(() => setConnected(false));
   }, []);

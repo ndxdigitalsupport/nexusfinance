@@ -37,9 +37,9 @@
   --text-tertiary: #94a3b8;
   --text-inverse: #ffffff;
   
-  --accent: rgb(72, 235, 201); /* Violet */
+  --accent: rgb(72, 235, 201); /* Teal */
   --accent-hover: rgb(52, 215, 181);
-  --accent-muted: rgba(72, 235, 201, 0.1);
+  --accent-muted: color-mix(in srgb, var(--accent) 10%, transparent);
   --accent-secondary: #06b6d4; /* Cyan */
   --accent-tertiary: #ec4899; /* Pink */
   
@@ -101,9 +101,9 @@ html.dark {
   --text-tertiary: #71717a;
   --text-inverse: #050505;
   
-  --accent: rgb(72, 235, 201); /* Neon Violet */
+  --accent: rgb(72, 235, 201); /* Neon Teal */
   --accent-hover: rgb(92, 255, 221);
-  --accent-muted: rgba(72, 235, 201, 0.15);
+  --accent-muted: color-mix(in srgb, var(--accent) 15%, transparent);
   --accent-secondary: #06b6d4; /* Cyan */
   --accent-tertiary: #ec4899; /* Pink */
   
@@ -162,7 +162,7 @@ body {
 }
 
 ::selection {
-  background-color: rgba(72, 235, 201, 0.3);
+  background-color: color-mix(in srgb, var(--accent) 30%, transparent);
   color: var(--text-primary);
 }
 
@@ -221,6 +221,16 @@ input:focus, select:focus, textarea:focus, button:focus-visible {
 .stagger-4 { animation: card-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both; }
 .stagger-5 { animation: card-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.32s both; }
 .stagger-6 { animation: card-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.40s both; }
+.stagger-7 { animation: card-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.48s both; }
+.stagger-8 { animation: card-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.56s both; }
+
+@keyframes slide-in-left-bar {
+  from { transform: translateX(-100%) scaleX(0.5); opacity: 0; }
+  to { transform: translateX(0) scaleX(1); opacity: 1; }
+}
+.animate-slide-in-left-bar {
+  animation: slide-in-left-bar 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
 
 @keyframes aurora-sweep {
   0% { background-position: 0% 50%; }
@@ -256,9 +266,9 @@ html.dark textarea::placeholder {
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .premium-card:hover {
-  box-shadow: 0 12px 32px -4px rgba(72, 235, 201, 0.1);
+  box-shadow: 0 12px 32px -4px color-mix(in srgb, var(--accent) 15%, transparent);
   transform: translateY(-2px);
-  border-color: rgba(72, 235, 201, 0.3);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .premium-card-dark {
@@ -280,7 +290,7 @@ html.dark textarea::placeholder {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
 }
 .premium-card-dark:hover {
-  box-shadow: 0 12px 48px rgba(72, 235, 201, 0.15);
+  box-shadow: 0 12px 48px color-mix(in srgb, var(--accent) 15%, transparent);
   transform: translateY(-2px);
 }
 
@@ -288,16 +298,15 @@ html.dark textarea::placeholder {
   background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
   background-size: 200% 200%;
   animation: aurora-sweep 10s ease infinite;
-  color: #ffffff;
   font-weight: 800;
   border-radius: var(--radius-button);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 16px rgba(72, 235, 201, 0.3);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 30%, transparent);
   cursor: pointer;
   border: none;
 }
 .premium-btn-primary:hover {
-  box-shadow: 0 8px 24px rgba(72, 235, 201, 0.5);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 50%, transparent);
   transform: translateY(-2px);
   filter: brightness(1.1);
 }
@@ -339,7 +348,7 @@ html.dark textarea::placeholder {
 }
 .hover-lift:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(72, 235, 201, 0.15);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 .text-gradient-accent {
@@ -350,8 +359,8 @@ html.dark textarea::placeholder {
 }
 
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 12px rgba(72, 235, 201, 0.3); }
-  50% { box-shadow: 0 0 24px rgba(72, 235, 201, 0.6); }
+  0%, 100% { box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 30%, transparent); }
+  50% { box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 60%, transparent); }
 }
 .animate-glow-pulse {
   animation: glow-pulse 2.5s ease-in-out infinite;

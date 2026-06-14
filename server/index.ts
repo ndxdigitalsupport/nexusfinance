@@ -236,7 +236,7 @@ app.get('/api/auth/google/callback', async (req, res) => {
         name: googleUser.name || googleUser.email.split('@')[0],
         email: googleUser.email,
         role: 'customer',
-        phone: '',
+      phone: '',
       }).select().single();
       dbUser = newUser;
     }
@@ -503,7 +503,7 @@ app.get('/api/audit/logs', authMiddleware, async (req, res) => {
 
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
     }
@@ -523,7 +523,7 @@ app.post('/api/auth/register', async (req, res) => {
       email,
       password: hashedPassword,
       role: 'customer',
-      phone: '',
+      phone: phone || '',
       verified: false,
     }).select('id, name, email, role').single();
 

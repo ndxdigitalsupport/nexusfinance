@@ -2,7 +2,7 @@ services:
   - type: web
     name: nexusfinance
     runtime: docker
-    repo: https://github.com/Not-Juicy/nexusfinance
+    repo: https://github.com/ndxdigitalsupport/nexusfinance
     branch: main
     healthCheckPath: /api/health
     envVars:

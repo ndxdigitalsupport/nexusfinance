@@ -283,10 +283,10 @@ export default function LoanOfficerDashboard({
 
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={[
-                { name: 'New', value: chartStats.new, fill: '#bfc8ce' },
-                { name: 'Review', value: chartStats.review, fill: '#0F171C' },
-                { name: 'Final', value: chartStats.final, fill: '#bfc8ce' },
-                { name: 'Hold', value: chartStats.hold, fill: '#8a9aa5' },
+                { name: 'New', value: chartStats.new, fill: 'var(--text-tertiary)' },
+                { name: 'Review', value: chartStats.review, fill: 'var(--accent)' },
+                { name: 'Final', value: chartStats.final, fill: 'var(--text-tertiary)' },
+                { name: 'Hold', value: chartStats.hold, fill: 'var(--warning-text)' },
               ]} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
                 <XAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
                 <YAxis hide />

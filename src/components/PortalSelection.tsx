@@ -22,14 +22,14 @@ export default function PortalSelection({ onSelectPortal, userRole }: PortalSele
       title: 'LOAN OFFICER',
       description: 'Review applications & manage clients',
       icon: ShieldCheck,
-      colorVar: 'var(--info)',
+      colorVar: 'var(--accent-secondary)',
     },
     {
       id: 'super-admin' as PortalType,
       title: 'SUPER ADMIN',
       description: 'Global configurations & reports',
       icon: Landmark,
-      colorVar: 'var(--warning)',
+      colorVar: 'var(--accent-tertiary)',
     },
   ];
 

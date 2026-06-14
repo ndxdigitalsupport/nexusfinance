@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, CheckCircle2, CreditCard, Landmark, Coins, DollarSign } from 'lucide-react';
 
 interface RepayModalProps {
@@ -19,6 +19,7 @@ export default function RepayModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const submitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -27,6 +28,12 @@ export default function RepayModal({
       setErrorMsg('');
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    return () => {
+      if (submitTimerRef.current) clearTimeout(submitTimerRef.current);
+    };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -47,7 +54,8 @@ export default function RepayModal({
     setErrorMsg('');
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    submitTimerRef.current = setTimeout(() => {
+      submitTimerRef.current = null;
       setIsSubmitting(false);
       onRepayConfirm(parsedAmount);
       setShowSuccess(true);

@@ -5,6 +5,21 @@ import { SkeletonCard } from './Skeleton';
 
 import { API } from '../api';
 
+async function authFetch(path: string, token: string, options?: RequestInit) {
+  const res = await fetch(`${API}${path}`, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(options?.headers || {}) },
+  });
+  if (res.status === 401 || res.status === 403) {
+    localStorage.removeItem('nexus_token');
+    localStorage.removeItem('nexus_portal');
+    localStorage.removeItem('nexus_active_menu');
+    window.location.reload();
+    throw new Error('Session expired');
+  }
+  return res;
+}
+
 interface ProfilePageProps {
   token: string;
   user?: { name: string; role: string } | null;
@@ -22,9 +37,7 @@ export default function ProfilePage({ token, user }: ProfilePageProps) {
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    fetch(`${API}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    authFetch('/auth/me', token)
       .then((r) => r.json())
       .then((data) => {
         setName(data.name || '');
@@ -39,9 +52,8 @@ export default function ProfilePage({ token, user }: ProfilePageProps) {
     e.preventDefault();
     setProfileLoading(true);
     try {
-      const res = await fetch(`${API}/auth/profile`, {
+      const res = await authFetch('/auth/profile', token, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ name, email, phone }),
       });
       const data = await res.json();
@@ -59,9 +71,8 @@ export default function ProfilePage({ token, user }: ProfilePageProps) {
     if (newPassword !== confirmPassword) return showToast('New passwords do not match', 'error');
     setPasswordLoading(true);
     try {
-      const res = await fetch(`${API}/auth/password`, {
+      const res = await authFetch('/auth/password', token, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       const data = await res.json();

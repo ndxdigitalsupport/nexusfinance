@@ -13,7 +13,7 @@ import {
 import { showToast } from './Toast';
 import { API } from '../api';
 
-async function apiFetch(path: string, body: any) {
+async function authFetch(path: string, body: any) {
   const res = await fetch(`${API}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -74,7 +74,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     e.preventDefault();
     setLoginLoading(true);
     try {
-      const data = await apiFetch('/auth/login', { email: loginEmail, password: loginPassword });
+      const data = await authFetch('/auth/login', { email: loginEmail, password: loginPassword });
       onLoginSuccess(data.token);
     } catch (err: any) {
       showToast(err?.message || 'Login failed. Check your credentials.', 'error');
@@ -90,10 +90,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (registerPassword.length < 6) return showToast('Password must be at least 6 characters', 'error');
     setRegisterLoading(true);
     try {
-      const data = await apiFetch('/auth/register', {
+      const data = await authFetch('/auth/register', {
         name: registerName,
         email: registerEmail,
         password: registerPassword,
+        phone: registerPhone || undefined,
       });
       showToast('Account created! You can now sign in.', 'success');
       setRegisterDone(true);
@@ -111,7 +112,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!forgotEmail) return showToast('Enter your email address', 'error');
     setLoginLoading(true);
     try {
-      await apiFetch('/auth/forgot-password', { email: forgotEmail });
+      await authFetch('/auth/forgot-password', { email: forgotEmail });
       setForgotSent(true);
     } catch (err: any) {
       showToast(err?.message || 'Failed to send recovery email.', 'error');
@@ -194,7 +195,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       />
                       <span>Remember me</span>
                     </label>
-                    <button onClick={() => { setForgotEmail(loginEmail); setView('forgot'); }} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer">
+                    <button type="button" onClick={() => { setForgotEmail(loginEmail); setView('forgot'); }} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer">
                       Forgot Password?
                     </button>
                   </div>

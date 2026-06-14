@@ -159,7 +159,7 @@ export default function LiveMeetingModal({
                     You (Nexus Officer)
                   </span>
                   <div className="z-10 flex items-center gap-1.5 self-end text-[11px] font-mono text-slate-300">
-                    {isAudioMuted ? <MicOff className="w-3.5 h-3.5" style={{ color: 'var(--error)' }} /> : <Mic className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} />}
+                    {isAudioMuted ? <MicOff className="w-3.5 h-3.5" style={{ color: 'var(--error-text)' }} /> : <Mic className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} />}
                     <span>Encrypted</span>
                   </div>
                 </div>
@@ -213,9 +213,9 @@ export default function LiveMeetingModal({
                 <p className="text-[11.5px] text-slate-400 mb-6 font-medium">Toggle these items during interview verification, all indicators must be met.</p>
 
                 <div className="space-y-4">
-                  <div
+                  <button type="button"
                     onClick={() => toggleChecklistItem('idVerified')}
-                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-800/60 cursor-pointer select-none transition border border-transparent hover:border-white/5"
+                    className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-slate-800/60 cursor-pointer select-none transition border border-transparent hover:border-white/5 text-left"
                   >
                     {checklist.idVerified ? (
                       <CheckSquare className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
@@ -226,11 +226,11 @@ export default function LiveMeetingModal({
                       <span className="text-[13px] font-bold block text-white">Government ID Match</span>
                       <span className="text-[10px] text-slate-400 block mt-0.5">Physical card match portrait face frame.</span>
                     </div>
-                  </div>
+                  </button>
 
-                  <div
+                  <button type="button"
                     onClick={() => toggleChecklistItem('companyDocs')}
-                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-800/60 cursor-pointer select-none transition border border-transparent hover:border-white/5"
+                    className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-slate-800/60 cursor-pointer select-none transition border border-transparent hover:border-white/5 text-left"
                   >
                     {checklist.companyDocs ? (
                       <CheckSquare className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
@@ -241,11 +241,11 @@ export default function LiveMeetingModal({
                       <span className="text-[13px] font-bold block text-white">Tax/Registration Docs</span>
                       <span className="text-[10px] text-slate-400 block mt-0.5">Verify legitimate registration files and audit references.</span>
                     </div>
-                  </div>
+                  </button>
 
-                  <div
+                  <button type="button"
                     onClick={() => toggleChecklistItem('cashflowApproved')}
-                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-800/60 cursor-pointer select-none transition border border-transparent hover:border-white/5"
+                    className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-slate-800/60 cursor-pointer select-none transition border border-transparent hover:border-white/5 text-left"
                   >
                     {checklist.cashflowApproved ? (
                       <CheckSquare className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
@@ -256,11 +256,11 @@ export default function LiveMeetingModal({
                       <span className="text-[13px] font-bold block text-white">Veritable Cashflow</span>
                       <span className="text-[10px] text-slate-400 block mt-0.5">Corroborate income states against bank receipts.</span>
                     </div>
-                  </div>
+                  </button>
 
-                  <div
+                  <button type="button"
                     onClick={() => toggleChecklistItem('agreementsSigned')}
-                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-800/60 cursor-pointer select-none transition border border-transparent hover:border-white/5"
+                    className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-slate-800/60 cursor-pointer select-none transition border border-transparent hover:border-white/5 text-left"
                   >
                     {checklist.agreementsSigned ? (
                       <CheckSquare className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
@@ -271,7 +271,7 @@ export default function LiveMeetingModal({
                       <span className="text-[13px] font-bold block text-white">Terms Verbal Agreement</span>
                       <span className="text-[10px] text-slate-400 block mt-0.5">Agreement to interest matrices, schedules.</span>
                     </div>
-                  </div>
+                  </button>
                 </div>
               </div>
 
