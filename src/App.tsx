@@ -439,7 +439,7 @@ export default function App() {
             ) : activeMenu === 'tasks' ? (
               <div className="animate-content-enter">
                 <Heading>Compliance Tasks</Heading>
-                <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden">
+                <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-x-auto">
                   {tasks.length === 0 ? (
                     <EmptyState icon={CheckSquare} title="No compliance tasks" description="Tasks will appear here automatically when loans require review or verification." />
                   ) : (() => {
@@ -509,7 +509,7 @@ export default function App() {
             ) : activeMenu === 'loans' ? (
               <div className="animate-content-enter">
                 <Heading>Loans Ledger</Heading>
-                <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden">
+                <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-x-auto">
                   {(() => {
                     const filtered = applications.filter(a => a.applicantEmail === (portalUser?.email || ''));
                     if (filtered.length === 0) return (
@@ -572,7 +572,7 @@ export default function App() {
             ) : activeMenu === 'transactions' ? (
               <div className="animate-content-enter">
                 <Heading>History Logs</Heading>
-                <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden">
+                <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-x-auto">
                   {transactions.length === 0 ? (
                     <EmptyState icon={History} title="No transactions yet" description="Your financial activity will appear here once you make a transaction." />
                   ) : (() => {
@@ -830,7 +830,7 @@ function UsersView() {
         </form>
       )}
 
-      <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden">
+      <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-x-auto">
         {users.length === 0 ? (
           <div className="p-16 text-center flex flex-col items-center">
             <div className="w-20 h-20 bg-[var(--surface-secondary)] rounded-2xl flex items-center justify-center mb-5 border border-[var(--border-primary)]/50">
