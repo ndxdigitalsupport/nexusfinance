@@ -232,6 +232,14 @@ input:focus, select:focus, textarea:focus, button:focus-visible {
   animation: slide-in-left-bar 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.animate-slide-in-left {
+  animation: slide-in-left 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 @keyframes aurora-sweep {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }

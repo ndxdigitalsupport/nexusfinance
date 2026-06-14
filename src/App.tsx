@@ -354,14 +354,14 @@ export default function App() {
         {mobileMenuOpen && (
           <>
             <div className="fixed inset-0 bg-black/30 z-40 md:hidden" onClick={() => setMobileMenuOpen(false)} />
-            <div className="fixed top-0 left-0 h-full w-72 z-50 animate-in slide-in-from-left duration-200 md:hidden overflow-y-auto"
-              style={{ backgroundColor: '#ffffff', borderRight: '1px solid rgba(15,23,42,0.10)' }}
+            <div className="fixed top-0 left-0 h-full w-72 z-50 animate-slide-in-left duration-200 md:hidden overflow-y-auto"
+              style={{ backgroundColor: 'var(--sidebar-bg)', borderRight: '1px solid var(--sidebar-border)' }}
             >
-              <div className="flex items-center justify-between px-5 py-5 border-b border-white/5">
+              <div className="flex items-center justify-between px-5 py-5 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
                 <div className="flex items-center gap-3.5">
                   <span className="font-sans text-[18px] tracking-tight flex items-center">
-                    <span className="text-white font-black">Nexus</span>
-                    <span className="text-white/60 font-light">finance</span>
+                    <span className="font-extrabold" style={{ color: 'var(--sidebar-header-text)' }}>Nexus</span>
+                    <span className="font-light" style={{ color: 'var(--sidebar-header-muted)' }}>finance</span>
                   </span>
                   <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
                     style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)' }}
@@ -369,7 +369,7 @@ export default function App() {
                     {currentPortal === 'loan-officer' ? 'Corporate' : currentPortal === 'super-admin' ? 'Admin' : 'Client'}
                   </span>
                 </div>
-                <button onClick={() => setMobileMenuOpen(false)} className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/5 cursor-pointer">
+                <button onClick={() => setMobileMenuOpen(false)} className="p-1.5 rounded-lg cursor-pointer" style={{ color: 'var(--sidebar-text-muted)' }}>
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -386,7 +386,7 @@ export default function App() {
               )}
 
               <div className="px-3 py-3 space-y-0.5">
-                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 pb-2 pt-1">Menu</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest px-3 pb-2 pt-1" style={{ color: 'var(--sidebar-text-muted)' }}>Menu</p>
                 {(() => {
                   const items = currentPortal === 'loan-officer'
                     ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'tasks', label: 'Compliance Tasks', icon: CheckSquare }]
@@ -414,32 +414,40 @@ export default function App() {
                   });
                 })()}
               </div>
-
-              <div className="px-3 py-3 border-t border-[var(--border-primary)]/60 space-y-0.5">
-                <p className="text-[10px] font-bold text-[var(--text-tertiary)] uppercase tracking-widest px-3 pb-1">Account</p>
+              <div className="px-3 py-3 border-t space-y-0.5" style={{ borderColor: 'var(--sidebar-border)' }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest px-3 pb-1" style={{ color: 'var(--sidebar-text-muted)' }}>Account</p>
                 <button
                   onClick={() => { setActiveMenu('profile'); setMobileMenuOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer ${activeMenu === 'profile' ? 'bg-white/10 text-white shadow-sm' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer group hover:bg-[var(--sidebar-active-bg)]"
+                  style={{ color: activeMenu === 'profile' ? 'var(--sidebar-text-active)' : 'var(--sidebar-text)' }}
                 >
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-white/40">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 group-hover:bg-[var(--sidebar-icon-bg)]"
+                    style={{ backgroundColor: activeMenu === 'profile' ? 'var(--sidebar-icon-active-bg)' : 'var(--sidebar-icon-bg)', color: activeMenu === 'profile' ? 'var(--sidebar-icon-active-text)' : 'var(--sidebar-icon-text)' }}
+                  >
                     <User className="w-4 h-4" />
                   </div>
                   Profile
                 </button>
                 <button
                   onClick={() => { setActiveMenu('support'); setMobileMenuOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer ${activeMenu === 'support' ? 'bg-white/10 text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5'}`}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer group hover:bg-[var(--sidebar-active-bg)]"
+                  style={{ color: activeMenu === 'support' ? 'var(--sidebar-text-active)' : 'var(--sidebar-text)' }}
                 >
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-white/40">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 group-hover:bg-[var(--sidebar-icon-bg)]"
+                    style={{ backgroundColor: activeMenu === 'support' ? 'var(--sidebar-icon-active-bg)' : 'var(--sidebar-icon-bg)', color: activeMenu === 'support' ? 'var(--sidebar-icon-active-text)' : 'var(--sidebar-icon-text)' }}
+                  >
                     <HelpCircle className="w-4 h-4" />
                   </div>
                   Support
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer text-red-400/60 hover:text-red-400 hover:bg-red-500/10"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer group hover:bg-red-500/10"
+                  style={{ color: 'rgba(239, 68, 68, 0.6)' }}
                 >
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 text-red-400/60">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 group-hover:bg-red-500/10"
+                    style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'rgba(239, 68, 68, 0.6)' }}
+                  >
                     <LogOut className="w-4 h-4" />
                   </div>
                   Logout
