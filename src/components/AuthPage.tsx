@@ -96,9 +96,19 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         password: registerPassword,
         phone: registerPhone || undefined,
       });
-      showToast('Account created! You can now sign in.', 'success');
+
+      // Trigger Appwrite verification email
+      try {
+        const { account } = await import('../appwriteClient');
+        await account.createEmailPasswordSession(registerEmail, registerPassword);
+        await account.createVerification(window.location.origin + '/verify');
+      } catch (awErr) {
+        console.warn('Appwrite verification trigger failed:', awErr);
+      }
+
+      showToast('Account created! Check your email to verify.', 'success');
       setRegisterDone(true);
-      setView('login');
+      setView('check-email');
     } catch (err: any) {
       showToast(err?.message || 'Registration failed.', 'error');
     } finally {
@@ -615,8 +625,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 Check your email
               </h2>
               <p className="text-[13px] text-[var(--text-secondary)] font-medium text-center mt-3 mb-8 max-w-sm leading-relaxed">
-                Your account has been created!<br />
-                You can now sign in with your email and password.
+                We've sent a verification link to your email.<br />
+                Please check your inbox and click the link to verify your account.
               </p>
               <button
                 onClick={() => { setView('login'); setRegisterDone(false); }}
