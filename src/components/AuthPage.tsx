@@ -96,9 +96,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         password: registerPassword,
         phone: registerPhone || undefined,
       });
-      showToast('Account created! You can now sign in.', 'success');
+      showToast('Account created! Check your email to verify.', 'success');
       setRegisterDone(true);
-      setView('login');
+      setView('check-email');
     } catch (err: any) {
       showToast(err?.message || 'Registration failed.', 'error');
     } finally {
@@ -120,6 +120,22 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       setLoginLoading(false);
     }
   };
+
+  // Handle email verification callback from link
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token && window.location.pathname === '/verify-email') {
+      fetch(`${API}/auth/verify-email?token=${encodeURIComponent(token)}`)
+        .then(r => r.json())
+        .then(data => {
+          showToast(data.message || 'Email verified! You can now sign in.', 'success');
+          setView('login');
+        })
+        .catch(() => showToast('Verification failed. The link may be expired.', 'error'));
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   return (
     <div className="h-screen grid grid-rows-[auto_1fr_auto] bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans relative auth-page overflow-hidden">

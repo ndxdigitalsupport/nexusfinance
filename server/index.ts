@@ -10,7 +10,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import { db } from './db.js';
-import { updateUserPassword, createAppwriteUser } from './appwrite.js';
+import { updateUserPassword } from './appwrite.js';
 import { sendSMS } from './sms.js';
 import { verifyKHQR, decodeKHQR, generateDeeplink } from './khqr.js';
 import { generateKHQR, checkTransaction } from './bakong.js';
@@ -98,6 +98,10 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
     const isValid = await bcrypt.compare(password, dbUser.password || '');
     if (!isValid) {
       return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    if (!dbUser.verified) {
+      return res.status(403).json({ error: 'Please verify your email before signing in. Check your inbox for the verification link.' });
     }
 
     const token = generateToken({ id: dbUser.id, email: dbUser.email, name: dbUser.name, role: dbUser.role });
@@ -637,11 +641,10 @@ app.get('/api/audit/logs', authMiddleware, async (req, res) => {
 
 // ── REGISTER ROUTE ────────────────────────────────────────
 
-// Register — creates user in Appwrite only (not in Supabase yet).
-// After user verifies email via Appwrite, they call /api/auth/complete-registration
+// Register — creates user in Supabase, sends verification email via Nodemailer
 app.post('/api/auth/register', authLimiter, async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phone, skipVerification } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
     }
@@ -655,24 +658,42 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = skipVerification ? null : crypto.randomBytes(32).toString('hex');
     const { data: newUser } = await db.from('nexus_users').insert({
-      name, email, password: hashedPassword, role: 'customer', phone: phone || '',
+      name, email, password: hashedPassword, role: 'customer', phone: phone || '', verified: !!skipVerification, verificationToken,
     }).select('id, name, email, role').single();
     if (!newUser) return res.status(500).json({ error: 'Failed to create account.' });
 
-    // Try to create in Appwrite for email verification (best-effort, don't block)
-    try {
-      await createAppwriteUser(email, password, name);
-    } catch (awErr) {
-      console.warn('Appwrite create skipped:', awErr);
+    if (!skipVerification) {
+      const FRONTEND_URL = process.env.CORS_ORIGIN || 'http://localhost:3000';
+      const verifyLink = `${FRONTEND_URL}/verify-email?token=${verificationToken}`;
+      const tmpl = emailTemplates.verifyEmail(name, verifyLink);
+      await sendEmail(email, tmpl.subject, tmpl.html);
+      logAudit('register', `User ${email} registered, verification email sent`, { id: newUser.id, email: newUser.email, name: newUser.name, role: 'customer' });
+      res.status(201).json({ user: newUser, message: 'Account created! Check your email to verify.' });
+    } else {
+      logAudit('register', `User ${email} registered by admin`, { id: newUser.id, email: newUser.email, name: newUser.name, role: 'customer' });
+      res.status(201).json({ user: newUser });
     }
-
-    logAudit('register', `User ${email} registered`, { id: newUser.id, email: newUser.email, name: newUser.name, role: 'customer' });
-    res.status(201).json({ user: newUser, message: 'Account created! You can now sign in.' });
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({ error: 'Internal server error.' });
   }
+});
+
+// Email verification — user clicks link from email
+app.get('/api/auth/verify-email', async (req, res) => {
+  const { token } = req.query;
+  if (!token || typeof token !== 'string') {
+    return res.status(400).json({ error: 'Verification token is required.' });
+  }
+  const { data: user } = await db.from('nexus_users').select('id').eq('verificationToken', token).maybeSingle();
+  if (!user) {
+    return res.status(400).json({ error: 'Invalid or expired verification link.' });
+  }
+  await db.from('nexus_users').update({ verified: true, verificationToken: null }).eq('id', user.id);
+  logAudit('verify-email', `User ${user.id} verified email`, { id: user.id, email: '', name: '', role: '' });
+  res.json({ message: 'Email verified! You can now sign in.' });
 });
 
 // ── SEND PASSWORD RESET LINK (stub — logs to console) ──────
