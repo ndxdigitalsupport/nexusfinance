@@ -119,35 +119,6 @@ export default function App() {
       console.error('Google OAuth error:', googleError);
       window.history.replaceState({}, '', window.location.pathname);
     }
-
-    // Handle Appwrite email verification callback
-    if (window.location.pathname === '/verify') {
-      const userId = params.get('userId');
-      const secret = params.get('secret');
-      if (userId && secret) {
-        (async () => {
-          try {
-            const { account } = await import('./appwriteClient');
-            await account.updateVerification(userId, secret);
-            // Get user email from Appwrite session
-            const appwriteUser = await account.get();
-            // Complete registration in our system
-            const data = await fetch(API + '/auth/complete-registration', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: appwriteUser.email }),
-            }).then(r => r.json());
-            if (data.token) {
-              handleLoginSuccess(data.token);
-            }
-          } catch (err) {
-            console.error('Verification callback error:', err);
-            showToast('Email verification failed. Try again.', 'error');
-          }
-          window.history.replaceState({}, '', '/');
-        })();
-      }
-    }
   }, []);
 
   const saveToStorage = (key: string, val: string) => localStorage.setItem(key, val);

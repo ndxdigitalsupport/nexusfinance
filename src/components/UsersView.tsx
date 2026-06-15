@@ -60,7 +60,7 @@ export default function UsersView() {
     if (!newName || !newEmail || !newPassword) return showToast('All fields required', 'error');
     setCreating(true);
     try {
-      const reg = await apiFetch('/auth/register', { method: 'POST', body: JSON.stringify({ name: newName, email: newEmail, password: newPassword, skipVerification: true }) });
+      const reg = await apiFetch('/auth/register', { method: 'POST', body: JSON.stringify({ name: newName, email: newEmail, password: newPassword }) });
       await apiFetch(`/users/${reg.user.id}/role`, { method: 'PATCH', body: JSON.stringify({ role: 'loan-officer' }) });
       showToast('Loan officer created successfully', 'success');
       setShowCreate(false);

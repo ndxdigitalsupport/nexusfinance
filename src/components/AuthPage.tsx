@@ -96,19 +96,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         password: registerPassword,
         phone: registerPhone || undefined,
       });
-
-      // Trigger Appwrite verification email
-      try {
-        const { account } = await import('../appwriteClient');
-        await account.createEmailPasswordSession(registerEmail, registerPassword);
-        await account.createVerification(window.location.origin + '/verify');
-      } catch (awErr) {
-        console.warn('Appwrite verification trigger failed:', awErr);
-      }
-
-      showToast('Account created! Check your email to verify.', 'success');
+      showToast('Account created! You can now sign in.', 'success');
       setRegisterDone(true);
-      setView('check-email');
+      setView('login');
     } catch (err: any) {
       showToast(err?.message || 'Registration failed.', 'error');
     } finally {

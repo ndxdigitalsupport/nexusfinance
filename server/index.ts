@@ -10,7 +10,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import { db } from './db.js';
-import { updateUserPassword, createAppwriteUser, getAppwriteUserVerificationStatus } from './appwrite.js';
+import { updateUserPassword, createAppwriteUser } from './appwrite.js';
 import { sendSMS } from './sms.js';
 import { verifyKHQR, decodeKHQR, generateDeeplink } from './khqr.js';
 import { generateKHQR, checkTransaction } from './bakong.js';
@@ -641,7 +641,7 @@ app.get('/api/audit/logs', authMiddleware, async (req, res) => {
 // After user verifies email via Appwrite, they call /api/auth/complete-registration
 app.post('/api/auth/register', authLimiter, async (req, res) => {
   try {
-    const { name, email, password, phone, skipVerification } = req.body;
+    const { name, email, password, phone } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
     }
@@ -654,94 +654,23 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
       return res.status(400).json({ error: 'An account with this email already exists.' });
     }
 
-    // Admin skip — create directly in Supabase (no email verification needed)
-    if (skipVerification) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const { data: newUser } = await db.from('nexus_users').insert({
-        name, email, password: hashedPassword, role: 'customer', phone: phone || '', verified: true,
-      }).select('id, name, email, role').single();
-      return res.status(201).json({ user: newUser });
-    }
-
-    // Normal flow: create in Appwrite only, store pending for later verification
-    let appwriteUserId = null;
-    try {
-      appwriteUserId = await createAppwriteUser(email, password, name);
-    } catch (awErr) {
-      console.warn('Appwrite user creation failed, falling back to direct registration:', awErr);
-    }
-
-    if (!appwriteUserId) {
-      // Appwrite unavailable — create directly in Supabase (no email verification)
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const { data: newUser } = await db.from('nexus_users').insert({
-        name, email, password: hashedPassword, role: 'customer', phone: phone || '', verified: false,
-      }).select('id, name, email, role').single();
-      if (!newUser) return res.status(500).json({ error: 'Failed to create account.' });
-      logAudit('register', `User ${email} registered (no Appwrite)`, { id: newUser.id, email: newUser.email, name: newUser.name, role: 'customer' });
-      return res.status(201).json({ user: newUser, message: 'Account created! You can now sign in.' });
-    }
-
-    // Store pending registration
     const hashedPassword = await bcrypt.hash(password, 10);
+    const { data: newUser } = await db.from('nexus_users').insert({
+      name, email, password: hashedPassword, role: 'customer', phone: phone || '',
+    }).select('id, name, email, role').single();
+    if (!newUser) return res.status(500).json({ error: 'Failed to create account.' });
+
+    // Try to create in Appwrite for email verification (best-effort, don't block)
     try {
-      await db.from('nexus_pending_registrations').insert({
-        name, email, password: hashedPassword, phone: phone || '', appwriteUserId,
-      });
-    } catch (dbErr) {
-      console.warn('Failed to store pending registration, falling back to direct create:', dbErr);
-      // Table might not exist — create user directly
-      const { data: newUser } = await db.from('nexus_users').insert({
-        name, email, password: hashedPassword, role: 'customer', phone: phone || '', verified: false,
-      }).select('id, name, email, role').single();
-      if (!newUser) return res.status(500).json({ error: 'Failed to create account.' });
-      return res.status(201).json({ user: newUser, message: 'Account created! You can now sign in.' });
+      await createAppwriteUser(email, password, name);
+    } catch (awErr) {
+      console.warn('Appwrite create skipped:', awErr);
     }
 
-    logAudit('register-pending', `Pending registration for ${email} (Appwrite user: ${appwriteUserId})`, { id: 0, email, name, role: 'customer' });
-    res.status(201).json({ appwriteUserId, message: 'Account created! Check your email to verify.' });
+    logAudit('register', `User ${email} registered`, { id: newUser.id, email: newUser.email, name: newUser.name, role: 'customer' });
+    res.status(201).json({ user: newUser, message: 'Account created! You can now sign in.' });
   } catch (err) {
     console.error('Registration error:', err);
-    res.status(500).json({ error: 'Internal server error.' });
-  }
-});
-
-// Complete registration — called after Appwrite email verification
-app.post('/api/auth/complete-registration', async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ error: 'Email is required.' });
-
-    // Check if already registered in our DB
-    const { data: existing } = await db.from('nexus_users').select('id').eq('email', email).maybeSingle();
-    if (existing) {
-      return res.status(400).json({ error: 'Account already exists.' });
-    }
-
-    // Look up pending registration
-    const { data: pending } = await db.from('nexus_pending_registrations').select('*').eq('email', email).maybeSingle();
-    if (!pending) {
-      return res.status(400).json({ error: 'No pending registration found. Please register first.' });
-    }
-
-    // Create the user in Supabase
-    const { data: newUser } = await db.from('nexus_users').insert({
-      name: pending.name,
-      email: pending.email,
-      password: pending.password,
-      role: 'customer',
-      phone: pending.phone || '',
-      verified: true,
-    }).select('id, name, email, role').single();
-
-    // Clean up pending record
-    await db.from('nexus_pending_registrations').delete().eq('email', email);
-
-    const token = generateToken({ id: newUser.id, email: newUser.email, name: newUser.name, role: newUser.role });
-    logAudit('register-complete', `User ${email} completed registration after email verification`, { id: newUser.id, email: newUser.email, name: newUser.name, role: newUser.role });
-    res.json({ token, user: { id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role } });
-  } catch (err) {
-    console.error('Complete registration error:', err);
     res.status(500).json({ error: 'Internal server error.' });
   }
 });

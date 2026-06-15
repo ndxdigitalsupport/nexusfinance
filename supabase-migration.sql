@@ -125,14 +125,3 @@ CREATE TABLE nexus_khqr_transactions (
 
 CREATE INDEX idx_khqr_reference_id ON nexus_khqr_transactions(reference_id);
 CREATE INDEX idx_khqr_user_id ON nexus_khqr_transactions(user_id);
-
--- Pending registrations (created in Appwrite, waiting for email verification)
-CREATE TABLE nexus_pending_registrations (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
-  email TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL,
-  phone TEXT DEFAULT '',
-  "appwriteUserId" TEXT NOT NULL,
-  "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
