@@ -75,16 +75,4 @@ export const emailTemplates = {
       <p style="color:#999;font-size:12px;">NexusFinance — Smart Lending Platform</p>
     </div>`,
   }),
-  verifyEmail: (name: string, link: string) => ({
-    subject: 'NexusFinance — Verify Your Email',
-    html: `<div style="font-family:system-ui;max-width:480px;margin:0 auto;padding:24px;">
-      <h2 style="font-size:20px;margin:0 0 8px;">Welcome to NexusFinance</h2>
-      <p style="color:#555;font-size:14px;line-height:1.5;">Hi ${name},</p>
-      <p style="color:#555;font-size:14px;line-height:1.5;">Thanks for creating an account. Please verify your email address by clicking the button below:</p>
-      <a href="${link}" style="display:inline-block;background:#0F171C;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;margin:20px 0;">Verify Email</a>
-      <p style="color:#555;font-size:14px;line-height:1.5;">Or copy this link: <br/><a href="${link}" style="color:#5CF2D0;font-size:12px;">${link}</a></p>
-      <hr style="border:none;border-top:1px solid #eee;margin:24px 0;"/>
-      <p style="color:#999;font-size:12px;">NexusFinance — Smart Lending Platform</p>
-    </div>`,
-  }),
 };

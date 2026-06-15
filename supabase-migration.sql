@@ -8,8 +8,7 @@ CREATE TABLE nexus_users (
   password TEXT NOT NULL DEFAULT '',
   role TEXT NOT NULL DEFAULT 'customer',
   phone TEXT DEFAULT '',
-  verified BOOLEAN NOT NULL DEFAULT false,
-  "verificationToken" TEXT
+  verified BOOLEAN NOT NULL DEFAULT false
 );
 
 -- If nexus_users already exists without phone column, run:

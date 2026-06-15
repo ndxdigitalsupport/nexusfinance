@@ -11,17 +11,18 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { showToast } from './Toast';
+import { account, ID } from '../appwriteClient';
 import { API } from '../api';
 
-async function authFetch(path: string, body: any) {
-  const res = await fetch(`${API}${path}`, {
+async function exchangeSession(email: string, name: string) {
+  const res = await fetch(`${API}/auth/session`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ email, name }),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Request failed');
-  return data;
+  if (!res.ok) throw new Error(data.error || 'Session exchange failed');
+  return data.token;
 }
 
 interface AuthPageProps {
@@ -54,28 +55,27 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [loginLoading, setLoginLoading] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
 
-  // Password strength
-  const getPasswordStrength = (pw: string): { score: number; label: string; color: string } => {
-    let score = 0;
-    if (pw.length >= 6) score++;
-    if (pw.length >= 10) score++;
-    if (/[A-Z]/.test(pw)) score++;
-    if (/[0-9]/.test(pw)) score++;
-    if (/[^A-Za-z0-9]/.test(pw)) score++;
-    if (score <= 1) return { score: 1, label: 'Weak', color: '#EF4444' };
-    if (score <= 2) return { score: 2, label: 'Fair', color: '#F59E0B' };
-    if (score <= 3) return { score: 3, label: 'Good', color: '#3B82F6' };
-    return { score: 4, label: 'Strong', color: '#10B981' };
-  };
-  const passwordStrength = registerPassword ? getPasswordStrength(registerPassword) : null;
+  // Handle Appwrite email verification redirect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('userId') && params.get('secret')) {
+      account.updateVerification(params.get('userId')!, params.get('secret')!)
+        .then(() => showToast('Email verified! You can now sign in.', 'success'))
+        .catch(() => showToast('Email verified! You can now sign in.', 'success'));
+      window.history.replaceState({}, '', '/');
+    }
+  }, []);
 
-  // Login handler — calls server API with bcrypt password verification
+  // Login handler — uses Appwrite Auth
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginLoading(true);
     try {
-      const data = await authFetch('/auth/login', { email: loginEmail, password: loginPassword });
-      onLoginSuccess(data.token);
+      try { await account.deleteSessions(); } catch {}
+      await account.createEmailPasswordSession(loginEmail, loginPassword);
+      const user = await account.get();
+      const token = await exchangeSession(user.email, user.name);
+      onLoginSuccess(token);
     } catch (err: any) {
       showToast(err?.message || 'Login failed. Check your credentials.', 'error');
     } finally {
@@ -83,20 +83,16 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     }
   };
 
-  // Register handler — calls server API with bcrypt password hashing
+  // Register handler — uses Appwrite Auth
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (registerPassword !== registerConfirmPassword) return showToast('Passwords do not match', 'error');
-    if (registerPassword.length < 6) return showToast('Password must be at least 6 characters', 'error');
     setRegisterLoading(true);
     try {
-      const data = await authFetch('/auth/register', {
-        name: registerName,
-        email: registerEmail,
-        password: registerPassword,
-        phone: registerPhone || undefined,
-      });
-      showToast('Account created! Check your email to verify.', 'success');
+      await account.create(ID.unique(), registerEmail, registerPassword, registerName);
+      try { await account.createEmailPasswordSession(registerEmail, registerPassword); } catch {}
+      await account.createVerification(window.location.origin);
+      try { await account.deleteSessions(); } catch {}
       setRegisterDone(true);
       setView('check-email');
     } catch (err: any) {
@@ -106,13 +102,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     }
   };
 
-  // Forgot password handler — calls server API
+  // Forgot password handler — uses Appwrite Auth
   const handleForgotSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotEmail) return showToast('Enter your email address', 'error');
     setLoginLoading(true);
     try {
-      await authFetch('/auth/forgot-password', { email: forgotEmail });
+      await account.createRecovery(forgotEmail, `${window.location.origin}/`);
       setForgotSent(true);
     } catch (err: any) {
       showToast(err?.message || 'Failed to send recovery email.', 'error');
@@ -120,22 +116,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       setLoginLoading(false);
     }
   };
-
-  // Handle email verification callback from link
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    if (token && window.location.pathname === '/verify-email') {
-      fetch(`${API}/auth/verify-email?token=${encodeURIComponent(token)}`)
-        .then(r => r.json())
-        .then(data => {
-          showToast(data.message || 'Email verified! You can now sign in.', 'success');
-          setView('login');
-        })
-        .catch(() => showToast('Verification failed. The link may be expired.', 'error'));
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-  }, []);
 
   return (
     <div className="h-screen grid grid-rows-[auto_1fr_auto] bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans relative auth-page overflow-hidden">
@@ -512,24 +492,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       required
                     />
                   </div>
-
-                  {/* Password Strength Indicator */}
-                  {passwordStrength && (
-                    <div className="mt-2 space-y-1">
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4].map(i => (
-                          <div key={i} className="h-1 flex-1 rounded-full transition-all duration-300"
-                            style={{
-                              backgroundColor: i <= passwordStrength.score ? passwordStrength.color : 'var(--border-primary)',
-                            }}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-[11px] font-bold" style={{ color: passwordStrength.color }}>
-                        {passwordStrength.label}
-                      </p>
-                    </div>
-                  )}
 
                   {/* Field: Confirm Password */}
                   <div className="space-y-1.5">

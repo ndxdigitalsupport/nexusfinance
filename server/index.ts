@@ -100,10 +100,6 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
-    if (!dbUser.verified) {
-      return res.status(403).json({ error: 'Please verify your email before signing in. Check your inbox for the verification link.' });
-    }
-
     const token = generateToken({ id: dbUser.id, email: dbUser.email, name: dbUser.name, role: dbUser.role });
     logAudit('login', `User ${dbUser.email} logged in`, { id: dbUser.id, email: dbUser.email, name: dbUser.name, role: dbUser.role });
     res.json({ token, user: { id: dbUser.id, name: dbUser.name, email: dbUser.email, role: dbUser.role } });
@@ -641,10 +637,10 @@ app.get('/api/audit/logs', authMiddleware, async (req, res) => {
 
 // ── REGISTER ROUTE ────────────────────────────────────────
 
-// Register — creates user in Supabase, sends verification email via Nodemailer
+// Register — for admin-created users only (regular users register via Appwrite SDK)
 app.post('/api/auth/register', authLimiter, async (req, res) => {
   try {
-    const { name, email, password, phone, skipVerification } = req.body;
+    const { name, email, password, phone } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
     }
@@ -658,42 +654,16 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const verificationToken = skipVerification ? null : crypto.randomBytes(32).toString('hex');
     const { data: newUser } = await db.from('nexus_users').insert({
-      name, email, password: hashedPassword, role: 'customer', phone: phone || '', verified: !!skipVerification, verificationToken,
+      name, email, password: hashedPassword, role: 'customer', phone: phone || '',
     }).select('id, name, email, role').single();
     if (!newUser) return res.status(500).json({ error: 'Failed to create account.' });
 
-    if (!skipVerification) {
-      const FRONTEND_URL = process.env.CORS_ORIGIN || 'http://localhost:3000';
-      const verifyLink = `${FRONTEND_URL}/verify-email?token=${verificationToken}`;
-      const tmpl = emailTemplates.verifyEmail(name, verifyLink);
-      await sendEmail(email, tmpl.subject, tmpl.html);
-      logAudit('register', `User ${email} registered, verification email sent`, { id: newUser.id, email: newUser.email, name: newUser.name, role: 'customer' });
-      res.status(201).json({ user: newUser, message: 'Account created! Check your email to verify.' });
-    } else {
-      logAudit('register', `User ${email} registered by admin`, { id: newUser.id, email: newUser.email, name: newUser.name, role: 'customer' });
-      res.status(201).json({ user: newUser });
-    }
+    res.status(201).json({ user: newUser });
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({ error: 'Internal server error.' });
   }
-});
-
-// Email verification — user clicks link from email
-app.get('/api/auth/verify-email', async (req, res) => {
-  const { token } = req.query;
-  if (!token || typeof token !== 'string') {
-    return res.status(400).json({ error: 'Verification token is required.' });
-  }
-  const { data: user } = await db.from('nexus_users').select('id').eq('verificationToken', token).maybeSingle();
-  if (!user) {
-    return res.status(400).json({ error: 'Invalid or expired verification link.' });
-  }
-  await db.from('nexus_users').update({ verified: true, verificationToken: null }).eq('id', user.id);
-  logAudit('verify-email', `User ${user.id} verified email`, { id: user.id, email: '', name: '', role: '' });
-  res.json({ message: 'Email verified! You can now sign in.' });
 });
 
 // ── SEND PASSWORD RESET LINK (stub — logs to console) ──────
