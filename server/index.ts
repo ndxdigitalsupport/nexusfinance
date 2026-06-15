@@ -664,20 +664,39 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     }
 
     // Normal flow: create in Appwrite only, store pending for later verification
-    const appwriteUserId = await createAppwriteUser(email, password, name);
+    let appwriteUserId = null;
+    try {
+      appwriteUserId = await createAppwriteUser(email, password, name);
+    } catch (awErr) {
+      console.warn('Appwrite user creation failed, falling back to direct registration:', awErr);
+    }
+
     if (!appwriteUserId) {
-      return res.status(500).json({ error: 'Failed to create account. Try again later.' });
+      // Appwrite unavailable — create directly in Supabase (no email verification)
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const { data: newUser } = await db.from('nexus_users').insert({
+        name, email, password: hashedPassword, role: 'customer', phone: phone || '', verified: false,
+      }).select('id, name, email, role').single();
+      if (!newUser) return res.status(500).json({ error: 'Failed to create account.' });
+      logAudit('register', `User ${email} registered (no Appwrite)`, { id: newUser.id, email: newUser.email, name: newUser.name, role: 'customer' });
+      return res.status(201).json({ user: newUser, message: 'Account created! You can now sign in.' });
     }
 
     // Store pending registration
     const hashedPassword = await bcrypt.hash(password, 10);
-    await db.from('nexus_pending_registrations').insert({
-      name,
-      email,
-      password: hashedPassword,
-      phone: phone || '',
-      appwriteUserId,
-    });
+    try {
+      await db.from('nexus_pending_registrations').insert({
+        name, email, password: hashedPassword, phone: phone || '', appwriteUserId,
+      });
+    } catch (dbErr) {
+      console.warn('Failed to store pending registration, falling back to direct create:', dbErr);
+      // Table might not exist — create user directly
+      const { data: newUser } = await db.from('nexus_users').insert({
+        name, email, password: hashedPassword, role: 'customer', phone: phone || '', verified: false,
+      }).select('id, name, email, role').single();
+      if (!newUser) return res.status(500).json({ error: 'Failed to create account.' });
+      return res.status(201).json({ user: newUser, message: 'Account created! You can now sign in.' });
+    }
 
     logAudit('register-pending', `Pending registration for ${email} (Appwrite user: ${appwriteUserId})`, { id: 0, email, name, role: 'customer' });
     res.status(201).json({ appwriteUserId, message: 'Account created! Check your email to verify.' });
