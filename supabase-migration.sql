@@ -14,6 +14,8 @@ CREATE TABLE nexus_users (
 
 -- If nexus_users already exists without phone column, run:
 -- ALTER TABLE nexus_users ADD COLUMN phone TEXT DEFAULT '';
+-- If nexus_users already exists without verificationToken column, run:
+-- ALTER TABLE nexus_users ADD COLUMN "verificationToken" TEXT;
 
 CREATE TABLE nexus_loans (
   id TEXT PRIMARY KEY,
