@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { QrCode, Smartphone, DollarSign, Calendar, CreditCard, History, CheckCircle2, Download, Settings, Clock, Copy, Check, XCircle, AlertCircle } from 'lucide-react';
-import QRCode from 'qrcode';
 import { API } from '../api';
 
 const s = (name: string) => `var(--${name})`;
@@ -14,23 +13,11 @@ function Spinner({ size = 16 }: { size?: number }) {
   );
 }
 
-function QRPreview({ text, size = 220 }: { text: string; size?: number }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    if (canvasRef.current && text) {
-      QRCode.toCanvas(canvasRef.current, text, { 
-        width: size, 
-        margin: 2, 
-        color: { dark: '#0F171C', light: '#FFFFFF' } 
-      });
-    }
-  }, [text, size]);
-  
-  if (!text) return <div className="w-[220px] h-[220px] rounded-xl flex items-center justify-center" style={{ backgroundColor: s('surface-secondary') }}><Spinner /></div>;
-
+function QRPreview({ image }: { image?: string }) {
+  if (!image) return <div className="w-[240px] h-[240px] rounded-xl flex items-center justify-center" style={{ backgroundColor: s('surface-secondary') }}><Spinner /></div>;
   return (
-    <div className="flex justify-center p-4 rounded-2xl shadow-sm" style={{ backgroundColor: '#ffffff' }}>
-      <canvas ref={canvasRef} className="rounded-xl" />
+    <div className="flex justify-center rounded-2xl shadow-sm overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
+      <img src={image} alt="KHQR" className="w-full h-auto" style={{ maxWidth: 300 }} />
     </div>
   );
 }
@@ -91,8 +78,6 @@ export default function KHQRPage() {
             amount: parseFloat(amount),
             currency: 'USD',
             lifetime: 15,
-            bakongAccountId,
-            merchantName,
             items: [{ name: `Loan Repayment - ${loanData.loanId}`, quantity: 1, price: parseFloat(amount) }],
           }),
         });
@@ -159,11 +144,11 @@ export default function KHQRPage() {
   };
 
   const handleDownloadQR = () => {
-    const canvas = document.querySelector('canvas');
-    if (!canvas) return;
+    const img = document.querySelector('img[alt="KHQR"]') as HTMLImageElement;
+    if (!img) return;
     const link = document.createElement('a');
     link.download = `KHQR-${loanData.loanId}-${getAmount()}.png`;
-    link.href = canvas.toDataURL('image/png');
+    link.href = img.src;
     link.click();
   };
 
@@ -414,7 +399,7 @@ export default function KHQRPage() {
                   </div>
                 ) : (
                   <div className="z-10 relative">
-                    <QRPreview text={genResult?.localQrString || genResult?.qrString} />
+                    <QRPreview image={genResult?.qrImage} />
                   </div>
                 )}
               </div>
