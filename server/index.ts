@@ -910,14 +910,42 @@ app.post('/api/payway/generate-qr', async (req, res) => {
       return res.status(400).json({ error: 'amount is required and must be > 0' });
     }
 
-    const result = await payway.generateQR({
-      amount,
-      currency: currency || 'USD',
-      lifetime: lifetime || 15,
-      callbackUrl: callbackUrl || `${req.protocol}://${req.get('host')}/api/payway/callback`,
-      returnParams: returnParams || '',
-      items,
-    });
+    let result;
+    let isMock = false;
+
+    try {
+      result = await payway.generateQR({
+        amount,
+        currency: currency || 'USD',
+        lifetime: lifetime || 15,
+        callbackUrl: callbackUrl || `${req.protocol}://${req.get('host')}/api/payway/callback`,
+        returnParams: returnParams || '',
+        items,
+      });
+    } catch (paywayErr: any) {
+      console.warn('PayWay unavailable, using mock:', paywayErr.message);
+      const { generateKHQR: mockGen, generateDeeplink } = await import('./khqr.js');
+      const mock = mockGen({
+        bakongAccountId: 'nexusfinance@aclb',
+        merchantName: 'Nexus Finance',
+        merchantCity: 'Phnom Penh',
+        currency: '840',
+        amount,
+        storeLabel: items?.[0]?.name || '',
+      });
+      const deeplink = generateDeeplink(mock.khqrString);
+      result = {
+        success: true,
+        qrImage: '',
+        qrString: mock.khqrString,
+        deeplink: deeplink.deeplink,
+        tranId: mock.referenceId,
+        amount,
+        currency: currency || 'USD',
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      };
+      isMock = true;
+    }
 
     paywayTransactions.set(result.tranId, {
       tranId: result.tranId,
@@ -927,7 +955,7 @@ app.post('/api/payway/generate-qr', async (req, res) => {
       createdAt: new Date(),
     });
 
-    res.json(result);
+    res.json({ ...result, _mock: isMock });
   } catch (err: any) {
     console.error('PayWay generateQR error:', err.message || err);
     res.status(500).json({ error: err.message || 'Failed to generate QR' });

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { QrCode, Smartphone, DollarSign, Calendar, CreditCard, History, CheckCircle2, Download, Settings, Clock, Copy, Check, XCircle, AlertCircle } from 'lucide-react';
+import QRCode from 'qrcode';
 import { API } from '../api';
 
 const s = (name: string) => `var(--${name})`;
@@ -13,11 +14,27 @@ function Spinner({ size = 16 }: { size?: number }) {
   );
 }
 
-function QRPreview({ image }: { image?: string }) {
-  if (!image) return <div className="w-[240px] h-[240px] rounded-xl flex items-center justify-center" style={{ backgroundColor: s('surface-secondary') }}><Spinner /></div>;
+function QRPreview({ image, text }: { image?: string; text?: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    if (canvasRef.current && text) {
+      QRCode.toCanvas(canvasRef.current, text, { width: 220, margin: 2, color: { dark: '#0F171C', light: '#FFFFFF' } });
+    }
+  }, [text]);
+
+  if (image) {
+    return (
+      <div className="flex justify-center rounded-2xl shadow-sm overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
+        <img src={image} alt="KHQR" className="w-full h-auto" style={{ maxWidth: 300 }} />
+      </div>
+    );
+  }
+
+  if (!text) return <div className="w-[220px] h-[220px] rounded-xl flex items-center justify-center" style={{ backgroundColor: s('surface-secondary') }}><Spinner /></div>;
+
   return (
-    <div className="flex justify-center rounded-2xl shadow-sm overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
-      <img src={image} alt="KHQR" className="w-full h-auto" style={{ maxWidth: 300 }} />
+    <div className="flex justify-center p-4 rounded-2xl shadow-sm" style={{ backgroundColor: '#ffffff' }}>
+      <canvas ref={canvasRef} className="rounded-xl" />
     </div>
   );
 }
@@ -145,11 +162,20 @@ export default function KHQRPage() {
 
   const handleDownloadQR = () => {
     const img = document.querySelector('img[alt="KHQR"]') as HTMLImageElement;
-    if (!img) return;
-    const link = document.createElement('a');
-    link.download = `KHQR-${loanData.loanId}-${getAmount()}.png`;
-    link.href = img.src;
-    link.click();
+    if (img) {
+      const link = document.createElement('a');
+      link.download = `KHQR-${loanData.loanId}-${getAmount()}.png`;
+      link.href = img.src;
+      link.click();
+      return;
+    }
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+      const link = document.createElement('a');
+      link.download = `KHQR-${loanData.loanId}-${getAmount()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
   };
 
   const handleCopyQR = async () => {
@@ -409,7 +435,7 @@ export default function KHQRPage() {
                   </div>
                 ) : (
                   <div className="z-10 relative">
-                    <QRPreview image={genResult?.qrImage} />
+                    <QRPreview image={genResult?.qrImage} text={genResult?.qrString} />
                   </div>
                 )}
               </div>
