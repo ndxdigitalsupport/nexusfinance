@@ -14,6 +14,7 @@ import {
   X
 } from 'lucide-react';
 import { Transaction } from '../types';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface CustomerDashboardProps {
   userName: string;
@@ -36,6 +37,7 @@ export default function CustomerDashboard({
   onSetActiveMenu,
   onInstantApprovedFastCash
 }: CustomerDashboardProps) {
+  const { formatCurrency } = useCurrency();
   const [showFastCashPromo, setShowFastCashPromo] = useState(false);
   const [fastCashAmtValue, setFastCashAmtValue] = useState('2000.00');
   const [promoSuccess, setPromoSuccess] = useState(false);
@@ -66,7 +68,7 @@ export default function CustomerDashboard({
             <Coins className="w-5 h-5" style={{ color: 'var(--accent)' }} />
             <div>
               <span className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-wider block">Vault Wallet</span>
-              <span className="text-[14px] font-extrabold font-mono text-[var(--text-primary)]">${walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              <span className="text-[14px] font-extrabold font-mono text-[var(--text-primary)]">{formatCurrency(walletBalance)}</span>
             </div>
           </div>
         </div>
@@ -91,7 +93,7 @@ export default function CustomerDashboard({
                   className="text-[44px] sm:text-[52px] leading-tight font-extrabold font-sans tracking-tighter"
                   style={{ color: 'var(--text-primary)' }}
                 >
-                  ${outstandingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {formatCurrency(outstandingBalance)}
                 </span>
               </div>
 
@@ -235,7 +237,7 @@ export default function CustomerDashboard({
                         <span className="text-[15.5px] font-bold font-mono"
                           style={{color: isPositive ? 'var(--success-text)' : 'var(--error-text)'}}
                         >
-                          {isPositive ? '+' : '-'}${Math.abs(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          {isPositive ? '+' : '-'}{formatCurrency(Math.abs(tx.amount))}
                         </span>
                       </div>
                     );

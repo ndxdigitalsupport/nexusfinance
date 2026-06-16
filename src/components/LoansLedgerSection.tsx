@@ -1,7 +1,8 @@
 import React from 'react';
 import { Landmark, Download } from 'lucide-react';
 import { LoanApplication } from '../types';
-import { downloadCSV, formatCurrency } from '../utils';
+import { downloadCSV } from '../utils';
+import { useCurrency } from '../context/CurrencyContext';
 import Heading from './Heading';
 import EmptyState from './EmptyState';
 import StatusBadge from './StatusBadge';
@@ -10,6 +11,7 @@ import Pagination from './Pagination';
 interface Props { applications: LoanApplication[]; loanPage: number; setLoanPage: (p: number) => void; userEmail?: string; }
 
 export default function LoansLedgerSection({ applications, loanPage, setLoanPage, userEmail }: Props) {
+  const { formatCurrency } = useCurrency();
   const filtered = applications.filter(a => a.applicantEmail === (userEmail || ''));
   if (filtered.length === 0) return (
     <div className="animate-content-enter">

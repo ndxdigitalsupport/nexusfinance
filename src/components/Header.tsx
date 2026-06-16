@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Bell, Menu, X, User, LogOut, Layers, Sun, Moon, DollarSign } from 'lucide-react';
 import { PortalType } from '../types';
 import { API, apiFetch } from '../api';
-import { getCurrency, setCurrency, formatCurrencyShort } from '../utils';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface HeaderProps {
   currentPortal: PortalType;
@@ -35,6 +35,7 @@ export default function Header({
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [connected, setConnected] = useState(false);
+  const { currency, setCurrency, formatCurrencyShort } = useCurrency();
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('nexus_dark_mode');
     if (saved !== null) {
@@ -163,11 +164,16 @@ export default function Header({
 
           {/* Currency Toggle */}
           <button
-            onClick={() => setCurrency(getCurrency() === 'USD' ? 'KHR' : 'USD')}
+            onClick={() => setCurrency(currency === 'USD' ? 'KHR' : 'USD')}
             aria-label="Toggle currency"
-            className="px-2 py-1.5 text-[11px] font-bold text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] rounded-lg transition-colors cursor-pointer border border-[var(--border-primary)]"
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-extrabold rounded-full transition-all cursor-pointer border ${
+              currency === 'KHR'
+                ? 'bg-[var(--accent)]/15 text-[var(--accent)] border-[var(--accent)]/30 shadow-sm'
+                : 'text-[var(--text-secondary)] border-[var(--border-primary)] hover:bg-[var(--surface-secondary)]'
+            }`}
           >
-            {getCurrency() === 'USD' ? '៛ KHR' : '$ USD'}
+            <span className={`w-1.5 h-1.5 rounded-full ${currency === 'KHR' ? 'bg-[var(--accent)]' : 'bg-[var(--text-tertiary)]'}`} />
+            {currency === 'USD' ? '៛ KHR' : '$ USD'}
           </button>
 
           {/* Notifications */}

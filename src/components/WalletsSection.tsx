@@ -1,10 +1,11 @@
 import React from 'react';
 import Heading from './Heading';
-import { formatCurrency } from '../utils';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface Props { walletBalance: number; outstandingBalance: number; }
 
 export default function WalletsSection({ walletBalance, outstandingBalance }: Props) {
+  const { formatCurrency } = useCurrency();
   return (
     <div className="animate-content-enter">
       <Heading>Wallets</Heading>

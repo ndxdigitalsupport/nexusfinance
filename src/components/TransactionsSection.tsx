@@ -2,6 +2,7 @@ import React from 'react';
 import { History, Download } from 'lucide-react';
 import { Transaction } from '../types';
 import { downloadCSV } from '../utils';
+import { useCurrency } from '../context/CurrencyContext';
 import Heading from './Heading';
 import EmptyState from './EmptyState';
 import Pagination from './Pagination';
@@ -9,6 +10,7 @@ import Pagination from './Pagination';
 interface Props { transactions: Transaction[]; txPage: number; setTxPage: (p: number) => void; }
 
 export default function TransactionsSection({ transactions, txPage, setTxPage }: Props) {
+  const { formatCurrency } = useCurrency();
   if (transactions.length === 0) return (
     <div className="animate-content-enter">
       <Heading>History Logs</Heading>
@@ -41,7 +43,7 @@ export default function TransactionsSection({ transactions, txPage, setTxPage }:
                 <td className="px-5 py-3.5">{tx.title}</td>
                 <td className="px-5 py-3.5 text-[var(--text-secondary)]">{tx.date}</td>
                 <td className="px-5 py-3.5 font-mono" style={{color: tx.amount > 0 ? 'var(--success-text)' : 'var(--error-text)'}}>
-                  {tx.amount > 0 ? '+' : '-'}${Math.abs(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  {tx.amount > 0 ? '+' : '-'}{formatCurrency(Math.abs(tx.amount))}
                 </td>
               </tr>
             ))}
