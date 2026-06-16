@@ -11,7 +11,7 @@ if (!appwriteEnabled) {
   console.warn('⚠  Appwrite not configured (APPWRITE_ENDPOINT/PROJECT_ID/API_KEY missing). Verification and password reset via Appwrite will be skipped.');
 }
 
-async function adminCall(method: string, path: string, params?: Record<string, any>) {
+export async function adminCall(method: string, path: string, params?: Record<string, any>) {
   if (!appwriteEnabled) throw new Error('Appwrite not configured');
   const url = `${endpoint}${path}`;
   const response = await fetch(url, {

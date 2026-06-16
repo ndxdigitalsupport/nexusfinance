@@ -10,7 +10,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import { db } from './db.js';
-import { updateUserPassword } from './appwrite.js';
+import { updateUserPassword, adminCall } from './appwrite.js';
 import { sendSMS } from './sms.js';
 import { verifyKHQR, decodeKHQR, generateDeeplink } from './khqr.js';
 import { generateKHQR, checkTransaction } from './bakong.js';
@@ -137,25 +137,11 @@ app.post('/api/auth/verify-email', authLimiter, async (req, res) => {
   try {
     const { userId } = req.body;
     if (!userId) return res.status(400).json({ error: 'userId is required.' });
-    const url = `${process.env.APPWRITE_ENDPOINT || 'https://sgp.cloud.appwrite.io/v1'}/users/${userId}`;
-    const response = await fetch(url, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Appwrite-Project': process.env.APPWRITE_PROJECT_ID || '',
-        'X-Appwrite-Key': process.env.APPWRITE_API_KEY || '',
-      },
-      body: JSON.stringify({ emailVerification: true }),
-    });
-    if (!response.ok) {
-      const text = await response.text();
-      console.error('Appwrite verify-email failed:', text);
-      return res.status(500).json({ error: 'Failed to verify email in Appwrite.' });
-    }
+    await adminCall('patch', `/users/${userId}`, { emailVerification: true });
     res.json({ message: 'Email verified successfully.' });
   } catch (err) {
     console.error('Verify email error:', err);
-    res.status(500).json({ error: 'Internal server error.' });
+    res.status(500).json({ error: 'Failed to verify email in Appwrite.' });
   }
 });
 
@@ -164,29 +150,11 @@ app.post('/api/auth/clear-sessions', authLimiter, async (req, res) => {
   try {
     const { userId } = req.body;
     if (!userId) return res.status(400).json({ error: 'userId is required.' });
-    const endpoint = process.env.APPWRITE_ENDPOINT || 'https://sgp.cloud.appwrite.io/v1';
-    const projectId = process.env.APPWRITE_PROJECT_ID || '';
-    const apiKey = process.env.APPWRITE_API_KEY || '';
-    if (!projectId || !apiKey) {
-      console.warn('Appwrite not configured for clear-sessions, skipping.');
-      return res.json({ message: 'Skipped (Appwrite not configured).' });
-    }
-    const url = `${endpoint}/users/${userId}/sessions`;
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        'X-Appwrite-Project': projectId,
-        'X-Appwrite-Key': apiKey,
-      },
-    });
-    if (!response.ok) {
-      const text = await response.text();
-      console.error('Appwrite clear-sessions failed:', text);
-    }
+    await adminCall('delete', `/users/${userId}/sessions`);
     res.json({ message: 'Sessions cleared.' });
-  } catch (err) {
-    console.error('Clear sessions error:', err);
-    res.status(500).json({ error: 'Internal server error.' });
+  } catch (err: any) {
+    console.error('Clear sessions error:', err?.message || err);
+    res.json({ message: 'Continue (session clear skipped).' });
   }
 });
 
