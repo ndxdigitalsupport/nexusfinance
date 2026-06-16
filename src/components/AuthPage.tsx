@@ -116,13 +116,12 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         body: JSON.stringify({ userId: registerOtpUserId }),
       });
       await account.createSession(registerOtpUserId, registerOtpCode);
-      // Mark email verified in Appwrite via admin API
-      const res = await fetch(`${API}/auth/verify-email`, {
+      // Mark email verified in Appwrite (non-blocking — email is already verified by createSession)
+      fetch(`${API}/auth/verify-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: registerOtpUserId }),
-      });
-      if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to verify email.'); }
+      }).catch(() => {});
       // Log out the temporary OTP session and redirect to login
       try { await account.deleteSessions(); } catch {}
       setView('login');
