@@ -127,13 +127,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       setView('login');
       showToast('Account created! Login with your email and password.', 'success');
     } catch (err: any) {
-      showToast(err?.message || 'Wrong code. A new code has been sent to your email.', 'error');
+      showToast(err?.message || 'Wrong code. Try again.', 'error');
       setRegisterOtpCode('');
-      try {
-        const token = await account.createEmailToken(ID.unique(), registerEmail);
-        setRegisterOtpUserId(token.userId);
-        setRegisterOtpTimer(300);
-      } catch {}
     } finally {
       setRegisterLoading(false);
     }
