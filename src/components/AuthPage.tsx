@@ -544,7 +544,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         type="text"
                         value={registerName}
                         onChange={(e) => setRegisterName(e.target.value)}
-                        placeholder="Johnathan Doe"
+                        placeholder="Enter your full name"
                         className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
                         required
                       />
@@ -564,7 +564,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         type="email"
                         value={registerEmail}
                         onChange={(e) => setRegisterEmail(e.target.value)}
-                        placeholder="j.doe@nexus.finance"
+                        placeholder="you@example.com"
                         className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
                         required
                       />
@@ -624,7 +624,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         type="tel"
                         value={registerPhone}
                         onChange={(e) => setRegisterPhone(e.target.value)}
-                        placeholder="+855 12 345 678"
+                        placeholder="Enter your phone number"
                         className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
                         required
                       />

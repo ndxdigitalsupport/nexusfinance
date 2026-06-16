@@ -208,7 +208,7 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                     <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Full Name</label>
                     <div className="relative">
                       <User className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="John Doe" className={`${inputClass('name')} pl-10`} />
+                      <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="Enter your full name" className={`${inputClass('name')} pl-10`} />
                     </div>
                     {formErrors.name && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.name}</p>}
                   </div>
