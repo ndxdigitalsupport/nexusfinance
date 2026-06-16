@@ -119,7 +119,7 @@ className="w-full premium-btn-primary hover:brightness-110 text-white font-bold 
                     if (errorMsg) setErrorMsg('');
                   }}
                   className="w-full bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-lg pl-9 pr-4 py-3 text-[16px] font-medium text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
-                  placeholder="250.00"
+                  placeholder="Enter repayment amount"
                 />
               </div>
               <div className="flex gap-1.5 mt-2">

@@ -74,7 +74,7 @@ export default function WebhooksPage() {
         <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 mb-6 space-y-4">
           <div>
             <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)] block mb-1.5">Webhook URL</label>
-            <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://your-service.com/webhook" className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl px-4 py-2.5 text-[14px] focus:outline-none focus:border-[var(--accent)]" />
+            <input value={url} onChange={e => setUrl(e.target.value)} placeholder="Enter your webhook URL" className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl px-4 py-2.5 text-[14px] focus:outline-none focus:border-[var(--accent)]" />
           </div>
           <div>
             <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)] block mb-1.5">Events</label>

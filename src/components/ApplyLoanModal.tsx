@@ -216,7 +216,7 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                     <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Email Address</label>
                     <div className="relative">
                       <Mail className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="name@domain.com" className={`${inputClass('email')} pl-10`} />
+                      <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Enter your email address" className={`${inputClass('email')} pl-10`} />
                     </div>
                     {formErrors.email && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.email}</p>}
                   </div>
@@ -233,7 +233,7 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                       <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Loan Amount</label>
                       <div className="relative">
                         <DollarSign className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                        <input type="number" name="amount" value={formData.amount} onChange={handleInputChange} placeholder="15000" className={`${inputClass('amount')} pl-10`} />
+                        <input type="number" name="amount" value={formData.amount} onChange={handleInputChange} placeholder="Enter loan amount" className={`${inputClass('amount')} pl-10`} />
                       </div>
                       <div className="flex gap-1.5 mt-2">
                         {[5000, 10000, 25000, 50000].map(v => (
@@ -249,7 +249,7 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                       <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Monthly Income</label>
                       <div className="relative">
                         <DollarSign className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                        <input type="number" name="monthlyIncome" value={formData.monthlyIncome} onChange={handleInputChange} placeholder="5000" className={`${inputClass('monthlyIncome')} pl-10`} />
+                        <input type="number" name="monthlyIncome" value={formData.monthlyIncome} onChange={handleInputChange} placeholder="Enter monthly income" className={`${inputClass('monthlyIncome')} pl-10`} />
                       </div>
                       {formErrors.monthlyIncome && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.monthlyIncome}</p>}
                     </div>
