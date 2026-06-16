@@ -72,6 +72,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!loginEmail || !loginPassword) return showToast('Enter email and password', 'error');
     setLoginLoading(true);
     try {
+      try { await account.deleteSessions(); } catch {}
       await account.createEmailPasswordSession(loginEmail, loginPassword);
       const user = await account.get();
       const jwt = await exchangeSession(user.email, user.name);
