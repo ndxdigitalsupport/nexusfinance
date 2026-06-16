@@ -13,11 +13,11 @@ function Spinner({ size = 16 }: { size?: number }) {
   );
 }
 
-function QRPreview({ image, text, size = 240 }: { image?: string; text?: string; size?: number }) {
+function QRPreview({ image, text }: { image?: string; text?: string }) {
   if (image) {
     return (
-      <div className="flex justify-center p-4 rounded-2xl shadow-sm" style={{ backgroundColor: '#ffffff' }}>
-        <img src={image} alt="KHQR" style={{ width: size, height: size }} className="rounded-xl" />
+      <div className="flex justify-center p-3 rounded-2xl shadow-sm" style={{ backgroundColor: '#ffffff' }}>
+        <img src={image} alt="KHQR" className="rounded-xl max-w-full h-auto" style={{ maxHeight: 300 }} />
       </div>
     );
   }
@@ -396,7 +396,7 @@ export default function KHQRPage() {
                   </div>
                 ) : (
                   <div className="z-10 relative">
-                    <QRPreview image={genResult?.qrImage} text={genResult?.qrString} size={240} />
+                    <QRPreview image={genResult?.qrImage} text={genResult?.qrString} />
                   </div>
                 )}
               </div>
