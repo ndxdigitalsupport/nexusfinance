@@ -159,6 +159,37 @@ app.post('/api/auth/verify-email', authLimiter, async (req, res) => {
   }
 });
 
+// Force-clear all sessions for a user via Appwrite admin API (used before OTP session creation)
+app.post('/api/auth/clear-sessions', authLimiter, async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'userId is required.' });
+    const endpoint = process.env.APPWRITE_ENDPOINT || 'https://sgp.cloud.appwrite.io/v1';
+    const projectId = process.env.APPWRITE_PROJECT_ID || '';
+    const apiKey = process.env.APPWRITE_API_KEY || '';
+    if (!projectId || !apiKey) {
+      console.warn('Appwrite not configured for clear-sessions, skipping.');
+      return res.json({ message: 'Skipped (Appwrite not configured).' });
+    }
+    const url = `${endpoint}/users/${userId}/sessions`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'X-Appwrite-Project': projectId,
+        'X-Appwrite-Key': apiKey,
+      },
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('Appwrite clear-sessions failed:', text);
+    }
+    res.json({ message: 'Sessions cleared.' });
+  } catch (err) {
+    console.error('Clear sessions error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
 // Self-service password reset (called after OTP verification on forgot password)
 app.post('/api/auth/update-password', authLimiter, async (req, res) => {
   try {

@@ -78,7 +78,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!otpEmail) return showToast('Enter your email address', 'error');
     setLoginLoading(true);
     try {
-      try { await account.deleteSessions(); } catch {}
       const token = await account.createEmailToken(ID.unique(), otpEmail);
       setOtpUserId(token.userId);
       setOtpSent(true);
@@ -99,7 +98,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!otpCode || otpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
     setLoginLoading(true);
     try {
-      try { await account.deleteSessions(); } catch {}
+      await fetch(`${API}/auth/clear-sessions`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: otpUserId }),
+      });
       await account.createSession(otpUserId, otpCode);
       const user = await account.get();
       const jwt = await exchangeSession(user.email, user.name);
@@ -152,7 +154,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!registerOtpCode || registerOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
     setRegisterLoading(true);
     try {
-      try { await account.deleteSessions(); } catch {}
+      await fetch(`${API}/auth/clear-sessions`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: registerOtpUserId }),
+      });
       await account.createSession(registerOtpUserId, registerOtpCode);
       // Mark email verified in Appwrite via admin API
       const res = await fetch(`${API}/auth/verify-email`, {
@@ -191,7 +196,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!forgotEmail) return showToast('Enter your email address', 'error');
     setForgotLoading(true);
     try {
-      try { await account.deleteSessions(); } catch {}
       const token = await account.createEmailToken(ID.unique(), forgotEmail);
       setForgotUserId(token.userId);
       setForgotOtpSent(true);
@@ -212,7 +216,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!forgotOtpCode || forgotOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
     setForgotLoading(true);
     try {
-      try { await account.deleteSessions(); } catch {}
+      await fetch(`${API}/auth/clear-sessions`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: forgotUserId }),
+      });
       await account.createSession(forgotUserId, forgotOtpCode);
       setShowResetForm(true);
     } catch (err: any) {
@@ -234,7 +241,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         body: JSON.stringify({ email: forgotEmail, userId: forgotUserId, newPassword: resetPassword }),
       });
       if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to reset password.'); }
-      try { await account.deleteSessions(); } catch {}
       showToast('Password reset! Login with your new password.', 'success');
       setShowResetForm(false);
       setForgotOtpSent(false);

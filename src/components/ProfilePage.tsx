@@ -58,7 +58,6 @@ export default function ProfilePage({ token, user }: ProfilePageProps) {
   const handleSendPasswordOtp = async () => {
     setPasswordLoading(true);
     try {
-      try { await account.deleteSessions(); } catch {}
       const token = await account.createEmailToken(ID.unique(), email);
       setPasswordOtpUserId(token.userId);
       setPasswordOtpSent(true);
@@ -79,7 +78,10 @@ export default function ProfilePage({ token, user }: ProfilePageProps) {
     if (!passwordOtpCode || passwordOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
     setPasswordLoading(true);
     try {
-      try { await account.deleteSessions(); } catch {}
+      await fetch(`${API}/auth/clear-sessions`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: passwordOtpUserId }),
+      });
       await account.createSession(passwordOtpUserId, passwordOtpCode);
       setPasswordOtpVerified(true);
       showToast('Email verified! Set your new password.', 'success');
