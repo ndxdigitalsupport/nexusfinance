@@ -905,10 +905,12 @@ const paywayTransactions = new Map<string, {
 
 app.post('/api/payway/generate-qr', async (req, res) => {
   try {
-    const { amount, currency, lifetime, callbackUrl, returnParams, items } = req.body;
+    const { amount, currency, lifetime, callbackUrl, returnParams, items, bakongAccountId, merchantName } = req.body;
     if (!amount || amount <= 0) {
       return res.status(400).json({ error: 'amount is required and must be > 0' });
     }
+
+    // Generate PayWay transaction record
     const result = await payway.generateQR({
       amount,
       currency: currency || 'USD',
@@ -926,7 +928,22 @@ app.post('/api/payway/generate-qr', async (req, res) => {
       createdAt: new Date(),
     });
 
-    res.json(result);
+    // Also generate a standard EMVCo KHQR string for scanners
+    let localQrString = '';
+    if (bakongAccountId) {
+      const { generateKHQR: mockGenerate } = await import('./khqr.js');
+      const mockResult = mockGenerate({
+        bakongAccountId,
+        merchantName: merchantName || 'Nexus Finance',
+        merchantCity: 'Phnom Penh',
+        currency: currency === 'KHR' ? '116' : '840',
+        amount,
+        storeLabel: items?.[0]?.name || '',
+      });
+      localQrString = mockResult.khqrString;
+    }
+
+    res.json({ ...result, localQrString });
   } catch (err: any) {
     console.error('PayWay generateQR error:', err.message || err);
     res.status(500).json({ error: err.message || 'Failed to generate QR' });

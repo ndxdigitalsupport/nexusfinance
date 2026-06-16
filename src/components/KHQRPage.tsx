@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { QrCode, Smartphone, DollarSign, Calendar, CreditCard, History, CheckCircle2, Download, Settings, Clock, Copy, Check, XCircle, AlertCircle } from 'lucide-react';
+import QRCode from 'qrcode';
 import { API } from '../api';
 
 const s = (name: string) => `var(--${name})`;
@@ -13,16 +14,25 @@ function Spinner({ size = 16 }: { size?: number }) {
   );
 }
 
-function QRPreview({ image, text }: { image?: string; text?: string }) {
-  if (image) {
-    return (
-      <div className="flex justify-center p-3 rounded-2xl shadow-sm" style={{ backgroundColor: '#ffffff' }}>
-        <img src={image} alt="KHQR" className="rounded-xl max-w-full h-auto" style={{ maxHeight: 300 }} />
-      </div>
-    );
-  }
-  if (!text) return <div className="w-[240px] h-[240px] rounded-xl flex items-center justify-center" style={{ backgroundColor: s('surface-secondary') }}><Spinner /></div>;
-  return <div className="flex items-center justify-center w-[240px] h-[240px] rounded-2xl" style={{ backgroundColor: s('surface-secondary') }}><span className="text-xs font-medium" style={{ color: s('text-tertiary') }}>QR ready</span></div>;
+function QRPreview({ text, size = 220 }: { text: string; size?: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    if (canvasRef.current && text) {
+      QRCode.toCanvas(canvasRef.current, text, { 
+        width: size, 
+        margin: 2, 
+        color: { dark: '#0F171C', light: '#FFFFFF' } 
+      });
+    }
+  }, [text, size]);
+  
+  if (!text) return <div className="w-[220px] h-[220px] rounded-xl flex items-center justify-center" style={{ backgroundColor: s('surface-secondary') }}><Spinner /></div>;
+
+  return (
+    <div className="flex justify-center p-4 rounded-2xl shadow-sm" style={{ backgroundColor: '#ffffff' }}>
+      <canvas ref={canvasRef} className="rounded-xl" />
+    </div>
+  );
 }
 
 type PaymentMode = 'installment' | 'full' | 'custom';
@@ -45,6 +55,7 @@ export default function KHQRPage() {
   const [genTime, setGenTime] = useState<Date | null>(null);
   const [copied, setCopied] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [bakongAccountId, setBakongAccountId] = useState('nexusfinance@aclb');
   const [merchantName, setMerchantName] = useState('Nexus Finance');
   const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'APPROVED' | 'DECLINED' | 'IDLE'>('IDLE');
   const [transactions, setTransactions] = useState<PayWayTx[]>([]);
@@ -80,6 +91,8 @@ export default function KHQRPage() {
             amount: parseFloat(amount),
             currency: 'USD',
             lifetime: 15,
+            bakongAccountId,
+            merchantName,
             items: [{ name: `Loan Repayment - ${loanData.loanId}`, quantity: 1, price: parseFloat(amount) }],
           }),
         });
@@ -96,7 +109,7 @@ export default function KHQRPage() {
       }
     };
     generateQR();
-  }, [paymentMode, customAmount]);
+  }, [paymentMode, customAmount, bakongAccountId, merchantName]);
 
   useEffect(() => {
     if (paymentStatus !== 'PENDING' || !genResult?.tranId) return;
@@ -146,11 +159,11 @@ export default function KHQRPage() {
   };
 
   const handleDownloadQR = () => {
-    const img = document.querySelector('img[alt="KHQR"]') as HTMLImageElement;
-    if (!img) return;
+    const canvas = document.querySelector('canvas');
+    if (!canvas) return;
     const link = document.createElement('a');
     link.download = `KHQR-${loanData.loanId}-${getAmount()}.png`;
-    link.href = img.src;
+    link.href = canvas.toDataURL('image/png');
     link.click();
   };
 
@@ -214,7 +227,12 @@ export default function KHQRPage() {
             <Settings className="w-4 h-4" style={{ color: s('accent') }} />
             <span className="text-sm font-bold" style={{ color: s('text-primary') }}>Merchant Settings</span>
           </div>
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: s('text-secondary') }}>Bakong Account ID</label>
+              <input type="text" value={bakongAccountId} onChange={e => setBakongAccountId(e.target.value)}
+                className="premium-input w-full px-4 py-2.5 rounded-xl text-sm" />
+            </div>
             <div>
               <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: s('text-secondary') }}>Display Name</label>
               <input type="text" value={merchantName} onChange={e => setMerchantName(e.target.value)}
@@ -396,7 +414,7 @@ export default function KHQRPage() {
                   </div>
                 ) : (
                   <div className="z-10 relative">
-                    <QRPreview image={genResult?.qrImage} text={genResult?.qrString} />
+                    <QRPreview text={genResult?.localQrString || genResult?.qrString} />
                   </div>
                 )}
               </div>
