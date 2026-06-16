@@ -4,7 +4,7 @@ import { showToast } from './Toast';
 import { SkeletonCard } from './Skeleton';
 
 import { apiFetch } from '../api';
-import { account } from '../appwriteClient';
+import { account, ID } from '../appwriteClient';
 import { API } from '../api';
 
 interface ProfilePageProps {
@@ -59,7 +59,7 @@ export default function ProfilePage({ token, user }: ProfilePageProps) {
     setPasswordLoading(true);
     try {
       try { await account.deleteSessions(); } catch {}
-      const token = await account.createEmailToken(email, window.location.origin + '/otp-callback');
+      const token = await account.createEmailToken(ID.unique(), email);
       setPasswordOtpUserId(token.userId);
       setPasswordOtpSent(true);
       setPasswordOtpTimer(300);

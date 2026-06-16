@@ -79,7 +79,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     setLoginLoading(true);
     try {
       try { await account.deleteSessions(); } catch {}
-      const token = await account.createEmailToken(otpEmail, window.location.origin + '/otp-callback');
+      const token = await account.createEmailToken(ID.unique(), otpEmail);
       setOtpUserId(token.userId);
       setOtpSent(true);
       setOtpTimer(300);
@@ -113,7 +113,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const handleResendOtp = async () => {
     setLoginLoading(true);
     try {
-      const token = await account.createEmailToken(otpEmail, window.location.origin + '/otp-callback');
+      const token = await account.createEmailToken(ID.unique(), otpEmail);
       setOtpUserId(token.userId);
       setOtpTimer(300);
       showToast('New OTP sent!', 'success');
@@ -131,7 +131,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     setRegisterLoading(true);
     try {
       await account.create(ID.unique(), registerEmail, registerPassword, registerName);
-      const token = await account.createEmailToken(registerEmail, window.location.origin + '/otp-callback');
+      const token = await account.createEmailToken(ID.unique(), registerEmail);
       setRegisterOtpUserId(token.userId);
       setRegisterOtpSent(true);
       setRegisterOtpTimer(300);
@@ -172,7 +172,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const handleResendRegisterOtp = async () => {
     setRegisterLoading(true);
     try {
-      const token = await account.createEmailToken(registerEmail, window.location.origin + '/otp-callback');
+      const token = await account.createEmailToken(ID.unique(), registerEmail);
       setRegisterOtpUserId(token.userId);
       setRegisterOtpTimer(300);
       showToast('New OTP sent!', 'success');
@@ -190,7 +190,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     setForgotLoading(true);
     try {
       try { await account.deleteSessions(); } catch {}
-      const token = await account.createEmailToken(forgotEmail, window.location.origin + '/otp-callback');
+      const token = await account.createEmailToken(ID.unique(), forgotEmail);
       setForgotUserId(token.userId);
       setForgotOtpSent(true);
       setForgotOtpTimer(300);
@@ -249,7 +249,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const handleResendForgotOtp = async () => {
     setForgotLoading(true);
     try {
-      const token = await account.createEmailToken(forgotEmail, window.location.origin + '/otp-callback');
+      const token = await account.createEmailToken(ID.unique(), forgotEmail);
       setForgotUserId(token.userId);
       setForgotOtpTimer(300);
       showToast('New OTP sent!', 'success');
