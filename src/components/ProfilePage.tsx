@@ -79,6 +79,7 @@ export default function ProfilePage({ token, user }: ProfilePageProps) {
     if (!passwordOtpCode || passwordOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
     setPasswordLoading(true);
     try {
+      try { await account.deleteSessions(); } catch {}
       await account.createSession(passwordOtpUserId, passwordOtpCode);
       setPasswordOtpVerified(true);
       showToast('Email verified! Set your new password.', 'success');

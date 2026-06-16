@@ -99,6 +99,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!otpCode || otpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
     setLoginLoading(true);
     try {
+      try { await account.deleteSessions(); } catch {}
       await account.createSession(otpUserId, otpCode);
       const user = await account.get();
       const jwt = await exchangeSession(user.email, user.name);
@@ -151,6 +152,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!registerOtpCode || registerOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
     setRegisterLoading(true);
     try {
+      try { await account.deleteSessions(); } catch {}
       await account.createSession(registerOtpUserId, registerOtpCode);
       // Mark email verified in Appwrite via admin API
       const res = await fetch(`${API}/auth/verify-email`, {
@@ -210,6 +212,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!forgotOtpCode || forgotOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
     setForgotLoading(true);
     try {
+      try { await account.deleteSessions(); } catch {}
       await account.createSession(forgotUserId, forgotOtpCode);
       setShowResetForm(true);
     } catch (err: any) {
