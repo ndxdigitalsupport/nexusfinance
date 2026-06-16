@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   ArrowRight, 
   Lock, 
   User, 
   Phone, 
-  Mail, 
   Globe, 
   HelpCircle, 
-  RefreshCw, 
-  CheckCircle2,
+  RefreshCw,
 } from 'lucide-react';
 import { showToast } from './Toast';
 import { account, ID } from '../appwriteClient';
@@ -29,19 +27,16 @@ interface AuthPageProps {
   onLoginSuccess: (token: string) => void;
 }
 
-type AuthView = 'login' | 'register' | 'forgot' | 'check-email';
+type AuthView = 'login' | 'register' | 'forgot';
 
 export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [view, setView] = useState<AuthView>('login');
   
   // Login states
   const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(true);
 
   // Forgot password state
   const [forgotEmail, setForgotEmail] = useState('');
-  const [forgotSent, setForgotSent] = useState(false);
 
   // Register states
   const [registerName, setRegisterName] = useState('');
@@ -49,52 +44,101 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
   const [registerPhone, setRegisterPhone] = useState('');
-  const [registerDone, setRegisterDone] = useState(false);
 
   // Loading states
   const [loginLoading, setLoginLoading] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
-  // Handle Appwrite email verification redirect
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('userId') && params.get('secret')) {
-      account.updateVerification(params.get('userId')!, params.get('secret')!)
-        .then(() => showToast('Email verified! You can now sign in.', 'success'))
-        .catch(() => showToast('Email verified! You can now sign in.', 'success'));
-      window.history.replaceState({}, '', '/');
-    }
-  }, []);
+  // Login OTP states
+  const [otpEmail, setOtpEmail] = useState('');
+  const [otpUserId, setOtpUserId] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpTimer, setOtpTimer] = useState(0);
 
-  // Login handler — uses Appwrite Auth
-  const handleLoginSubmit = async (e: React.FormEvent) => {
+  // Register OTP states
+  const [registerOtpUserId, setRegisterOtpUserId] = useState('');
+  const [registerOtpSent, setRegisterOtpSent] = useState(false);
+  const [registerOtpCode, setRegisterOtpCode] = useState('');
+  const [registerOtpTimer, setRegisterOtpTimer] = useState(0);
+
+  // Forgot / reset states
+  const [forgotOtpSent, setForgotOtpSent] = useState(false);
+  const [forgotUserId, setForgotUserId] = useState('');
+  const [forgotOtpCode, setForgotOtpCode] = useState('');
+  const [forgotOtpTimer, setForgotOtpTimer] = useState(0);
+  const [showResetForm, setShowResetForm] = useState(false);
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('');
+
+  // Login OTP handlers
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!otpEmail) return showToast('Enter your email address', 'error');
     setLoginLoading(true);
     try {
       try { await account.deleteSessions(); } catch {}
-      await account.createEmailPasswordSession(loginEmail, loginPassword);
-      const user = await account.get();
-      const token = await exchangeSession(user.email, user.name);
-      onLoginSuccess(token);
+      const token = await account.createEmailToken(otpEmail, window.location.origin + '/otp-callback');
+      setOtpUserId(token.userId);
+      setOtpSent(true);
+      setOtpTimer(300);
+      const interval = setInterval(() => {
+        setOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
+      }, 1000);
+      showToast('OTP sent to your email!', 'success');
     } catch (err: any) {
-      showToast(err?.message || 'Login failed. Check your credentials.', 'error');
+      showToast(err?.message || 'Failed to send OTP.', 'error');
     } finally {
       setLoginLoading(false);
     }
   };
 
-  // Register handler — uses Appwrite Auth
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpCode || otpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
+    setLoginLoading(true);
+    try {
+      await account.createSession(otpUserId, otpCode);
+      const user = await account.get();
+      const jwt = await exchangeSession(user.email, user.name);
+      onLoginSuccess(jwt);
+    } catch (err: any) {
+      showToast(err?.message || 'Invalid or expired code.', 'error');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setLoginLoading(true);
+    try {
+      const token = await account.createEmailToken(otpEmail, window.location.origin + '/otp-callback');
+      setOtpUserId(token.userId);
+      setOtpTimer(300);
+      showToast('New OTP sent!', 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to resend OTP.', 'error');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  // Register handler — creates user then sends OTP
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (registerPassword !== registerConfirmPassword) return showToast('Passwords do not match', 'error');
     setRegisterLoading(true);
     try {
       await account.create(ID.unique(), registerEmail, registerPassword, registerName);
-      try { await account.createEmailPasswordSession(registerEmail, registerPassword); } catch {}
-      await account.createVerification(window.location.origin);
-      try { await account.deleteSessions(); } catch {}
-      setRegisterDone(true);
-      setView('check-email');
+      const token = await account.createEmailToken(registerEmail, window.location.origin + '/otp-callback');
+      setRegisterOtpUserId(token.userId);
+      setRegisterOtpSent(true);
+      setRegisterOtpTimer(300);
+      const interval = setInterval(() => {
+        setRegisterOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
+      }, 1000);
+      showToast('OTP sent to your email!', 'success');
     } catch (err: any) {
       showToast(err?.message || 'Registration failed.', 'error');
     } finally {
@@ -102,18 +146,117 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     }
   };
 
-  // Forgot password handler — uses Appwrite Auth
-  const handleForgotSubmit = async (e: React.FormEvent) => {
+  const handleVerifyRegisterOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!registerOtpCode || registerOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
+    setRegisterLoading(true);
+    try {
+      await account.createSession(registerOtpUserId, registerOtpCode);
+      // Mark email verified in Appwrite via admin API
+      const res = await fetch(`${API}/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: registerOtpUserId }),
+      });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to verify email.'); }
+      const user = await account.get();
+      const jwt = await exchangeSession(user.email, user.name);
+      onLoginSuccess(jwt);
+    } catch (err: any) {
+      showToast(err?.message || 'Verification failed.', 'error');
+    } finally {
+      setRegisterLoading(false);
+    }
+  };
+
+  const handleResendRegisterOtp = async () => {
+    setRegisterLoading(true);
+    try {
+      const token = await account.createEmailToken(registerEmail, window.location.origin + '/otp-callback');
+      setRegisterOtpUserId(token.userId);
+      setRegisterOtpTimer(300);
+      showToast('New OTP sent!', 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to resend OTP.', 'error');
+    } finally {
+      setRegisterLoading(false);
+    }
+  };
+
+  // Forgot password OTP handlers
+  const handleSendForgotOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotEmail) return showToast('Enter your email address', 'error');
-    setLoginLoading(true);
+    setForgotLoading(true);
     try {
-      await account.createRecovery(forgotEmail, `${window.location.origin}/`);
-      setForgotSent(true);
+      try { await account.deleteSessions(); } catch {}
+      const token = await account.createEmailToken(forgotEmail, window.location.origin + '/otp-callback');
+      setForgotUserId(token.userId);
+      setForgotOtpSent(true);
+      setForgotOtpTimer(300);
+      const interval = setInterval(() => {
+        setForgotOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
+      }, 1000);
+      showToast('OTP sent to your email!', 'success');
     } catch (err: any) {
-      showToast(err?.message || 'Failed to send recovery email.', 'error');
+      showToast(err?.message || 'Failed to send OTP.', 'error');
     } finally {
-      setLoginLoading(false);
+      setForgotLoading(false);
+    }
+  };
+
+  const handleVerifyForgotOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotOtpCode || forgotOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
+    setForgotLoading(true);
+    try {
+      await account.createSession(forgotUserId, forgotOtpCode);
+      setShowResetForm(true);
+    } catch (err: any) {
+      showToast(err?.message || 'Invalid or expired code.', 'error');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetPassword || resetPassword.length < 6) return showToast('Password must be at least 6 characters', 'error');
+    if (resetPassword !== resetConfirmPassword) return showToast('Passwords do not match', 'error');
+    setForgotLoading(true);
+    try {
+      const res = await fetch(`${API}/auth/update-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail, userId: forgotUserId, newPassword: resetPassword }),
+      });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to reset password.'); }
+      try { await account.deleteSessions(); } catch {}
+      showToast('Password reset! Login with your new password.', 'success');
+      setShowResetForm(false);
+      setForgotOtpSent(false);
+      setForgotOtpCode('');
+      setResetPassword('');
+      setResetConfirmPassword('');
+      setView('login');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to reset password.', 'error');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResendForgotOtp = async () => {
+    setForgotLoading(true);
+    try {
+      const token = await account.createEmailToken(forgotEmail, window.location.origin + '/otp-callback');
+      setForgotUserId(token.userId);
+      setForgotOtpTimer(300);
+      showToast('New OTP sent!', 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to resend OTP.', 'error');
+    } finally {
+      setForgotLoading(false);
     }
   };
 
@@ -156,47 +299,20 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   <p className="text-[14px] text-[var(--text-secondary)] font-medium mt-1 leading-none">welcome to nexus finance</p>
                 </div>
 
-                {/* Form fields */}
-                <form onSubmit={handleLoginSubmit} className="space-y-4">
+                {!otpSent ? (
+                  /* Step 1: Email input */
+                  <form onSubmit={handleSendOtp} className="space-y-4">
                   <div>
                     <input
                       type="text"
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      placeholder="Email / Username"
+                      value={otpEmail}
+                      onChange={(e) => setOtpEmail(e.target.value)}
+                      placeholder="Email"
                       className="w-full rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-medium transition-all"
                       required
                     />
                   </div>
 
-                  <div>
-                    <input
-                      type="password"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="Password"
-                      className="w-full rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-mono transition-all"
-                      required
-                    />
-                  </div>
-
-                  {/* Utilities */}
-                  <div className="flex justify-between items-center text-[13px] px-2 py-1 select-none font-medium">
-                    <label className="flex items-center gap-2 text-[var(--text-secondary)] cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        className="w-4.5 h-4.5 rounded text-[var(--accent)] border-[var(--border-primary)] focus:ring-[var(--accent)]"
-                      />
-                      <span>Remember me</span>
-                    </label>
-                    <button type="button" onClick={() => { setForgotEmail(loginEmail); setView('forgot'); }} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer">
-                      Forgot Password?
-                    </button>
-                  </div>
-
-                  {/* Submition button */}
                   <div className="pt-2">
                     <button
                       type="submit"
@@ -204,13 +320,64 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-black text-[15.5px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[var(--accent)]/20 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                     >
                       {loginLoading ? (
-                        <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> SIGNING IN...</span>
+                        <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> SENDING OTP...</span>
                       ) : (
-                        <>LOGIN <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                        <>SEND OTP <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
                       )}
                     </button>
                   </div>
+
+                  <div className="text-center">
+                    <button type="button" onClick={() => { setForgotEmail(otpEmail); setView('forgot'); }} className="text-[12.5px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium">
+                      Forgot Password?
+                    </button>
+                  </div>
                 </form>
+
+                ) : (
+                  /* Step 2: OTP code input */
+                  <form onSubmit={handleVerifyOtp} className="space-y-6">
+                    <div className="text-center">
+                      <p className="text-[13px] text-[var(--text-secondary)] font-medium">
+                        Enter the code sent to <strong className="text-[var(--text-primary)]">{otpEmail}</strong>
+                      </p>
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        maxLength={6}
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="000000"
+                        className="w-full text-center text-[28px] tracking-[12px] font-mono rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-4 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                        required
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={loginLoading || otpCode.length < 6}
+                      className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-black text-[15.5px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg active:scale-95 transition-all cursor-pointer disabled:opacity-50 shadow-md"
+                    >
+                      {loginLoading ? (
+                        <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
+                      ) : (
+                        <>VERIFY <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                      )}
+                    </button>
+                    <div className="flex justify-between items-center text-[13px]">
+                      <button type="button" onClick={handleResendOtp} disabled={otpTimer > 0}
+                        className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40 font-medium"
+                      >
+                        Resend code {otpTimer > 0 && `(${Math.floor(otpTimer / 60)}:${String(otpTimer % 60).padStart(2, '0')})`}
+                      </button>
+                      <button type="button" onClick={() => { setOtpSent(false); setOtpCode(''); setOtpEmail(''); }}
+                        className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
+                      >
+                        Use different email
+                      </button>
+                    </div>
+                  </form>
+                )}
 
                 {/* Create account trigger */}
                 <div className="text-center mt-6 text-[13.5px] font-semibold text-[var(--text-secondary)]">
@@ -432,71 +599,53 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
             {/* Custom Create account white frame card */}
             <div className="bg-[var(--surface-card)]/80 backdrop-blur-xl rounded-[32px] shadow-xl shadow-teal-900/5 border border-[var(--border-primary)]/60 p-8 sm:p-10 w-full max-w-lg animate-in fade-in zoom-in-95 duration-300">
-              <form onSubmit={handleRegisterSubmit} className="space-y-6">
-                
-                {/* Field: Full Name */}
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
-                      <User className="w-4.5 h-4.5" />
-                    </div>
-                    <input
-                      type="text"
-                      value={registerName}
-                      onChange={(e) => setRegisterName(e.target.value)}
-                      placeholder="Johnathan Doe"
-                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Field: Email Address */}
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
-                      <span className="text-[17px] font-light leading-none select-none">@</span>
-                    </div>
-                    <input
-                      type="email"
-                      value={registerEmail}
-                      onChange={(e) => setRegisterEmail(e.target.value)}
-                      placeholder="j.doe@nexus.finance"
-                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Field: Password */}
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
-                      <Lock className="w-4.5 h-4.5" />
-                    </div>
-                    <input
-                      type="password"
-                      value={registerPassword}
-                      onChange={(e) => setRegisterPassword(e.target.value)}
-                      placeholder="••••••••••••"
-                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-mono transition-all animate-none"
-                      required
-                    />
-                  </div>
-
-                  {/* Field: Confirm Password */}
+              {!registerOtpSent ? (
+                <form onSubmit={handleRegisterSubmit} className="space-y-6">
+                  
+                  {/* Field: Full Name */}
                   <div className="space-y-1.5">
                     <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
-                      Confirm Password
+                      Full Name
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
+                        <User className="w-4.5 h-4.5" />
+                      </div>
+                      <input
+                        type="text"
+                        value={registerName}
+                        onChange={(e) => setRegisterName(e.target.value)}
+                        placeholder="Johnathan Doe"
+                        className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Field: Email Address */}
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
+                        <span className="text-[17px] font-light leading-none select-none">@</span>
+                      </div>
+                      <input
+                        type="email"
+                        value={registerEmail}
+                        onChange={(e) => setRegisterEmail(e.target.value)}
+                        placeholder="j.doe@nexus.finance"
+                        className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Field: Password */}
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
+                      Password
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
@@ -504,51 +653,114 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       </div>
                       <input
                         type="password"
-                        value={registerConfirmPassword}
-                        onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                        value={registerPassword}
+                        onChange={(e) => setRegisterPassword(e.target.value)}
                         placeholder="••••••••••••"
                         className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-mono transition-all animate-none"
                         required
                       />
                     </div>
-                  </div>
-                </div>
 
-                {/* Field: Phone Number */}
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
-                    Phone Number
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
-                      <Phone className="w-4.5 h-4.5" />
+                    {/* Field: Confirm Password */}
+                    <div className="space-y-1.5">
+                      <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
+                        Confirm Password
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
+                          <Lock className="w-4.5 h-4.5" />
+                        </div>
+                        <input
+                          type="password"
+                          value={registerConfirmPassword}
+                          onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                          placeholder="••••••••••••"
+                          className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-mono transition-all animate-none"
+                          required
+                        />
+                      </div>
                     </div>
+                  </div>
+
+                  {/* Field: Phone Number */}
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
+                      Phone Number
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
+                        <Phone className="w-4.5 h-4.5" />
+                      </div>
+                      <input
+                        type="tel"
+                        value={registerPhone}
+                        onChange={(e) => setRegisterPhone(e.target.value)}
+                        placeholder="+855 12 345 678"
+                        className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Button Action */}
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={registerLoading}
+                      className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {registerLoading ? (
+                        <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> CREATING...</span>
+                      ) : (
+                        <>Create Account <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* Step 2: Register OTP input */
+                <form onSubmit={handleVerifyRegisterOtp} className="space-y-6">
+                  <div className="text-center">
+                    <p className="text-[13px] text-[var(--text-secondary)] font-medium">
+                      Enter the code sent to <strong className="text-[var(--text-primary)]">{registerEmail}</strong>
+                    </p>
+                  </div>
+                  <div>
                     <input
-                      type="tel"
-                      value={registerPhone}
-                      onChange={(e) => setRegisterPhone(e.target.value)}
-                      placeholder="+855 12 345 678"
-                      className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
+                      type="text"
+                      maxLength={6}
+                      value={registerOtpCode}
+                      onChange={(e) => setRegisterOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="000000"
+                      className="w-full text-center text-[28px] tracking-[12px] font-mono rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-4 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
                       required
                     />
                   </div>
-                </div>
-
-                {/* Button Action */}
-                <div className="pt-2">
                   <button
                     type="submit"
-                    disabled={registerLoading}
-                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={registerLoading || registerOtpCode.length < 6}
+                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50"
                   >
                     {registerLoading ? (
-                      <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> CREATING...</span>
+                      <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
                     ) : (
-                      <>Create Account <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                      <>VERIFY <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
                     )}
                   </button>
-                </div>
-              </form>
+                  <div className="flex justify-between items-center text-[13px]">
+                    <button type="button" onClick={handleResendRegisterOtp} disabled={registerOtpTimer > 0}
+                      className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40 font-medium"
+                    >
+                      Resend code {registerOtpTimer > 0 && `(${Math.floor(registerOtpTimer / 60)}:${String(registerOtpTimer % 60).padStart(2, '0')})`}
+                    </button>
+                    <button type="button" onClick={() => { setRegisterOtpSent(false); setRegisterOtpCode(''); setView('register'); }}
+                      className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
+                    >
+                      Use different email
+                    </button>
+                  </div>
+                </form>
+              )}
 
               {/* Already have accounts */}
               <div className="text-center mt-6 text-[13.5px] font-semibold text-[var(--text-secondary)]">
@@ -578,43 +790,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         </>
       )}
 
-      {/* VIEW: CHECK EMAIL (after registration) */}
-      {view === 'check-email' && (
-        <div className="min-h-screen flex flex-col justify-between w-full h-full">
-          <div className="flex-grow flex flex-col justify-center items-center px-4 py-8">
-            <div className="bg-[var(--surface-card)]/90 backdrop-blur-xl rounded-[32px] border border-[var(--border-primary)]/80 p-8 sm:p-12 w-full max-w-lg shadow-xl shadow-teal-900/5 flex flex-col items-center animate-in zoom-in-95 duration-200">
-              <div className="relative w-16 h-16 bg-[var(--surface-secondary)] rounded-full flex items-center justify-center text-[var(--text-secondary)] border border-[var(--border-primary)]/10 mb-6">
-                <Mail className="w-7 h-7" />
-                <div className="absolute top-1 right-1 w-4 h-4 bg-[var(--accent)] rounded-full flex items-center justify-center">
-                  <CheckCircle2 className="w-3 h-3 text-[var(--text-primary)]" />
-                </div>
-              </div>
-              <h2 className="text-[28px] sm:text-[32px] font-bold text-[var(--text-primary)] text-center tracking-tight">
-                Check your email
-              </h2>
-              <p className="text-[13px] text-[var(--text-secondary)] font-medium text-center mt-3 mb-8 max-w-sm leading-relaxed">
-                We've sent a verification link to your email.<br />
-                Please check your inbox and click the link to verify your account.
-              </p>
-              <button
-                onClick={() => { setView('login'); setRegisterDone(false); }}
-                className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl transition active:scale-95 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
-              >
-                GO TO SIGN IN <ArrowRight className="w-5 h-5 stroke-[2.5] inline ml-1" />
-              </button>
-              <div className="w-full flex justify-center text-[13px] font-bold text-[var(--text-secondary)] mt-6 pt-6 border-t border-[var(--border-primary)] select-none">
-                <button onClick={() => setView('register')} className="hover:text-[var(--text-primary)] cursor-pointer">
-                  Use a different email
-                </button>
-              </div>
-            </div>
-          </div>
-          <footer className="relative z-10 px-6 py-6 sm:px-12 bg-transparent flex justify-center text-[11.5px] font-semibold text-[var(--text-secondary)]/60">
-            <p>© 2026 Nexus Finance. All rights reserved.</p>
-          </footer>
-        </div>
-      )}
-
       {view === 'forgot' && (
         <div className="min-h-screen flex flex-col justify-between w-full h-full">
           <div className="flex-grow flex flex-col justify-center items-center px-4 py-8">
@@ -625,16 +800,15 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               </div>
 
               <h2 className="text-[28px] sm:text-[32px] font-bold text-[var(--text-primary)] text-center tracking-tight">
-                Reset Password
+                {showResetForm ? 'Set New Password' : 'Reset Password'}
               </h2>
-              <p className="text-[13px] text-[var(--text-secondary)] font-medium text-center mt-3 mb-8 max-w-sm leading-relaxed">
-                {forgotSent
-                  ? 'If an account exists with that email, we\'ve sent a password reset link.'
-                  : 'Enter your email and we\'ll send you a password reset link.'}
-              </p>
 
-              {!forgotSent ? (
-                <form onSubmit={handleForgotSubmit} className="w-full space-y-5">
+              {!forgotOtpSent && !showResetForm ? (
+                /* Step 1: Email input */
+                <form onSubmit={handleSendForgotOtp} className="w-full space-y-5">
+                  <p className="text-[13px] text-[var(--text-secondary)] font-medium text-center">
+                    Enter your email to receive a 6-digit code
+                  </p>
                   <div className="space-y-1.5">
                     <label className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Email</label>
                     <div className="relative">
@@ -653,18 +827,81 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   </div>
                   <button
                     type="submit"
-                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
+                    disabled={forgotLoading}
+                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg text-[15px] cursor-pointer disabled:opacity-50"
                   >
-                    SEND RESET LINK <ArrowRight className="w-5 h-5 stroke-[2.5]" />
+                    {forgotLoading ? (
+                      <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> SENDING OTP...</span>
+                    ) : (
+                      <>SEND OTP <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                    )}
                   </button>
                 </form>
+              ) : forgotOtpSent && !showResetForm ? (
+                /* Step 2: OTP code input */
+                <form onSubmit={handleVerifyForgotOtp} className="w-full space-y-6">
+                  <p className="text-[13px] text-[var(--text-secondary)] font-medium text-center">
+                    Enter the code sent to <strong className="text-[var(--text-primary)]">{forgotEmail}</strong>
+                  </p>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={forgotOtpCode}
+                    onChange={(e) => setForgotOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="000000"
+                    className="w-full text-center text-[28px] tracking-[12px] font-mono rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-4 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={forgotLoading || forgotOtpCode.length < 6}
+                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg text-[15px] cursor-pointer disabled:opacity-50"
+                  >
+                    {forgotLoading ? (
+                      <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
+                    ) : (
+                      <>VERIFY <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                    )}
+                  </button>
+                  <div className="flex justify-between items-center text-[13px]">
+                    <button type="button" onClick={handleResendForgotOtp} disabled={forgotOtpTimer > 0}
+                      className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40 font-medium"
+                    >
+                      Resend code {forgotOtpTimer > 0 && `(${Math.floor(forgotOtpTimer / 60)}:${String(forgotOtpTimer % 60).padStart(2, '0')})`}
+                    </button>
+                    <button type="button" onClick={() => { setForgotOtpSent(false); setForgotOtpCode(''); }}
+                      className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
+                    >
+                      Use different email
+                    </button>
+                  </div>
+                </form>
               ) : (
-                <button
-                  onClick={() => setView('login')}
-                  className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl transition active:scale-95 shadow-md hover:shadow-lg text-[15px] cursor-pointer"
-                >
-                  BACK TO LOGIN
-                </button>
+                /* Step 3: Reset password form */
+                <form onSubmit={handleResetPassword} className="w-full space-y-5">
+                  <p className="text-[13px] text-[var(--text-secondary)] font-medium text-center">
+                    Choose a new password
+                  </p>
+                  <div className="space-y-1.5">
+                    <label className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">New Password</label>
+                    <input type="password" value={resetPassword} onChange={(e) => setResetPassword(e.target.value)} placeholder="Min 6 characters" className="w-full px-4 py-3.5 bg-[var(--surface-card)]/90 border border-[var(--border-primary)]/90 rounded-2xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all" required minLength={6} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Confirm New Password</label>
+                    <input type="password" value={resetConfirmPassword} onChange={(e) => setResetConfirmPassword(e.target.value)} placeholder="Confirm new password" className="w-full px-4 py-3.5 bg-[var(--surface-card)]/90 border border-[var(--border-primary)]/90 rounded-2xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all" required minLength={6} />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg text-[15px] cursor-pointer disabled:opacity-50"
+                  >
+                    {forgotLoading ? (
+                      <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> RESETTING...</span>
+                    ) : (
+                      <>RESET PASSWORD <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                    )}
+                  </button>
+                </form>
               )}
 
               <div className="w-full flex justify-between items-center text-[13px] font-bold text-[var(--text-secondary)] mt-8 pt-6 border-t border-[var(--border-primary)] select-none">

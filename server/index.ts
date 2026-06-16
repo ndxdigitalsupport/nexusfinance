@@ -132,6 +132,79 @@ app.post('/api/auth/session', authLimiter, async (req, res) => {
   }
 });
 
+// Verify email via Appwrite admin API (called after OTP verification on register)
+app.post('/api/auth/verify-email', authLimiter, async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'userId is required.' });
+    const url = `${process.env.APPWRITE_ENDPOINT || 'https://sgp.cloud.appwrite.io/v1'}/users/${userId}`;
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Appwrite-Project': process.env.APPWRITE_PROJECT_ID || '',
+        'X-Appwrite-Key': process.env.APPWRITE_API_KEY || '',
+      },
+      body: JSON.stringify({ emailVerification: true }),
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('Appwrite verify-email failed:', text);
+      return res.status(500).json({ error: 'Failed to verify email in Appwrite.' });
+    }
+    res.json({ message: 'Email verified successfully.' });
+  } catch (err) {
+    console.error('Verify email error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// Self-service password reset (called after OTP verification on forgot password)
+app.post('/api/auth/update-password', authLimiter, async (req, res) => {
+  try {
+    const { email, userId, newPassword } = req.body;
+    if (!email || !userId || !newPassword) {
+      return res.status(400).json({ error: 'email, userId, and newPassword are required.' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    }
+    const { data: user } = await db.from('nexus_users').select('id').eq('email', email).maybeSingle();
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    try { await updateUserPassword(email, newPassword); } catch (e) {
+      console.error('Appwrite password update failed:', e);
+    }
+    const bcryptHash = await bcrypt.hash(newPassword, 10);
+    await db.from('nexus_users').update({ password: bcryptHash }).eq('email', email);
+    logAudit('password-reset', `Password reset via OTP for ${email}`, { id: user.id, email, name: '', role: '' });
+    res.json({ message: 'Password updated successfully.' });
+  } catch (err) {
+    console.error('Password update error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// Change password (authenticated user, after OTP verification on profile page)
+app.patch('/api/auth/password', authMiddleware, async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    }
+    const email = req.user.email;
+    try { await updateUserPassword(email, newPassword); } catch (e) {
+      console.error('Appwrite password update failed:', e);
+    }
+    const bcryptHash = await bcrypt.hash(newPassword, 10);
+    await db.from('nexus_users').update({ password: bcryptHash }).eq('email', email);
+    logAudit('password-change', `${email} changed their password`, req.user);
+    res.json({ message: 'Password updated successfully.' });
+  } catch (err) {
+    console.error('Password change error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
   const { data: user } = await db.from('nexus_users').select('id, name, email, role, phone').eq('id', req.user.id).maybeSingle();
   if (!user) return res.status(404).json({ error: 'User not found.' });
