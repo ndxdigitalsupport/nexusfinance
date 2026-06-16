@@ -63,7 +63,7 @@ export async function generateQR(req: PayWayQRRequest): Promise<PayWayQRResult> 
     rt, MERCHANT_ID, tranId, amount, items,
     '', '', '', '', '', // first_name, last_name, email, phone, purchase_type
     'abapay_khqr', callbackUrl, '', currency, // payment_option, callback_url, return_deeplink, currency
-    '', returnParams, '', String(lifetime), '', // custom_fields, return_params, payout, lifetime, qr_image_template
+    '', returnParams, '', String(lifetime), 'template2_color', // custom_fields, return_params, payout, lifetime, qr_image_template
   ].join('');
 
   const hash = hmacSha512(b4hash, API_KEY);
@@ -83,7 +83,7 @@ export async function generateQR(req: PayWayQRRequest): Promise<PayWayQRResult> 
     return_params: returnParams,
     payout: '',
     lifetime: String(lifetime),
-    qr_image_template: '',
+    qr_image_template: 'template2_color',
     hash,
   };
 
