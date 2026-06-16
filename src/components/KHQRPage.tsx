@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { QrCode, Smartphone, DollarSign, Calendar, CreditCard, History, CheckCircle2, Download, Settings, Clock, Copy, Check } from 'lucide-react';
-import QRCode from 'qrcode';
-import type { KHQRGenerateResponse } from '../types';
+import { QrCode, Smartphone, DollarSign, Calendar, CreditCard, History, CheckCircle2, Download, Settings, Clock, Copy, Check, XCircle, AlertCircle } from 'lucide-react';
 import { API } from '../api';
 
 const s = (name: string) => `var(--${name})`;
@@ -15,40 +13,42 @@ function Spinner({ size = 16 }: { size?: number }) {
   );
 }
 
-function QRPreview({ text, size = 220 }: { text: string; size?: number }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    if (canvasRef.current && text) {
-      QRCode.toCanvas(canvasRef.current, text, { 
-        width: size, 
-        margin: 2, 
-        color: { dark: '#0F171C', light: '#FFFFFF' } 
-      });
-    }
-  }, [text, size]);
-  
-  if (!text) return <div className="w-[220px] h-[220px] rounded-xl flex items-center justify-center" style={{ backgroundColor: s('surface-secondary') }}><Spinner /></div>;
-
-  return (
-    <div className="flex justify-center p-4 rounded-2xl shadow-sm" style={{ backgroundColor: '#ffffff' }}>
-      <canvas ref={canvasRef} className="rounded-xl" />
-    </div>
-  );
+function QRPreview({ image, text, size = 240 }: { image?: string; text?: string; size?: number }) {
+  if (image) {
+    return (
+      <div className="flex justify-center p-4 rounded-2xl shadow-sm" style={{ backgroundColor: '#ffffff' }}>
+        <img src={image} alt="KHQR" style={{ width: size, height: size }} className="rounded-xl" />
+      </div>
+    );
+  }
+  if (!text) return <div className="w-[240px] h-[240px] rounded-xl flex items-center justify-center" style={{ backgroundColor: s('surface-secondary') }}><Spinner /></div>;
+  return <div className="flex items-center justify-center w-[240px] h-[240px] rounded-2xl" style={{ backgroundColor: s('surface-secondary') }}><span className="text-xs font-medium" style={{ color: s('text-tertiary') }}>QR ready</span></div>;
 }
 
 type PaymentMode = 'installment' | 'full' | 'custom';
+
+interface PayWayTx {
+  tranId: string;
+  amount: number;
+  currency: string;
+  status: string;
+  apv?: string;
+  createdAt: string;
+  paidAt?: string;
+}
 
 export default function KHQRPage() {
   const [paymentMode, setPaymentMode] = useState<PaymentMode>('installment');
   const [customAmount, setCustomAmount] = useState('');
   const [loading, setLoading] = useState(true);
-  const [genResult, setGenResult] = useState<KHQRGenerateResponse | null>(null);
+  const [genResult, setGenResult] = useState<any>(null);
   const [genTime, setGenTime] = useState<Date | null>(null);
   const [copied, setCopied] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [merchantId, setMerchantId] = useState('nexusfinance@aclb');
   const [merchantName, setMerchantName] = useState('Nexus Finance');
-  const qrRef = useRef<HTMLCanvasElement>(null);
+  const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'APPROVED' | 'DECLINED' | 'IDLE'>('IDLE');
+  const [transactions, setTransactions] = useState<PayWayTx[]>([]);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const loanData = {
     nextInstallment: '50.00',
@@ -71,29 +71,62 @@ export default function KHQRPage() {
         return;
       }
       setLoading(true);
+      setPaymentStatus('IDLE');
       try {
-        const params = new URLSearchParams({
-          bakongAccountId: merchantId,
-          merchantName: merchantName,
-          merchantCity: 'Phnom Penh',
-          currency: '840',
-          amount: amount,
-          storeLabel: loanData.loanId,
+        const res = await fetch(`${API}/payway/generate-qr`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: parseFloat(amount),
+            currency: 'USD',
+            lifetime: 15,
+            items: [{ name: `Loan Repayment - ${loanData.loanId}`, quantity: 1, price: parseFloat(amount) }],
+          }),
         });
-        const res = await fetch(`${API}/khqr/generate?${params.toString()}`);
         const result = await res.json();
+        if (result.error) throw new Error(result.error);
         setGenResult(result);
         setGenTime(new Date());
-      } catch (e) {
-        console.error("Failed to generate KHQR", e);
+        setPaymentStatus('PENDING');
+      } catch (e: any) {
+        console.error("Failed to generate PayWay QR", e);
+        setPaymentStatus('DECLINED');
       } finally {
         setLoading(false);
       }
     };
     generateQR();
-  }, [paymentMode, customAmount, merchantId, merchantName]);
+  }, [paymentMode, customAmount]);
 
-  // Expiry countdown (10 minutes from generation)
+  useEffect(() => {
+    if (paymentStatus !== 'PENDING' || !genResult?.tranId) return;
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`${API}/payway/verify-payment`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tranId: genResult.tranId }),
+        });
+        const data = await res.json();
+        if (data.status === 'APPROVED') {
+          setPaymentStatus('APPROVED');
+          if (pollRef.current) clearInterval(pollRef.current);
+        } else if (data.status === 'DECLINED') {
+          setPaymentStatus('DECLINED');
+          if (pollRef.current) clearInterval(pollRef.current);
+        }
+      } catch { /* retry */ }
+    }, 5000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [paymentStatus, genResult?.tranId]);
+
+  useEffect(() => {
+    fetch(`${API}/payway/transactions`)
+      .then(r => r.json())
+      .then(setTransactions)
+      .catch(() => {});
+  }, []);
+
   const [timeLeft, setTimeLeft] = useState('');
   useEffect(() => {
     if (!genTime) return;
@@ -108,45 +141,53 @@ export default function KHQRPage() {
   }, [genTime]);
 
   const handleDeeplink = async () => {
-    if (!genResult?.khqrString) return;
-    try {
-      const res = await fetch(`${API}/khqr/deeplink?qr=${encodeURIComponent(genResult.khqrString)}`);
-      const data = await res.json();
-      if (data.success && data.deeplink) {
-        window.open(data.deeplink, '_blank');
-      }
-    } catch (e) {
-      console.error("Failed to get deeplink", e);
-    }
+    if (!genResult?.deeplink) return;
+    window.open(genResult.deeplink, '_blank');
   };
 
   const handleDownloadQR = () => {
-    // Find the canvas inside QRPreview and trigger download
-    const canvas = document.querySelector('canvas');
-    if (!canvas) return;
+    const img = document.querySelector('img[alt="KHQR"]') as HTMLImageElement;
+    if (!img) return;
     const link = document.createElement('a');
     link.download = `KHQR-${loanData.loanId}-${getAmount()}.png`;
-    link.href = canvas.toDataURL('image/png');
+    link.href = img.src;
     link.click();
   };
 
   const handleCopyQR = async () => {
-    if (!genResult?.khqrString) return;
-    await navigator.clipboard.writeText(genResult.khqrString);
+    if (!genResult?.qrString) return;
+    await navigator.clipboard.writeText(genResult.qrString);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const mockHistory = [
-    { date: 'Jun 14, 2026', amount: '$50.00', status: 'Completed', ref: 'KHQR-8924X', time: '09:30 AM' },
-    { date: 'May 30, 2026', amount: '$50.00', status: 'Completed', ref: 'KHQR-8291X', time: '02:15 PM' },
-    { date: 'Apr 30, 2026', amount: '$50.00', status: 'Completed', ref: 'KHQR-7182Y', time: '11:00 AM' },
-    { date: 'Mar 31, 2026', amount: '$50.00', status: 'Completed', ref: 'KHQR-6093Z', time: '04:45 PM' },
-  ];
+  const payStatusIcon = () => {
+    if (paymentStatus === 'APPROVED') return <CheckCircle2 className="w-5 h-5" style={{ color: 'var(--success-text)' }} />;
+    if (paymentStatus === 'DECLINED') return <XCircle className="w-5 h-5" style={{ color: 'var(--error-text)' }} />;
+    return <Clock className="w-5 h-5" style={{ color: s('accent') }} />;
+  };
+
+  const payStatusLabel = () => {
+    if (paymentStatus === 'APPROVED') return 'Payment Approved';
+    if (paymentStatus === 'DECLINED') return 'Payment Failed';
+    if (paymentStatus === 'PENDING') return 'Awaiting Payment';
+    return '';
+  };
+
+  const payStatusColor = () => {
+    if (paymentStatus === 'APPROVED') return 'var(--success-bg)';
+    if (paymentStatus === 'DECLINED') return 'var(--error-bg)';
+    return 'rgba(14,165,233,0.1)';
+  };
+
+  const payStatusTextColor = () => {
+    if (paymentStatus === 'APPROVED') return 'var(--success-text)';
+    if (paymentStatus === 'DECLINED') return 'var(--error-text)';
+    return s('accent');
+  };
 
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm" style={{ backgroundColor: s('accent') }}>
@@ -165,7 +206,6 @@ export default function KHQRPage() {
         </button>
       </div>
 
-      {/* Merchant Settings Panel */}
       {showSettings && (
         <div className="stagger-1 premium-card rounded-2xl p-5 space-y-4 animate-in slide-in-from-top duration-200"
           style={{ borderColor: s('border-primary') }}
@@ -174,14 +214,9 @@ export default function KHQRPage() {
             <Settings className="w-4 h-4" style={{ color: s('accent') }} />
             <span className="text-sm font-bold" style={{ color: s('text-primary') }}>Merchant Settings</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: s('text-secondary') }}>Bakong Account ID</label>
-              <input type="text" value={merchantId} onChange={e => setMerchantId(e.target.value)}
-                className="premium-input w-full px-4 py-2.5 rounded-xl text-sm" />
-            </div>
-            <div>
-              <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: s('text-secondary') }}>Merchant Name</label>
+              <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: s('text-secondary') }}>Display Name</label>
               <input type="text" value={merchantName} onChange={e => setMerchantName(e.target.value)}
                 className="premium-input w-full px-4 py-2.5 rounded-xl text-sm" />
             </div>
@@ -191,10 +226,8 @@ export default function KHQRPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left Column: Overview & Options */}
         <div className="lg:col-span-7 space-y-6">
           
-          {/* Payment Overview Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="stagger-1 p-5 rounded-3xl border relative overflow-hidden" style={{ backgroundColor: s('surface-card'), borderColor: s('border-primary') }}>
               <div className="absolute top-0 right-0 p-4 opacity-10">
@@ -226,7 +259,6 @@ export default function KHQRPage() {
             </div>
           </div>
 
-          {/* Payment Options */}
           <div className="stagger-3 premium-card rounded-3xl border p-1" style={{ borderColor: s('border-primary'), backgroundColor: s('surface-card') }}>
             <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: s('border-secondary') }}>
               <h3 className="text-sm font-bold" style={{ color: s('text-primary') }}>Payment Amount</h3>
@@ -304,27 +336,42 @@ export default function KHQRPage() {
               <History className="w-4 h-4" /> Recent Payments
             </h3>
             <div className="space-y-2">
-              {mockHistory.map((tx, i) => (
-                <div key={i} className="flex items-center justify-between p-4 rounded-2xl border" style={{ backgroundColor: s('surface-card'), borderColor: s('border-primary') }}>
+              {transactions.length > 0 ? transactions.slice(0, 5).map((tx, i) => (
+                <div key={tx.tranId} className="flex items-center justify-between p-4 rounded-2xl border" style={{ backgroundColor: s('surface-card'), borderColor: s('border-primary') }}>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(16,185,129,0.1)' }}>
-                      <CheckCircle2 className="w-5 h-5" style={{ color: 'var(--success-text)' }} />
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center`} style={{
+                      backgroundColor: tx.status === 'APPROVED' ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)'
+                    }}>
+                      {tx.status === 'APPROVED' ? (
+                        <CheckCircle2 className="w-5 h-5" style={{ color: 'var(--success-text)' }} />
+                      ) : (
+                        <AlertCircle className="w-5 h-5" style={{ color: 'var(--warning-text)' }} />
+                      )}
                     </div>
                     <div>
                       <p className="text-sm font-bold" style={{ color: s('text-primary') }}>Installment Payment</p>
-                      <p className="text-xs font-medium mt-0.5" style={{ color: s('text-secondary') }}>{tx.date} at {tx.time} • {tx.ref}</p>
+                      <p className="text-xs font-medium mt-0.5" style={{ color: s('text-secondary') }}>
+                        {new Date(tx.createdAt).toLocaleDateString()} · {tx.tranId.slice(0, 10)}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold" style={{ color: s('text-primary') }}>{tx.amount}</p>
-                    <span className="text-[10px] font-bold uppercase tracking-wider mt-1 inline-block px-2 py-0.5 rounded-full"
-                      style={{ backgroundColor: 'var(--success-bg)', color: 'var(--success-text)' }}
+                    <p className="text-sm font-bold" style={{ color: s('text-primary') }}>${tx.amount.toFixed(2)}</p>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider mt-1 inline-block px-2 py-0.5 rounded-full`}
+                      style={{
+                        backgroundColor: tx.status === 'APPROVED' ? 'var(--success-bg)' : 'var(--warning-bg)',
+                        color: tx.status === 'APPROVED' ? 'var(--success-text)' : 'var(--warning-text)',
+                      }}
                     >
                       {tx.status}
                     </span>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="p-8 text-center">
+                  <p className="text-xs font-medium" style={{ color: s('text-tertiary') }}>No payment history yet</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -349,13 +396,23 @@ export default function KHQRPage() {
                   </div>
                 ) : (
                   <div className="z-10 relative">
-                    <QRPreview text={genResult?.khqrString || ''} size={240} />
+                    <QRPreview image={genResult?.qrImage} text={genResult?.qrString} size={240} />
                   </div>
                 )}
               </div>
 
-              {/* QR Status */}
-              {genTime && !loading && (
+              {/* Payment Status */}
+              {paymentStatus !== 'IDLE' && !loading && (
+                <div className="flex items-center gap-2 mb-6 px-4 py-2 rounded-full text-xs font-bold"
+                  style={{ backgroundColor: payStatusColor(), color: payStatusTextColor() }}
+                >
+                  {payStatusIcon()}
+                  {payStatusLabel()}
+                </div>
+              )}
+
+              {/* Expiry */}
+              {genTime && !loading && paymentStatus === 'PENDING' && (
                 <div className="flex items-center gap-2 mb-6 px-3 py-1.5 rounded-full text-xs font-bold"
                   style={{ backgroundColor: timeLeft === 'Expired' ? 'var(--error-bg)' : 'rgba(14,165,233,0.1)', color: timeLeft === 'Expired' ? 'var(--error-text)' : s('accent') }}
                 >
@@ -364,8 +421,8 @@ export default function KHQRPage() {
                 </div>
               )}
 
-              {/* Amount display */}
-              {genResult?.merchantInfo?.amount && (
+              {/* Amount & Merchant info */}
+              {genResult && !loading && (
                 <div className="w-full mb-6 p-4 rounded-2xl" style={{ backgroundColor: s('surface-secondary') }}>
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-medium" style={{ color: s('text-secondary') }}>Payment Amount</span>
@@ -377,14 +434,14 @@ export default function KHQRPage() {
                   </div>
                   <div className="flex justify-between items-center mt-1.5">
                     <span className="text-xs font-medium" style={{ color: s('text-secondary') }}>Reference</span>
-                    <span className="text-xs font-mono font-bold" style={{ color: s('text-primary') }}>{genResult?.referenceId?.slice(0, 12) || '—'}...</span>
+                    <span className="text-xs font-mono font-bold" style={{ color: s('text-primary') }}>{genResult?.tranId?.slice(0, 12) || '—'}</span>
                   </div>
                 </div>
               )}
 
               <div className="w-full space-y-3">
                 <button onClick={handleDeeplink}
-                  disabled={loading || !genResult?.khqrString}
+                  disabled={loading || !genResult?.deeplink || paymentStatus === 'APPROVED'}
                   className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-sm font-bold transition-all duration-200 cursor-pointer disabled:opacity-50 hover:opacity-90 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                   style={{ backgroundColor: s('accent'), color: s('text-inverse') }}
                 >
@@ -394,7 +451,7 @@ export default function KHQRPage() {
                 
                 <div className="flex gap-2">
                   <button onClick={handleDownloadQR}
-                    disabled={loading || !genResult?.khqrString}
+                    disabled={loading || !genResult?.qrImage}
                     className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-bold transition-all duration-200 cursor-pointer disabled:opacity-50 hover:bg-black/5 dark:hover:bg-white/5 border-2"
                     style={{ borderColor: s('border-primary'), color: s('text-primary') }}
                   >
@@ -402,7 +459,7 @@ export default function KHQRPage() {
                     Save QR
                   </button>
                   <button onClick={handleCopyQR}
-                    disabled={loading || !genResult?.khqrString}
+                    disabled={loading || !genResult?.qrString}
                     className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-bold transition-all duration-200 cursor-pointer disabled:opacity-50 hover:bg-black/5 dark:hover:bg-white/5 border-2"
                     style={{ borderColor: s('border-primary'), color: s('text-primary') }}
                   >
@@ -414,9 +471,8 @@ export default function KHQRPage() {
 
             </div>
             
-            {/* Footer */}
             <div className="p-4 border-t flex items-center justify-between text-xs font-medium" style={{ borderColor: s('border-secondary'), backgroundColor: s('surface-secondary'), color: s('text-tertiary') }}>
-              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'var(--success-text)' }} /> Secure Payment</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'var(--success-text)' }} /> Secure via ABA PayWay</span>
               <span className="uppercase tracking-wider">Powered by KHQR</span>
             </div>
           </div>

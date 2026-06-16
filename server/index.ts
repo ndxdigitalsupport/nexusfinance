@@ -14,6 +14,7 @@ import { updateUserPassword, adminCall } from './appwrite.js';
 import { sendSMS } from './sms.js';
 import { verifyKHQR, decodeKHQR, generateDeeplink } from './khqr.js';
 import { generateKHQR, checkTransaction } from './bakong.js';
+import * as payway from './payway.js';
 import { sendEmail, emailTemplates } from './email.js';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
@@ -887,6 +888,105 @@ app.get('/api/khqr/check-transaction', (req, res) => {
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to check transaction' });
   }
+});
+
+// ── PayWay Transaction Store (in-memory, replaced by DB later) ──
+const paywayTransactions = new Map<string, {
+  tranId: string;
+  amount: number;
+  currency: string;
+  status: string;
+  apv?: string;
+  createdAt: Date;
+  paidAt?: Date;
+}>();
+
+// ── PayWay QR Code Routes ──────────────────────────────────
+
+app.post('/api/payway/generate-qr', async (req, res) => {
+  try {
+    const { amount, currency, lifetime, callbackUrl, returnParams, items } = req.body;
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'amount is required and must be > 0' });
+    }
+    const result = await payway.generateQR({
+      amount,
+      currency: currency || 'USD',
+      lifetime: lifetime || 15,
+      callbackUrl: callbackUrl || `${req.protocol}://${req.get('host')}/api/payway/callback`,
+      returnParams: returnParams || '',
+      items,
+    });
+
+    paywayTransactions.set(result.tranId, {
+      tranId: result.tranId,
+      amount: result.amount,
+      currency: result.currency,
+      status: 'PENDING',
+      createdAt: new Date(),
+    });
+
+    res.json(result);
+  } catch (err: any) {
+    console.error('PayWay generateQR error:', err.message || err);
+    res.status(500).json({ error: err.message || 'Failed to generate QR' });
+  }
+});
+
+app.post('/api/payway/verify-payment', async (req, res) => {
+  try {
+    const { tranId } = req.body;
+    if (!tranId) return res.status(400).json({ error: 'tranId is required' });
+    const result = await payway.checkTransaction(tranId);
+
+    if (result.status === 'APPROVED') {
+      const stored = paywayTransactions.get(tranId);
+      if (stored && stored.status !== 'APPROVED') {
+        stored.status = 'APPROVED';
+        stored.apv = result.apv;
+        stored.paidAt = new Date();
+      }
+    }
+
+    res.json(result);
+  } catch (err: any) {
+    console.error('PayWay verify error:', err.message || err);
+    res.status(500).json({ error: err.message || 'Failed to verify payment' });
+  }
+});
+
+app.post('/api/payway/callback', async (req, res) => {
+  try {
+    const signature = req.headers['x-payway-hmac-sha512'] as string || '';
+    const body = JSON.stringify(req.body);
+
+    const isValid = payway.verifyWebhook(body, signature);
+    if (!isValid) {
+      console.warn('PayWay callback: invalid signature');
+      return res.status(401).json({ error: 'Invalid signature' });
+    }
+
+    const { tran_id, apv, status } = req.body;
+    const stored = paywayTransactions.get(tran_id);
+    if (stored) {
+      stored.status = status === '0' ? 'APPROVED' : 'DECLINED';
+      stored.apv = apv;
+      stored.paidAt = status === '0' ? new Date() : undefined;
+    }
+
+    console.log(`PayWay callback: ${tran_id} → ${status === '0' ? 'APPROVED' : 'DECLINED'}`);
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error('PayWay callback error:', err.message || err);
+    res.status(500).json({ error: 'Callback processing failed' });
+  }
+});
+
+app.get('/api/payway/transactions', (req, res) => {
+  const txs = Array.from(paywayTransactions.values())
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, 50);
+  res.json(txs);
 });
 
 // ── PRODUCTION: serve frontend build ─────────────────────────
