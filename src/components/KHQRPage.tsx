@@ -204,6 +204,16 @@ export default function KHQRPage() {
         </button>
       </div>
 
+      <div className="p-4 rounded-2xl border text-sm" style={{ backgroundColor: 'rgba(14,165,233,0.05)', borderColor: 'rgba(14,165,233,0.2)', color: s('text-secondary') }}>
+        <p className="font-medium" style={{ color: s('text-primary') }}>How to test:</p>
+        <ol className="list-decimal list-inside mt-1 space-y-1 text-xs">
+          <li>Generate the QR below</li>
+          <li>Tap <strong>"Pay with Banking App"</strong> to open ABA Mobile, OR</li>
+          <li>Tap <strong>"Simulate Payment"</strong> to test without a real bank app</li>
+          <li>The page will show <strong>"Payment Approved"</strong> once confirmed</li>
+        </ol>
+      </div>
+
       {showSettings && (
         <div className="stagger-1 premium-card rounded-2xl p-5 space-y-4 animate-in slide-in-from-top duration-200"
           style={{ borderColor: s('border-primary') }}
@@ -451,6 +461,21 @@ export default function KHQRPage() {
                   <Smartphone className="w-5 h-5" />
                   Pay with Banking App
                 </button>
+
+                {paymentStatus === 'PENDING' && (
+                  <button onClick={async () => {
+                    await fetch(`${API}/payway/simulate-payment`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ tranId: genResult?.tranId }),
+                    });
+                  }}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-bold transition-all duration-200 cursor-pointer hover:opacity-80 border-2 border-dashed"
+                    style={{ borderColor: 'var(--success-text)', color: 'var(--success-text)' }}
+                  >
+                    Simulate Payment (sandbox test)
+                  </button>
+                )}
                 
                 <div className="flex gap-2">
                   <button onClick={handleDownloadQR}

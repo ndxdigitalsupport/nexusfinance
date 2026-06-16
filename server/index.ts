@@ -983,6 +983,23 @@ app.post('/api/payway/callback', async (req, res) => {
   }
 });
 
+// ── Simulate Payment (sandbox testing only) ────────────────
+app.post('/api/payway/simulate-payment', (req, res) => {
+  try {
+    const { tranId } = req.body;
+    if (!tranId) return res.status(400).json({ error: 'tranId is required' });
+    const stored = paywayTransactions.get(tranId);
+    if (!stored) return res.status(404).json({ error: 'Transaction not found' });
+    stored.status = 'APPROVED';
+    stored.apv = Math.floor(100000 + Math.random() * 900000).toString();
+    stored.paidAt = new Date();
+    console.log(`Simulated payment: ${tranId} → APPROVED`);
+    res.json({ success: true, status: 'APPROVED', apv: stored.apv });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Simulation failed' });
+  }
+});
+
 app.get('/api/payway/transactions', (req, res) => {
   const txs = Array.from(paywayTransactions.values())
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
