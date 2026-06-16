@@ -34,6 +34,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   
   // Login states
   const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
 
   // Forgot password state
   const [forgotEmail, setForgotEmail] = useState('');
@@ -50,13 +51,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [registerLoading, setRegisterLoading] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
 
-  // Login OTP states
-  const [otpEmail, setOtpEmail] = useState('');
-  const [otpUserId, setOtpUserId] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
-  const [otpTimer, setOtpTimer] = useState(0);
-
   // Register OTP states
   const [registerOtpUserId, setRegisterOtpUserId] = useState('');
   const [registerOtpSent, setRegisterOtpSent] = useState(false);
@@ -72,56 +66,18 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [resetPassword, setResetPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
 
-  // Login OTP handlers
-  const handleSendOtp = async (e: React.FormEvent) => {
+  // Login handler — email + password
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!otpEmail) return showToast('Enter your email address', 'error');
+    if (!loginEmail || !loginPassword) return showToast('Enter email and password', 'error');
     setLoginLoading(true);
     try {
-      const token = await account.createEmailToken(ID.unique(), otpEmail);
-      setOtpUserId(token.userId);
-      setOtpSent(true);
-      setOtpTimer(300);
-      const interval = setInterval(() => {
-        setOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
-      }, 1000);
-      showToast('OTP sent to your email!', 'success');
-    } catch (err: any) {
-      showToast(err?.message || 'Failed to send OTP.', 'error');
-    } finally {
-      setLoginLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!otpCode || otpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
-    setLoginLoading(true);
-    try {
-      await fetch(`${API}/auth/clear-sessions`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: otpUserId }),
-      });
-      await account.createSession(otpUserId, otpCode);
+      await account.createEmailPasswordSession(loginEmail, loginPassword);
       const user = await account.get();
       const jwt = await exchangeSession(user.email, user.name);
       onLoginSuccess(jwt);
     } catch (err: any) {
-      showToast(err?.message || 'Invalid or expired code.', 'error');
-    } finally {
-      setLoginLoading(false);
-    }
-  };
-
-  const handleResendOtp = async () => {
-    setLoginLoading(true);
-    try {
-      const token = await account.createEmailToken(ID.unique(), otpEmail);
-      setOtpUserId(token.userId);
-      setOtpTimer(300);
-      showToast('New OTP sent!', 'success');
-    } catch (err: any) {
-      showToast(err?.message || 'Failed to resend OTP.', 'error');
+      showToast(err?.message || 'Invalid email or password.', 'error');
     } finally {
       setLoginLoading(false);
     }
@@ -166,9 +122,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         body: JSON.stringify({ userId: registerOtpUserId }),
       });
       if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to verify email.'); }
-      const user = await account.get();
-      const jwt = await exchangeSession(user.email, user.name);
-      onLoginSuccess(jwt);
+      // Log out the temporary OTP session and redirect to login
+      try { await account.deleteSessions(); } catch {}
+      setView('login');
+      showToast('Account created! Login with your email and password.', 'success');
     } catch (err: any) {
       showToast(err?.message || 'Verification failed.', 'error');
     } finally {
@@ -308,15 +265,23 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   <p className="text-[14px] text-[var(--text-secondary)] font-medium mt-1 leading-none">welcome to nexus finance</p>
                 </div>
 
-                {!otpSent ? (
-                  /* Step 1: Email input */
-                  <form onSubmit={handleSendOtp} className="space-y-4">
+                <form onSubmit={handleLoginSubmit} className="space-y-4">
                   <div>
                     <input
-                      type="text"
-                      value={otpEmail}
-                      onChange={(e) => setOtpEmail(e.target.value)}
+                      type="email"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
                       placeholder="Email"
+                      className="w-full rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-medium transition-all"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="password"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      placeholder="Password"
                       className="w-full rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-medium transition-all"
                       required
                     />
@@ -329,64 +294,19 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-black text-[15.5px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[var(--accent)]/20 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                     >
                       {loginLoading ? (
-                        <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> SENDING OTP...</span>
+                        <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> LOGGING IN...</span>
                       ) : (
-                        <>SEND OTP <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                        <>LOGIN <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
                       )}
                     </button>
                   </div>
 
                   <div className="text-center">
-                    <button type="button" onClick={() => { setForgotEmail(otpEmail); setView('forgot'); }} className="text-[12.5px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium">
+                    <button type="button" onClick={() => { setForgotEmail(loginEmail); setView('forgot'); }} className="text-[12.5px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium">
                       Forgot Password?
                     </button>
                   </div>
                 </form>
-
-                ) : (
-                  /* Step 2: OTP code input */
-                  <form onSubmit={handleVerifyOtp} className="space-y-6">
-                    <div className="text-center">
-                      <p className="text-[13px] text-[var(--text-secondary)] font-medium">
-                        Enter the code sent to <strong className="text-[var(--text-primary)]">{otpEmail}</strong>
-                      </p>
-                    </div>
-                    <div>
-                      <input
-                        type="text"
-                        maxLength={6}
-                        value={otpCode}
-                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        placeholder="000000"
-                        className="w-full text-center text-[28px] tracking-[12px] font-mono rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-4 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
-                        required
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={loginLoading || otpCode.length < 6}
-                      className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-black text-[15.5px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg active:scale-95 transition-all cursor-pointer disabled:opacity-50 shadow-md"
-                    >
-                      {loginLoading ? (
-                        <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
-                      ) : (
-                        <>VERIFY <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
-                      )}
-                    </button>
-                    <div className="flex justify-between items-center text-[13px]">
-                      <button type="button" onClick={handleResendOtp} disabled={otpTimer > 0}
-                        className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40 font-medium"
-                      >
-                        Resend code {otpTimer > 0 && `(${Math.floor(otpTimer / 60)}:${String(otpTimer % 60).padStart(2, '0')})`}
-                      </button>
-                      <button type="button" onClick={() => { setOtpSent(false); setOtpCode(''); setOtpEmail(''); }}
-                        className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
-                      >
-                        Use different email
-                      </button>
-                    </div>
-                  </form>
-                )}
 
                 {/* Create account trigger */}
                 <div className="text-center mt-6 text-[13.5px] font-semibold text-[var(--text-secondary)]">
