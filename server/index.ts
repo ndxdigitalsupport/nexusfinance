@@ -20,6 +20,9 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import fs from 'fs';
 import cookieParser from 'cookie-parser';
+import './bot.js';
+import cron from 'node-cron';
+import TelegramBot from 'node-telegram-bot-api';
 
 dotenv.config();
 
@@ -899,13 +902,15 @@ const paywayTransactions = new Map<string, {
   apv?: string;
   createdAt: Date;
   paidAt?: Date;
+  email?: string;
+  loanId?: number;
 }>();
 
 // ── PayWay QR Code Routes ──────────────────────────────────
 
 app.post('/api/payway/generate-qr', async (req, res) => {
   try {
-    const { amount, currency, lifetime, callbackUrl, returnParams, items } = req.body;
+    const { amount, currency, lifetime, callbackUrl, returnParams, items, email, loanId } = req.body;
     if (!amount || amount <= 0) {
       return res.status(400).json({ error: 'amount is required and must be > 0' });
     }
@@ -953,6 +958,8 @@ app.post('/api/payway/generate-qr', async (req, res) => {
       currency: result.currency,
       status: 'PENDING',
       createdAt: new Date(),
+      email: email || undefined,
+      loanId: loanId ? Number(loanId) : undefined,
     });
 
     res.json({ ...result, _mock: isMock });
@@ -1004,6 +1011,30 @@ app.post('/api/payway/callback', async (req, res) => {
     }
 
     console.log(`PayWay callback: ${tran_id} → ${status === '0' ? 'APPROVED' : 'DECLINED'}`);
+
+    // Send Telegram payment confirmation if approved
+    if (status === '0' && stored?.email) {
+      try {
+        const { data: user } = await db
+          .from('nexus_users')
+          .select('telegram_chat_id')
+          .eq('email', stored.email)
+          .not('telegram_chat_id', 'is', null)
+          .single();
+
+        if (user?.telegram_chat_id) {
+          const { sendPaymentConfirmation } = await import('./bot.js');
+          await sendPaymentConfirmation(user.telegram_chat_id, {
+            loanId: stored.loanId || 0,
+            amount: stored.amount || 0,
+            tranId: tran_id,
+          });
+        }
+      } catch (e) {
+        console.error('Telegram payment confirmation failed:', e);
+      }
+    }
+
     res.json({ success: true });
   } catch (err: any) {
     console.error('PayWay callback error:', err.message || err);
@@ -1012,7 +1043,7 @@ app.post('/api/payway/callback', async (req, res) => {
 });
 
 // ── Simulate Payment (sandbox testing only) ────────────────
-app.post('/api/payway/simulate-payment', (req, res) => {
+app.post('/api/payway/simulate-payment', async (req, res) => {
   try {
     const { tranId } = req.body;
     if (!tranId) return res.status(400).json({ error: 'tranId is required' });
@@ -1022,6 +1053,30 @@ app.post('/api/payway/simulate-payment', (req, res) => {
     stored.apv = Math.floor(100000 + Math.random() * 900000).toString();
     stored.paidAt = new Date();
     console.log(`Simulated payment: ${tranId} → APPROVED`);
+
+    // Send Telegram notification for simulated payment too
+    if (stored.email) {
+      try {
+        const { data: user } = await db
+          .from('nexus_users')
+          .select('telegram_chat_id')
+          .eq('email', stored.email)
+          .not('telegram_chat_id', 'is', null)
+          .single();
+
+        if (user?.telegram_chat_id) {
+          const { sendPaymentConfirmation } = await import('./bot.js');
+          await sendPaymentConfirmation(user.telegram_chat_id, {
+            loanId: stored.loanId || 0,
+            amount: stored.amount || 0,
+            tranId,
+          });
+        }
+      } catch (e) {
+        console.error('Telegram notification for simulated payment failed:', e);
+      }
+    }
+
     res.json({ success: true, status: 'APPROVED', apv: stored.apv });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Simulation failed' });
@@ -1077,4 +1132,22 @@ app.listen(PORT, () => {
   console.log(`     customer@nexus.com  / password123  → Customer portal`);
   console.log(`     officer@nexus.com   / password123  → Loan Officer`);
   console.log(`     admin@nexus.com     / password123  → Super Admin\n`);
+
+  // ── Daily payment reminders at 9:00 AM Cambodia time (ICT/UTC+7) ──
+  cron.schedule('0 9 * * *', async () => {
+    console.log('  📬 Running daily payment reminders...');
+    try {
+      const { sendPaymentReminders } = await import('./bot.js');
+      const ADMIN_ID = parseInt(process.env.TELEGRAM_ADMIN_ID || '0', 10);
+      if (ADMIN_ID) {
+        await sendPaymentReminders(undefined, ADMIN_ID);
+      } else {
+        await sendPaymentReminders(undefined);
+      }
+    } catch (e) {
+      console.error('  ❌ Payment reminder cron failed:', e);
+    }
+  }, { timezone: 'Asia/Phnom_Penh' });
+
+  console.log('  ⏰ Daily payment reminder cron scheduled (9:00 AM Cambodia time)\n');
 });
