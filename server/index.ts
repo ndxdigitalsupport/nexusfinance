@@ -1137,9 +1137,30 @@ app.use((req, res) => {
 
 // ── START THE SERVER ────────────────────────────────────────
 
-app.listen(PORT, () => {
+async function seedDemoUsers() {
+  const demoUsers = [
+    { email: 'customer@nexus.com', name: 'Demo Customer', role: 'customer' },
+    { email: 'officer@nexus.com', name: 'Demo Officer', role: 'loan-officer' },
+    { email: 'admin@nexus.com', name: 'Admin', role: 'super-admin' },
+  ];
+  for (const u of demoUsers) {
+    const { data: existing } = await db.from('nexus_users').select('id').eq('email', u.email).maybeSingle();
+    if (!existing) {
+      const passwordHash = await bcrypt.hash('password123', 10);
+      await db.from('nexus_users').insert({ ...u, password: passwordHash, phone: '' });
+      console.log(`  👤 Seeded demo account: ${u.email}`);
+    }
+  }
+}
+
+app.listen(PORT, async () => {
   console.log(`\n  🚀 NexusFinance API is running!`);
   console.log(`  📍 http://localhost:${PORT}`);
+  try {
+    await seedDemoUsers();
+  } catch (e) {
+    console.error('  ⚠️ Demo user seeding failed:', e);
+  }
   console.log(`  \n  👤 Demo accounts:`);
   console.log(`     customer@nexus.com  / password123  → Customer portal`);
   console.log(`     officer@nexus.com   / password123  → Loan Officer`);

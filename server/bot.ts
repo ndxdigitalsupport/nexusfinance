@@ -459,8 +459,10 @@ Example: \`/link john@example.com\``,
 
   // ── ADMIN: /stats, /loans, /users, /notifications ────────────
 
-  const API = process.env.VITE_API_URL || `http://localhost:${process.env.PORT || 3001}/api`;
+  // Bot runs in the same process as the API server — always call localhost
+  const API = `http://localhost:${process.env.PORT || 3001}/api`;
   let apiToken: string | null = null;
+  let apiTokenExpiry = 0;
 
   async function loginAsAdmin() {
     try {
@@ -469,15 +471,28 @@ Example: \`/link john@example.com\``,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'admin@nexus.com', password: 'password123' }),
       });
+      if (!loginRes.ok) {
+        console.error('Bot admin login failed:', loginRes.status, loginRes.statusText);
+        return;
+      }
       const data = await loginRes.json();
-      if (data.token) apiToken = data.token;
+      if (data.token) {
+        apiToken = data.token;
+        apiTokenExpiry = Date.now() + 6 * 60 * 60 * 1000; // JWT typically 24h, re-login every 6h
+      }
     } catch (e) {
       console.error('Bot admin login failed:', e);
+      setTimeout(() => { apiToken = null; loginAsAdmin(); }, 5000);
     }
   }
 
+  async function ensureApiToken() {
+    if (!apiToken || Date.now() > apiTokenExpiry) await loginAsAdmin();
+  }
+
   async function apiGet(path: string) {
-    if (!apiToken) await loginAsAdmin();
+    await ensureApiToken();
+    if (!apiToken) return null;
     try {
       const res = await fetch(`${API}${path}`, {
         headers: { Authorization: `Bearer ${apiToken}` },
