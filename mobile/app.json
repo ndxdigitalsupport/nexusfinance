@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "NexusFinance",
+    "slug": "nexusfinance",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "nexusfinance",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F171C"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nexusfinance.app"
+    },
+    "android": {
+      "package": "com.nexusfinance.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0F171C",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-status-bar"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "7cc386bd-bd56-46f5-9de6-76375b47ca8f"
+      }
+    }
+  }
+}
