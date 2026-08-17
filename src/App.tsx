@@ -515,7 +515,7 @@ export default function App() {
           )}
 
           {activeMenu === 'profile' && (
-            <ProfilePage token={token} user={portalUser} />
+            <ProfilePage token={token} user={portalUser} onProfileUpdate={(updated) => setUserData(prev => prev ? { ...prev, ...updated } : prev)} />
           )}
 
           {activeMenu === 'support' && (

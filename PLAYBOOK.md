@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0
 **Last Updated:** June 10, 2026
-**Live URL:** https://nexusfinance-5okf.onrender.com
+**Live URL:** https://nexusfinance-lof3.onrender.com
 **Repo:** https://github.com/Not-Juicy/nexusfinance
 
 ---
@@ -512,7 +512,7 @@ services:
       - key: PORT        value: "3001"
 ```
 
-**Deploy URL**: https://nexusfinance-5okf.onrender.com
+**Deploy URL**: https://nexusfinance-lof3.onrender.com
 
 **How to deploy**: Push to `main` branch → Render auto-deploys via webhook.
 

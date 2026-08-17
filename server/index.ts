@@ -10,7 +10,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import { db } from './db.js';
-import { updateUserPassword, adminCall } from './appwrite.js';
+import { createOtpForUser, verifyOtpForUser, requireOtpVerified, clearOtpVerified } from './otp.js';
 import { sendSMS } from './sms.js';
 import { verifyKHQR, decodeKHQR, generateDeeplink } from './khqr.js';
 import { generateKHQR, checkTransaction } from './bakong.js';
@@ -113,7 +113,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
   }
 });
 
-// Session exchange for users authenticated via Appwrite (legacy) or Google OAuth
+// Session exchange for users authenticated via an external provider (e.g. Google OAuth)
 app.post('/api/auth/session', authLimiter, async (req, res) => {
   try {
     const { email, name } = req.body;
@@ -136,49 +136,63 @@ app.post('/api/auth/session', authLimiter, async (req, res) => {
   }
 });
 
-// Verify email via Appwrite admin API (called after OTP verification on register)
-app.post('/api/auth/verify-email', authLimiter, async (req, res) => {
+// Send a verification code to the user's email (register, forgot password, password change)
+app.post('/api/auth/send-otp', authLimiter, async (req, res) => {
   try {
-    const { userId } = req.body;
-    if (!userId) return res.status(400).json({ error: 'userId is required.' });
-    await adminCall('patch', `/users/${userId}`, { emailVerification: true });
-    res.json({ message: 'Email verified successfully.' });
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required.' });
+
+    const { data: user } = await db.from('nexus_users').select('id, name, email').eq('email', email).maybeSingle();
+    if (!user) return res.status(404).json({ error: 'No account found with this email.' });
+
+    const result = await createOtpForUser(email);
+    if (!result.success) return res.status(500).json({ error: result.error || 'Failed to send the verification code.' });
+
+    logAudit('otp-sent', `Verification code sent to ${email}`, { id: user.id, email: user.email, name: user.name, role: '' });
+    res.json({ message: 'Verification code sent to your email.' });
   } catch (err) {
-    console.error('Verify email error:', err);
-    res.status(500).json({ error: 'Failed to verify email in Appwrite.' });
+    console.error('Send OTP error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
   }
 });
 
-// Force-clear all sessions for a user via Appwrite admin API (used before OTP session creation)
-app.post('/api/auth/clear-sessions', authLimiter, async (req, res) => {
+// Verify the code sent to the user's email
+app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
   try {
-    const { userId } = req.body;
-    if (!userId) return res.status(400).json({ error: 'userId is required.' });
-    await adminCall('delete', `/users/${userId}/sessions`);
-    res.json({ message: 'Sessions cleared.' });
-  } catch (err: any) {
-    console.error('Clear sessions error:', err?.message || err);
-    res.json({ message: 'Continue (session clear skipped).' });
+    const { email, code } = req.body;
+    if (!email || !code) return res.status(400).json({ error: 'Email and code are required.' });
+
+    const result = await verifyOtpForUser(email, String(code).trim());
+    if (!result.success) return res.status(400).json({ error: result.error || 'Invalid or expired code.' });
+
+    const { data: user } = await db.from('nexus_users').select('id, name, email, role').eq('email', email).maybeSingle();
+    if (user) logAudit('otp-verified', `Code verified for ${email}`, { id: user.id, email: user.email, name: user.name, role: user.role });
+    res.json({ message: 'Code verified successfully.' });
+  } catch (err) {
+    console.error('Verify OTP error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
   }
 });
 
 // Self-service password reset (called after OTP verification on forgot password)
 app.post('/api/auth/update-password', authLimiter, async (req, res) => {
   try {
-    const { email, userId, newPassword } = req.body;
-    if (!email || !userId || !newPassword) {
-      return res.status(400).json({ error: 'email, userId, and newPassword are required.' });
+    const { email, newPassword } = req.body;
+    if (!email || !newPassword) {
+      return res.status(400).json({ error: 'email and newPassword are required.' });
     }
     if (newPassword.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters.' });
     }
     const { data: user } = await db.from('nexus_users').select('id').eq('email', email).maybeSingle();
     if (!user) return res.status(404).json({ error: 'User not found.' });
-    try { await updateUserPassword(email, newPassword); } catch (e) {
-      console.error('Appwrite password update failed:', e);
-    }
+
+    const verified = await requireOtpVerified(email);
+    if (!verified) return res.status(403).json({ error: 'Email not verified. Request a new code and verify first.' });
+
     const bcryptHash = await bcrypt.hash(newPassword, 10);
     await db.from('nexus_users').update({ password: bcryptHash }).eq('email', email);
+    await clearOtpVerified(email);
     logAudit('password-reset', `Password reset via OTP for ${email}`, { id: user.id, email, name: '', role: '' });
     res.json({ message: 'Password updated successfully.' });
   } catch (err) {
@@ -195,11 +209,13 @@ app.patch('/api/auth/password', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 6 characters.' });
     }
     const email = req.user.email;
-    try { await updateUserPassword(email, newPassword); } catch (e) {
-      console.error('Appwrite password update failed:', e);
-    }
+
+    const verified = await requireOtpVerified(email);
+    if (!verified) return res.status(403).json({ error: 'Email not verified. Request a new code and verify first.' });
+
     const bcryptHash = await bcrypt.hash(newPassword, 10);
     await db.from('nexus_users').update({ password: bcryptHash }).eq('email', email);
+    await clearOtpVerified(email);
     logAudit('password-change', `${email} changed their password`, req.user);
     res.json({ message: 'Password updated successfully.' });
   } catch (err) {
@@ -254,7 +270,7 @@ app.post('/api/auth/forgot-password', authLimiter, async (req, res) => {
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || 'https://nexusfinance-5okf.onrender.com/api/auth/google/callback';
+const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || 'https://nexusfinance-lof3.onrender.com/api/auth/google/callback';
 const FRONTEND_URL = process.env.CORS_ORIGIN || 'https://nexusfinancefintech.vercel.app';
 
 // Step 1: Redirect user to Google consent screen
@@ -539,7 +555,8 @@ app.patch('/api/users/:id/reset-password', authMiddleware, async (req, res) => {
   if (!password || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
   const { data: user } = await db.from('nexus_users').select('id, name, email').eq('id', parseInt(req.params.id)).single();
   if (!user) return res.status(404).json({ error: 'User not found.' });
-  try { await updateUserPassword(user.email, password); } catch (e) { console.error('Failed to update Appwrite password:', e); }
+  const bcryptHash = await bcrypt.hash(password, 10);
+  await db.from('nexus_users').update({ password: bcryptHash }).eq('id', user.id);
   logAudit('password-reset', `${user.name} (${user.email}) password reset by admin`, req.user);
   notifyUser(user.id, 'Your password has been reset by an administrator.');
   res.json({ message: 'Password reset successfully.' });
@@ -713,7 +730,8 @@ app.get('/api/audit/logs', authMiddleware, async (req, res) => {
 
 // ── REGISTER ROUTE ────────────────────────────────────────
 
-// Register — for admin-created users only (regular users register via Appwrite SDK)
+// Register — creates the user in Supabase with bcrypt-hashed password
+// (email verification via /api/auth/send-otp + /api/auth/verify-otp)
 app.post('/api/auth/register', authLimiter, async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
@@ -1093,10 +1111,6 @@ app.get('/api/payway/transactions', (req, res) => {
 // ── PRODUCTION: serve frontend build ─────────────────────────
 
 if (process.env.NODE_ENV === 'production') {
-  const appwriteConfig = JSON.stringify({
-    endpoint: process.env.APPWRITE_ENDPOINT,
-    projectId: process.env.APPWRITE_PROJECT_ID,
-  });
   const distDir = path.join(process.cwd(), 'dist');
 
   // ── SPA catch-all ────────────────────────────────────────────
@@ -1107,9 +1121,7 @@ if (process.env.NODE_ENV === 'production') {
     } else {
       const indexPath = path.join(distDir, 'index.html');
       if (fs.existsSync(indexPath)) {
-        let html = fs.readFileSync(indexPath, 'utf-8');
-        html = html.replace('</head>', `<script>window.__APPWRITE__=${appwriteConfig}</script></head>`);
-        res.type('html').send(html);
+        res.type('html').send(fs.readFileSync(indexPath, 'utf-8'));
       } else {
         res.status(404).send('Not found');
       }

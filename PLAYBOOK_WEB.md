@@ -13,7 +13,7 @@ React 19 · Tailwind v4 · Express · TypeScript · Supabase · Appwrite · Twil
 ## Quick Links
 | Item | Value |
 |------|-------|
-| **Live** | https://nexusfinance-5okf.onrender.com |
+| **Live** | https://nexusfinance-lof3.onrender.com |
 | **Sandbox** | http://localhost:4001 |
 | **SMS** | Twilio — $0.4418/msg (Cambodia), $15 free trial |
 | **Docker** | `docker compose --env-file docker-compose.env up --build` |

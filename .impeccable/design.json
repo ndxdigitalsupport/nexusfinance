@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-22T14:00:00.000Z",
+  "title": "Design System: NexusFinance",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Neon Teal", "canonical": "#00BDAA", "tonalRamp": ["#002622", "#004d47", "#00736a", "#00998e", "#00bdaa", "#33cbbb", "#66d8cc", "#99e5dd", "#ccf2ee", "#e6f8f6"] },
+      "primary-md": { "role": "primary", "displayName": "Neon Teal Medium", "canonical": "#1AB7A0", "tonalRamp": [] },
+      "primary-dk": { "role": "primary", "displayName": "Neon Teal Dark", "canonical": "#009688", "tonalRamp": [] },
+      "navy": { "role": "neutral", "displayName": "Navy", "canonical": "#011B2A", "tonalRamp": ["#00050a", "#010f1a", "#011b2a", "#01273c", "#01334e", "#014060", "#014c72", "#015984", "#016696", "#0172a8"] },
+      "navy-dk": { "role": "neutral", "displayName": "Deep Navy", "canonical": "#000F18", "tonalRamp": [] },
+      "bg-dark": { "role": "neutral", "displayName": "Dark Surface", "canonical": "#0A0F1A", "tonalRamp": [] },
+      "bg-light": { "role": "neutral", "displayName": "Light Surface", "canonical": "#F8FAFC", "tonalRamp": [] },
+      "text-dark": { "role": "neutral", "displayName": "Body Text Dark", "canonical": "#F1F5F9", "tonalRamp": [] },
+      "text-light": { "role": "neutral", "displayName": "Body Text Light", "canonical": "#0F172A", "tonalRamp": [] },
+      "card-dark": { "role": "neutral", "displayName": "Card Surface Dark", "canonical": "#0F1623", "tonalRamp": [] },
+      "card-light": { "role": "neutral", "displayName": "Card Surface Light", "canonical": "#FFFFFF", "tonalRamp": [] },
+      "muted-dark": { "role": "neutral", "displayName": "Muted Dark", "canonical": "#94A3B8", "tonalRamp": [] },
+      "muted-light": { "role": "neutral", "displayName": "Muted Light", "canonical": "#64748B", "tonalRamp": [] },
+      "sub-dark": { "role": "neutral", "displayName": "Subdued Dark", "canonical": "#64748B", "tonalRamp": [] },
+      "sub-light": { "role": "neutral", "displayName": "Subdued Light", "canonical": "#94A3B8", "tonalRamp": [] },
+      "positive": { "role": "semantic", "displayName": "Positive", "canonical": "#10B981", "tonalRamp": [] },
+      "negative": { "role": "semantic", "displayName": "Negative", "canonical": "#E11D48", "tonalRamp": [] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero headlines. Short, impactful, one thought per line." },
+      "body": { "displayName": "Body", "purpose": "Long-form copy, service descriptions, feature explanations. Max 75ch." },
+      "title": { "displayName": "Title", "purpose": "Section headings and card titles." },
+      "label": { "displayName": "Label", "purpose": "Section badges, eyebrow tags, stat labels. Always pill-shaped." },
+      "mono": { "displayName": "Mono/Numeric", "purpose": "Dashboard metrics, amounts, chart values." }
+    },
+    "shadows": [
+      { "name": "nav-elevation", "value": "0 8px 40px rgba(0,0,0,0.3)", "purpose": "Fixed navigation plane shadow." },
+      { "name": "nav-elevation-light", "value": "0 8px 40px rgba(0,0,0,0.06)", "purpose": "Fixed navigation plane shadow (light mode)." },
+      { "name": "hero-card", "value": "0 24px 80px rgba(0,0,0,0.3)", "purpose": "Dashboard mockup card. Deepest shadow in the system." },
+      { "name": "hover-lift", "value": "0 12px 32px rgba(0,189,170,0.2)", "purpose": "Button hover state. Teal-tinted." },
+      { "name": "inner-highlight", "value": "inset 0 1px 1px rgba(255,255,255,0.04)", "purpose": "Card interior top highlight for glass edge feel." }
+    ],
+    "motion": [
+      { "name": "bounce", "value": "cubic-bezier(0.32, 0.72, 0, 1)", "purpose": "Default easing for all state transitions and reveals." },
+      { "name": "ease", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Secondary easing for reveal sequences." },
+      { "name": "reveal-duration", "value": "0.8s", "purpose": "Scroll reveal animation duration." },
+      { "name": "interaction-duration", "value": "0.35s", "purpose": "Default hover/interaction transition duration." },
+      { "name": "nav-duration", "value": "0.5s", "purpose": "Nav island scroll state transition." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "480px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Teal pill CTA. Used for main actions: Get Started, form submission.",
+      "html": "<button class=\"ds-btn-primary\"><span>Get Started Free</span><span class=\"ds-btn-icon\"><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" width=\"12\" height=\"12\"><path d=\"M5 3l5 5-5 5\"/></svg></span></button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; background: #00BDAA; color: #011B2A; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 13px; padding: 12px 24px; border-radius: 9999px; letter-spacing: 0.03em; text-transform: uppercase; border: none; cursor: pointer; transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1); } .ds-btn-primary:hover { background: #1AB7A0; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,189,170,0.2); } .ds-btn-icon { width: 24px; height: 24px; border-radius: 50%; background: rgba(0,27,42,0.15); display: flex; align-items: center; justify-content: center; transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1); } .ds-btn-primary:hover .ds-btn-icon { transform: translateX(3px) scale(1.05); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined pill for secondary actions: Explore Products, Learn More.",
+      "html": "<button class=\"ds-btn-secondary\"><span>Explore Products</span></button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.1); color: #F1F5F9; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 13px; padding: 12px 24px; border-radius: 9999px; background: transparent; cursor: pointer; transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1); } .ds-btn-secondary:hover { border-color: #00BDAA; background: rgba(0,189,170,0.04); }"
+    },
+    {
+      "name": "CTA Input",
+      "kind": "input",
+      "refersTo": "cta-input",
+      "description": "Email input for the CTA form section. Pill-shaped with leading envelope icon.",
+      "html": "<div class=\"ds-input-wrap\"><svg class=\"ds-input-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" width=\"16\" height=\"16\"><path d=\"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z\"/><polyline points=\"22,6 12,13 2,6\"/></svg><input class=\"ds-input\" type=\"email\" placeholder=\"Enter your corporate email\"></div>",
+      "css": ".ds-input-wrap { position: relative; flex: 1; } .ds-input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #64748B; } .ds-input { width: 100%; padding: 12px 12px 12px 40px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); color: #F1F5F9; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; outline: none; transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1); box-sizing: border-box; } .ds-input:focus { border-color: #00BDAA; }"
+    },
+    {
+      "name": "Nav Island",
+      "kind": "nav",
+      "refersTo": "nav-island",
+      "description": "Floating glass pill navigation. Fixed, centered, backdrop-blurred.",
+      "html": "<nav class=\"ds-nav\"><div class=\"ds-nav-logo\">NEXUS</div><div class=\"ds-nav-links\"><a class=\"ds-nav-link active\">Home</a><a class=\"ds-nav-link\">Services</a><a class=\"ds-nav-link\">Highlights</a></div></nav>",
+      "css": ".ds-nav { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 100; background: rgba(10,15,26,0.75); backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 9999px; padding: 8px 20px 8px 8px; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 40px rgba(0,0,0,0.3); transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1); } .ds-nav-logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 14px; color: #00BDAA; padding: 6px 12px; border-radius: 9999px; } .ds-nav-links { display: flex; align-items: center; gap: 2px; } .ds-nav-link { padding: 6px 14px; font-size: 12px; font-weight: 500; border-radius: 9999px; color: #94A3B8; text-decoration: none; transition: all 0.35s cubic-bezier(0.32, 0.72, 0, 1); } .ds-nav-link:hover { color: #F1F5F9; } .ds-nav-link.active { background: rgba(0,189,170,0.1); color: #00BDAA; }"
+    },
+    {
+      "name": "Service Card",
+      "kind": "card",
+      "refersTo": "card-service",
+      "description": "Bento grid service card with gradient border shell and inner content.",
+      "html": "<div class=\"ds-card-shell\"><div class=\"ds-card-inner\"><div class=\"ds-card-icon\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" width=\"22\" height=\"22\"><rect x=\"1\" y=\"4\" width=\"22\" height=\"16\" rx=\"2\" ry=\"2\"/><line x1=\"1\" y1=\"10\" x2=\"23\" y2=\"10\"/></svg></div><h3 class=\"ds-card-title\">Digital Wallet</h3><p class=\"ds-card-desc\">Secure e-wallets, peer-to-peer transfers, and instant account synchronization.</p></div></div>",
+      "css": ".ds-card-shell { padding: 2px; border-radius: 32px; background: linear-gradient(135deg, rgba(0,189,170,0.06), rgba(255,255,255,0.02)); transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1); overflow: hidden; } .ds-card-shell:hover { background: linear-gradient(135deg, rgba(0,189,170,0.12), rgba(255,255,255,0.03)); transform: translateY(-2px); } .ds-card-inner { background: #0F1623; border-radius: 30px; padding: 28px; display: flex; flex-direction: column; box-shadow: inset 0 1px 1px rgba(255,255,255,0.04); } .ds-card-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(0,189,170,0.15); background: rgba(0,189,170,0.06); margin-bottom: 20px; color: #00BDAA; transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1); } .ds-card-shell:hover .ds-card-icon { background: #00BDAA; color: #011B2A; } .ds-card-title { font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600; color: #F1F5F9; margin-bottom: 8px; } .ds-card-desc { font-size: 13px; line-height: 1.6; color: #94A3B8; }"
+    },
+    {
+      "name": "Section Badge",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Pill-shaped eyebrow label with teal border, used sparingly before section headings.",
+      "html": "<div class=\"ds-badge\"><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" width=\"12\" height=\"12\"><path d=\"M8 1v14M1 8h14\"/></svg><span>Integrated Suite</span></div>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 5px 14px; border-radius: 9999px; background: rgba(0,189,170,0.08); border: 1px solid rgba(0,189,170,0.15); color: #00BDAA; } .ds-badge svg { width: 12px; height: 12px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Glass Ledger",
+    "overview": "A financial system viewed through polished, precision-cut glass — where every surface carries the weight of a balance sheet and the clarity of a dashboard monitor. The Glass Ledger treats data as the primary visual material: numbers are large and confident, cards sit with deliberate thickness, and the teal accent cuts through dark backgrounds like a signal light on a trading floor. The system merges the trust signals of traditional banking with the energy of modern fintech. Dark mode is the default posture — the interface recedes so the data leads.",
+    "keyCharacteristics": [
+      "Dark-first with a warm-cool balance (navy + teal, not pure black + cyan)",
+      "Cards have physical presence via gradient borders and inner highlights",
+      "Motion serves state changes and narrative progression, never decoration",
+      "Typography is geometric and technical (Space Grotesk) paired with a humanist sans (Plus Jakarta Sans)",
+      "Bilingual English/Khmer with typographic accommodations for Khmer script",
+      "Rejects: side-stripe borders, gradient text, glassmorphism as default, identical card grids"
+    ],
+    "rules": [
+      { "name": "The One Voice Rule", "body": "The Neon Teal accent occupies at most 30% of any given screen. Its rarity is the point.", "section": "colors" }
+    ],
+    "dos": [
+      "Use the double-bezel card architecture (gradient shell + inset inner) for every card and container",
+      "Use Neon Teal as the single accent voice",
+      "Lead with dark mode and offer light mode as a toggle",
+      "Place the nav as a floating glass pill detached from the top edge",
+      "Animate with cubic-bezier(0.32, 0.72, 0, 1) — the custom curve is part of the brand's motion signature",
+      "Use Space Grotesk for all numbers and financial metrics",
+      "Respect Khmer typography with adjusted line-height and zero letter-spacing"
+    ],
+    "donts": [
+      "Use side-stripe borders (colored border-left/right > 1px) on cards or callouts",
+      "Use gradient text (background-clip: text) — use solid colors instead",
+      "Use glassmorphism as a default card treatment — blur belongs on the nav only",
+      "Build identical card grids with icon + heading + text repeated endlessly",
+      "Put tiny uppercase tracked eyebrow badges above every section",
+      "Use numbered section markers (01 / 02 / 03) as default scaffolding",
+      "Nest cards inside other cards — never deeper than one level",
+      "Use Inter, Roboto, or system fonts"
+    ]
+  }
+}

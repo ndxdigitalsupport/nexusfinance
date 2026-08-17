@@ -4,15 +4,15 @@ import { showToast } from './Toast';
 import { SkeletonCard } from './Skeleton';
 
 import { apiFetch } from '../api';
-import { account, ID } from '../appwriteClient';
 import { API } from '../api';
 
 interface ProfilePageProps {
   token: string;
   user?: { name: string; role: string } | null;
+  onProfileUpdate?: (updated: { name: string; email: string; phone?: string }) => void;
 }
 
-export default function ProfilePage({ token, user }: ProfilePageProps) {
+export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePageProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -23,7 +23,6 @@ export default function ProfilePage({ token, user }: ProfilePageProps) {
   const [fetching, setFetching] = useState(true);
   // Password OTP states
   const [passwordOtpSent, setPasswordOtpSent] = useState(false);
-  const [passwordOtpUserId, setPasswordOtpUserId] = useState('');
   const [passwordOtpCode, setPasswordOtpCode] = useState('');
   const [passwordOtpVerified, setPasswordOtpVerified] = useState(false);
   const [passwordOtpTimer, setPasswordOtpTimer] = useState(0);
@@ -47,6 +46,7 @@ export default function ProfilePage({ token, user }: ProfilePageProps) {
         method: 'PATCH',
         body: JSON.stringify({ name, email, phone }),
       });
+      onProfileUpdate?.({ name, email, phone });
       showToast('Profile updated successfully');
     } catch {
       showToast('Could not connect to server.', 'error');
@@ -58,8 +58,12 @@ export default function ProfilePage({ token, user }: ProfilePageProps) {
   const handleSendPasswordOtp = async () => {
     setPasswordLoading(true);
     try {
-      const token = await account.createEmailToken(ID.unique(), email);
-      setPasswordOtpUserId(token.userId);
+      const res = await fetch(`${API}/auth/send-otp`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to send OTP.');
       setPasswordOtpSent(true);
       setPasswordOtpTimer(300);
       const interval = setInterval(() => {
@@ -78,11 +82,12 @@ export default function ProfilePage({ token, user }: ProfilePageProps) {
     if (!passwordOtpCode || passwordOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
     setPasswordLoading(true);
     try {
-      await fetch(`${API}/auth/clear-sessions`, {
+      const res = await fetch(`${API}/auth/verify-otp`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: passwordOtpUserId }),
+        body: JSON.stringify({ email, code: passwordOtpCode }),
       });
-      await account.createSession(passwordOtpUserId, passwordOtpCode);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Invalid or expired code.');
       setPasswordOtpVerified(true);
       showToast('Email verified! Set your new password.', 'success');
     } catch (err: any) {

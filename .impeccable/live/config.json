@@ -1,0 +1,6 @@
+{
+  "files": ["wordpress/index.html"],
+  "insertBefore": "</body>",
+  "cspChecked": true,
+  "commentSyntax": "html"
+}

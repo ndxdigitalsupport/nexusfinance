@@ -5,11 +5,11 @@
 **Full-stack fintech lending platform built for Cambodia**
 
 [![Vercel](https://img.shields.io/badge/Frontend-Vercel-black?style=flat-square&logo=vercel)](https://nexusfinancefintech.vercel.app)
-[![Render](https://img.shields.io/badge/Backend-Render-blueviolet?style=flat-square&logo=render)](https://nexusfinance-5okf.onrender.com)
+[![Render](https://img.shields.io/badge/Backend-Render-blueviolet?style=flat-square&logo=render)](https://nexusfinance-lof3.onrender.com)
 [![Supabase](https://img.shields.io/badge/Database-Supabase-3fcf8e?style=flat-square&logo=supabase)](https://supabase.com)
 [![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178c6?style=flat-square&logo=typescript)](https://typescriptlang.org)
 
-[Live Demo](https://nexusfinancefintech.vercel.app) · [API Health](https://nexusfinance-5okf.onrender.com/api/health)
+[Live Demo](https://nexusfinancefintech.vercel.app) · [API Health](https://nexusfinance-lof3.onrender.com/api/health)
 
 </div>
 

@@ -459,45 +459,24 @@ Example: \`/link john@example.com\``,
 
   // ── ADMIN: /stats, /loans, /users, /notifications ────────────
 
-  const AW_ENDPOINT = process.env.APPWRITE_ENDPOINT || 'https://sgp.cloud.appwrite.io/v1';
-  const AW_PROJECT = process.env.APPWRITE_PROJECT_ID || '';
+  const API = process.env.VITE_API_URL || `http://localhost:${process.env.PORT || 3001}/api`;
   let apiToken: string | null = null;
 
   async function loginAsAdmin() {
     try {
-      const sessionRes = await fetch(`${AW_ENDPOINT}/account/sessions/email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Appwrite-Project': AW_PROJECT },
-        body: JSON.stringify({ email: 'admin@nexus.com', password: 'password123' }),
-      });
-      const session = await sessionRes.json();
-      if (!session.$id) return;
-
-      const jwtRes = await fetch(`${AW_ENDPOINT}/account/jwts`, {
-        method: 'POST',
-        headers: { 'X-Appwrite-Project': AW_PROJECT, 'X-Appwrite-Session': session.$id },
-      });
-      const jwt = await jwtRes.json();
-      if (!jwt.jwt) return;
-
-      const API = process.env.VITE_API_URL || 'http://localhost:3001/api';
-      const user = await (await fetch(`${AW_ENDPOINT}/account`, {
-        headers: { 'X-Appwrite-Project': AW_PROJECT, 'X-Appwrite-Session': session.$id },
-      })).json();
-      const exchangeRes = await fetch(`${API}/auth/session`, {
+      const loginRes = await fetch(`${API}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email, name: user.name }),
+        body: JSON.stringify({ email: 'admin@nexus.com', password: 'password123' }),
       });
-      const data = await exchangeRes.json();
-      apiToken = data.token;
+      const data = await loginRes.json();
+      if (data.token) apiToken = data.token;
     } catch (e) {
       console.error('Bot admin login failed:', e);
     }
   }
 
   async function apiGet(path: string) {
-    const API = process.env.VITE_API_URL || 'http://localhost:3001/api';
     if (!apiToken) await loginAsAdmin();
     try {
       const res = await fetch(`${API}${path}`, {

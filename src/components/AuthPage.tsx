@@ -9,19 +9,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { showToast } from './Toast';
-import { account, ID } from '../appwriteClient';
 import { API } from '../api';
-
-async function exchangeSession(email: string, name: string) {
-  const res = await fetch(`${API}/auth/session`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, name }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Session exchange failed');
-  return data.token;
-}
 
 interface AuthPageProps {
   onLoginSuccess: (token: string) => void;
@@ -52,14 +40,12 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [forgotLoading, setForgotLoading] = useState(false);
 
   // Register OTP states
-  const [registerOtpUserId, setRegisterOtpUserId] = useState('');
   const [registerOtpSent, setRegisterOtpSent] = useState(false);
   const [registerOtpCode, setRegisterOtpCode] = useState('');
   const [registerOtpTimer, setRegisterOtpTimer] = useState(0);
 
   // Forgot / reset states
   const [forgotOtpSent, setForgotOtpSent] = useState(false);
-  const [forgotUserId, setForgotUserId] = useState('');
   const [forgotOtpCode, setForgotOtpCode] = useState('');
   const [forgotOtpTimer, setForgotOtpTimer] = useState(0);
   const [showResetForm, setShowResetForm] = useState(false);
@@ -72,11 +58,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!loginEmail || !loginPassword) return showToast('Enter email and password', 'error');
     setLoginLoading(true);
     try {
-      try { await account.deleteSessions(); } catch {}
-      await account.createEmailPasswordSession(loginEmail, loginPassword);
-      const user = await account.get();
-      const jwt = await exchangeSession(user.email, user.name);
-      onLoginSuccess(jwt);
+      const res = await fetch(`${API}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Invalid email or password.');
+      onLoginSuccess(data.token);
     } catch (err: any) {
       showToast(err?.message || 'Invalid email or password.', 'error');
     } finally {
@@ -90,9 +79,22 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (registerPassword !== registerConfirmPassword) return showToast('Passwords do not match', 'error');
     setRegisterLoading(true);
     try {
-      await account.create(ID.unique(), registerEmail, registerPassword, registerName);
-      const token = await account.createEmailToken(ID.unique(), registerEmail);
-      setRegisterOtpUserId(token.userId);
+      const registerRes = await fetch(`${API}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: registerName, email: registerEmail, password: registerPassword, phone: registerPhone }),
+      });
+      const registerData = await registerRes.json();
+      if (!registerRes.ok) throw new Error(registerData.error || 'Registration failed.');
+
+      const otpRes = await fetch(`${API}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: registerEmail }),
+      });
+      const otpData = await otpRes.json();
+      if (!otpRes.ok) throw new Error(otpData.error || 'Failed to send the verification code.');
+
       setRegisterOtpSent(true);
       setRegisterOtpTimer(300);
       const interval = setInterval(() => {
@@ -111,19 +113,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!registerOtpCode || registerOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
     setRegisterLoading(true);
     try {
-      await fetch(`${API}/auth/clear-sessions`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: registerOtpUserId }),
-      });
-      await account.createSession(registerOtpUserId, registerOtpCode);
-      // Mark email verified in Appwrite (non-blocking — email is already verified by createSession)
-      fetch(`${API}/auth/verify-email`, {
+      const res = await fetch(`${API}/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: registerOtpUserId }),
-      }).catch(() => {});
-      // Log out the temporary OTP session and redirect to login
-      try { await account.deleteSessions(); } catch {}
+        body: JSON.stringify({ email: registerEmail, code: registerOtpCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Wrong code. Try again.');
       setView('login');
       showToast('Account created! Login with your email and password.', 'success');
     } catch (err: any) {
@@ -136,8 +132,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const handleResendRegisterOtp = async () => {
     setRegisterLoading(true);
     try {
-      const token = await account.createEmailToken(ID.unique(), registerEmail);
-      setRegisterOtpUserId(token.userId);
+      const res = await fetch(`${API}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: registerEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to resend OTP.');
       setRegisterOtpTimer(300);
       showToast('New OTP sent!', 'success');
     } catch (err: any) {
@@ -153,8 +154,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!forgotEmail) return showToast('Enter your email address', 'error');
     setForgotLoading(true);
     try {
-      const token = await account.createEmailToken(ID.unique(), forgotEmail);
-      setForgotUserId(token.userId);
+      const res = await fetch(`${API}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to send OTP.');
       setForgotOtpSent(true);
       setForgotOtpTimer(300);
       const interval = setInterval(() => {
@@ -173,11 +179,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!forgotOtpCode || forgotOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
     setForgotLoading(true);
     try {
-      await fetch(`${API}/auth/clear-sessions`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: forgotUserId }),
+      const res = await fetch(`${API}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail, code: forgotOtpCode }),
       });
-      await account.createSession(forgotUserId, forgotOtpCode);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Invalid or expired code.');
       setShowResetForm(true);
     } catch (err: any) {
       showToast(err?.message || 'Invalid or expired code.', 'error');
@@ -195,7 +203,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       const res = await fetch(`${API}/auth/update-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail, userId: forgotUserId, newPassword: resetPassword }),
+        body: JSON.stringify({ email: forgotEmail, newPassword: resetPassword }),
       });
       if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to reset password.'); }
       showToast('Password reset! Login with your new password.', 'success');
@@ -215,8 +223,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const handleResendForgotOtp = async () => {
     setForgotLoading(true);
     try {
-      const token = await account.createEmailToken(ID.unique(), forgotEmail);
-      setForgotUserId(token.userId);
+      const res = await fetch(`${API}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to resend OTP.');
       setForgotOtpTimer(300);
       showToast('New OTP sent!', 'success');
     } catch (err: any) {
