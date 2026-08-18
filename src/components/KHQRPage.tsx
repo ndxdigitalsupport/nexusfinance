@@ -214,8 +214,8 @@ export default function KHQRPage() {
               <History className="w-4 h-4" /> Recent Payments
             </h3>
             <div className="space-y-2">
-              {transactions.length > 0 ? transactions.slice(0, 5).map((tx) => (
-                <div key={tx.tranId} className="flex items-center justify-between p-4 rounded-2xl border" style={{ backgroundColor: s('surface-card'), borderColor: s('border-primary') }}>
+              {transactions.length > 0 ? transactions.slice(0, 5).map((tx: any) => (
+                <div key={tx.tran_id || tx.tranId} className="flex items-center justify-between p-4 rounded-2xl border" style={{ backgroundColor: s('surface-card'), borderColor: s('border-primary') }}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{
                       backgroundColor: tx.status === 'APPROVED' ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)'
@@ -229,7 +229,7 @@ export default function KHQRPage() {
                     <div>
                       <p className="text-sm font-bold" style={{ color: s('text-primary') }}>Loan Repayment</p>
                       <p className="text-xs font-medium mt-0.5" style={{ color: s('text-secondary') }}>
-                        {new Date(tx.createdAt).toLocaleDateString()} · {tx.tranId.slice(0, 10)}
+                        {new Date(tx.created_at || tx.createdAt).toLocaleDateString()} · {(tx.tran_id || tx.tranId || '').slice(0, 10)}
                       </p>
                     </div>
                   </div>
