@@ -7,6 +7,8 @@ import {
   Globe, 
   HelpCircle, 
   RefreshCw,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { showToast } from './Toast';
 import { API } from '../api';
@@ -39,6 +41,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
   const [registerPhone, setRegisterPhone] = useState('');
+
+  // Password visibility states
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showRegisterConfirmPassword, setShowRegisterConfirmPassword] = useState(false);
 
   // Loading states
   const [loginLoading, setLoginLoading] = useState(false);
@@ -390,15 +397,22 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       required
                     />
                   </div>
-                  <div>
+                  <div className="relative">
                     <input
-                      type="password"
+                      type={showLoginPassword ? 'text' : 'password'}
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       placeholder="Password"
-                      className="w-full rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-medium transition-all"
+                      className="w-full rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 pl-6 pr-12 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-medium transition-all"
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      className="absolute inset-y-0 right-4 flex items-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] cursor-pointer select-none"
+                    >
+                      {showLoginPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                    </button>
                   </div>
 
                   <div className="pt-2">
@@ -696,15 +710,22 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         <Lock className="w-4.5 h-4.5" />
                       </div>
                       <input
-                        type="password"
+                        type={showRegisterPassword ? 'text' : 'password'}
                         value={registerPassword}
                         onChange={(e) => setRegisterPassword(e.target.value)}
                         placeholder="••••••••••••"
-                        className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-mono transition-all animate-none"
+                        className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-12 py-3.5 text-[14px] text-[var(--text-primary)] font-mono transition-all animate-none"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                        className="absolute inset-y-0 right-4 flex items-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] cursor-pointer select-none"
+                      >
+                        {showRegisterPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                      </button>
                     </div>
-
+ 
                     {/* Field: Confirm Password */}
                     <div className="space-y-1.5">
                       <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
@@ -715,13 +736,20 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                           <Lock className="w-4.5 h-4.5" />
                         </div>
                         <input
-                          type="password"
+                          type={showRegisterConfirmPassword ? 'text' : 'password'}
                           value={registerConfirmPassword}
                           onChange={(e) => setRegisterConfirmPassword(e.target.value)}
                           placeholder="••••••••••••"
-                          className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-mono transition-all animate-none"
+                          className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-12 py-3.5 text-[14px] text-[var(--text-primary)] font-mono transition-all animate-none"
                           required
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
+                          className="absolute inset-y-0 right-4 flex items-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] cursor-pointer select-none"
+                        >
+                          {showRegisterConfirmPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                        </button>
                       </div>
                     </div>
                   </div>
