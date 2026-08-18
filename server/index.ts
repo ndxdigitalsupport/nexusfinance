@@ -995,47 +995,18 @@ async function recordPaidPayment(tranId: string, apv?: string) {
 
 app.post('/api/payway/generate-qr', async (req, res) => {
   try {
-    const { amount, currency, lifetime, callbackUrl, returnParams, items, email, loanId } = req.body;
+    const { amount, currency, email, loanId } = req.body;
     if (!amount || amount <= 0) {
       return res.status(400).json({ error: 'amount is required and must be > 0' });
     }
 
-    let result;
-    let isMock = false;
-
-    try {
-      result = await payway.generateQR({
-        amount,
-        currency: currency || 'USD',
-        lifetime: lifetime || 15,
-        callbackUrl: callbackUrl || `${req.protocol}://${req.get('host')}/api/payway/callback`,
-        returnParams: returnParams || '',
-        items,
-      });
-    } catch (paywayErr: any) {
-      console.warn('PayWay unavailable, using mock:', paywayErr.message);
-      const { generateKHQR: mockGen, generateDeeplink } = await import('./khqr.js');
-      const mock = mockGen({
-        bakongAccountId: 'nexusfinance@aclb',
-        merchantName: 'Nexus Finance',
-        merchantCity: 'Phnom Penh',
-        currency: '840',
-        amount,
-        storeLabel: items?.[0]?.name || '',
-      });
-      const deeplink = generateDeeplink(mock.khqrString);
-      result = {
-        success: true,
-        qrImage: '',
-        qrString: mock.khqrString,
-        deeplink: deeplink.deeplink,
-        tranId: mock.referenceId,
-        amount,
-        currency: currency || 'USD',
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
-      };
-      isMock = true;
-    }
+    const frontendUrl = process.env.CORS_ORIGIN || 'https://nexusfinancefintech.vercel.app';
+    const result = payway.buildPurchaseRequest({
+      amount,
+      currency: currency || 'USD',
+      email: email || '',
+      items: [{ name: `Loan Repayment - ${loanId || 'N/A'}`, quantity: 1, price: amount }],
+    }, frontendUrl);
 
     const userEmail = email ? normalizeEmail(email) : null;
     let userId: number | null = null;
@@ -1048,8 +1019,8 @@ app.post('/api/payway/generate-qr', async (req, res) => {
       await db.from('nexus_payway_transactions').insert({
         tran_id: result.tranId,
         email: userEmail,
-        amount: result.amount,
-        currency: result.currency,
+        amount,
+        currency: currency || 'USD',
         status: 'PENDING',
         loan_id: loanId ? String(loanId) : null,
         user_id: userId,
@@ -1058,10 +1029,10 @@ app.post('/api/payway/generate-qr', async (req, res) => {
       console.error('PayWay insert failed:', err);
     }
 
-    res.json({ ...result, _mock: isMock });
+    res.json(result);
   } catch (err: any) {
     console.error('PayWay generateQR error:', err.message || err);
-    res.status(500).json({ error: err.message || 'Failed to generate QR' });
+    res.status(500).json({ error: err.message || 'Failed to create payment' });
   }
 });
 
@@ -1109,6 +1080,86 @@ app.post('/api/payway/callback', async (req, res) => {
     console.error('PayWay callback error:', err.message || err);
     res.status(500).json({ error: 'Callback processing failed' });
   }
+});
+
+// ── Purchase API (hosted checkout redirect) ─────────────────
+app.post('/api/payway/purchase', async (req, res) => {
+  try {
+    const { amount, currency, email, loanId, firstname, lastname, phone } = req.body;
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'amount is required and must be > 0' });
+    }
+
+    const frontendUrl = process.env.CORS_ORIGIN || 'https://nexusfinancefintech.vercel.app';
+    const result = payway.buildPurchaseRequest({
+      amount,
+      currency: currency || 'USD',
+      email: email || '',
+      firstname: firstname || '',
+      lastname: lastname || '',
+      phone: phone || '',
+      loanId: loanId || '',
+      items: [{ name: `Loan Repayment - ${loanId || 'N/A'}`, quantity: 1, price: amount }],
+    }, frontendUrl);
+
+    const userEmail = email ? normalizeEmail(email) : null;
+    let userId: number | null = null;
+    if (userEmail) {
+      const { data: u } = await db.from('nexus_users').select('id').eq('email', userEmail).maybeSingle();
+      userId = u?.id ?? null;
+    }
+
+    try {
+      await db.from('nexus_payway_transactions').insert({
+        tran_id: result.tranId,
+        email: userEmail,
+        amount,
+        currency: currency || 'USD',
+        status: 'PENDING',
+        loan_id: loanId ? String(loanId) : null,
+        user_id: userId,
+      }).select().single();
+    } catch (err) {
+      console.error('PayWay purchase insert failed:', err);
+    }
+
+    res.json(result);
+  } catch (err: any) {
+    console.error('PayWay purchase error:', err.message || err);
+    res.status(500).json({ error: err.message || 'Failed to create purchase' });
+  }
+});
+
+app.get('/api/payway/return', async (req, res) => {
+  try {
+    const tranId = req.query.tran_id as string;
+    const signature = req.query.hash as string || '';
+    const frontendUrl = process.env.CORS_ORIGIN || 'https://nexusfinancefintech.vercel.app';
+
+    if (tranId && signature) {
+      const { data: stored } = await db.from('nexus_payway_transactions').select('*').eq('tran_id', tranId).maybeSingle();
+      if (stored && stored.status !== 'APPROVED') {
+        try {
+          const result = await payway.checkTransaction(tranId);
+          if (result.status === 'APPROVED') {
+            await recordPaidPayment(tranId, result.apv);
+          }
+        } catch (err) {
+          console.error('PayWay return verify failed:', err);
+        }
+      }
+    }
+
+    res.redirect(`${frontendUrl}/payment/success${tranId ? '?tran_id=' + encodeURIComponent(tranId) : ''}`);
+  } catch (err: any) {
+    const frontendUrl = process.env.CORS_ORIGIN || 'https://nexusfinancefintech.vercel.app';
+    res.redirect(`${frontendUrl}/payment/success`);
+  }
+});
+
+app.get('/api/payway/cancel', (req, res) => {
+  const frontendUrl = process.env.CORS_ORIGIN || 'https://nexusfinancefintech.vercel.app';
+  res.redirect(`${frontendUrl}/payment/cancel`);
 });
 
 // ── Simulate Payment (sandbox testing only) ────────────────

@@ -41,6 +41,47 @@ const UsersView = lazy(() => import('./components/UsersView'));
 
 const enc = (id: string) => encodeURIComponent(id);
 
+function PaymentResult() {
+  const params = new URLSearchParams(window.location.search);
+  const tranId = params.get('tran_id');
+  const isCancel = window.location.pathname === '/payment/cancel';
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.history.replaceState({}, '', '/');
+      window.location.reload();
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--surface-primary)' }}>
+      <div className="max-w-md w-full text-center space-y-6 p-8 rounded-3xl border" style={{ backgroundColor: 'var(--surface-card)', borderColor: 'var(--border-primary)' }}>
+        <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center" style={{ backgroundColor: isCancel ? 'var(--warning-bg)' : 'var(--success-bg)' }}>
+          {isCancel ? (
+            <svg className="w-8 h-8" style={{ color: 'var(--warning-text)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          ) : (
+            <svg className="w-8 h-8" style={{ color: 'var(--success-text)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          )}
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            {isCancel ? 'Payment Cancelled' : 'Payment Successful!'}
+          </h1>
+          <p className="text-sm mt-2" style={{ color: 'var(--text-tertiary)' }}>
+            {isCancel
+              ? 'Your payment was cancelled. You can try again from the dashboard.'
+              : tranId
+                ? `Transaction ${tranId} has been processed.`
+                : 'Your payment has been processed successfully.'}
+          </p>
+        </div>
+        <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Redirecting to dashboard in 5 seconds...</p>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('nexus_token'));
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => localStorage.getItem('nexus_token') !== null);
@@ -302,10 +343,14 @@ export default function App() {
     } catch { return null; }
   })(), [token, userData]);
 
+  const isPaymentResult = window.location.pathname === '/payment/success' || window.location.pathname === '/payment/cancel';
+
   return (
     <div className="min-h-screen bg-[var(--surface-secondary)] app-root">
       <Toast />
-      {!isLoggedIn ? (
+      {isPaymentResult ? (
+        <PaymentResult />
+      ) : !isLoggedIn ? (
         <AuthPage onLoginSuccess={handleLoginSuccess} />
       ) : currentPortal === 'portal-selection' ? (
         <PortalSelection onSelectPortal={handleSetPortal} userRole={portalUser?.role || 'customer'} />

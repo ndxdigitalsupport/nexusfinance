@@ -24,93 +24,92 @@ function newTranId(): string {
   return 'NX' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase();
 }
 
-export interface PayWayQRRequest {
+export interface PayWayPurchaseRequest {
   amount: number;
   currency?: 'USD' | 'KHR';
   lifetime?: number;
-  callbackUrl?: string;
+  email?: string;
+  firstname?: string;
+  lastname?: string;
+  phone?: string;
+  loanId?: string;
   returnParams?: string;
   items?: { name: string; quantity: number; price: number }[];
 }
 
-export interface PayWayQRResult {
+export interface PayWayPurchaseResult {
   success: boolean;
-  qrString: string;
-  qrImage: string;
-  deeplink: string;
+  checkoutUrl: string;
+  fields: Record<string, string>;
   tranId: string;
-  amount: number;
-  currency: string;
-  expiresAt: Date;
-  raw?: any;
 }
 
-export async function generateQR(req: PayWayQRRequest): Promise<PayWayQRResult> {
+export function buildPurchaseRequest(req: PayWayPurchaseRequest, frontendUrl: string): PayWayPurchaseResult {
   if (!MERCHANT_ID || !API_KEY) {
     throw new Error('PayWay not configured: missing MERCHANT_ID or API_KEY');
   }
 
   const rt = reqTime();
   const tranId = newTranId();
-  const amount = req.amount.toFixed(2);
+  const amount = req.currency === 'KHR'
+    ? Math.round(req.amount).toString()
+    : req.amount.toFixed(2);
   const currency = req.currency || 'USD';
-  const lifetime = req.lifetime || 15;
+  const lifetime = req.lifetime || 30;
   const items = req.items ? Buffer.from(JSON.stringify(req.items)).toString('base64') : '';
-  const callbackUrl = req.callbackUrl ? Buffer.from(req.callbackUrl).toString('base64') : '';
+  const firstname = req.firstname || '';
+  const lastname = req.lastname || '';
+  const email = req.email || '';
+  const phone = req.phone || '';
   const returnParams = req.returnParams || '';
+  const callbackUrl = Buffer.from(`${frontendUrl}/api/payway/callback`).toString('base64');
+  const returnUrl = Buffer.from(`${frontendUrl}/api/payway/return`).toString('base64');
+  const cancelUrl = Buffer.from(`${frontendUrl}/payment/cancel`).toString('base64');
+  const continueSuccessUrl = `${frontendUrl}/payment/success`;
 
-  const b4hash = [
-    rt, MERCHANT_ID, tranId, amount, items,
-    '', '', '', '', '', // first_name, last_name, email, phone, purchase_type
-    'abapay_khqr', callbackUrl, '', currency, // payment_option, callback_url, return_deeplink, currency
-    '', returnParams, '', String(lifetime), 'template2_color', // custom_fields, return_params, payout, lifetime, qr_image_template
-  ].join('');
-
-  const hash = hmacSha512(b4hash, API_KEY);
-
-  const payload = {
+  const fields: Record<string, string> = {
     req_time: rt,
     merchant_id: MERCHANT_ID,
     tran_id: tranId,
     amount,
     items,
-    first_name: '', last_name: '', email: '', phone: '', purchase_type: '',
+    shipping: '0',
+    firstname,
+    lastname,
+    email,
+    phone,
+    type: 'purchase',
     payment_option: 'abapay_khqr',
-    callback_url: callbackUrl,
+    return_url: returnUrl,
+    cancel_url: cancelUrl,
+    continue_success_url: continueSuccessUrl,
     return_deeplink: '',
     currency,
     custom_fields: '',
     return_params: returnParams,
     payout: '',
     lifetime: String(lifetime),
-    qr_image_template: 'template2_color',
-    hash,
+    additional_params: '',
+    google_pay_token: '',
+    skip_success_page: '1',
   };
 
-  const url = `${PAYWAY_BASE_URL}/api/payment-gateway/v1/payments/generate-qr`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  const HASH_ORDER = [
+    'req_time', 'merchant_id', 'tran_id', 'amount', 'items', 'shipping',
+    'firstname', 'lastname', 'email', 'phone', 'type', 'payment_option',
+    'return_url', 'cancel_url', 'continue_success_url', 'return_deeplink',
+    'currency', 'custom_fields', 'return_params', 'payout', 'lifetime',
+    'additional_params', 'google_pay_token', 'skip_success_page',
+  ];
 
-  const data = await res.json();
-
-  const code = data.status?.code;
-  if (!res.ok || (code !== '0' && code !== 0 && code !== '00')) {
-    throw new Error(`PayWay error (${code}): ${data.status?.message || res.statusText}`);
-  }
+  const b4hash = HASH_ORDER.map(k => fields[k] ?? '').join('');
+  const hash = hmacSha512(b4hash, API_KEY);
 
   return {
     success: true,
-    qrString: data.qrString || '',
-    qrImage: data.qrImage || '',
-    deeplink: data.abapay_deeplink || '',
+    checkoutUrl: `${PAYWAY_BASE_URL}/api/payment-gateway/v1/payments/purchase`,
+    fields: { ...fields, hash },
     tranId,
-    amount: parseFloat(amount),
-    currency,
-    expiresAt: new Date(Date.now() + lifetime * 60 * 1000),
-    raw: data,
   };
 }
 
@@ -160,10 +159,16 @@ export function verifyWebhook(body: string, signature: string): boolean {
   if (!API_KEY) return false;
   try {
     const payload = JSON.parse(body);
-    const keys = Object.keys(payload).sort();
-    const b4hash = keys.map(k => {
+    const PURCHASE_HASH_ORDER = [
+      'req_time', 'merchant_id', 'tran_id', 'amount', 'items', 'shipping',
+      'firstname', 'lastname', 'email', 'phone', 'type', 'payment_option',
+      'return_url', 'cancel_url', 'continue_success_url', 'return_deeplink',
+      'currency', 'custom_fields', 'return_params', 'payout', 'lifetime',
+      'additional_params', 'google_pay_token', 'skip_success_page',
+    ];
+    const b4hash = PURCHASE_HASH_ORDER.map(k => {
       const v = payload[k];
-      return Array.isArray(v) ? JSON.stringify(v) : v == null ? '' : String(v);
+      return v == null ? '' : String(v);
     }).join('');
     return hmacSha512(b4hash, API_KEY) === signature;
   } catch {
