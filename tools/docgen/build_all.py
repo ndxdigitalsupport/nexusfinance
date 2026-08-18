@@ -42,7 +42,7 @@ def doc001(doc):
         [
             ["Web App", "React SPA with three portals — Customer, Loan Officer, Super Admin"],
             ["Backend API", "Node.js/Express REST API with JWT authentication and audit logging"],
-            ["Auth", "Email + password with Brevo OTP verification (10-minute expiry)"],
+            ["Auth", "Email + password with Brevo OTP verification — login blocked until the email is verified"],
             ["Payments", "KHQR (Bakong) integration and ABA PayWay webhooks"],
             ["Telegram Bot", "Payment notifications, reminders, admin commands"],
             ["Android App", "Expo WebView shell — installable APK"],
@@ -85,7 +85,7 @@ def doc001(doc):
     doc.h1("5. Security & Compliance Highlights")
     doc.bullet("JWT sessions with server-side role enforcement (customer / loan-officer / super-admin)")
     doc.bullet("Bcrypt password hashing — no plain-text credentials stored")
-    doc.bullet("Email OTP verification for register, login, and password change flows")
+    doc.bullet("Email OTP verification required before first login (new accounts are locked until verified)")
     doc.bullet("Full audit log with timestamps for every sensitive action")
     doc.bullet("Rate limiting on auth endpoints to prevent brute force")
     doc.bullet("Environment variables keep all secrets out of the codebase")
@@ -144,7 +144,8 @@ def doc002(doc):
         ["Feature", "Implementation"],
         [
             ["Registration", "Email + password → Brevo OTP verification (10-min expiry)"],
-            ["Login", "Email + password with bcrypt comparison, JWT token issued"],
+            ["Login", "Email + password with bcrypt comparison, JWT issued — blocked until email is verified"],
+            ["Email Verification", "New accounts cannot log in until the emailed OTP is verified"],
             ["Password Reset", "Brevo OTP → verify code → set new password"],
             ["Profile Update", "PATCH /api/auth/profile (name, email, phone)"],
             ["Password Change", "OTP verification required before password update"],
@@ -166,13 +167,15 @@ def doc002(doc):
     doc.bullet("Sandbox mode currently active")
     doc.bullet("Webhook callback on payment completion")
     doc.bullet("Transaction status tracking")
+    doc.bullet("Approved payments are persisted to the ledger (nexus_transactions) and trigger Telegram confirmation")
 
     doc.h1("5. Telegram Bot Features")
     doc.table(
         ["Command", "Access", "Description"],
         [
             ["/start", "All users", "Welcome message and quick actions"],
-            ["/link", "All users", "Link Telegram account to NexusFinance profile"],
+            ["/link", "All users", "Link Telegram account — emails a code to your NexusFinance profile"],
+            ["/confirm <code>", "All users", "Complete linking with the emailed code"],
             ["/unlink", "All users", "Unlink Telegram account"],
             ["/status", "All users", "View linked account status"],
             ["/reminder-check", "Admin", "Run payment reminder check now"],
@@ -238,7 +241,8 @@ def doc003(doc):
         ["Flow", "Steps", "Security Measure"],
         [
             ["Register", "Email + password → OTP email → verify → account created", "OTP hash, 10-min expiry"],
-            ["Login", "Email + password → bcrypt verify → JWT issued", "Rate limited, bcrypt compare"],
+            ["Login", "Email + password → bcrypt verify → email must be verified → JWT issued", "Rate limited, gated on email_verified"],
+            ["Email Verification", "Unverified accounts receive 403 EMAIL_NOT_VERIFIED and must verify first", "email_verified flag on nexus_users"],
             ["Forgot Password", "Email → OTP → verify → set new password", "OTP verified before change"],
             ["Change Password", "OTP email → verify → update password", "Requires active session + OTP"],
         ],
@@ -282,13 +286,14 @@ def doc003(doc):
         ["Role", "Permissions"],
         [
             ["customer", "Apply for loans, view own transactions, manage profile, make payments"],
-            ["loan-officer", "Review applications, approve/reject loans, view assigned cases"],
+            ["loan-officer", "Review applications, approve/reject/hold loans, view assigned cases, access stats & tasks"],
             ["super-admin", "Full access: analytics, user management, config, audit logs, bot commands"],
         ],
         col_widths=[1.6, 4.8],
     )
     doc.p("All API endpoints enforce role checks server-side. A user cannot access another "
-          "role's endpoints even with a valid JWT token.")
+          "role's endpoints even with a valid JWT token. Loan approval/rejection/hold actions "
+          "and the platform statistics and tasks endpoints require a loan-officer or super-admin role.")
 
     doc.h1("6. Audit Logging")
     doc.bullet("Every sensitive action is logged to the nexus_audit_logs table")
@@ -398,7 +403,8 @@ def doc004(doc):
         col_widths=[2.2, 4.2],
     )
     doc.callout("Tip",
-                "Link your Telegram account first with /link so the bot can send you notifications.",
+                "Link your Telegram account first with /link, then confirm with /confirm <code> "
+                "so the bot can send you notifications.",
                 kind="tip")
 
 
@@ -434,6 +440,11 @@ def doc005(doc):
     doc.numbered("Enter your email and password")
     doc.numbered("Click 'Login'")
     doc.numbered("You will be redirected to your dashboard")
+    doc.callout("Email not verified?",
+                "New accounts must verify their email before the first login. If your email "
+                "isn't verified yet, you'll be asked to enter the 6-digit code emailed to you "
+                "during registration — log in again once it's confirmed.",
+                kind="info")
 
     doc.callout("Forgot your password?",
                 "Click 'Forgot Password' on the login page. Enter your email, receive an OTP "
@@ -477,7 +488,7 @@ def doc005(doc):
             ["How long does loan approval take?", "Typically 1-3 business days after submission."],
             ["What payment methods are accepted?", "KHQR (Bakong) and ABA PayWay."],
             ["Can I apply for multiple loans?", "Check with your loan officer for policy details."],
-            ["How do I link my Telegram account?", "Use the /link command in the Telegram bot."],
+            ["How do I link my Telegram account?", "Send /link to the bot, then confirm with the code emailed to you (/confirm <code>)."],
         ],
         col_widths=[2.4, 4.0],
     )
@@ -514,9 +525,10 @@ def doc006(doc):
         [
             ["/start", "Welcome message and quick actions"],
             ["/help", "Show all available commands"],
-            ["/link", "Link your Telegram account to NexusFinance"],
+            ["/link", "Link your Telegram account — emails a verification code"],
+            ["/confirm <code>", "Complete linking with the code sent to your email"],
             ["/unlink", "Unlink your Telegram account"],
-            ["/status", "View your linked account status"],
+            ["/status", "View your linked account and loan status"],
         ],
         col_widths=[1.8, 4.6],
     )
@@ -541,16 +553,21 @@ def doc006(doc):
 
     doc.h1("5. Account Linking")
     doc.h2("5.1 Linking")
-    doc.p("Send /link to the bot. You will be prompted to confirm. Once linked, "
-          "you will receive payment notifications and reminders.")
+    doc.numbered("Send /link <your-email> to the bot")
+    doc.numbered("A 6-digit verification code is sent to your registered email")
+    doc.numbered("Send /confirm <code> to complete the link")
+    doc.numbered("The code expires after 10 minutes — run /link again for a new one")
+    doc.p("Once linked, you will receive payment notifications and reminders.")
     doc.h2("5.2 Unlinking")
     doc.p("Send /unlink to disconnect your Telegram account from NexusFinance.")
     doc.h2("5.3 Status Check")
-    doc.p("Send /status to view your current link status and linked email.")
+    doc.p("Send /status to view your linked email and current loan status, including your "
+          "monthly installment amount and next due date.")
 
     doc.h1("6. Notifications & Reminders")
     doc.bullet("Payment confirmations — instant notification when a payment is received")
     doc.bullet("Daily reminders — scheduled at 9:00 AM Cambodia time (Asia/Phnom_Penh)")
+    doc.bullet("Reminders are based on monthly installments (amortized at 5.4% APR), not the full loan amount")
     doc.bullet("New loan alerts — admin is notified when a new loan application is submitted")
 
     doc.h1("7. Troubleshooting")
@@ -641,11 +658,12 @@ def doc007(doc):
     doc.table(
         ["Table", "Key Columns", "Purpose"],
         [
-            ["nexus_users", "id, name, email, password, role, phone, telegram_chat_id, otp_*", "User accounts"],
+            ["nexus_users", "id, name, email, password, role, phone, telegram_chat_id, email_verified, otp_*", "User accounts"],
             ["nexus_loans", "id, user_id, amount, type, status, duration_months, interest_rate", "Loan applications"],
             ["nexus_transactions", "id, user_id, loan_id, amount, type, status", "Payment transactions"],
             ["nexus_audit_logs", "id, action, description, user_id, metadata, created_at", "Audit trail"],
             ["nexus_tasks", "id, user_id, title, status, priority", "KYC and review tasks"],
+            ["nexus_payway_transactions", "tran_id, email, amount, currency, status, apv, loan_id", "ABA PayWay payment records (persisted)"],
         ],
         col_widths=[1.8, 2.8, 1.8],
     )
@@ -717,7 +735,8 @@ def doc008(doc):
         ("4", "Transaction Endpoints"),
         ("5", "Admin Endpoints"),
         ("6", "KHQR Endpoints"),
-        ("7", "Database Schema Detail"),
+        ("7", "PayWay Endpoints"),
+        ("8", "Database Schema Detail"),
     ])
     doc.h1("1. API Overview")
     doc.p("Base URL: https://nexusfinance-lof3.onrender.com/api")
@@ -763,6 +782,8 @@ def doc008(doc):
         col_widths=[1.2, 1.0, 1.0, 3.2],
     )
     doc.p("Response: 200 { token: 'jwt...', user: { id, name, email, role } }")
+    doc.p("Response (unverified email): 403 { error: '...', code: 'EMAIL_NOT_VERIFIED' } — verify "
+          "your email via send-otp + verify-otp first.")
 
     doc.h2("POST /api/auth/send-otp")
     doc.p("Send a 6-digit OTP to the user's email.")
@@ -807,7 +828,7 @@ def doc008(doc):
     )
 
     doc.h2("PATCH /api/loans/:id")
-    doc.p("Update a loan status. Requires admin or loan-officer role.")
+    doc.p("Update a loan status. Requires loan-officer or super-admin role.")
     doc.table(
         ["Field", "Type", "Required"],
         [
@@ -815,6 +836,8 @@ def doc008(doc):
         ],
         col_widths=[2.0, 1.4, 1.4],
     )
+    doc.p("Dedicated actions: PATCH /api/loans/:id/approve, /api/loans/:id/reject, "
+          "/api/loans/:id/hold — all restricted to loan-officer and super-admin.")
 
     doc.h1("4. Transaction Endpoints")
     doc.h2("GET /api/transactions")
@@ -825,6 +848,7 @@ def doc008(doc):
     doc.p("Simulate a payment callback (for testing). Triggers Telegram notification.")
 
     doc.h1("5. Admin Endpoints")
+    doc.p("The following endpoints require a loan-officer or super-admin role:")
     doc.table(
         ["Endpoint", "Method", "Description"],
         [
@@ -849,7 +873,22 @@ def doc008(doc):
         col_widths=[2.0, 1.0, 3.4],
     )
 
-    doc.h1("7. Database Schema Detail")
+    doc.h1("7. PayWay Endpoints")
+    doc.table(
+        ["Endpoint", "Method", "Description"],
+        [
+            ["/api/payway/generate-qr", "POST", "Create a PayWay payment and persist a PENDING record"],
+            ["/api/payway/verify-payment", "POST", "Check transaction status; marks APPROVED + writes ledger"],
+            ["/api/payway/callback", "POST", "ABA webhook (HMAC-signed) with approval/decline updates"],
+            ["/api/payway/simulate-payment", "POST", "Sandbox-only helper to approve a payment for testing"],
+            ["/api/payway/transactions", "GET", "List recent PayWay transactions from the database"],
+        ],
+        col_widths=[2.0, 1.0, 3.4],
+    )
+    doc.p("Approved PayWay payments are written to nexus_payway_transactions and create a "
+          "Repayment entry in nexus_transactions, plus an in-app and Telegram notification.")
+
+    doc.h1("8. Database Schema Detail")
     doc.h2("nexus_users")
     doc.table(
         ["Column", "Type", "Description"],
@@ -861,6 +900,7 @@ def doc008(doc):
             ["role", "TEXT", "customer / loan-officer / super-admin"],
             ["phone", "TEXT", "Phone number"],
             ["telegram_chat_id", "BIGINT", "Telegram chat ID (if linked)"],
+            ["email_verified", "BOOLEAN", "Whether the email has been verified (blocks login when false)"],
             ["otp_code", "TEXT", "Bcrypt hash of OTP"],
             ["otp_expires_at", "TIMESTAMPTZ", "OTP expiry time"],
             ["otp_verified_at", "TIMESTAMPTZ", "When OTP was verified"],
@@ -886,6 +926,25 @@ def doc008(doc):
             ["monthly_income", "NUMERIC", "Applicant monthly income"],
             ["assigned_to", "INTEGER", "Assigned officer user ID"],
             ["created_at", "TIMESTAMPTZ", "Application date"],
+        ],
+        col_widths=[1.8, 1.4, 3.2],
+    )
+
+    doc.h2("nexus_payway_transactions")
+    doc.table(
+        ["Column", "Type", "Description"],
+        [
+            ["id", "BIGSERIAL PK", "Auto-increment ID"],
+            ["tran_id", "TEXT UNIQUE", "PayWay transaction ID"],
+            ["email", "TEXT", "Customer email (normalized)"],
+            ["amount", "NUMERIC", "Payment amount"],
+            ["currency", "TEXT", "Currency (default USD)"],
+            ["status", "TEXT", "PENDING / APPROVED / DECLINED"],
+            ["apv", "TEXT", "PayWay approval code"],
+            ["loan_id", "TEXT", "Linked loan ID (optional)"],
+            ["user_id", "INT", "NexusFinance user ID"],
+            ["created_at", "TIMESTAMPTZ", "Creation time"],
+            ["paid_at", "TIMESTAMPTZ", "When the payment was approved"],
         ],
         col_widths=[1.8, 1.4, 3.2],
     )
@@ -919,7 +978,7 @@ def doc001_kh(doc):
         [
             ["គេហទំព័រ", "React SPA ជាមួយប្រូតូល ៣ — អតិថិជន បុគ្គលិកកម្ចី អ្នកគ្រប់គ្រង"],
             ["Backend API", "Node.js/Express REST API ជាមួយ JWT auth និង audit log"],
-            ["ការផ្ទៀងផ្ទាត់", "អ៊ីមែល + ពាក្យសម្ងាត់ជាមួយ Brevo OTP"],
+            ["ការផ្ទៀងផ្ទាត់", "អ៊ីមែល + ពាក្យសម្ងាត់ជាមួយ Brevo OTP — ការចូលត្រូវបានរារាំងរហូតដល់អ៊ីមែលត្រូវបានផ្ទៀងផ្ទាត់"],
             ["ការទូទាត់", "KHQR (Bakong) និង ABA PayWay webhooks"],
             ["ប៉ុត Telegram", "ការជូនដំណឹងការទូទាត់ ការរំលឹក បញ្ជារបស់អ្នកគ្រប់គ្រង"],
             ["កម្មវិធី Android", "Expo WebView shell — APK ដែលអាចដំឡើងបាន"],
@@ -958,7 +1017,7 @@ def doc001_kh(doc):
     doc.h1("៥. សន្តិសុខនិងការអនុវត្ត")
     doc.bullet("JWT sessions ជាមួយការអនុវត្តតួនាទីខាងសែវិ")
     doc.bullet("Bcrypt password hashing — គ្មានពាក្យសម្ងាត់រក្សាទុកជាអត្ថបទ")
-    doc.bullet("ការផ្ទៀងផ្ទាត់ OTP សម្រាប់ការចុះឈ្មោះ ការចូល និងការផ្លាស់ប្តូរពាក្យសម្ងាត់")
+    doc.bullet("ការផ្ទៀងផ្ទាត់ OTP តម្រូវឲ្យមានមុនពេលចូលលើកដំបូង (គណនីថ្មីត្រូវបានចាក់សោរហូតដល់ផ្ទៀងផ្ទាត់)")
     doc.bullet("Audit log ពេញលេញជាមួយពេលវេលា")
     doc.bullet("Rate limiting នៅលើ endpoint ផ្ទៀងផ្ទាត់")
     doc.bullet("Environment variables រក្សាទុក keys ទាំងអស់ក្រៅ codebase")
@@ -1006,7 +1065,8 @@ def doc002_kh(doc):
         ["លក្ខណៈពិសេស", "ការអនុវត្ត"],
         [
             ["ការចុះឈ្មោះ", "អ៊ីមែល + ពាក្យសម្ងាត់ → Brevo OTP"],
-            ["ការចូល", "អ៊ីមែល + ពាក្យសម្ងាត់ជាមួយ bcrypt"],
+            ["ការចូល", "អ៊ីមែល + ពាក្យសម្ងាត់ជាមួយ bcrypt — រារាំងរហូតដល់អ៊ីមែលត្រូវបានផ្ទៀងផ្ទាត់"],
+            ["ការផ្ទៀងផ្ទាត់អ៊ីមែល", "គណនីថ្មីមិនអាចចូលបានទេរហូតដល់ OTP តាមអ៊ីមែលត្រូវបានផ្ទៀងផ្ទាត់"],
             ["ការសង្គ្រោះពាក្យសម្ងាត់", "Brevo OTP → ផ្ទៀងផ្ទាត់ → ពាក្យសម្ងាត់ថ្មី"],
             ["ការគ្រប់គ្រងតួនាទី", "customer / loan-officer / super-admin"],
         ],
@@ -1019,13 +1079,15 @@ def doc002_kh(doc):
           "សម្រាប់ការសងប្រាក់កម្ចី។")
     doc.h2("៤.២ ABA PayWay")
     doc.p("ABA PayWay API អនុញ្ញាតឱ្យមានការផ្ទៀងផ្ទាត់ការទូទាត់តាមរយៈ webhook។")
+    doc.bullet("ការទូទាត់ដែលបានអនុម័តត្រូវបានរក្សាទុកក្នុងបញ្ជី ledger និងផ្ញើការជូនដំណឹង Telegram")
 
     doc.h1("៥. លក្ខណៈពិសេសប៉ុត Telegram")
     doc.table(
         ["បញ្ជា", "ការពិពណ៌នា"],
         [
             ["/start", "សារស្វាគមន៍"],
-            ["/link", "ភ្ជាប់គណនី Telegram"],
+            ["/link", "ភ្ជាប់គណនី Telegram — ផ្ញើកូដទៅអ៊ីមែល"],
+            ["/confirm <code>", "បញ្ចប់ការភ្ជាប់ជាមួយកូដដែលបានផ្ញើ"],
             ["/unlink", "ផ្តាច់គណនី Telegram"],
             ["/status", "មើលស្ថានភាពគណនី"],
             ["/stats", "ស្ថិតិប្រព័ន្ធ"],
@@ -1099,11 +1161,13 @@ def doc003_kh(doc):
         ["តួនាទី", "សិទ្ធិ"],
         [
             ["customer", "សុំកម្ចី មើលប្រតិបត្តិការ គ្រប់គ្រងប្រ៉ូហ្វាល"],
-            ["loan-officer", "ពិនិត្យសំណុំបែបបទ អនុម័ត/បដិសេធ"],
+            ["loan-officer", "ពិនិត្យសំណុំបែបបទ អនុម័ត/បដិសេធ មើល stats និង tasks"],
             ["super-admin", "សិទ្ធិពេញលេញ: វិភាគ គ្រប់គ្រងអ្នកប្រើប្រាស់ config audit log"],
         ],
         col_widths=[1.6, 4.8],
     )
+    doc.p("រាល់ API endpoints អនុវត្តការត្រួតពិនិត្យតួនាទីខាងសែវិរ។ ការអនុម័ត/បដិសេធ/ក្សឹត "
+          "កម្ចី និង endpoint stats និង tasks តម្រូវឱ្យមានតួនាទី loan-officer ឬ super-admin។")
 
     doc.h1("៦. Audit Logging")
     doc.bullet("រាល់សកម្មភាពសំខាន់ទាំងអស់ត្រូវបានកត់ត្រា")
@@ -1183,6 +1247,9 @@ def doc004_kh(doc):
         ],
         col_widths=[2.2, 4.2],
     )
+    doc.callout("Tip",
+                "ភ្ជាប់គណនី Telegram ជាមុនជាមួយ /link បន្ទាប់មកបញ្ជាក់ជាមួយ /confirm <code> ដើម្បីទទួលបានការជូនដំណឹង។",
+                kind="tip")
 
 def doc005_kh(doc):
     doc.cover(version="1.0", date="សីហា 2026", author="NDX Digital Support",
@@ -1215,6 +1282,8 @@ def doc005_kh(doc):
 
     doc.callout("ភ្លេចពាក្យសម្ងាត់?",
                 "ចុច 'Forgot Password' នៅលើទំព័រ login។ បញ្ចូលអ៊ីមែល ទទួលកូដ OTP ផ្ទៀងផ្ទាត់ រួចកំណត់ពាក្យសម្ងាត់ថ្មី។", kind="info")
+    doc.callout("អ៊ីមែលមិនទាន់ផ្ទៀងផ្ទាត់?",
+                "គណនីថ្មីត្រូវតែផ្ទៀងផ្ទាត់អ៊ីមែលមុនពេលចូលលើកដំបូង។ បញ្ចូលកូដ ៦ ខ្ទង់ដែលបានផ្ញើទៅអ៊ីមែល រួចចូលម្តងទៀត។", kind="info")
 
     doc.h1("៣. សុំកម្ចី")
     doc.p("ចុច 'Apply for Loan' ពី sidebar។")
@@ -1242,7 +1311,7 @@ def doc005_kh(doc):
         [
             ["តើការអនុម័តកម្ចីចំណាយពេលប៉ុន្មាន?", "ជាធម្មតា ១-៣ ថ្ងៃធ្វើការ។"],
             ["តើទទួលយកវិធីទូទាត់អ្វីខ្លះ?", "KHQR (Bakong) និង ABA PayWay។"],
-            ["តើខ្ញុំអាចភ្ជាប់ Telegram បានទេ?", "ប្រើបញ្ជា /link។"],
+            ["តើខ្ញុំអាចភ្ជាប់ Telegram បានទេ?", "ផ្ញើ /link ទៅប៉ុត បន្ទាប់មកបញ្ជាក់ជាមួយកូដដែលបានផ្ញើទៅអ៊ីមែល (/confirm <code>)។"],
         ],
         col_widths=[2.4, 4.0],
     )
@@ -1275,9 +1344,10 @@ def doc006_kh(doc):
         [
             ["/start", "សារស្វាគមន៍"],
             ["/help", "បង្ហាញបញ្ជាទាំងអស់"],
-            ["/link", "ភ្ជាប់គណនី"],
+            ["/link", "ភ្ជាប់គណនី — ផ្ញើកូដទៅអ៊ីមែល"],
+            ["/confirm <code>", "បញ្ចប់ការភ្ជាប់ជាមួយកូដដែលបានផ្ញើ"],
             ["/unlink", "ផ្តាច់គណនី"],
-            ["/status", "មើលស្ថានភាព"],
+            ["/status", "មើលស្ថានភាពគណនី និងកម្ចី"],
         ],
         col_widths=[1.8, 4.6],
     )
@@ -1294,15 +1364,22 @@ def doc006_kh(doc):
         ],
         col_widths=[2.2, 4.2],
     )
+    doc.callout("Tip",
+                "ភ្ជាប់គណនី Telegram ជាមុនជាមួយ /link បន្ទាប់មកបញ្ជាក់ជាមួយ /confirm <code> ដើម្បីទទួលបានការជូនដំណឹង។",
+                kind="tip")
 
     doc.h1("៥. ការភ្ជាប់គណនី")
-    doc.p("ផ្ញើ /link ដើម្បីភ្ជាប់គណនី Telegram ទៅ NexusFinance។")
-    doc.p("ផ្ញើ /unlink ដើម្បីផ្តាច់។")
-    doc.p("ផ្ញើ /status ដើម្បីមើលស្ថានភាព។")
+    doc.numbered("ផ្ញើ /link <អ៊ីមែល> ទៅប៉ុត")
+    doc.numbered("កូដ ៦ ខ្ទង់ត្រូវបានផ្ញើទៅអ៊ីមែលរបស់អ្នក")
+    doc.numbered("ផ្ញើ /confirm <code> ដើម្បីបញ្ចប់ការភ្ជាប់")
+    doc.numbered("កូដផុតកំណត់ក្រោយ ១០ នាទី — ផ្ញើ /link ម្តងទៀតសម្រាប់កូដថ្មី")
+    doc.p("ផ្ញើ /unlink ដើម្បីផ្តាច់គណនី Telegram ពី NexusFinance។")
+    doc.p("ផ្ញើ /status ដើម្បីមើលអ៊ីមែលដែលបានភ្ជាប់ និងស្ថានភាពកម្ចី រួមទាំងបង់រំលោះប្រចាំខែ និងកាលបរិច្ឆេទកំណត់។")
 
     doc.h1("៦. ការជូនដំណឹងនិងការរំលឹក")
     doc.bullet("ការផ្ទៀងផ្ទាត់ការទូទាត់")
     doc.bullet("ការរំលឹកប្រចាំថ្ងៃនៅម៉ោង ៩ ព្រឹក")
+    doc.bullet("ការរំលឹកផ្អែកលើបង់រំលោះប្រចាំខែ (5.4% APR) មិនមែនចំនួនកម្ចីសរុបទេ")
 
     doc.h1("៧. ការដោះស្រាយបញ្ហា")
     doc.table(
@@ -1376,11 +1453,12 @@ def doc007_kh(doc):
     doc.table(
         ["តារាង", "ស្លាកស្នាម", "គោលបំណង"],
         [
-            ["nexus_users", "id, name, email, password, role, telegram_chat_id, otp_*", "គណនីអ្នកប្រើប្រាស់"],
+            ["nexus_users", "id, name, email, password, role, telegram_chat_id, email_verified, otp_*", "គណនីអ្នកប្រើប្រាស់"],
             ["nexus_loans", "id, user_id, amount, type, status, duration_months", "សំណុំបែបបទកម្ចី"],
             ["nexus_transactions", "id, user_id, loan_id, amount, type, status", "ប្រតិបត្តិការ"],
             ["nexus_audit_logs", "id, action, description, user_id, created_at", "Audit trail"],
             ["nexus_tasks", "id, user_id, title, status, priority", "ការងារ KYC"],
+            ["nexus_payway_transactions", "tran_id, email, amount, currency, status, apv, loan_id", "កំណត់ត្រាការទូទាត់ ABA PayWay (រក្សាទុកអចិន្ត្រៃយ៍)"],
         ],
         col_widths=[1.8, 2.8, 1.8],
     )
@@ -1439,7 +1517,8 @@ def doc008_kh(doc):
         ("4", "Endpoint ប្រតិបត្តិការ"),
         ("5", "Endpoint អ្នកគ្រប់គ្រង"),
         ("6", "Endpoint KHQR"),
-        ("7", "Schema មូលដ្ឋានទិន្នន័យ"),
+        ("7", "Endpoint PayWay"),
+        ("8", "Schema មូលដ្ឋានទិន្នន័យ"),
     ])
     doc.h1("១. ទិដ្ឋភាព API")
     doc.p("Base URL: https://nexusfinance-lof3.onrender.com/api")
@@ -1459,6 +1538,7 @@ def doc008_kh(doc):
 
     doc.h1("២. Endpoint ការផ្ទៀងផ្ទាត់")
     doc.h2("POST /api/auth/register")
+    doc.p("បង្កើតគណនីជាមួយ email_verified = false។ ផ្ទៀងផ្ទាត់អ៊ីមែលជាមួយ send-otp + verify-otp មុនពេលចូល។")
     doc.table(
         ["Field", "Type", "Required"],
         [
@@ -1471,6 +1551,7 @@ def doc008_kh(doc):
     )
 
     doc.h2("POST /api/auth/login")
+    doc.p("Response: 200 { token, user }។ ប្រសិនបើអ៊ីមែលមិនទាន់ផ្ទៀងផ្ទាត់: 403 { error, code: 'EMAIL_NOT_VERIFIED' }។")
     doc.table(
         ["Field", "Type", "Required"],
         [
@@ -1503,7 +1584,8 @@ def doc008_kh(doc):
     doc.h2("POST /api/loans")
     doc.p("បង្កើតសំណុំបែបទកម្ចីថ្មី។")
     doc.h2("PATCH /api/loans/:id")
-    doc.p("អាប់ដេតស្ថានភាពកម្ចី។")
+    doc.p("អាប់ដេតស្ថានភាពកម្ចី។ តម្រូវតួនាទី loan-officer ឬ super-admin។")
+    doc.p("សកម្មភាពផ្តាច់មុខ: PATCH /api/loans/:id/approve, /reject, /hold — កំណត់ត្រឹម loan-officer និង super-admin។")
 
     doc.h1("៤. Endpoint ប្រតិបត្តិការ")
     doc.h2("GET /api/transactions")
@@ -1512,6 +1594,7 @@ def doc008_kh(doc):
     doc.p("ក្លែងធ្វើការទូទាត់ (សម្រាប់តេស្ត)។")
 
     doc.h1("៥. Endpoint អ្នកគ្រប់គ្រង")
+    doc.p("Endpoint ខាងក្រោមតម្រូវឱ្យមានតួនាទី loan-officer ឬ super-admin:")
     doc.table(
         ["Endpoint", "Method", "ការពិពណ៌នា"],
         [
@@ -1519,6 +1602,7 @@ def doc008_kh(doc):
             ["/api/users", "GET", "មើលអ្នកប្រើប្រាស់"],
             ["/api/audit/logs", "GET", "Audit logs"],
             ["/api/config", "GET/PATCH", "ការកំណត់ប្រព័ន្ធ"],
+            ["/api/tasks", "GET", "ការងារ KYC"],
         ],
         col_widths=[2.0, 1.0, 3.4],
     )
@@ -1535,7 +1619,22 @@ def doc008_kh(doc):
         col_widths=[2.0, 1.0, 3.4],
     )
 
-    doc.h1("៧. Schema មូលដ្ឋានទិន្នន័យ")
+    doc.h1("៧. Endpoint PayWay")
+    doc.table(
+        ["Endpoint", "Method", "ការពិពណ៌នា"],
+        [
+            ["/api/payway/generate-qr", "POST", "បង្កើតការទូទាត់ PayWay និងរក្សាទុកកំណត់ត្រា PENDING"],
+            ["/api/payway/verify-payment", "POST", "ពិនិត្យស្ថានភាពប្រតិបត្តិការ; សម្គាល់ APPROVED + សរសេរក្នុង ledger"],
+            ["/api/payway/callback", "POST", "ABA webhook (HMAC-signed) ជាមួយការធ្វើបច្ចុប្បន្នភាព approval/decline"],
+            ["/api/payway/simulate-payment", "POST", "ជំនួយ sandbox ដើម្បីអនុម័តការទូទាត់សម្រាប់តេស្ត"],
+            ["/api/payway/transactions", "GET", "បញ្ជីប្រតិបត្តិការ PayWay ពីមូលដ្ឋានទិន្នន័យ"],
+        ],
+        col_widths=[2.0, 1.0, 3.4],
+    )
+    doc.p("ការទូទាត់ PayWay ដែលត្រូវបានអនុម័តត្រូវបានសរសេរទៅ nexus_payway_transactions បង្កើតធាតុ Repayment ក្នុង "
+          "nexus_transactions ព្រមទាំងការជូនដំណឹងក្នុងកម្មវិធី និង Telegram។")
+
+    doc.h1("៨. Schema មូលដ្ឋានទិន្នន័យ")
     doc.h2("nexus_users")
     doc.table(
         ["Column", "Type", "ការពិពណ៌នា"],
@@ -1547,6 +1646,7 @@ def doc008_kh(doc):
             ["role", "TEXT", "customer / loan-officer / super-admin"],
             ["phone", "TEXT", "ទូរស័ព្ទ"],
             ["telegram_chat_id", "BIGINT", "Telegram chat ID"],
+            ["email_verified", "BOOLEAN", "អ៊ីមែលបានផ្ទៀងផ្ទាត់ឬអត់ (រារាំងការចូលពេល false)"],
             ["otp_code", "TEXT", "OTP hash"],
             ["otp_expires_at", "TIMESTAMPTZ", "OTP expiry"],
             ["otp_verified_at", "TIMESTAMPTZ", "OTP verified"],
@@ -1569,6 +1669,25 @@ def doc008_kh(doc):
             ["duration_months", "INTEGER", "រយៈពេល"],
             ["interest_rate", "NUMERIC", "អត្រាការប្រាក់"],
             ["created_at", "TIMESTAMPTZ", "កាលបរិច្ឆេទ"],
+        ],
+        col_widths=[1.8, 1.4, 3.2],
+    )
+
+    doc.h2("nexus_payway_transactions")
+    doc.table(
+        ["Column", "Type", "ការពិពណ៌នា"],
+        [
+            ["id", "BIGSERIAL PK", "ID"],
+            ["tran_id", "TEXT UNIQUE", "លេខសម្គាល់ប្រតិបត្តិការ PayWay"],
+            ["email", "TEXT", "អ៊ីមែលអតិថិជន (normalized)"],
+            ["amount", "NUMERIC", "ចំនួនទឹកប្រាក់"],
+            ["currency", "TEXT", "រូបិយប័ណ្ណ (default USD)"],
+            ["status", "TEXT", "PENDING / APPROVED / DECLINED"],
+            ["apv", "TEXT", "លេខកូដអនុម័ត PayWay"],
+            ["loan_id", "TEXT", "លេខកម្ចីដែលភ្ជាប់ (optional)"],
+            ["user_id", "INT", "លេខអ្នកប្រើ NexusFinance"],
+            ["created_at", "TIMESTAMPTZ", "កាលបរិច្ឆេទបង្កើត"],
+            ["paid_at", "TIMESTAMPTZ", "ពេលវេលាអនុម័ត"],
         ],
         col_widths=[1.8, 1.4, 3.2],
     )
