@@ -34,15 +34,17 @@ export default function KHQRPage() {
   useEffect(() => {
     apiFetch('/loans')
       .then((loans: any[]) => {
-        const active = loans.find((l: any) => l.status === 'approved');
+        const active = loans.find((l: any) => l.status?.toLowerCase() === 'approved');
         if (active) {
-          const monthly = active.amount / (active.durationMonths || 12);
-          const outstanding = active.amount - (active.repaidAmount || 0);
+          const monthly = active.amount / (active.durationMonths || 24);
+          const loanDate = new Date(active.date || Date.now());
+          const nextDue = new Date(loanDate);
+          nextDue.setMonth(nextDue.getMonth() + 1);
           setLoanData({
             loanId: active.id ? `LN-${active.id}` : 'N/A',
             nextInstallment: Math.round(monthly * 100) / 100,
-            dueDate: active.nextDueDate || '—',
-            totalOutstanding: Math.round(outstanding * 100) / 100,
+            dueDate: nextDue.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            totalOutstanding: active.amount,
           });
         }
         setLoanLoading(false);
