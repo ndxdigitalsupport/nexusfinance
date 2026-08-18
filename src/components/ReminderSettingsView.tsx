@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, Trash2, Edit, Save, Bell, RefreshCw, X, Eye, HelpCircle } from 'lucide-react';
+import { PlusCircle, Trash2, Edit, Save, Bell, RefreshCw, X, Eye, HelpCircle, Play } from 'lucide-react';
 import { apiFetch } from '../api';
 import { showToast } from './Toast';
 import Modal from './Modal';
@@ -49,6 +49,25 @@ export default function ReminderSettingsView() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const [testingSweep, setTestingSweep] = useState(false);
+
+  const handleTestSweep = async () => {
+    setTestingSweep(true);
+    try {
+      const res = await apiFetch('/test-reminders');
+      if (res.success) {
+        showToast('Payment reminder sweep executed successfully!');
+        await fetchSettings();
+      } else {
+        showToast(res.error || 'Failed to trigger sweep', 'error');
+      }
+    } catch {
+      showToast('Failed to trigger payment reminders sweep', 'error');
+    } finally {
+      setTestingSweep(false);
+    }
+  };
 
   const insertVariable = (variable: string) => {
     const textarea = textareaRef.current;
@@ -230,6 +249,15 @@ export default function ReminderSettingsView() {
             title="Refresh"
           >
             <RefreshCw className="w-4 h-4" />
+          </button>
+          <button
+            onClick={handleTestSweep}
+            disabled={testingSweep}
+            className="flex items-center gap-2 bg-[var(--surface-secondary)] hover:bg-[var(--surface-tertiary)] border border-[var(--border-primary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-[13.5px] font-bold px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-50"
+            title="Scan loans database and send notifications"
+          >
+            <Play className={`w-4 h-4 ${testingSweep ? 'animate-spin' : ''}`} />
+            {testingSweep ? 'Scanning...' : 'Test Reminder Scan'}
           </button>
           <button
             onClick={openCreateModal}

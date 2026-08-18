@@ -671,6 +671,18 @@ app.delete('/api/reminder-settings/:id', authMiddleware, requireRole('super-admi
   res.json({ ok: true });
 });
 
+app.get('/api/test-reminders', authMiddleware, requireRole('super-admin'), async (req, res) => {
+  console.log('  📬 Manual trigger of payment reminders sweep requested by:', req.user.email);
+  try {
+    const { sendPaymentReminders } = await import('./bot.js');
+    await sendPaymentReminders(undefined);
+    res.json({ success: true, message: 'Payment reminder sweep executed successfully.' });
+  } catch (e: any) {
+    console.error('  ❌ Manual trigger failed:', e);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 app.get('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
   const { data: broadcasts } = await db
     .from('nexus_broadcasts')
