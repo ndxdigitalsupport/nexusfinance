@@ -192,6 +192,12 @@ Please make your payment on time to avoid late fees.`);
     return html.split('\n').join('<br />');
   };
 
+  const getTemplateExcerpt = (template: string) => {
+    if (!template) return '';
+    const text = template.replace(/[\*_`]/g, '').replace(/\s+/g, ' ').trim();
+    return text.length > 55 ? text.substring(0, 55) + '...' : text;
+  };
+
   if (loading) return <div className="animate-in fade-in duration-200"><SkeletonTable rows={6} /></div>;
 
   const totalPages = Math.ceil(settings.length / itemsPerPage) || 1;
@@ -245,21 +251,37 @@ Please make your payment on time to avoid late fees.`);
                   <tr key={setting.id} className="hover:bg-[var(--surface-secondary)]/20 transition-colors">
                     <td className="px-6 py-4.5">
                       <span className="font-extrabold text-[var(--text-primary)] block">{setting.name}</span>
-                      <span className="text-[11px] text-[var(--text-tertiary)] block truncate max-w-xs mt-0.5">{setting.message_template}</span>
+                      <span className="text-[11px] text-[var(--text-tertiary)] block mt-0.5">{getTemplateExcerpt(setting.message_template)}</span>
                     </td>
-                    <td className="px-6 py-4.5 text-center font-mono font-bold">
+                    <td className="px-6 py-4.5 text-center font-mono text-[12.5px] font-bold">
                       {setting.days_before > 0 ? (
-                        <span className="text-emerald-500">+{setting.days_before} days</span>
+                        <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                          +{setting.days_before} days
+                        </span>
                       ) : setting.days_before === 0 ? (
-                        <span className="text-amber-500">Due Date</span>
+                        <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                          Due Date
+                        </span>
                       ) : (
-                        <span className="text-rose-500">{Math.abs(setting.days_before)} days overdue</span>
+                        <span className="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                          {Math.abs(setting.days_before)} days overdue
+                        </span>
                       )}
                     </td>
                     <td className="px-6 py-4.5">
-                      <span className="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-[var(--surface-secondary)] text-[var(--text-secondary)] border border-[var(--border-primary)]">
-                        {setting.channel === 'both' ? 'Telegram & In-App' : setting.channel === 'telegram' ? 'Telegram' : 'In-App Only'}
-                      </span>
+                      {setting.channel === 'telegram' ? (
+                        <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-[#0088cc]/10 text-[#0088cc] border border-[#0088cc]/20">
+                          Telegram Only
+                        </span>
+                      ) : setting.channel === 'in_app' ? (
+                        <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                          In-App Only
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20">
+                          Telegram & In-App
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4.5 text-center">
                       <button
@@ -464,9 +486,7 @@ Please make your payment on time to avoid late fees.`);
                           </span>
                         </div>
 
-                        <div className="text-right text-[9px] text-[#7f8c9a] mt-1 leading-none select-none">
-                          15:32 PM ✓✓
-                        </div>
+                        {/* Removed timestamp & status ticks */}
                       </div>
                     </div>
                   </div>
