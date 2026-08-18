@@ -501,10 +501,6 @@ export default function ReminderSettingsView() {
 
                   {/* Chat message thread area */}
                   <div className="flex-1 bg-[#0e1621] p-4 flex flex-col justify-end relative select-none">
-                    {/* Floating date divider with solid dark pill background for readability */}
-                    <div className="absolute top-3 left-1/2 -translate-x-1/2 text-slate-300 text-[10px] bg-black/40 px-3 py-1 rounded-full uppercase tracking-wider font-bold shadow-xs">
-                      Today
-                    </div>
                     
                     <div className="flex items-end gap-2.5">
                       {/* Telegram Bot Avatar */}
