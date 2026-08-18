@@ -37,6 +37,19 @@ export default function ReminderSettingsView() {
   const [previewMode, setPreviewMode] = useState<'telegram' | 'in_app'>('telegram');
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
+  const [isSelectOpen, setIsSelectOpen] = useState(false);
+  const selectRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+        setIsSelectOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const insertVariable = (variable: string) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -360,17 +373,43 @@ export default function ReminderSettingsView() {
                   </span>
                 </div>
 
-                <div>
-                  <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5">Delivery Channel</label>
-                  <select
-                    value={channel}
-                    onChange={e => setChannel(e.target.value as any)}
-                    className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] focus:outline-none focus:border-[var(--accent)]"
+                <div className="relative" ref={selectRef}>
+                  <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5 select-none">Delivery Channel</label>
+                  <button
+                    type="button"
+                    onClick={() => setIsSelectOpen(!isSelectOpen)}
+                    className="w-full flex items-center justify-between bg-[var(--surface-secondary)] border border-[var(--border-primary)] hover:border-[var(--accent)] p-3 rounded-xl text-[14px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition cursor-pointer select-none"
                   >
-                    <option value="both">Telegram & In-App</option>
-                    <option value="telegram">Telegram Only</option>
-                    <option value="in_app">In-App Notification Only</option>
-                  </select>
+                    <span>
+                      {channel === 'both' ? 'Telegram & In-App' : channel === 'telegram' ? 'Telegram Only' : 'In-App Notification Only'}
+                    </span>
+                    <svg className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-200 ${isSelectOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+
+                  {isSelectOpen && (
+                    <div className="absolute left-0 w-full mt-1.5 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl shadow-xl z-50 overflow-hidden backdrop-blur-md animate-in fade-in duration-100 slide-in-from-top-2">
+                      {[
+                        { value: 'both', label: 'Telegram & In-App' },
+                        { value: 'telegram', label: 'Telegram Only' },
+                        { value: 'in_app', label: 'In-App Notification Only' }
+                      ].map(opt => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => {
+                            setChannel(opt.value as any);
+                            setIsSelectOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-3 text-[13.5px] transition flex items-center justify-between cursor-pointer ${channel === opt.value ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-bold' : 'text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)]'}`}
+                        >
+                          <span>{opt.label}</span>
+                          {channel === opt.value && (
+                            <svg className="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
