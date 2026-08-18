@@ -160,12 +160,18 @@ Please make your payment on time to avoid late fees.`);
 
   // Preview renderer helper
   const renderPreview = (template: string) => {
+    const days = Number(daysBefore) || 0;
+    const today = new Date();
+    const mockDueDate = new Date();
+    mockDueDate.setDate(today.getDate() + days);
+    const formattedDueDate = mockDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
     const vars = {
       loan_id: '77281',
       amount: '$1,250',
-      due_date: 'Aug 21, 2026',
-      days_remaining: '3',
-      days_overdue: '5',
+      due_date: formattedDueDate,
+      days_remaining: String(Math.max(0, days)),
+      days_overdue: String(Math.max(0, -days)),
       customer_name: 'Somchai V.'
     };
     let preview = template;
