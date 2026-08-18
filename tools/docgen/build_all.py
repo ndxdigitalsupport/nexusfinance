@@ -43,7 +43,7 @@ def doc001(doc):
             ["Web App", "React SPA with three portals — Customer, Loan Officer, Super Admin"],
             ["Backend API", "Node.js/Express REST API with JWT authentication and audit logging"],
             ["Auth", "Email + password with Brevo OTP verification — login blocked until the email is verified"],
-            ["Payments", "KHQR (Bakong) integration and ABA PayWay webhooks"],
+            ["Payments", "KHQR (Bakong) integration and ABA PayWay hosted checkout"],
             ["Telegram Bot", "Payment notifications, reminders, admin commands"],
             ["Android App", "Expo WebView shell — installable APK"],
             ["Deployment", "Vercel (frontend) + Render (backend) + Supabase (database)"],
@@ -91,7 +91,7 @@ def doc001(doc):
     doc.bullet("Environment variables keep all secrets out of the codebase")
 
     doc.h1("6. Roadmap")
-    doc.check_item("Go live with ABA PayWay production webhooks")
+    doc.check_item("Go live with ABA PayWay production checkout")
     doc.check_item("Add ACLEDA bank integration for payment notifications")
     doc.check_item("Connect Vercel auto-deploys (already connected)")
     doc.check_item("Add Google OAuth sign-in (deferred)")
@@ -163,10 +163,14 @@ def doc002(doc):
     doc.bullet("Deeplink generation for mobile banking apps")
 
     doc.h2("4.2 ABA PayWay")
-    doc.p("ABA Bank's PayWay API enables webhook-based payment confirmation.")
-    doc.bullet("Sandbox mode currently active")
-    doc.bullet("Webhook callback on payment completion")
-    doc.bullet("Transaction status tracking")
+    doc.p("ABA Bank's PayWay Purchase API powers hosted checkout for loan repayments. "
+          "The customer selects an amount and is redirected to ABA's secure hosted checkout "
+          "page (view_type: hosted_view), where they can pay via KHQR, ABA PAY, or cards.")
+    doc.bullet("Sandbox mode currently active (checkout-sandbox.payway.com.kh)")
+    doc.bullet("Hosted checkout with view_type=hosted_view and payment_gate=0")
+    doc.bullet("HMAC-SHA512 signature on every purchase request (24-field fixed hash order)")
+    doc.bullet("Return / cancel redirects to /payment/success and /payment/cancel")
+    doc.bullet("Webhook callback + GET return handler both verify and persist payments")
     doc.bullet("Approved payments are persisted to the ledger (nexus_transactions) and trigger Telegram confirmation")
 
     doc.h1("5. Telegram Bot Features")
@@ -318,7 +322,9 @@ def doc003(doc):
     doc.h1("9. Payment Security")
     doc.bullet("KHQR codes are generated server-side with CRC16 verification")
     doc.bullet("Payment verification requires server-side API calls (not client-side)")
-    doc.bullet("ABA PayWay webhooks use HMAC signature verification")
+    doc.bullet("ABA PayWay purchase requests are signed with HMAC-SHA512 using a fixed 24-field hash order")
+    doc.bullet("PayWay webhook callbacks are verified with the same HMAC signature before processing")
+    doc.bullet("Hosted checkout keeps card and account data on ABA's PCI-compliant pages — never on our servers")
     doc.bullet("All payment transactions are logged in the audit trail")
     doc.bullet("Sandbox mode active — no real money processed yet")
 
@@ -464,16 +470,19 @@ def doc005(doc):
           "reviewed by a Loan Officer.")
 
     doc.h1("4. Making Payments")
-    doc.h2("4.1 KHQR Payment")
-    doc.p("Navigate to 'KHQR Payment' in the sidebar to generate a QR code for repayment.")
-    doc.numbered("Enter the payment amount")
-    doc.numbered("Select the currency (USD or KHR)")
-    doc.numbered("A KHQR code will be generated")
-    doc.numbered("Scan with your banking app (Bakong-compatible)")
-    doc.numbered("Confirm the payment")
+    doc.h2("4.1 Loan Repayment (ABA PayWay Hosted Checkout)")
+    doc.p("Navigate to 'Loan Repayment' in the sidebar. The page shows your next installment "
+          "due and outstanding balance for your active loan.")
+    doc.numbered("Choose a payment amount: next installment, full balance, or a custom amount")
+    doc.numbered("Click 'Pay Now' — an ABA PayWay secure checkout page opens in a new tab")
+    doc.numbered("Complete the payment with KHQR, ABA PAY, cards, or another supported method")
+    doc.numbered("After payment you are returned to the success page and the dashboard updates automatically")
+    doc.p("You can also scan the KHQR code shown on the checkout page with any Bakong-compatible "
+          "banking app.")
 
     doc.h2("4.2 View Transactions")
-    doc.p("Check 'History Logs' to see all your past transactions and payments.")
+    doc.p("Check 'Recent Payments' on the Loan Repayment page or 'History Logs' to see all "
+          "your past transactions and payments.")
 
     doc.h1("5. Managing Your Profile")
     doc.p("Navigate to 'Profile' in the sidebar to update your information:")
@@ -486,7 +495,7 @@ def doc005(doc):
         ["Question", "Answer"],
         [
             ["How long does loan approval take?", "Typically 1-3 business days after submission."],
-            ["What payment methods are accepted?", "KHQR (Bakong) and ABA PayWay."],
+            ["What payment methods are accepted?", "KHQR (Bakong) and ABA PayWay hosted checkout (KHQR, ABA PAY, cards)."],
             ["Can I apply for multiple loans?", "Check with your loan officer for policy details."],
             ["How do I link my Telegram account?", "Send /link to the bot, then confirm with the code emailed to you (/confirm <code>)."],
         ],
@@ -624,7 +633,7 @@ def doc007(doc):
             ["Database", "Supabase (PostgreSQL)", "Data storage"],
             ["Auth", "JWT + bcrypt + Brevo OTP", "Authentication"],
             ["Hosting", "Vercel + Render", "Deployment"],
-            ["Payments", "KHQR, ABA PayWay", "Payment processing"],
+            ["Payments", "KHQR, ABA PayWay (Purchase API)", "Payment processing"],
             ["Notifications", "Telegram Bot API, Brevo", "Messaging"],
             ["Mobile", "Expo SDK 57", "Android app"],
         ],
@@ -646,6 +655,7 @@ def doc007(doc):
         "│   ├── brevo.ts            # Brevo email API\n"
         "│   ├── otp.ts              # OTP generation/verification\n"
         "│   ├── khqr.ts             # KHQR QR generation\n"
+        "│   ├── payway.ts           # ABA PayWay Purchase API + HMAC signing\n"
         "│   └── sms.ts              # Twilio SMS\n"
         "├── mobile/                 # Expo Android app\n"
         "├── supabase/migrations/    # Database migrations\n"
@@ -706,6 +716,8 @@ def doc007(doc):
             ["JWT_SECRET", "Token signing secret"],
             ["PAYWAY_MERCHANT_ID", "ABA PayWay merchant ID"],
             ["PAYWAY_API_KEY", "ABA PayWay API key"],
+            ["PAYWAY_BASE_URL", "ABA PayWay base URL (sandbox: https://checkout-sandbox.payway.com.kh)"],
+            ["CORS_ORIGIN", "Frontend origin used for ABA return/cancel URLs"],
             ["PORT", "Server listening port (set by Render)"],
         ],
         col_widths=[2.4, 4.0],
@@ -874,19 +886,31 @@ def doc008(doc):
     )
 
     doc.h1("7. PayWay Endpoints")
+    doc.p("NexusFinance uses the ABA PayWay Purchase API with hosted checkout. The frontend "
+          "calls /api/payway/purchase, then submits the returned fields as a form to ABA's "
+          "checkout URL. The return / cancel endpoints handle the post-payment redirects.")
     doc.table(
         ["Endpoint", "Method", "Description"],
         [
-            ["/api/payway/generate-qr", "POST", "Create a PayWay payment and persist a PENDING record"],
+            ["/api/payway/purchase", "POST", "Create a hosted-checkout purchase (view_type=hosted_view) and persist a PENDING record"],
+            ["/api/payway/return", "GET", "ABA success redirect; verifies status, records approved payments, redirects to /payment/success"],
+            ["/api/payway/cancel", "GET", "ABA cancel redirect; redirects to /payment/cancel"],
             ["/api/payway/verify-payment", "POST", "Check transaction status; marks APPROVED + writes ledger"],
             ["/api/payway/callback", "POST", "ABA webhook (HMAC-signed) with approval/decline updates"],
             ["/api/payway/simulate-payment", "POST", "Sandbox-only helper to approve a payment for testing"],
             ["/api/payway/transactions", "GET", "List recent PayWay transactions from the database"],
+            ["/api/payway/generate-qr", "POST", "Legacy endpoint; now delegates to the Purchase API"],
         ],
-        col_widths=[2.0, 1.0, 3.4],
+        col_widths=[2.0, 1.0, 3.9],
     )
     doc.p("Approved PayWay payments are written to nexus_payway_transactions and create a "
           "Repayment entry in nexus_transactions, plus an in-app and Telegram notification.")
+    doc.p("Purchase requests are signed with HMAC-SHA512 over a fixed 24-field hash order "
+          "(req_time, merchant_id, tran_id, amount, items, shipping, firstname, lastname, email, "
+          "phone, type, payment_option, return_url, cancel_url, continue_success_url, return_deeplink, "
+          "currency, custom_fields, return_params, payout, lifetime, additional_params, google_pay_token, "
+          "skip_success_page). view_type and payment_gate are sent unsigned. Webhook callbacks are "
+          "verified with the same hash order via the x-payway-hmac-sha512 header.")
 
     doc.h1("8. Database Schema Detail")
     doc.h2("nexus_users")
@@ -979,7 +1003,7 @@ def doc001_kh(doc):
             ["គេហទំព័រ", "React SPA ជាមួយប្រូតូល ៣ — អតិថិជន បុគ្គលិកកម្ចី អ្នកគ្រប់គ្រង"],
             ["Backend API", "Node.js/Express REST API ជាមួយ JWT auth និង audit log"],
             ["ការផ្ទៀងផ្ទាត់", "អ៊ីមែល + ពាក្យសម្ងាត់ជាមួយ Brevo OTP — ការចូលត្រូវបានរារាំងរហូតដល់អ៊ីមែលត្រូវបានផ្ទៀងផ្ទាត់"],
-            ["ការទូទាត់", "KHQR (Bakong) និង ABA PayWay webhooks"],
+            ["ការទូទាត់", "KHQR (Bakong) និង ABA PayWay hosted checkout"],
             ["ប៉ុត Telegram", "ការជូនដំណឹងការទូទាត់ ការរំលឹក បញ្ជារបស់អ្នកគ្រប់គ្រង"],
             ["កម្មវិធី Android", "Expo WebView shell — APK ដែលអាចដំឡើងបាន"],
             ["ការដាក់ស្នើ", "Vercel (frontend) + Render (backend) + Supabase (database)"],
@@ -1023,7 +1047,7 @@ def doc001_kh(doc):
     doc.bullet("Environment variables រក្សាទុក keys ទាំងអស់ក្រៅ codebase")
 
     doc.h1("៦. ផែនការអភិវឌ្ឍន៍")
-    doc.check_item("ដាក់ស្នើ ABA PayWay production webhooks")
+    doc.check_item("ដាក់ស្នើ ABA PayWay production checkout")
     doc.check_item("បន្ថែមការរួមបញ្ចូលធនាគារ ACLEDA")
     doc.check_item("ភ្ជាប់ Vercel auto-deploys (ភ្ជាប់រួចហើយ)")
     doc.check_item("បន្ថែម Google OAuth sign-in (ពន្យឺត)")
@@ -1078,7 +1102,15 @@ def doc002_kh(doc):
     doc.p("KHQR ជាស្តង់ដារទូទាត់ QR ជាតិរបស់កម្ពុជា។ NexusFinance បង្កើតកូដ KHQR "
           "សម្រាប់ការសងប្រាក់កម្ចី។")
     doc.h2("៤.២ ABA PayWay")
-    doc.p("ABA PayWay API អនុញ្ញាតឱ្យមានការផ្ទៀងផ្ទាត់ការទូទាត់តាមរយៈ webhook។")
+    doc.p("ABA PayWay Purchase API ផ្តល់ការទូទាត់តាមទំព័រកម្មវិធី (hosted checkout) "
+          "សម្រាប់ការសងប្រាក់កម្ចី។ អតិថិជនជ្រើសរើសចំនួនទឹកប្រាក់ រួចត្រូវបានដឹកជញ្ជូន "
+          "ទៅកាន់ទំព័រទូទាត់ដែលមានសុវត្ថិភាពរបស់ ABA (view_type: hosted_view) "
+          "ដែលអាចទូទាត់តាម KHQR, ABA PAY ឬប័ណ្ណ។")
+    doc.bullet("Sandbox mode សកម្មបច្ចុប្បន្ន (checkout-sandbox.payway.com.kh)")
+    doc.bullet("Hosted checkout ជាមួយ view_type=hosted_view និង payment_gate=0")
+    doc.bullet("HMAC-SHA512 signature លើរាល់សំណើ purchase (24-field fixed hash order)")
+    doc.bullet("Return / cancel redirects ទៅកាន់ /payment/success និង /payment/cancel")
+    doc.bullet("Webhook callback + GET return handler ផ្ទៀងផ្ទាត់ និងរក្សាទុកការទូទាត់")
     doc.bullet("ការទូទាត់ដែលបានអនុម័តត្រូវបានរក្សាទុកក្នុងបញ្ជី ledger និងផ្ញើការជូនដំណឹង Telegram")
 
     doc.h1("៥. លក្ខណៈពិសេសប៉ុត Telegram")
@@ -1186,7 +1218,9 @@ def doc003_kh(doc):
     doc.h1("៩. សន្តិសុខការទូទាត់")
     doc.bullet("កូដ KHQR បង្កើតខាងសែវិ")
     doc.bullet("ការផ្ទៀងផ្ទាត់តម្រូវឱ្យមាន API call")
-    doc.bullet("ABA PayWay webhooks ប្រើ HMAC signature")
+    doc.bullet("សំណើ ABA PayWay purchase ចុះហត្ថលេខាជាមួយ HMAC-SHA512 (24-field fixed hash order)")
+    doc.bullet("Webhook callback ផ្ទៀងផ្ទាត់ជាមួយ HMAC signature ដូចគ្នាមុនដំណើរការ")
+    doc.bullet("Hosted checkout រក្សាទិន្នន័យប័ណ្ណលើទំព័រ PCI-compliant របស់ ABA — មិនមែនលើ server របស់យើង")
     doc.bullet(" Sandbox mode សកម្ម")
 
 def doc004_kh(doc):
@@ -1293,12 +1327,14 @@ def doc005_kh(doc):
     doc.bullet("មូលហេតុសុំកម្ចី")
 
     doc.h1("៤. ធ្វើការទូទាត់")
-    doc.h2("៤.១ ការទូទាត់ KHQR")
-    doc.p("ចូលទៅ 'KHQR Payment' ដើម្បីបង្កើតកូដ QR។")
-    doc.numbered("បញ្ចូលចំនួនទឹកប្រាក់")
-    doc.numbered("ជ្រើសរើសរូបិយប័ណ្ណ")
-    doc.numbered("កូដ KHQR ត្រូវបានបង្កើត")
-    doc.numbered("ស្កេនជាមួយ banking app")
+    doc.h2("៤.១ សងប្រាក់កម្ចី (ABA PayWay Hosted Checkout)")
+    doc.p("ចូលទៅ 'Loan Repayment' ក្នុង sidebar។ ទំព័របង្ហាញការដំឡើងថ្មី និងសមតុល្យ "
+          "ដែលត្រូវសង នៃកម្ចីសកម្មរបស់អ្នក។")
+    doc.numbered("ជ្រើសរើសចំនួនទឹកប្រាក់៖ ដំឡើងបន្ទាប់ សមតុល្យពេញ ឬចំនួនផ្ទាល់ខ្លួន")
+    doc.numbered("ចុច 'Pay Now' — ទំព័រទូទាត់សុវត្ថិភាព ABA PayWay បើកក្នុង tab ថ្មី")
+    doc.numbered("បញ្ចប់ការទូទាត់ជាមួយ KHQR, ABA PAY, ប័ណ្ណ ឬវិធីសាស្ត្រផ្សេងទៀត")
+    doc.numbered("បន្ទាប់ពីទូទាត់ អ្នកត្រូវបានត្រឡប់ទៅទំព័រជោគជ័យ ហើយ dashboard អាប់ដេតដោយស្វ័យប្រវត្តិ")
+    doc.p("អ្នកក៏អាចស្កេនកូដ KHQR នៅលើទំព័រ checkout ជាមួយ banking app ដែលត្រូវគ្នា។")
 
     doc.h1("៥. គ្រប់គ្រងប្រ៉ូហ្វាល")
     doc.p("ចូលទៅ 'Profile' ដើម្បីអាប់ដេតព័ត៌មាន៖")
@@ -1310,7 +1346,7 @@ def doc005_kh(doc):
         ["សំណួរ", "ចម្លើយ"],
         [
             ["តើការអនុម័តកម្ចីចំណាយពេលប៉ុន្មាន?", "ជាធម្មតា ១-៣ ថ្ងៃធ្វើការ។"],
-            ["តើទទួលយកវិធីទូទាត់អ្វីខ្លះ?", "KHQR (Bakong) និង ABA PayWay។"],
+            ["តើទទួលយកវិធីទូទាត់អ្វីខ្លះ?", "KHQR (Bakong) និង ABA PayWay hosted checkout (KHQR, ABA PAY, ប័ណ្ណ)។"],
             ["តើខ្ញុំអាចភ្ជាប់ Telegram បានទេ?", "ផ្ញើ /link ទៅប៉ុត បន្ទាប់មកបញ្ជាក់ជាមួយកូដដែលបានផ្ញើទៅអ៊ីមែល (/confirm <code>)។"],
         ],
         col_widths=[2.4, 4.0],
@@ -1620,19 +1656,31 @@ def doc008_kh(doc):
     )
 
     doc.h1("៧. Endpoint PayWay")
+    doc.p("NexusFinance ប្រើ ABA PayWay Purchase API ជាមួយ hosted checkout។ Frontend ហៅ "
+          "/api/payway/purchase រួចបញ្ជូន fields ដែលបានត្រឡប់ជា form ទៅកាន់ URL checkout របស់ ABA។ "
+          "Endpoints return / cancel គ្រប់គ្រងការបញ្ជូនបន្តក្រោយការទូទាត់។")
     doc.table(
         ["Endpoint", "Method", "ការពិពណ៌នា"],
         [
-            ["/api/payway/generate-qr", "POST", "បង្កើតការទូទាត់ PayWay និងរក្សាទុកកំណត់ត្រា PENDING"],
+            ["/api/payway/purchase", "POST", "បង្កើតការទូទាត់ hosted checkout (view_type=hosted_view) និងរក្សាទុកកំណត់ត្រា PENDING"],
+            ["/api/payway/return", "GET", "ABA success redirect; ផ្ទៀងផ្ទាត់ស្ថានភាព រក្សាទុកការទូទាត់ដែលបានអនុម័ត បញ្ជូនទៅ /payment/success"],
+            ["/api/payway/cancel", "GET", "ABA cancel redirect; បញ្ជូនទៅ /payment/cancel"],
             ["/api/payway/verify-payment", "POST", "ពិនិត្យស្ថានភាពប្រតិបត្តិការ; សម្គាល់ APPROVED + សរសេរក្នុង ledger"],
             ["/api/payway/callback", "POST", "ABA webhook (HMAC-signed) ជាមួយការធ្វើបច្ចុប្បន្នភាព approval/decline"],
             ["/api/payway/simulate-payment", "POST", "ជំនួយ sandbox ដើម្បីអនុម័តការទូទាត់សម្រាប់តេស្ត"],
             ["/api/payway/transactions", "GET", "បញ្ជីប្រតិបត្តិការ PayWay ពីមូលដ្ឋានទិន្នន័យ"],
+            ["/api/payway/generate-qr", "POST", "Legacy endpoint; ឥឡូវបញ្ជូនទៅ Purchase API"],
         ],
-        col_widths=[2.0, 1.0, 3.4],
+        col_widths=[2.0, 1.0, 3.9],
     )
     doc.p("ការទូទាត់ PayWay ដែលត្រូវបានអនុម័តត្រូវបានសរសេរទៅ nexus_payway_transactions បង្កើតធាតុ Repayment ក្នុង "
           "nexus_transactions ព្រមទាំងការជូនដំណឹងក្នុងកម្មវិធី និង Telegram។")
+    doc.p("សំណើ purchase ចុះហត្ថលេខាជាមួយ HMAC-SHA512 តាមលំដាប់ 24-field ថេរ "
+          "(req_time, merchant_id, tran_id, amount, items, shipping, firstname, lastname, email, "
+          "phone, type, payment_option, return_url, cancel_url, continue_success_url, return_deeplink, "
+          "currency, custom_fields, return_params, payout, lifetime, additional_params, google_pay_token, "
+          "skip_success_page)។ view_type និង payment_gate ផ្ញើដោយគ្មាន signature។ Webhook callback "
+          "ផ្ទៀងផ្ទាត់តាមលំដាប់ដូចគ្នា តាម header x-payway-hmac-sha512។")
 
     doc.h1("៨. Schema មូលដ្ឋានទិន្នន័យ")
     doc.h2("nexus_users")
