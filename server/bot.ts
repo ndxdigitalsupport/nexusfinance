@@ -15,6 +15,11 @@ if (!TOKEN) {
 const SITE_URL = process.env.SITE_URL || 'https://nexusfinancefintech.vercel.app';
 const ADMIN_ID = parseInt(process.env.TELEGRAM_ADMIN_ID || '0', 10);
 
+export let notifyUserCallback: ((userId: number, text: string) => void) | null = null;
+export function setNotifyUserCallback(cb: (userId: number, text: string) => void) {
+  notifyUserCallback = cb;
+}
+
 // Pending account-link verification codes (keyed by Telegram chat id)
 const linkCodes = new Map<number, { email: string; code: string; expiresAt: number }>();
 const LINK_CODE_TTL_MS = 10 * 60 * 1000;
@@ -93,16 +98,51 @@ function daysUntil(dateStr: string): number {
   return Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+function renderTemplate(template: string, vars: Record<string, string>): string {
+  let rendered = template;
+  for (const [key, val] of Object.entries(vars)) {
+    rendered = rendered.replace(new RegExp(`{${key}}`, 'g'), val);
+  }
+  return rendered;
+}
+
 // ── PAYMENT REMINDER LOGIC (exported for cron) ─────────────────
 
 async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatId?: number) {
-  const { data: loans } = await db
+  const activeBot = botInstance !== undefined ? botInstance : bot;
+
+  // 1. Fetch active settings rules
+  const { data: settings, error: settingsError } = await db
+    .from('nexus_reminder_settings')
+    .select('*')
+    .eq('is_active', true);
+
+  if (settingsError) {
+    console.error('Failed to load reminder settings:', settingsError);
+    if (reportChatId && activeBot) {
+      await activeBot.sendMessage(reportChatId, `❌ *Error checking reminders*: Failed to load settings.`);
+    }
+    return;
+  }
+
+  // 2. Fetch active/disbursed loans
+  const { data: loans, error: loansError } = await db
     .from('nexus_loans')
     .select('id, applicantEmail, applicantName, amount, date, durationMonths')
     .in('status', ['approved', 'active', 'disbursed']);
 
+  if (loansError) {
+    console.error('Failed to load loans:', loansError);
+    if (reportChatId && activeBot) {
+      await activeBot.sendMessage(reportChatId, `❌ *Error checking reminders*: Failed to load loans.`);
+    }
+    return;
+  }
+
   if (!loans || loans.length === 0) {
-    if (reportChatId && botInstance) await botInstance.sendMessage(reportChatId, '📋 No active loans found.');
+    if (reportChatId && activeBot) {
+      await activeBot.sendMessage(reportChatId, '📋 *Reminder check complete:* No active loans found.');
+    }
     return;
   }
 
@@ -115,49 +155,100 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
     const monthly = monthlyPaymentFor(amount, duration);
     const installments = installmentDates(loan.date, duration);
 
-    // Remind only about the next installment that is due within 7 days or overdue
-    let nextDue: Date | null = null;
-    for (const due of installments) {
-      if (daysUntil(due.toISOString()) <= 7) { nextDue = due; break; }
-    }
-    if (!nextDue) continue;
-
-    const days = daysUntil(nextDue.toISOString());
-
+    // Fetch user details (internal id and telegram chat id)
     const { data: user } = await db
       .from('nexus_users')
-      .select('telegram_chat_id')
+      .select('id, telegram_chat_id')
       .eq('email', loan.applicantEmail)
-      .not('telegram_chat_id', 'is', null)
-      .single();
+      .maybeSingle();
 
-    if (!user?.telegram_chat_id) continue;
+    if (!user) continue;
 
-    let message: string;
-    if (days < 0) {
-      message = `🚨 *OVERDUE PAYMENT*\n\nLoan #${loan.id} — $${monthly.toFixed(0)} installment\nDue date: ${formatDate(nextDue.toISOString())}\n⚠️ *${Math.abs(days)} days overdue*\n\nPlease make your payment as soon as possible.`;
-    } else if (days === 0) {
-      message = `🔴 *PAYMENT DUE TODAY*\n\nLoan #${loan.id} — $${monthly.toFixed(0)} installment\nYour payment is due today. Please pay now to avoid late fees.`;
-    } else {
-      message = `⏰ *Payment Reminder*\n\nLoan #${loan.id} — $${monthly.toFixed(0)} installment\n📅 Due: ${formatDate(nextDue.toISOString())}\n⏳ *${days} days remaining*\n\nYou can pay via the NexusFinance app.`;
-    }
+    // Track if we sent an overdue notification for this loan during this sweep
+    // to avoid sending multiple overdue alerts if multiple installments are overdue.
+    let overdueAlertSentForLoan = false;
+    let userNotifiedForThisLoan = false;
 
-    try {
-      if (botInstance) {
-        await botInstance.sendMessage(user.telegram_chat_id, message, {
-          parse_mode: 'Markdown',
-          reply_markup: { inline_keyboard: [[siteButton]] },
-        });
+    for (const due of installments) {
+      const days = daysUntil(due.toISOString());
+
+      // Find matching settings rules
+      for (const setting of settings || []) {
+        let isMatch = false;
+
+        if (setting.days_before > 0 && days === setting.days_before) {
+          isMatch = true;
+        } else if (setting.days_before === 0 && days === 0) {
+          isMatch = true;
+        } else if (setting.days_before < 0 && days < 0) {
+          // Overdue rule (represented by negative days_before, e.g. -1)
+          // Only send if we haven't sent an overdue alert for this loan in this sweep
+          if (!overdueAlertSentForLoan) {
+            isMatch = true;
+            overdueAlertSentForLoan = true;
+          }
+        }
+
+        if (!isMatch) continue;
+
+        // Render message
+        const vars = {
+          loan_id: loan.id,
+          amount: `$${monthly.toFixed(0)}`,
+          due_date: formatDate(due.toISOString()),
+          days_remaining: String(days),
+          days_overdue: String(Math.abs(days)),
+          customer_name: loan.applicantName
+        };
+
+        const renderedMessage = renderTemplate(setting.message_template, vars);
+
+        // Send channels
+        let sentTelegram = false;
+        let sentInApp = false;
+
+        const channel = setting.channel || 'both';
+
+        // 1. Telegram
+        if ((channel === 'telegram' || channel === 'both') && user.telegram_chat_id) {
+          try {
+            if (activeBot) {
+              await activeBot.sendMessage(user.telegram_chat_id, renderedMessage, {
+                parse_mode: 'Markdown',
+                reply_markup: { inline_keyboard: [[siteButton]] }
+              });
+              sentTelegram = true;
+            }
+          } catch (err) {
+            console.error(`Failed to send Telegram reminder to ${loan.applicantEmail}:`, err);
+          }
+        }
+
+        // 2. In-App Notification
+        if (channel === 'in_app' || channel === 'both') {
+          try {
+            if (notifyUserCallback) {
+              notifyUserCallback(user.id, renderedMessage);
+              sentInApp = true;
+            }
+          } catch (err) {
+            console.error(`Failed to send In-App reminder to ${loan.applicantEmail}:`, err);
+          }
+        }
+
+        if (sentTelegram || sentInApp) {
+          remindersSent++;
+          if (!userNotifiedForThisLoan) {
+            usersNotified++;
+            userNotifiedForThisLoan = true;
+          }
+        }
       }
-      remindersSent++;
-      usersNotified++;
-    } catch (e) {
-      console.error(`Failed to send reminder to ${loan.applicantEmail}:`, e);
     }
   }
 
-  if (reportChatId && botInstance) {
-    await botInstance.sendMessage(reportChatId,
+  if (reportChatId && activeBot) {
+    await activeBot.sendMessage(reportChatId,
       `✅ *Reminder check complete!*\n\n📨 Reminders sent: *${remindersSent}*\n👥 Users notified: *${usersNotified}*`,
       { parse_mode: 'Markdown' }
     );

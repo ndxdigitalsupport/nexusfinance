@@ -20,7 +20,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import fs from 'fs';
 import cookieParser from 'cookie-parser';
-import './bot.js';
+import { setNotifyUserCallback } from './bot.js';
 import cron from 'node-cron';
 import TelegramBot from 'node-telegram-bot-api';
 
@@ -607,6 +607,149 @@ app.patch('/api/config', authMiddleware, async (req, res) => {
   res.json(config);
 });
 
+// ── REMINDER SETTINGS & BROADCASTS ROUTES (Super Admin & Loan Officers) ──
+
+app.get('/api/reminder-settings', authMiddleware, async (req, res) => {
+  const { data: settings } = await db
+    .from('nexus_reminder_settings')
+    .select('*')
+    .order('days_before', { ascending: false });
+  res.json(settings || []);
+});
+
+app.post('/api/reminder-settings', authMiddleware, requireRole('super-admin'), async (req, res) => {
+  const { name, days_before, message_template, channel, is_active } = req.body;
+  if (!name || message_template === undefined) {
+    return res.status(400).json({ error: 'name and message_template are required.' });
+  }
+  const { data, error } = await db
+    .from('nexus_reminder_settings')
+    .insert({
+      name,
+      days_before: parseInt(days_before) || 0,
+      message_template,
+      channel: channel || 'both',
+      is_active: is_active !== false
+    })
+    .select('*')
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  logAudit('reminder-setting-created', `Created reminder: ${name} (${days_before} days)`, req.user);
+  res.status(201).json(data);
+});
+
+app.patch('/api/reminder-settings/:id', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
+  const id = parseInt(req.params.id);
+  const { name, days_before, message_template, channel, is_active } = req.body;
+
+  const updateData: Record<string, any> = {};
+  if (name !== undefined) updateData.name = name;
+  if (days_before !== undefined) updateData.days_before = parseInt(days_before) || 0;
+  if (message_template !== undefined) updateData.message_template = message_template;
+  if (channel !== undefined) updateData.channel = channel;
+  if (is_active !== undefined) updateData.is_active = is_active;
+  updateData.updated_at = new Date().toISOString();
+
+  const { data, error } = await db
+    .from('nexus_reminder_settings')
+    .update(updateData)
+    .eq('id', id)
+    .select('*')
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  logAudit('reminder-setting-updated', `Updated reminder ID ${id}: ${JSON.stringify(updateData)}`, req.user);
+  res.json(data);
+});
+
+app.delete('/api/reminder-settings/:id', authMiddleware, requireRole('super-admin'), async (req, res) => {
+  const id = parseInt(req.params.id);
+  const { error } = await db.from('nexus_reminder_settings').delete().eq('id', id);
+  if (error) return res.status(500).json({ error: error.message });
+  logAudit('reminder-setting-deleted', `Deleted reminder ID ${id}`, req.user);
+  res.json({ ok: true });
+});
+
+app.get('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
+  const { data: broadcasts } = await db
+    .from('nexus_broadcasts')
+    .select('*, sender:sent_by(name, email)')
+    .order('id', { ascending: false });
+  res.json(broadcasts || []);
+});
+
+app.post('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
+  const { message, channel, target } = req.body;
+  if (!message) return res.status(400).json({ error: 'message is required.' });
+
+  const activeChannel = channel || 'both';
+  const activeTarget = target || 'all';
+
+  // 1. Fetch matching users
+  let query = db.from('nexus_users').select('id, name, email, role, telegram_chat_id');
+  if (activeTarget === 'linked') {
+    query = query.not('telegram_chat_id', 'is', null);
+  } else if (activeTarget.startsWith('role:')) {
+    const roleName = activeTarget.split(':')[1];
+    query = query.eq('role', roleName);
+  }
+  const { data: targetUsers, error } = await query;
+  if (error) return res.status(500).json({ error: error.message });
+
+  let sentCount = 0;
+  let failedCount = 0;
+
+  const { default: botInstance } = await import('./bot.js');
+
+  for (const user of targetUsers || []) {
+    let success = false;
+
+    // Send Telegram
+    if ((activeChannel === 'telegram' || activeChannel === 'both') && user.telegram_chat_id) {
+      try {
+        if (botInstance) {
+          await botInstance.sendMessage(user.telegram_chat_id, message, { parse_mode: 'Markdown' });
+          success = true;
+        }
+      } catch (err) {
+        console.error(`Broadcast Telegram send failed for user ${user.email}:`, err);
+      }
+    }
+
+    // Send In-App
+    if (activeChannel === 'in_app' || activeChannel === 'both') {
+      try {
+        notifyUser(user.id, message);
+        success = true;
+      } catch (err) {
+        console.error(`Broadcast In-App send failed for user ${user.email}:`, err);
+      }
+    }
+
+    if (success) sentCount++;
+    else failedCount++;
+  }
+
+  // 2. Save broadcast record
+  const { data: record, error: insertError } = await db
+    .from('nexus_broadcasts')
+    .insert({
+      message,
+      channel: activeChannel,
+      target: activeTarget,
+      sent_by: req.user.id,
+      sent_count: sentCount,
+      failed_count: failedCount
+    })
+    .select('*, sender:sent_by(name, email)')
+    .single();
+
+  if (insertError) return res.status(500).json({ error: insertError.message });
+  logAudit('broadcast-sent', `Broadcast sent to ${activeTarget} via ${activeChannel} (Success: ${sentCount}, Fail: ${failedCount})`, req.user);
+  res.status(201).json(record);
+});
+
 // ── STATS ROUTES ────────────────────────────────────────────
 
 app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
@@ -749,6 +892,7 @@ notifyUser = (userId: number, text: string) => {
   _origNotifyUser(userId, text);
   notifyUserRealtime(userId, text);
 };
+setNotifyUserCallback(notifyUser);
 
 // ── AUDIT LOG ROUTES (Super Admin) ─────────────────────────
 

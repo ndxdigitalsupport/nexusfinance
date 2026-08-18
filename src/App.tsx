@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown, QrCode, Mail, HelpCircle as HelpIcon, Download, FileText, Calculator, Webhook } from 'lucide-react';
+import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown, QrCode, Mail, HelpCircle as HelpIcon, Download, FileText, Calculator, Webhook, Bell, Megaphone } from 'lucide-react';
 import AuthPage from './components/AuthPage';
 import Toast, { showToast } from './components/Toast';
 import Sidebar from './components/Sidebar';
@@ -38,6 +38,8 @@ const LoanManagement = lazy(() => import('./components/LoanManagement'));
 const WebhooksPage = lazy(() => import('./components/WebhooksPage'));
 const SupportView = lazy(() => import('./components/SupportView'));
 const UsersView = lazy(() => import('./components/UsersView'));
+const ReminderSettingsView = lazy(() => import('./components/ReminderSettingsView'));
+const BroadcastView = lazy(() => import('./components/BroadcastView'));
 
 const enc = (id: string) => encodeURIComponent(id);
 
@@ -418,7 +420,7 @@ export default function App() {
                   const items = currentPortal === 'loan-officer'
                     ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'manage', label: 'Loan Management', icon: ClipboardList }, { id: 'webhooks', label: 'Webhooks', icon: Webhook }, { id: 'tasks', label: 'Compliance Tasks', icon: CheckSquare }]
                     : currentPortal === 'super-admin'
-                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'manage', label: 'Loan Management', icon: ClipboardList }, { id: 'webhooks', label: 'Webhooks', icon: Webhook }, { id: 'users', label: 'Users', icon: Users }, { id: 'audit', label: 'Audit Log', icon: ClipboardList }, { id: 'settings', label: 'Settings', icon: Settings }]
+                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'manage', label: 'Loan Management', icon: ClipboardList }, { id: 'webhooks', label: 'Webhooks', icon: Webhook }, { id: 'users', label: 'Users', icon: Users }, { id: 'reminders', label: 'Reminders', icon: Bell }, { id: 'broadcast', label: 'Broadcast', icon: Megaphone }, { id: 'audit', label: 'Audit Log', icon: ClipboardList }, { id: 'settings', label: 'Settings', icon: Settings }]
                     : [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'loans', label: 'Loans Ledger', icon: Landmark }, { id: 'documents', label: 'KYC Documents', icon: FileText }, { id: 'calculator', label: 'Loan Calculator', icon: Calculator }, { id: 'wallets', label: 'Wallets', icon: Wallet }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }, { id: 'transactions', label: 'History Logs', icon: History }];
                   return items.map((item) => {
                     const Icon = item.icon;
@@ -548,6 +550,10 @@ export default function App() {
               <WebhooksPage />
             ) : activeMenu === 'manage' ? (
               <LoanManagement applications={applications} onRefresh={refetchAll} />
+            ) : activeMenu === 'reminders' ? (
+              <ReminderSettingsView />
+            ) : activeMenu === 'broadcast' ? (
+              <BroadcastView />
             ) : activeMenu === 'settings' ? (
               <SuperAdminDashboard
                 config={config}
