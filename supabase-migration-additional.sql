@@ -24,35 +24,35 @@ CREATE TABLE IF NOT EXISTS nexus_broadcasts (
 
 -- Seed default reminder settings
 INSERT INTO nexus_reminder_settings (name, days_before, message_template, channel, is_active) VALUES
-  ('7 Days Before', 7, '⏰ *Payment Reminder*
+  ('7 Days Before', 7, '⏰ Payment Reminder
 
 Loan #{loan_id} — {amount} installment
 📅 Due: {due_date}
-⏳ *{days_remaining} days remaining*
+⏳ {days_remaining} days remaining
 
 Please make your payment on time to avoid late fees.', 'both', true),
-  ('3 Days Before', 3, '⏰ *Payment Reminder*
+  ('3 Days Before', 3, '⏰ Payment Reminder
 
 Loan #{loan_id} — {amount} installment
 📅 Due: {due_date}
-⏳ *{days_remaining} days remaining*
+⏳ {days_remaining} days remaining
 
 Please make your payment on time to avoid late fees.', 'both', true),
-  ('1 Day Before', 1, '⏰ *Payment Reminder*
+  ('1 Day Before', 1, '⏰ Payment Reminder
 
 Loan #{loan_id} — {amount} installment
 📅 Due: {due_date}
-⏳ *{days_remaining} days remaining*
+⏳ {days_remaining} days remaining
 
 Please make your payment on time to avoid late fees.', 'both', true),
-  ('Due Today', 0, '🔴 *PAYMENT DUE TODAY*
+  ('Due Today', 0, '🔴 PAYMENT DUE TODAY
 
 Loan #{loan_id} — {amount} installment
 Your payment is due today. Please pay now to avoid late fees.', 'both', true),
-  ('Overdue Payment', -1, '🚨 *OVERDUE PAYMENT*
+  ('Overdue Payment', -1, '🚨 OVERDUE PAYMENT
 
 Loan #{loan_id} — {amount} installment
 Due date: {due_date}
-⚠️ *{days_overdue} days overdue*
+⚠️ {days_overdue} days overdue
 
 Please make your payment as soon as possible.', 'both', true);

@@ -75,13 +75,13 @@ export default function ReminderSettingsView() {
     setEditingId(null);
     setName('');
     setDaysBefore(3);
-    setMessageTemplate(`⏰ *Payment Reminder*
-
-Loan #{loan_id} — {amount} installment
-📅 Due: {due_date}
-⏳ *{days_remaining} days remaining*
-
-Please make your payment on time to avoid late fees.`);
+    setMessageTemplate(`⏰ Payment Reminder
+ 
+ Loan #{loan_id} — {amount} installment
+ 📅 Due: {due_date}
+ ⏳ {days_remaining} days remaining
+ 
+ Please make your payment on time to avoid late fees.`);
     setChannel('both');
     setIsActive(true);
     setShowModal(true);
@@ -220,9 +220,9 @@ Please make your payment on time to avoid late fees.`);
           </button>
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-2 bg-[var(--sidebar-bg)] hover:brightness-110 text-white text-[13px] font-bold px-4 py-2.5 rounded-lg transition cursor-pointer"
+            className="flex items-center gap-2 bg-[var(--accent)] hover:brightness-105 text-[#0F171C] text-[13.5px] font-bold px-4.5 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-[var(--accent)]/10 cursor-pointer"
           >
-            <PlusCircle className="w-4 h-4" /> Create Reminder Rule
+            <PlusCircle className="w-4.5 h-4.5" /> Create Reminder Rule
           </button>
         </div>
       </div>
