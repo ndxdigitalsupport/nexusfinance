@@ -131,7 +131,7 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
   const { data: loans, error: loansError } = await db
     .from('nexus_loans')
     .select('id, applicantEmail, applicantName, amount, date, durationMonths')
-    .in('status', ['approved', 'active', 'disbursed']);
+    .in('status', ['approved', 'Approved', 'active', 'Active', 'disbursed', 'Disbursed']);
 
   if (loansError) {
     console.error('Failed to load loans:', loansError);
@@ -531,7 +531,7 @@ Example: \`/link john@example.com\``,
       .from('nexus_loans')
       .select('id, amount, status, date, durationMonths, applicantName')
       .eq('applicantEmail', user.email)
-      .in('status', ['approved', 'active', 'disbursed'])
+      .in('status', ['approved', 'Approved', 'active', 'Active', 'disbursed', 'Disbursed'])
       .order('date', { ascending: false });
 
     if (!loans || loans.length === 0) {
