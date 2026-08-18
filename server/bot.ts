@@ -194,8 +194,9 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
         if (!isMatch) continue;
 
         // Render message
+        const cleanLoanId = String(loan.id).startsWith('#') ? String(loan.id).substring(1) : String(loan.id);
         const vars = {
-          loan_id: loan.id,
+          loan_id: cleanLoanId,
           amount: `$${monthly.toFixed(0)}`,
           due_date: formatDate(due.toISOString()),
           days_remaining: String(days),
@@ -262,8 +263,9 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
 async function sendPaymentConfirmation(chatId: string, data: { loanId: string | number; amount: number; tranId: string }) {
   if (!bot) return;
   try {
+    const cleanId = String(data.loanId).startsWith('#') ? String(data.loanId).substring(1) : String(data.loanId);
     await bot.sendMessage(chatId,
-      `✅ *Payment Confirmed!*\n\nLoan #${data.loanId} — $${data.amount.toLocaleString()}\nTransaction: \`${data.tranId}\`\n\nThank you for your payment!`,
+      `✅ *Payment Confirmed!*\n\nLoan #${cleanId} — $${data.amount.toLocaleString()}\nTransaction: \`${data.tranId}\`\n\nThank you for your payment!`,
       {
         parse_mode: 'Markdown',
         reply_markup: { inline_keyboard: [[siteButton]] },
@@ -560,7 +562,8 @@ Example: \`/link john@example.com\``,
         ? `⚠️ *${overdue} overdue*`
         : `📅 Next due ${formatDate(nextDue.toISOString())}`;
 
-      return `  • Loan #${l.id} — $${amount.toLocaleString()} — *${l.status}*\n    💰 $${monthly.toFixed(0)}/mo · ${daysText}`;
+      const cleanId = String(l.id).startsWith('#') ? String(l.id).substring(1) : String(l.id);
+      return `  • Loan #${cleanId} — $${amount.toLocaleString()} — *${l.status}*\n    💰 $${monthly.toFixed(0)}/mo · ${daysText}`;
     });
 
     bot.sendMessage(chatId,
