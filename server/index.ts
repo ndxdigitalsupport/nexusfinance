@@ -80,6 +80,20 @@ function authMiddleware(req: any, res: any, next: any) {
   }
 }
 
+// Role guard — must run AFTER authMiddleware
+function requireRole(...roles: string[]) {
+  return (req: any, res: any, next: any) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Access denied. Insufficient permissions.' });
+    }
+    next();
+  };
+}
+
+function normalizeEmail(raw: string): string {
+  return String(raw || '').trim().toLowerCase();
+}
+
 // ── AUTH ROUTES ────────────────────────────────────────────
 
 function generateToken(user: { id: number; email: string; name: string; role: string; }) {
@@ -89,7 +103,8 @@ function generateToken(user: { id: number; email: string; name: string; role: st
 // Login with email + password (bcrypt verified against database)
 app.post('/api/auth/login', authLimiter, async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
@@ -102,6 +117,13 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
     const isValid = await bcrypt.compare(password, dbUser.password || '');
     if (!isValid) {
       return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    if (dbUser.email_verified === false) {
+      return res.status(403).json({
+        error: 'Email not verified. A verification code has been sent to your email.',
+        code: 'EMAIL_NOT_VERIFIED',
+      });
     }
 
     const token = generateToken({ id: dbUser.id, email: dbUser.email, name: dbUser.name, role: dbUser.role });
@@ -139,7 +161,7 @@ app.post('/api/auth/session', authLimiter, async (req, res) => {
 // Send a verification code to the user's email (register, forgot password, password change)
 app.post('/api/auth/send-otp', authLimiter, async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = normalizeEmail(req.body.email);
     if (!email) return res.status(400).json({ error: 'Email is required.' });
 
     const { data: user } = await db.from('nexus_users').select('id, name, email').eq('email', email).maybeSingle();
@@ -159,11 +181,15 @@ app.post('/api/auth/send-otp', authLimiter, async (req, res) => {
 // Verify the code sent to the user's email
 app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
   try {
-    const { email, code } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { code } = req.body;
     if (!email || !code) return res.status(400).json({ error: 'Email and code are required.' });
 
     const result = await verifyOtpForUser(email, String(code).trim());
     if (!result.success) return res.status(400).json({ error: result.error || 'Invalid or expired code.' });
+
+    // Mark the email as verified — unlocks login for newly registered accounts
+    await db.from('nexus_users').update({ email_verified: true }).eq('email', email);
 
     const { data: user } = await db.from('nexus_users').select('id, name, email, role').eq('email', email).maybeSingle();
     if (user) logAudit('otp-verified', `Code verified for ${email}`, { id: user.id, email: user.email, name: user.name, role: user.role });
@@ -177,7 +203,8 @@ app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
 // Self-service password reset (called after OTP verification on forgot password)
 app.post('/api/auth/update-password', authLimiter, async (req, res) => {
   try {
-    const { email, newPassword } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { newPassword } = req.body;
     if (!email || !newPassword) {
       return res.status(400).json({ error: 'email and newPassword are required.' });
     }
@@ -234,10 +261,10 @@ app.patch('/api/auth/profile', authMiddleware, async (req, res) => {
   const { name, email, phone } = req.body;
   const updates: any = {};
   if (name !== undefined) updates.name = name;
-  if (email !== undefined) updates.email = email;
+  if (email !== undefined) updates.email = normalizeEmail(email);
   if (phone !== undefined) updates.phone = phone;
-  if (email) {
-    const { data: existing } = await db.from('nexus_users').select('id').eq('email', email).neq('id', req.user.id).single();
+  if (updates.email) {
+    const { data: existing } = await db.from('nexus_users').select('id').eq('email', updates.email).neq('id', req.user.id).single();
     if (existing) return res.status(400).json({ error: 'Email already in use.' });
   }
   const { data: updated } = await db.from('nexus_users').update(updates).eq('id', req.user.id).select('id, name, email, role, phone').single();
@@ -249,7 +276,7 @@ app.patch('/api/auth/profile', authMiddleware, async (req, res) => {
 
 app.post('/api/auth/forgot-password', authLimiter, async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = normalizeEmail(req.body.email);
     if (!email) return res.status(400).json({ error: 'Email is required.' });
 
     const { data: dbUser } = await db.from('nexus_users').select('id, name, email').eq('email', email).maybeSingle();
@@ -330,14 +357,17 @@ app.get('/api/auth/google/callback', async (req, res) => {
 
     if (!googleUser.email) return res.redirect(`${FRONTEND_URL}?error=no_email`);
 
+    const gEmail = normalizeEmail(googleUser.email);
+
     // Find or create user in database
-    let { data: dbUser } = await db.from('nexus_users').select('*').eq('email', googleUser.email).maybeSingle();
+    let { data: dbUser } = await db.from('nexus_users').select('*').eq('email', gEmail).maybeSingle();
     if (!dbUser) {
       const { data: newUser } = await db.from('nexus_users').insert({
-        name: googleUser.name || googleUser.email.split('@')[0],
-        email: googleUser.email,
+        name: googleUser.name || gEmail.split('@')[0],
+        email: gEmail,
         role: 'customer',
       phone: '',
+      email_verified: true,
       }).select().single();
       dbUser = newUser;
     }
@@ -418,7 +448,7 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
   res.status(201).json(newLoan);
 });
 
-app.patch('/api/loans/:id/approve', authMiddleware, async (req, res) => {
+app.patch('/api/loans/:id/approve', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
   const { data: loan } = await db.from('nexus_loans').select('*').eq('id', req.params.id).single();
   if (!loan) return res.status(404).json({ error: 'Loan not found.' });
 
@@ -426,15 +456,15 @@ app.patch('/api/loans/:id/approve', authMiddleware, async (req, res) => {
   logAudit('loan-approved', `Loan ${loan.id} (${loan.type}) for ${loan.applicantName} approved`, req.user);
 
   const { data: applicantUser } = await db.from('nexus_users').select('id, name, email').eq('email', loan.applicantEmail).single();
-  await db.from('nexus_transactions').insert({
-    id: 'tx_fst' + Date.now().toString().slice(-6),
-    title: 'Loan Disbursement',
-    date: new Date().toLocaleDateString(undefined, { month: 'short', day: '2-digit', year: 'numeric' }),
-    amount: loan.amount,
-    type: 'Loan Disbursement',
-    userId: applicantUser?.id || 1,
-  });
   if (applicantUser) {
+    await db.from('nexus_transactions').insert({
+      id: 'tx_fst' + Date.now().toString().slice(-6),
+      title: 'Loan Disbursement',
+      date: new Date().toLocaleDateString(undefined, { month: 'short', day: '2-digit', year: 'numeric' }),
+      amount: loan.amount,
+      type: 'Loan Disbursement',
+      userId: applicantUser.id,
+    });
     notifyUser(applicantUser.id, `Your loan ${loan.id} has been approved — $${loan.amount.toLocaleString()} disbursed.`);
     const tmpl = emailTemplates.loanApproved(applicantUser.name, loan.id, loan.amount);
     await sendEmail(applicantUser.email, tmpl.subject, tmpl.html);
@@ -443,7 +473,7 @@ app.patch('/api/loans/:id/approve', authMiddleware, async (req, res) => {
   res.json({ ...loan, status: 'Approved', assignedTo: req.user.id });
 });
 
-app.patch('/api/loans/:id/reject', authMiddleware, async (req, res) => {
+app.patch('/api/loans/:id/reject', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
   const { data: loan } = await db.from('nexus_loans').select('*').eq('id', req.params.id).single();
   if (!loan) return res.status(404).json({ error: 'Loan not found.' });
   await db.from('nexus_loans').update({ status: 'Rejected' }).eq('id', req.params.id);
@@ -458,7 +488,7 @@ app.patch('/api/loans/:id/reject', authMiddleware, async (req, res) => {
   res.json({ ...loan, status: 'Rejected' });
 });
 
-app.patch('/api/loans/:id/hold', authMiddleware, async (req, res) => {
+app.patch('/api/loans/:id/hold', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
   const { data: loan } = await db.from('nexus_loans').select('*').eq('id', req.params.id).single();
   if (!loan) return res.status(404).json({ error: 'Loan not found.' });
   await db.from('nexus_loans').update({ status: 'Hold' }).eq('id', req.params.id);
@@ -503,7 +533,7 @@ app.post('/api/transactions/disburse', authMiddleware, async (req, res) => {
 
 // ── TASK ROUTES ─────────────────────────────────────────────
 
-app.get('/api/tasks', authMiddleware, async (req, res) => {
+app.get('/api/tasks', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
   const { data: tasks } = await db.from('nexus_tasks').select('*');
   res.json(tasks || []);
 });
@@ -579,7 +609,7 @@ app.patch('/api/config', authMiddleware, async (req, res) => {
 
 // ── STATS ROUTES ────────────────────────────────────────────
 
-app.get('/api/stats', authMiddleware, async (req, res) => {
+app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
   const { data: allDisbursements } = await db.from('nexus_transactions').select('amount').eq('type', 'Loan Disbursement');
   const { data: allRepayments } = await db.from('nexus_transactions').select('amount').eq('type', 'Repayment');
   const { count: activeCustomers } = await db.from('nexus_users').select('*', { count: 'exact', head: true }).eq('role', 'customer');
@@ -734,7 +764,8 @@ app.get('/api/audit/logs', authMiddleware, async (req, res) => {
 // (email verification via /api/auth/send-otp + /api/auth/verify-otp)
 app.post('/api/auth/register', authLimiter, async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { name, password, phone } = req.body;
+    const email = normalizeEmail(req.body.email);
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
     }
@@ -750,6 +781,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const { data: newUser } = await db.from('nexus_users').insert({
       name, email, password: hashedPassword, role: 'customer', phone: phone || '',
+      email_verified: false,
     }).select('id, name, email, role').single();
     if (!newUser) return res.status(500).json({ error: 'Failed to create account.' });
 
@@ -911,20 +943,55 @@ app.get('/api/khqr/check-transaction', (req, res) => {
   }
 });
 
-// ── PayWay Transaction Store (in-memory, replaced by DB later) ──
-const paywayTransactions = new Map<string, {
-  tranId: string;
-  amount: number;
-  currency: string;
-  status: string;
-  apv?: string;
-  createdAt: Date;
-  paidAt?: Date;
-  email?: string;
-  loanId?: number;
-}>();
+// ── PayWay QR Code Routes (persisted in Supabase) ──────────
 
-// ── PayWay QR Code Routes ──────────────────────────────────
+// Record an approved payment: update the payway row, write to the ledger,
+// notify the user via app + Telegram.
+async function recordPaidPayment(tranId: string, apv?: string) {
+  const { data: stored } = await db.from('nexus_payway_transactions').select('*').eq('tran_id', tranId).maybeSingle();
+  if (!stored) {
+    console.error(`recordPaidPayment: transaction ${tranId} not found`);
+    return;
+  }
+  if (stored.status === 'APPROVED') return; // already recorded — no double-entry
+
+  await db.from('nexus_payway_transactions')
+    .update({ status: 'APPROVED', apv: apv || stored.apv, paid_at: new Date().toISOString() })
+    .eq('tran_id', tranId);
+
+  const amount = Number(stored.amount) || 0;
+
+  if (stored.email) {
+    const { data: user } = await db.from('nexus_users').select('id, name, telegram_chat_id').eq('email', stored.email).maybeSingle();
+    if (user) {
+      await db.from('nexus_transactions').insert({
+        id: 'tx_pw' + Date.now().toString().slice(-6),
+        title: 'Repayment',
+        date: new Date().toLocaleDateString(undefined, { month: 'short', day: '2-digit', year: 'numeric' }),
+        amount: -Math.abs(amount),
+        type: 'Repayment',
+        userId: user.id,
+      });
+      notifyUser(user.id, `Payment of $${amount.toLocaleString()} received. Thank you!`);
+      if (user.telegram_chat_id) {
+        try {
+          const { sendPaymentConfirmation } = await import('./bot.js');
+          await sendPaymentConfirmation(user.telegram_chat_id, {
+            loanId: stored.loan_id || '',
+            amount,
+            tranId,
+          });
+        } catch (e) {
+          console.error('Telegram payment confirmation failed:', e);
+        }
+      }
+    }
+  }
+
+  logAudit('payment-approved', `PayWay payment ${tranId} approved ($${amount.toLocaleString()} ${stored.currency})`,
+    { id: stored.user_id || 0, email: stored.email || '', name: '', role: '' });
+  console.log(`PayWay payment recorded: ${tranId} → APPROVED ($${amount})`);
+}
 
 app.post('/api/payway/generate-qr', async (req, res) => {
   try {
@@ -970,15 +1037,26 @@ app.post('/api/payway/generate-qr', async (req, res) => {
       isMock = true;
     }
 
-    paywayTransactions.set(result.tranId, {
-      tranId: result.tranId,
-      amount: result.amount,
-      currency: result.currency,
-      status: 'PENDING',
-      createdAt: new Date(),
-      email: email || undefined,
-      loanId: loanId ? Number(loanId) : undefined,
-    });
+    const userEmail = email ? normalizeEmail(email) : null;
+    let userId: number | null = null;
+    if (userEmail) {
+      const { data: u } = await db.from('nexus_users').select('id').eq('email', userEmail).maybeSingle();
+      userId = u?.id ?? null;
+    }
+
+    try {
+      await db.from('nexus_payway_transactions').insert({
+        tran_id: result.tranId,
+        email: userEmail,
+        amount: result.amount,
+        currency: result.currency,
+        status: 'PENDING',
+        loan_id: loanId ? String(loanId) : null,
+        user_id: userId,
+      }).select().single();
+    } catch (err) {
+      console.error('PayWay insert failed:', err);
+    }
 
     res.json({ ...result, _mock: isMock });
   } catch (err: any) {
@@ -994,12 +1072,7 @@ app.post('/api/payway/verify-payment', async (req, res) => {
     const result = await payway.checkTransaction(tranId);
 
     if (result.status === 'APPROVED') {
-      const stored = paywayTransactions.get(tranId);
-      if (stored && stored.status !== 'APPROVED') {
-        stored.status = 'APPROVED';
-        stored.apv = result.apv;
-        stored.paidAt = new Date();
-      }
+      await recordPaidPayment(tranId, result.apv);
     }
 
     res.json(result);
@@ -1021,36 +1094,14 @@ app.post('/api/payway/callback', async (req, res) => {
     }
 
     const { tran_id, apv, status } = req.body;
-    const stored = paywayTransactions.get(tran_id);
-    if (stored) {
-      stored.status = status === '0' ? 'APPROVED' : 'DECLINED';
-      stored.apv = apv;
-      stored.paidAt = status === '0' ? new Date() : undefined;
-    }
-
-    console.log(`PayWay callback: ${tran_id} → ${status === '0' ? 'APPROVED' : 'DECLINED'}`);
-
-    // Send Telegram payment confirmation if approved
-    if (status === '0' && stored?.email) {
-      try {
-        const { data: user } = await db
-          .from('nexus_users')
-          .select('telegram_chat_id')
-          .eq('email', stored.email)
-          .not('telegram_chat_id', 'is', null)
-          .single();
-
-        if (user?.telegram_chat_id) {
-          const { sendPaymentConfirmation } = await import('./bot.js');
-          await sendPaymentConfirmation(user.telegram_chat_id, {
-            loanId: stored.loanId || 0,
-            amount: stored.amount || 0,
-            tranId: tran_id,
-          });
-        }
-      } catch (e) {
-        console.error('Telegram payment confirmation failed:', e);
-      }
+    if (status === '0') {
+      await recordPaidPayment(tran_id, apv);
+    } else {
+      await db.from('nexus_payway_transactions')
+        .update({ status: 'DECLINED', apv })
+        .eq('tran_id', tran_id)
+        .then(null, (err) => console.error('PayWay decline update failed:', err));
+      console.log(`PayWay callback: ${tran_id} → DECLINED`);
     }
 
     res.json({ success: true });
@@ -1065,47 +1116,29 @@ app.post('/api/payway/simulate-payment', async (req, res) => {
   try {
     const { tranId } = req.body;
     if (!tranId) return res.status(400).json({ error: 'tranId is required' });
-    const stored = paywayTransactions.get(tranId);
+    const { data: stored } = await db.from('nexus_payway_transactions').select('*').eq('tran_id', tranId).maybeSingle();
     if (!stored) return res.status(404).json({ error: 'Transaction not found' });
-    stored.status = 'APPROVED';
-    stored.apv = Math.floor(100000 + Math.random() * 900000).toString();
-    stored.paidAt = new Date();
+
+    const apv = Math.floor(100000 + Math.random() * 900000).toString();
+    await recordPaidPayment(tranId, apv);
     console.log(`Simulated payment: ${tranId} → APPROVED`);
 
-    // Send Telegram notification for simulated payment too
-    if (stored.email) {
-      try {
-        const { data: user } = await db
-          .from('nexus_users')
-          .select('telegram_chat_id')
-          .eq('email', stored.email)
-          .not('telegram_chat_id', 'is', null)
-          .single();
-
-        if (user?.telegram_chat_id) {
-          const { sendPaymentConfirmation } = await import('./bot.js');
-          await sendPaymentConfirmation(user.telegram_chat_id, {
-            loanId: stored.loanId || 0,
-            amount: stored.amount || 0,
-            tranId,
-          });
-        }
-      } catch (e) {
-        console.error('Telegram notification for simulated payment failed:', e);
-      }
-    }
-
-    res.json({ success: true, status: 'APPROVED', apv: stored.apv });
+    res.json({ success: true, status: 'APPROVED', apv });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Simulation failed' });
   }
 });
 
-app.get('/api/payway/transactions', (req, res) => {
-  const txs = Array.from(paywayTransactions.values())
-    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-    .slice(0, 50);
-  res.json(txs);
+app.get('/api/payway/transactions', async (req, res) => {
+  try {
+    const { data: txs } = await db.from('nexus_payway_transactions')
+      .select('tran_id, email, amount, currency, status, apv, loan_id, created_at, paid_at')
+      .order('id', { ascending: false })
+      .limit(50);
+    res.json(txs || []);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to load transactions' });
+  }
 });
 
 // ── PRODUCTION: serve frontend build ─────────────────────────
@@ -1147,7 +1180,7 @@ async function seedDemoUsers() {
     const { data: existing } = await db.from('nexus_users').select('id').eq('email', u.email).maybeSingle();
     if (!existing) {
       const passwordHash = await bcrypt.hash('password123', 10);
-      await db.from('nexus_users').insert({ ...u, password: passwordHash, phone: '' });
+      await db.from('nexus_users').insert({ ...u, password: passwordHash, phone: '', email_verified: true });
       console.log(`  👤 Seeded demo account: ${u.email}`);
     }
   }

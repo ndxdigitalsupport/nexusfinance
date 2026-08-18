@@ -24,6 +24,12 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
+  // Login → unverified email states (user must verify before logging in)
+  const [loginVerifyEmail, setLoginVerifyEmail] = useState('');
+  const [loginOtpSent, setLoginOtpSent] = useState(false);
+  const [loginOtpCode, setLoginOtpCode] = useState('');
+  const [loginOtpTimer, setLoginOtpTimer] = useState(0);
+
   // Forgot password state
   const [forgotEmail, setForgotEmail] = useState('');
 
@@ -64,10 +70,61 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Invalid email or password.');
+      if (!res.ok) {
+        if (data.code === 'EMAIL_NOT_VERIFIED') {
+          setLoginVerifyEmail(loginEmail);
+          await sendLoginVerifyOtp(loginEmail);
+          showToast('Email not verified — a code was sent to your email.', 'info');
+          return;
+        }
+        throw new Error(data.error || 'Invalid email or password.');
+      }
       onLoginSuccess(data.token);
     } catch (err: any) {
       showToast(err?.message || 'Invalid email or password.', 'error');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  // Send OTP for the login verification step
+  const sendLoginVerifyOtp = async (email: string) => {
+    try {
+      const res = await fetch(`${API}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to send the verification code.');
+      setLoginOtpSent(true);
+      setLoginOtpTimer(300);
+      const interval = setInterval(() => {
+        setLoginOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
+      }, 1000);
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to send the verification code.', 'error');
+    }
+  };
+
+  const handleVerifyLoginOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!loginOtpCode || loginOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
+    setLoginLoading(true);
+    try {
+      const res = await fetch(`${API}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginVerifyEmail, code: loginOtpCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Invalid or expired code.');
+      setLoginVerifyEmail('');
+      setLoginOtpSent(false);
+      setLoginOtpCode('');
+      showToast('Email verified! Login to continue.', 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Invalid or expired code.', 'error');
     } finally {
       setLoginLoading(false);
     }
@@ -278,6 +335,50 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   <p className="text-[14px] text-[var(--text-secondary)] font-medium mt-1 leading-none">welcome to nexus finance</p>
                 </div>
 
+                {loginVerifyEmail ? (
+                  /* Step: unverified email — enter the OTP sent to them */
+                  <form onSubmit={handleVerifyLoginOtp} className="space-y-5">
+                    <div className="text-center">
+                      <p className="text-[13px] text-[var(--text-secondary)] font-medium">
+                        Enter the code sent to <strong className="text-[var(--text-primary)]">{loginVerifyEmail}</strong> to verify your email
+                      </p>
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        maxLength={6}
+                        value={loginOtpCode}
+                        onChange={(e) => setLoginOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="000000"
+                        className="w-full text-center text-[28px] tracking-[12px] font-mono rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-4 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                        required
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={loginLoading || loginOtpCode.length < 6}
+                      className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-black text-[15.5px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[var(--accent)]/20 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                    >
+                      {loginLoading ? (
+                        <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
+                      ) : (
+                        <>VERIFY EMAIL <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                      )}
+                    </button>
+                    <div className="flex justify-between items-center text-[13px]">
+                      <button type="button" onClick={() => sendLoginVerifyOtp(loginVerifyEmail)} disabled={loginOtpTimer > 0}
+                        className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40 font-medium"
+                      >
+                        Resend code {loginOtpTimer > 0 && `(${Math.floor(loginOtpTimer / 60)}:${String(loginOtpTimer % 60).padStart(2, '0')})`}
+                      </button>
+                      <button type="button" onClick={() => { setLoginVerifyEmail(''); setLoginOtpCode(''); }}
+                        className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
+                      >
+                        Back to login
+                      </button>
+                    </div>
+                  </form>
+                ) : (
                 <form onSubmit={handleLoginSubmit} className="space-y-4">
                   <div>
                     <input
@@ -320,6 +421,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     </button>
                   </div>
                 </form>
+                )}
 
                 {/* Create account trigger */}
                 <div className="text-center mt-6 text-[13.5px] font-semibold text-[var(--text-secondary)]">

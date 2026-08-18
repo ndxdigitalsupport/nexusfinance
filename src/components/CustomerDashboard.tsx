@@ -87,7 +87,9 @@ export default function CustomerDashboard({
                 <div>
                   <div className="flex items-center gap-1.5 mb-1" style={{ color: 'var(--text-primary)' }}>
                   <span className="text-[11px] font-bold uppercase tracking-widest leading-none" style={{ color: 'var(--text-tertiary)' }}>Outstanding Balance</span>
-                  <Info className="w-4 h-4 cursor-help" title="Current sum total of approved credit lines minus repayments" style={{ color: 'var(--text-secondary)' }} />
+                  <span title="Current sum total of approved credit lines minus repayments" className="cursor-help inline-flex">
+                    <Info className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+                  </span>
                 </div>
                 <span
                   className="text-[44px] sm:text-[52px] leading-tight font-extrabold font-sans tracking-tighter"

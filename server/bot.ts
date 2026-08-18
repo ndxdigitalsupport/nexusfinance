@@ -1,5 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { db } from './db.js';
+import { sendOtpEmail } from './brevo.js';
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -12,6 +14,32 @@ if (!TOKEN) {
 
 const SITE_URL = process.env.SITE_URL || 'https://nexusfinancefintech.vercel.app';
 const ADMIN_ID = parseInt(process.env.TELEGRAM_ADMIN_ID || '0', 10);
+
+// Pending account-link verification codes (keyed by Telegram chat id)
+const linkCodes = new Map<number, { email: string; code: string; expiresAt: number }>();
+const LINK_CODE_TTL_MS = 10 * 60 * 1000;
+
+// ── Monthly installment helpers ──────────────────────────────
+
+// Same amortization formula used by the loan calculator (APR 5.4%)
+function monthlyPaymentFor(amount: number, durationMonths: number, annualRate = 0.054): number {
+  if (durationMonths <= 0) return amount;
+  const r = annualRate / 12;
+  const n = durationMonths;
+  if (r === 0) return amount / n;
+  return (amount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
+function installmentDates(dateStr: string, durationMonths: number): Date[] {
+  const dates: Date[] = [];
+  const start = new Date(dateStr);
+  for (let m = 1; m <= durationMonths; m++) {
+    const d = new Date(start);
+    d.setMonth(d.getMonth() + m);
+    dates.push(d);
+  }
+  return dates;
+}
 
 // Bot instance — null if token not set (commands won't register)
 const bot = TOKEN ? new TelegramBot(TOKEN, { polling: true }) : null;
@@ -70,7 +98,7 @@ function daysUntil(dateStr: string): number {
 async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatId?: number) {
   const { data: loans } = await db
     .from('nexus_loans')
-    .select('id, applicantEmail, applicantName, amount, date, durationMonths, monthlyPayment')
+    .select('id, applicantEmail, applicantName, amount, date, durationMonths')
     .in('status', ['approved', 'active', 'disbursed']);
 
   if (!loans || loans.length === 0) {
@@ -82,11 +110,19 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
   let usersNotified = 0;
 
   for (const loan of loans) {
-    const dueDate = new Date(loan.date);
-    dueDate.setMonth(dueDate.getMonth() + loan.durationMonths);
-    const days = daysUntil(dueDate.toISOString());
+    const amount = Number(loan.amount) || 0;
+    const duration = Number(loan.durationMonths) || 1;
+    const monthly = monthlyPaymentFor(amount, duration);
+    const installments = installmentDates(loan.date, duration);
 
-    if (days > 7) continue;
+    // Remind only about the next installment that is due within 7 days or overdue
+    let nextDue: Date | null = null;
+    for (const due of installments) {
+      if (daysUntil(due.toISOString()) <= 7) { nextDue = due; break; }
+    }
+    if (!nextDue) continue;
+
+    const days = daysUntil(nextDue.toISOString());
 
     const { data: user } = await db
       .from('nexus_users')
@@ -99,11 +135,11 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
 
     let message: string;
     if (days < 0) {
-      message = `🚨 *OVERDUE PAYMENT*\n\nLoan #${loan.id} — $${loan.amount?.toLocaleString()}\nDue date: ${formatDate(dueDate.toISOString())}\n⚠️ *${Math.abs(days)} days overdue*\n\nPlease make your payment as soon as possible.`;
+      message = `🚨 *OVERDUE PAYMENT*\n\nLoan #${loan.id} — $${monthly.toFixed(0)} installment\nDue date: ${formatDate(nextDue.toISOString())}\n⚠️ *${Math.abs(days)} days overdue*\n\nPlease make your payment as soon as possible.`;
     } else if (days === 0) {
-      message = `🔴 *PAYMENT DUE TODAY*\n\nLoan #${loan.id} — $${loan.amount?.toLocaleString()}\nYour payment is due today. Please pay now to avoid late fees.`;
+      message = `🔴 *PAYMENT DUE TODAY*\n\nLoan #${loan.id} — $${monthly.toFixed(0)} installment\nYour payment is due today. Please pay now to avoid late fees.`;
     } else {
-      message = `⏰ *Payment Reminder*\n\nLoan #${loan.id} — $${loan.amount?.toLocaleString()}\n📅 Due: ${formatDate(dueDate.toISOString())}\n⏳ *${days} days remaining*\n\nYou can pay via the NexusFinance app.`;
+      message = `⏰ *Payment Reminder*\n\nLoan #${loan.id} — $${monthly.toFixed(0)} installment\n📅 Due: ${formatDate(nextDue.toISOString())}\n⏳ *${days} days remaining*\n\nYou can pay via the NexusFinance app.`;
     }
 
     try {
@@ -130,7 +166,7 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
 
 // ── Instant payment confirmation (called from PayWay callback) ──
 
-async function sendPaymentConfirmation(chatId: string, data: { loanId: number; amount: number; tranId: string }) {
+async function sendPaymentConfirmation(chatId: string, data: { loanId: string | number; amount: number; tranId: string }) {
   if (!bot) return;
   try {
     await bot.sendMessage(chatId,
@@ -189,8 +225,10 @@ Commands:
 
 Your Telegram account is not linked yet.
 
-To link your account, type:
-/link <your registered email>
+To link your account:
+1. Type: /link <your registered email>
+2. A code is emailed to you
+3. Type: /confirm <code>
 
 Example: \`/link john@example.com\``,
       customerMenu()
@@ -229,6 +267,7 @@ Example: \`/link john@example.com\``,
     bot.sendMessage(chatId,
 `*Commands:*
 /link <email> — Link your Telegram to your NexusFinance account
+/confirm <code> — Complete linking with the emailed code
 /help — This message`,
       customerMenu()
     );
@@ -238,7 +277,7 @@ Example: \`/link john@example.com\``,
 
   bot.onText(/\/link(?:\s+(.+))?/, async (msg, match) => {
     const chatId = msg.chat.id;
-    const email = match?.[1]?.trim();
+    const email = match?.[1]?.trim()?.toLowerCase();
 
     if (!email) {
       return bot.sendMessage(chatId,
@@ -259,13 +298,13 @@ Example: \`/link john@example.com\``,
       );
     }
 
-    const { data: user, error } = await db
+    const { data: user } = await db
       .from('nexus_users')
       .select('id, name, email, telegram_chat_id')
-      .eq('email', email.toLowerCase())
-      .single();
+      .eq('email', email)
+      .maybeSingle();
 
-    if (error || !user) {
+    if (!user) {
       return bot.sendMessage(chatId,
         '❌ No account found with that email.\n\nPlease check your email and try again.'
       );
@@ -274,6 +313,69 @@ Example: \`/link john@example.com\``,
     if (user.telegram_chat_id) {
       return bot.sendMessage(chatId,
         '⚠️ This email is already linked to another Telegram account.\n\nPlease unlink from the other account first, or contact support.'
+      );
+    }
+
+    // Generate + email a one-time verification code
+    const code = String(crypto.randomInt(100000, 1000000));
+    linkCodes.set(chatId, { email: user.email, code, expiresAt: Date.now() + LINK_CODE_TTL_MS });
+    try {
+      await sendOtpEmail(user.email, code);
+    } catch (err) {
+      console.error('Failed to email link code:', err);
+      linkCodes.delete(chatId);
+      return bot.sendMessage(chatId,
+        '❌ Failed to send the verification code. Please try again later.'
+      );
+    }
+
+    bot.sendMessage(chatId,
+      `🔐 *Verify your account*\n\nI found the account for *${user.name}* (${user.email}).\n\nA 6-digit code was sent to that email. Reply with:\n\n/confirm <code>\n\nCode expires in 10 minutes.`,
+      { parse_mode: 'Markdown' }
+    );
+  });
+
+  // ── /confirm <code> — completes the account link ──────────────
+
+  bot.onText(/\/confirm(?:\s+(\d+))?/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const code = match?.[1]?.trim();
+
+    if (!code) {
+      return bot.sendMessage(chatId, '🔐 Enter the code you received by email.\n\nUsage: `/confirm 123456`', {
+        parse_mode: 'Markdown',
+      });
+    }
+
+    const pending = linkCodes.get(chatId);
+    if (!pending) {
+      return bot.sendMessage(chatId,
+        '❌ No pending verification found.\n\nRun `/link <email>` first to request a code.',
+        { parse_mode: 'Markdown' }
+      );
+    }
+    if (Date.now() > pending.expiresAt) {
+      linkCodes.delete(chatId);
+      return bot.sendMessage(chatId, '❌ That code has expired.\n\nRun `/link <email>` again for a new code.');
+    }
+    if (code !== pending.code) {
+      return bot.sendMessage(chatId, '❌ Incorrect code. Please check your email and try again.');
+    }
+
+    const { data: user } = await db
+      .from('nexus_users')
+      .select('id, name, email, telegram_chat_id')
+      .eq('email', pending.email)
+      .maybeSingle();
+
+    if (!user) {
+      linkCodes.delete(chatId);
+      return bot.sendMessage(chatId, '❌ Account no longer found. Please try /link again.');
+    }
+    if (user.telegram_chat_id && user.telegram_chat_id !== String(chatId)) {
+      linkCodes.delete(chatId);
+      return bot.sendMessage(chatId,
+        '⚠️ This email is already linked to another Telegram account.\n\nPlease unlink from the other account first.'
       );
     }
 
@@ -287,6 +389,7 @@ Example: \`/link john@example.com\``,
       return bot.sendMessage(chatId, '❌ Failed to link account. Please try again later.');
     }
 
+    linkCodes.delete(chatId);
     bot.sendMessage(chatId,
       `✅ *Account linked successfully!*\n\nWelcome, *${user.name}*! You'll now receive payment reminders and updates here.`,
       customerMenu()
@@ -333,7 +436,7 @@ Example: \`/link john@example.com\``,
 
     const { data: loans } = await db
       .from('nexus_loans')
-      .select('id, amount, status, date, durationMonths, monthlyPayment, applicantName')
+      .select('id, amount, status, date, durationMonths, applicantName')
       .eq('applicantEmail', user.email)
       .in('status', ['approved', 'active', 'disbursed'])
       .order('date', { ascending: false });
@@ -346,19 +449,25 @@ Example: \`/link john@example.com\``,
     }
 
     const lines = loans.map((l: any) => {
-      const dueDate = new Date(l.date);
-      dueDate.setMonth(dueDate.getMonth() + l.durationMonths);
-      const days = daysUntil(dueDate.toISOString());
-      const dueStr = formatDate(dueDate.toISOString());
-      const daysText = days < 0
-        ? `⚠️ *OVERDUE* by ${Math.abs(days)} days`
-        : days === 0
-          ? '🔴 *DUE TODAY*'
-          : days <= 7
-            ? `⏰ Due in *${days}* days`
-            : `📅 Due ${dueStr}`;
+      const amount = Number(l.amount) || 0;
+      const duration = Number(l.durationMonths) || 1;
+      const monthly = monthlyPaymentFor(amount, duration);
+      const installments = installmentDates(l.date, duration);
 
-      return `  • Loan #${l.id} — $${l.amount?.toLocaleString()} — *${l.status}*\n    ${daysText}`;
+      let overdue = 0;
+      let nextDue: Date | null = null;
+      for (const d of installments) {
+        const days = daysUntil(d.toISOString());
+        if (days < 0) overdue++;
+        else if (nextDue === null && days <= 7) nextDue = d;
+      }
+      if (!nextDue) nextDue = installments.find(d => daysUntil(d.toISOString()) >= 0) || installments[installments.length - 1];
+
+      const daysText = overdue > 0
+        ? `⚠️ *${overdue} overdue*`
+        : `📅 Next due ${formatDate(nextDue.toISOString())}`;
+
+      return `  • Loan #${l.id} — $${amount.toLocaleString()} — *${l.status}*\n    💰 $${monthly.toFixed(0)}/mo · ${daysText}`;
     });
 
     bot.sendMessage(chatId,
