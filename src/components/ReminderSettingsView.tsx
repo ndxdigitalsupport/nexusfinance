@@ -419,46 +419,58 @@ Please make your payment on time to avoid late fees.`);
                   ))}
                 </div>
               </div>
-
               {previewMode === 'telegram' ? (
                 /* Telegram Chat Bubble Preview */
-                <div className="rounded-xl overflow-hidden border border-[#2b3a4a] bg-[#17212b] p-4 flex flex-col justify-end min-h-[300px] font-sans relative">
-                  <div className="absolute top-2 left-1/2 -translate-x-1/2 text-[#7f8c9a] text-[10px] bg-black/20 px-2 py-0.5 rounded-full uppercase tracking-wider select-none">
-                    Today
+                <div className="rounded-xl overflow-hidden border border-[#203040] bg-[#0e1621] flex flex-col min-h-[340px] font-sans">
+                  {/* Telegram Top Bar */}
+                  <div className="bg-[#17212b] px-4 py-2.5 flex items-center gap-3 border-b border-[#101921] select-none shrink-0">
+                    <svg className="w-5 h-5 text-[#5288c1] cursor-pointer" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13.5px] font-bold text-white leading-tight">NexusFinance Bot</div>
+                      <div className="text-[11px] text-[#5288c1] leading-none">bot</div>
+                    </div>
+                    <svg className="w-5 h-5 text-[#6c7883]" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
                   </div>
-                  
-                  <div className="flex items-end gap-2.5">
-                    {/* Bot Avatar */}
-                    <div className="w-8 h-8 rounded-full bg-[var(--accent)] flex items-center justify-center text-[#011B2A] font-extrabold text-[12px] select-none shrink-0">
-                      NF
+
+                  {/* Chat message thread area */}
+                  <div className="flex-1 bg-[#0e1621] p-4 flex flex-col justify-end relative select-none">
+                    {/* Floating date divider with solid dark pill background for readability */}
+                    <div className="absolute top-3 left-1/2 -translate-x-1/2 text-slate-300 text-[10px] bg-black/40 px-3 py-1 rounded-full uppercase tracking-wider font-bold shadow-xs">
+                      Today
                     </div>
                     
-                    {/* Chat Bubble */}
-                    <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-[#182533] border border-[#203040] p-3 text-[13px] text-[#f5f5f5] space-y-1 relative shadow-sm">
-                      <span className="text-[12px] font-bold text-[var(--accent)] block leading-none select-none">NexusFinance Bot</span>
-                      <div 
-                        className="whitespace-pre-wrap break-words leading-relaxed text-[#e5edee] font-sans text-[13px]"
-                        dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(renderPreview(messageTemplate)) }}
-                      />
-                      
-                      <div className="pt-2">
-                        <span className="w-full bg-[#24374d] hover:bg-[#2b425c] border border-[#3b5473] text-[var(--accent)] font-bold py-2 rounded-lg text-center flex items-center justify-center gap-1.5 cursor-default select-none pointer-events-none transition block">
-                          🚀 Open NexusFinance
-                        </span>
+                    <div className="flex items-end gap-2.5">
+                      {/* Telegram Bot Avatar */}
+                      <div className="w-8 h-8 rounded-full bg-[#5288c1] flex items-center justify-center text-white font-extrabold text-[12px] shrink-0">
+                        NF
                       </div>
+                      
+                      {/* Chat Bubble */}
+                      <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-[#182533] border border-[#203040] p-3 text-[13px] text-[#f5f5f5] space-y-1 relative shadow-sm">
+                        <div 
+                          className="whitespace-pre-wrap break-words leading-relaxed text-[#e5edee] font-sans text-[13px]"
+                          dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(renderPreview(messageTemplate)) }}
+                        />
+                        
+                        <div className="pt-2">
+                          <span className="w-full bg-[#24374d] hover:bg-[#2b425c] border border-[#3b5473] text-[#5288c1] font-bold py-2 rounded-lg text-center flex items-center justify-center gap-1.5 select-none pointer-events-none transition block text-[12px]">
+                            🚀 Open NexusFinance
+                          </span>
+                        </div>
 
-                      <div className="text-right text-[9px] text-[#7f8c9a] mt-1 select-none leading-none">
-                        15:32 PM ✓✓
+                        <div className="text-right text-[9px] text-[#7f8c9a] mt-1 leading-none select-none">
+                          15:32 PM ✓✓
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
                 /* In-App Notification preview */
-                <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--surface-secondary)]/30 p-4 min-h-[300px] flex flex-col justify-start">
+                <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--surface-secondary)]/30 p-4 min-h-[340px] flex flex-col justify-start">
                   <span className="text-[10px] font-bold text-[var(--text-tertiary)] uppercase tracking-wider block mb-3 select-none">In-App Notification Banner</span>
                   
-                  <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] p-4 rounded-xl shadow-xs flex items-start gap-3">
+                  <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] p-4 rounded-xl shadow-md flex items-start gap-3 hover:scale-[1.02] transition duration-150 relative">
                     <div className="w-9 h-9 rounded-xl bg-[var(--accent)]/10 text-[var(--accent)] flex items-center justify-center shrink-0 select-none">
                       <Bell className="w-4.5 h-4.5" />
                     </div>
