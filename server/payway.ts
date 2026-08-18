@@ -108,7 +108,7 @@ export function buildPurchaseRequest(req: PayWayPurchaseRequest, frontendUrl: st
   return {
     success: true,
     checkoutUrl: `${PAYWAY_BASE_URL}/api/payment-gateway/v1/payments/purchase`,
-    fields: { ...fields, hash },
+    fields: { ...fields, hash, view_type: 'hosted_view', payment_gate: '0' },
     tranId,
   };
 }
