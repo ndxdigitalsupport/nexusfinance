@@ -954,6 +954,14 @@ notifyUser = (userId: number, text: string) => {
 };
 setNotifyUserCallback(notifyUser);
 
+app.get('/api/diag', async (req, res) => {
+  res.json({
+    supabaseUrl: process.env.SUPABASE_URL,
+    localTime: new Date().toISOString(),
+    envKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE') || k.includes('API') || k.includes('URL'))
+  });
+});
+
 // ── AUDIT LOG ROUTES (Super Admin) ─────────────────────────
 
 app.get('/api/audit/logs', authMiddleware, async (req, res) => {
