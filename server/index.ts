@@ -955,10 +955,11 @@ notifyUser = (userId: number, text: string) => {
 setNotifyUserCallback(notifyUser);
 
 app.get('/api/diag', async (req, res) => {
+  const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
   res.json({
     supabaseUrl: process.env.SUPABASE_URL,
     localTime: new Date().toISOString(),
-    envKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE') || k.includes('API') || k.includes('URL'))
+    configRecord: config || null
   });
 });
 
