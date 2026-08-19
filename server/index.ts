@@ -631,8 +631,14 @@ app.get('/api/config', authMiddleware, async (req, res) => {
 
 app.patch('/api/config', authMiddleware, async (req, res) => {
   if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
+  
+  const { error } = await db.from('nexus_config').update(req.body).eq('id', 1);
+  if (error) {
+    console.error('Error updating config:', error);
+    return res.status(500).json({ error: error.message });
+  }
+
   logAudit('config-updated', `Platform config updated: ${JSON.stringify(req.body)}`, req.user);
-  await db.from('nexus_config').update(req.body).eq('id', 1);
   const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
   if (config && config.reminder_time) {
     scheduleReminderCron(config.reminder_time);
