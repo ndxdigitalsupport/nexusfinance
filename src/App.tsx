@@ -493,11 +493,46 @@ export default function App() {
           </>
         )}
 
-        <main className="p-4 md:p-8 w-full max-w-7xl mx-auto animate-content-enter flex-1">
+        <main className="p-4 md:p-8 w-full max-w-7xl mx-auto animate-content-enter flex-1 flex flex-col justify-center">
           {!isInitialLoaded ? (
-            <div className="flex flex-col items-center justify-center py-32 space-y-4">
-              <div className="w-10 h-10 border-4 border-[var(--accent)] border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-[13px] font-medium text-[var(--text-secondary)]">Syncing ledger records & system parameters...</p>
+            <div className="flex-1 flex items-center justify-center min-h-[50vh] p-4 select-none animate-in fade-in duration-300">
+              <style>{`
+                @keyframes shimmer-bar {
+                  0% { transform: translateX(-100%); }
+                  100% { transform: translateX(300%); }
+                }
+              `}</style>
+              <div className="max-w-sm w-full bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-3xl p-8 flex flex-col items-center text-center space-y-6 relative overflow-hidden shadow-xl">
+                {/* Glowing backgrounds */}
+                <div className="absolute -top-12 -left-12 w-24 h-24 rounded-full bg-[var(--accent)]/10 blur-xl"></div>
+                <div className="absolute -bottom-12 -right-12 w-24 h-24 rounded-full bg-[var(--accent)]/10 blur-xl"></div>
+                
+                {/* Stylized animated orbit loader */}
+                <div className="relative w-16 h-16 flex items-center justify-center">
+                  {/* Outer spinning gradient ring */}
+                  <div className="absolute inset-0 border-[3px] border-t-[var(--accent)] border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin duration-1000"></div>
+                  {/* Middle counter-spinning ring */}
+                  <div className="absolute inset-1.5 border-[2px] border-b-[var(--accent)]/55 border-t-transparent border-r-transparent border-l-transparent rounded-full animate-spin duration-1500 reverse"></div>
+                  {/* Inner pulsing solid core */}
+                  <div className="w-6 h-6 rounded-full bg-[var(--accent)]/20 flex items-center justify-center animate-pulse">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent)] shadow-[0_0_10px_var(--accent)]"></span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 relative z-10">
+                  <h3 className="font-sans font-extrabold text-[15.5px] tracking-tight text-[var(--text-primary)]">Syncing Ledger Node</h3>
+                  <p className="text-[12px] text-[var(--text-secondary)] font-medium max-w-[240px] mx-auto leading-relaxed">
+                    Loading platform parameters, reminder rules, and transaction history...
+                  </p>
+                </div>
+
+                {/* Pulsing horizontal progress line */}
+                <div className="w-32 h-[3.5px] bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-full overflow-hidden relative">
+                  <div className="absolute top-0 left-0 h-full w-1/3 bg-[var(--accent)] rounded-full"
+                    style={{ animation: 'shimmer-bar 1.5s infinite linear' }}
+                  />
+                </div>
+              </div>
             </div>
           ) : (
             <Suspense fallback={<div className="p-8"><SkeletonTable rows={4} /></div>}>
