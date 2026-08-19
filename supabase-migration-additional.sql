@@ -24,35 +24,62 @@ CREATE TABLE IF NOT EXISTS nexus_broadcasts (
 
 -- Seed default reminder settings
 INSERT INTO nexus_reminder_settings (name, days_before, message_template, channel, is_active) VALUES
-  ('7 Days Before', 7, '⏰ Payment Reminder
+  ('7 Days Before', 7, '🔔 Upcoming Installment Payment
 
-Loan #{loan_id} — {amount} installment
-📅 Due: {due_date}
-⏳ {days_remaining} days remaining
+Dear {customer_name}, this is a reminder for your upcoming loan installment.
 
-Please make your payment on time to avoid late fees.', 'both', true),
-  ('3 Days Before', 3, '⏰ Payment Reminder
+📊 LOAN DETAILS
+━━━━━━━━━━━━━━━━━━
+🆔 Loan ID: #{loan_id}
+💰 Amount Due: {amount}
+📅 Due Date: {due_date}
+⏳ Time Left: {days_remaining} days
 
-Loan #{loan_id} — {amount} installment
-📅 Due: {due_date}
-⏳ {days_remaining} days remaining
+Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient funds to avoid any late payment penalties.', 'both', true),
+  ('3 Days Before', 3, '🔔 Upcoming Installment Payment
 
-Please make your payment on time to avoid late fees.', 'both', true),
-  ('1 Day Before', 1, '⏰ Payment Reminder
+Dear {customer_name}, this is a reminder for your upcoming loan installment.
 
-Loan #{loan_id} — {amount} installment
-📅 Due: {due_date}
-⏳ {days_remaining} days remaining
+📊 LOAN DETAILS
+━━━━━━━━━━━━━━━━━━
+🆔 Loan ID: #{loan_id}
+💰 Amount Due: {amount}
+📅 Due Date: {due_date}
+⏳ Time Left: {days_remaining} days
 
-Please make your payment on time to avoid late fees.', 'both', true),
-  ('Due Today', 0, '🔴 PAYMENT DUE TODAY
+Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient funds to avoid any late payment penalties.', 'both', true),
+  ('1 Day Before', 1, '🔔 Upcoming Installment Payment
 
-Loan #{loan_id} — {amount} installment
-Your payment is due today. Please pay now to avoid late fees.', 'both', true),
-  ('Overdue Payment', -1, '🚨 OVERDUE PAYMENT
+Dear {customer_name}, this is a reminder for your upcoming loan installment.
 
-Loan #{loan_id} — {amount} installment
-Due date: {due_date}
-⚠️ {days_overdue} days overdue
+📊 LOAN DETAILS
+━━━━━━━━━━━━━━━━━━
+🆔 Loan ID: #{loan_id}
+💰 Amount Due: {amount}
+📅 Due Date: {due_date}
+⏳ Time Left: {days_remaining} days
 
-Please make your payment as soon as possible.', 'both', true);
+Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient funds to avoid any late payment penalties.', 'both', true),
+  ('Due Today', 0, '🚨 Installment Due Today
+
+Dear {customer_name}, your loan installment payment is due today.
+
+📊 LOAN DETAILS
+━━━━━━━━━━━━━━━━━━
+🆔 Loan ID: #{loan_id}
+💰 Amount Due: {amount}
+📅 Due Date: Today, {due_date}
+
+Please ensure payment is completed today to maintain a healthy credit score.', 'both', true),
+  ('Overdue Payment', -1, '⚠️ Overdue Payment Warning
+
+Dear {customer_name}, your loan installment payment is currently overdue.
+
+📊 LOAN DETAILS
+━━━━━━━━━━━━━━━━━━
+🆔 Loan ID: #{loan_id}
+💰 Amount Due: {amount}
+📅 Due Date: {due_date}
+🚨 Delay: {days_overdue} days overdue
+
+Please complete your payment immediately to avoid additional penalties or negative credit impact.', 'both', true);

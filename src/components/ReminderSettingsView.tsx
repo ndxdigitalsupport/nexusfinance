@@ -107,13 +107,18 @@ export default function ReminderSettingsView() {
     setEditingId(null);
     setName('');
     setDaysBefore(3);
-    setMessageTemplate(`⏰ Payment Reminder
- 
- Loan #{loan_id} — {amount} installment
- 📅 Due: {due_date}
- ⏳ {days_remaining} days remaining
- 
- Please make your payment on time to avoid late fees.`);
+    setMessageTemplate(`🔔 Upcoming Installment Payment
+
+Dear {customer_name}, this is a reminder for your upcoming loan installment.
+
+📊 LOAN DETAILS
+━━━━━━━━━━━━━━━━━━
+🆔 Loan ID: #{loan_id}
+💰 Amount Due: {amount}
+📅 Due Date: {due_date}
+⏳ Time Left: {days_remaining} days
+
+Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient funds to avoid any late payment penalties.`);
     setChannel('both');
     setIsActive(true);
     setShowModal(true);
