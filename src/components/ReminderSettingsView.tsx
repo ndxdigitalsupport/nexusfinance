@@ -67,6 +67,8 @@ export default function ReminderSettingsView() {
   const [savingTime, setSavingTime] = useState(false);
   const [logs, setLogs] = useState<ReminderLog[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [logsPage, setLogsPage] = useState(1);
+  const logsPerPage = 10;
 
   const handleTestSweep = async () => {
     setTestingSweep(true);
@@ -295,6 +297,9 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
   const totalPages = Math.ceil(settings.length / itemsPerPage) || 1;
   const paginatedSettings = settings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  const totalLogsPages = Math.ceil(logs.length / logsPerPage) || 1;
+  const paginatedLogs = logs.slice((logsPage - 1) * logsPerPage, logsPage * logsPerPage);
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       <div className="flex items-center justify-between">
@@ -474,14 +479,14 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
               </tr>
             </thead>
             <tbody>
-              {logs.length === 0 ? (
+              {paginatedLogs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center text-[var(--text-tertiary)] py-8 font-medium">
                     No reminder logs recorded yet. Daily sweeps will generate histories.
                   </td>
                 </tr>
               ) : (
-                logs.map((l) => (
+                paginatedLogs.map((l) => (
                   <tr key={l.id} className="border-b border-[var(--border-primary)] hover:bg-[var(--surface-secondary)]/20 transition-all">
                     <td className="px-6 py-4 font-mono text-[var(--text-secondary)]">
                       {new Date(l.created_at).toLocaleString('en-US', {
@@ -525,6 +530,17 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
             </tbody>
           </table>
         </div>
+        {totalLogsPages > 1 && (
+          <div className="p-4 border-t border-[var(--border-primary)] bg-[var(--surface-card)]">
+            <Pagination
+              currentPage={logsPage}
+              totalPages={totalLogsPages}
+              totalItems={logs.length}
+              itemsPerPage={logsPerPage}
+              onPageChange={setLogsPage}
+            />
+          </div>
+        )}
       </div>
 
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} maxWidth="max-w-4xl">
