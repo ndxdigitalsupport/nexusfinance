@@ -1406,8 +1406,8 @@ app.listen(PORT, async () => {
   console.log(`     officer@nexus.com   / password123  → Loan Officer`);
   console.log(`     admin@nexus.com     / password123  → Super Admin\n`);
 
-  // ── Daily payment reminders at 9:00 AM Cambodia time (ICT/UTC+7) ──
-  cron.schedule('0 9 * * *', async () => {
+  // ── Daily payment reminders at 7:00 AM Cambodia time (ICT/UTC+7) ──
+  cron.schedule('0 7 * * *', async () => {
     console.log('  📬 Running daily payment reminders...');
     try {
       const { sendPaymentReminders } = await import('./bot.js');
@@ -1422,5 +1422,5 @@ app.listen(PORT, async () => {
     }
   }, { timezone: 'Asia/Phnom_Penh' });
 
-  console.log('  ⏰ Daily payment reminder cron scheduled (9:00 AM Cambodia time)\n');
+  console.log('  ⏰ Daily payment reminder cron scheduled (7:00 AM Cambodia time)\n');
 });
