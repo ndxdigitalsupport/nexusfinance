@@ -114,6 +114,7 @@ export default function App() {
   const [loanPage, setLoanPage] = useState(1);
   const [txPage, setTxPage] = useState(1);
   const [taskPage, setTaskPage] = useState(1);
+  const [isInitialLoaded, setIsInitialLoaded] = useState(false);
 
   const calcBalance = (txs: Transaction[]) =>
     txs.reduce((sum, t) => sum + t.amount, 0);
@@ -137,6 +138,7 @@ export default function App() {
     setConfig(configData || DEFAULT_CONFIG);
     setStats(statsData || DEFAULT_STATS);
     setAuditLogs(auditData);
+    setIsInitialLoaded(true);
   };
 
   useEffect(() => {
@@ -204,6 +206,7 @@ export default function App() {
     setConfig(DEFAULT_CONFIG);
     setStats(DEFAULT_STATS);
     setAuditLogs([]);
+    setIsInitialLoaded(false);
   };
 
   const handleSetPortal = (portal: PortalType) => {
@@ -491,7 +494,13 @@ export default function App() {
         )}
 
         <main className="p-4 md:p-8 w-full max-w-7xl mx-auto animate-content-enter flex-1">
-          <Suspense fallback={<div className="p-8"><SkeletonTable rows={4} /></div>}>
+          {!isInitialLoaded ? (
+            <div className="flex flex-col items-center justify-center py-32 space-y-4">
+              <div className="w-10 h-10 border-4 border-[var(--accent)] border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-[13px] font-medium text-[var(--text-secondary)]">Syncing ledger records & system parameters...</p>
+            </div>
+          ) : (
+            <Suspense fallback={<div className="p-8"><SkeletonTable rows={4} /></div>}>
           {currentPortal === 'loan-officer' && (
             activeMenu === 'dashboard' ? (
               <LoanOfficerDashboard
@@ -579,6 +588,7 @@ export default function App() {
             <SupportView />
           )}
           </Suspense>
+          )}
         </main>
       </div>
 
