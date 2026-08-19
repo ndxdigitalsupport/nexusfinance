@@ -454,35 +454,73 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
   const { applicantName, applicantEmail, initials, amount, type, purpose, creditScore, monthlyIncome, durationMonths } = req.body;
   const loanId = '#77' + Math.floor(1000 + Math.random() * 9000);
 
+  const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
+  const kycRequired = config ? config.kycRequired : true;
+  const autoApproveLimit = config ? config.autoApproveLimit : 5000;
+  const maxLoanAmount = config ? config.maxLoanAmount : 500000;
+
+  const loanAmount = amount || 2500;
+  if (loanAmount > maxLoanAmount) {
+    return res.status(400).json({ error: `Requested loan amount exceeds platform limit of $${maxLoanAmount.toLocaleString()}` });
+  }
+
+  const score = creditScore || 700;
+  const shouldAutoApprove = loanAmount <= autoApproveLimit && score >= 700 && !kycRequired;
+  const initialStatus = shouldAutoApprove ? 'Approved' : 'New';
+
   const { data: newLoan } = await db.from('nexus_loans').insert({
     id: loanId,
     applicantName: applicantName || req.user.name,
     applicantEmail: applicantEmail || req.user.email,
     initials: initials || req.user.name.split(' ').map(n => n[0]).join('').toUpperCase(),
-    amount: amount || 2500,
+    amount: loanAmount,
     type: type || 'Personal',
-    status: 'New',
+    status: initialStatus,
     urgency: 'Normal',
-    assignedTo: null,
+    assignedTo: shouldAutoApprove ? req.user.id : null,
     date: new Date().toISOString().split('T')[0],
     purpose: purpose || 'Not specified',
-    creditScore: creditScore || 700,
+    creditScore: score,
     monthlyIncome: monthlyIncome || 4000,
     durationMonths: durationMonths || 24,
   }).select().single();
 
-  const taskTypes = ['KYC Verification Call', 'Credit Score Audit', 'Collateral Registry Verification'];
-  const { data: existingTasks } = await db.from('nexus_tasks').select('id');
-  await db.from('nexus_tasks').insert({
-    id: 't' + Date.now().toString().slice(-6),
-    title: taskTypes[(existingTasks?.length || 0) % taskTypes.length],
-    applicant: newLoan.applicantName,
-    regarding: `${newLoan.type} Loan ${newLoan.id}`,
-    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-    completed: false,
-  });
+  if (shouldAutoApprove) {
+    logAudit('loan-approved', `Loan ${newLoan.id} (${newLoan.type}) for ${newLoan.applicantName} auto-approved`, req.user);
+    const { data: applicantUser } = await db.from('nexus_users').select('id, name, email').eq('email', newLoan.applicantEmail).single();
+    if (applicantUser) {
+      await db.from('nexus_transactions').insert({
+        id: 'tx_fst' + Date.now().toString().slice(-6),
+        title: 'Loan Disbursement',
+        date: new Date().toLocaleDateString(undefined, { month: 'short', day: '2-digit', year: 'numeric' }),
+        amount: newLoan.amount,
+        type: 'Loan Disbursement',
+        userId: applicantUser.id,
+      });
+      notifyUser(applicantUser.id, `Your loan ${newLoan.id} has been auto-approved — $${newLoan.amount.toLocaleString()} disbursed.`);
+      const tmpl = emailTemplates.loanApproved(applicantUser.name, newLoan.id, newLoan.amount);
+      await sendEmail(applicantUser.email, tmpl.subject, tmpl.html).catch(() => null);
+    }
+    dispatchWebhook('loan.created', { loanId: newLoan.id, applicant: newLoan.applicantName, amount: newLoan.amount, type: newLoan.type });
+    dispatchWebhook('loan.approved', { loanId: newLoan.id, applicant: newLoan.applicantName, amount: newLoan.amount, type: newLoan.type });
+  } else {
+    const taskTypes = ['KYC Verification Call', 'Credit Score Audit', 'Collateral Registry Verification'];
+    const allowedTasks = kycRequired 
+      ? taskTypes 
+      : taskTypes.filter(t => t !== 'KYC Verification Call');
+    
+    const { data: existingTasks } = await db.from('nexus_tasks').select('id');
+    await db.from('nexus_tasks').insert({
+      id: 't' + Date.now().toString().slice(-6),
+      title: allowedTasks[(existingTasks?.length || 0) % allowedTasks.length],
+      applicant: newLoan.applicantName,
+      regarding: `${newLoan.type} Loan ${newLoan.id}`,
+      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      completed: false,
+    });
+    dispatchWebhook('loan.created', { loanId: newLoan.id, applicant: newLoan.applicantName, amount: newLoan.amount, type: newLoan.type });
+  }
 
-  dispatchWebhook('loan.created', { loanId: newLoan.id, applicant: newLoan.applicantName, amount: newLoan.amount, type: newLoan.type });
   res.status(201).json(newLoan);
 });
 
