@@ -541,6 +541,7 @@ export default function App() {
                 auditLogs={auditLogs}
                 onUpdateConfig={handleUpdateConfig}
                 view="dashboard"
+                applications={applications}
               />
             ) : activeMenu === 'users' ? (
               <UsersView />
@@ -561,6 +562,7 @@ export default function App() {
                 auditLogs={auditLogs}
                 onUpdateConfig={handleUpdateConfig}
                 view="settings"
+                applications={applications}
               />
             ) : null
           )}
