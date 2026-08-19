@@ -282,8 +282,12 @@ export default function App() {
   const handleUpdateConfig = async (newConfig: PlatformConfig) => {
     try {
       await apiFetch('/config', { method: 'PATCH', body: JSON.stringify(newConfig) });
-      const data = await apiFetch('/config');
-      setConfig(data);
+      const [configData, auditData] = await Promise.all([
+        apiFetch('/config'),
+        apiFetch('/audit/logs').catch(() => [])
+      ]);
+      setConfig(configData);
+      setAuditLogs(auditData);
       showToast('Configuration updated successfully');
     } catch (e: any) {
       showToast(e.message || 'Failed to update config', 'error');
