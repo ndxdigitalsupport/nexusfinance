@@ -99,3 +99,7 @@ CREATE TABLE IF NOT EXISTS nexus_reminder_logs (
   error_message TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Add Telegram Admin configuration columns to platform config
+ALTER TABLE nexus_config ADD COLUMN IF NOT EXISTS telegram_admin_id TEXT;
+ALTER TABLE nexus_config ADD COLUMN IF NOT EXISTS enable_admin_reports BOOLEAN NOT NULL DEFAULT true;

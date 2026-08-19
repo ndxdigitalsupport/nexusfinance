@@ -147,6 +147,39 @@ export default function SuperAdminDashboard({
             </div>
           </div>
 
+          <div className="border-t border-[var(--border-primary)] pt-5 space-y-4">
+            <h4 className="text-[14px] font-extrabold text-[var(--text-primary)] flex items-center gap-1.5">
+              🤖 Telegram Bot Admin Controls
+            </h4>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Telegram Admin Chat ID</label>
+                <input
+                  type="text"
+                  value={editingConfig.telegram_admin_id || ''}
+                  onChange={(e) => setEditingConfig((p) => ({ ...p, telegram_admin_id: e.target.value }))}
+                  placeholder="e.g. 182736452"
+                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Reminder Summary Reports</label>
+                <div className="flex items-center gap-2.5 mt-3 select-none">
+                  <input
+                    type="checkbox"
+                    id="adminReportsToggle"
+                    checked={editingConfig.enable_admin_reports !== false}
+                    onChange={(e) => setEditingConfig((p) => ({ ...p, enable_admin_reports: e.target.checked }))}
+                    className="w-5 h-5 text-[var(--accent)] focus:ring-[var(--accent)] border-[var(--border-primary)] rounded"
+                  />
+                  <label htmlFor="adminReportsToggle" className="text-[13.5px] font-semibold text-[var(--text-primary)]">Send Sweep Reports to Admin</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-between items-center pt-4 border-t border-[var(--border-primary)]">
             <div>
               {savedMessage && (

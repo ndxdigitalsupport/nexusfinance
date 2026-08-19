@@ -274,8 +274,23 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
     }
   }
 
-  if (reportChatId && activeBot) {
-    await activeBot.sendMessage(reportChatId,
+  let enableReports = true;
+  let targetChatId = reportChatId;
+
+  try {
+    const { data: config } = await db.from('nexus_config').select('telegram_admin_id, enable_admin_reports').eq('id', 1).single();
+    if (config) {
+      enableReports = config.enable_admin_reports !== false;
+      if (config.telegram_admin_id) {
+        targetChatId = parseInt(config.telegram_admin_id, 10);
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to load admin report settings from nexus_config:', err);
+  }
+
+  if (enableReports && targetChatId && activeBot) {
+    await activeBot.sendMessage(targetChatId,
       `✅ *Reminder check complete!*\n\n📨 Reminders sent: *${remindersSent}*\n👥 Users notified: *${usersNotified}*`,
       { parse_mode: 'Markdown' }
     );
@@ -599,7 +614,10 @@ Example: \`/link john@example.com\``,
   // ── ADMIN: /broadcast ─────────────────────────────────────────
 
   bot.onText(/\/broadcast(?:\s+([\s\S]+))?/, async (msg, match) => {
-    if (msg.from?.id !== ADMIN_ID) return;
+    const { data: config } = await db.from('nexus_config').select('telegram_admin_id').eq('id', 1).single();
+    const envAdminId = parseInt(process.env.TELEGRAM_ADMIN_ID || '0', 10);
+    const dynamicAdminId = config && config.telegram_admin_id ? parseInt(config.telegram_admin_id, 10) : envAdminId;
+    if (msg.from?.id !== dynamicAdminId) return;
     const chatId = msg.chat.id;
     const text = match?.[1]?.trim();
 
@@ -639,7 +657,10 @@ Example: \`/link john@example.com\``,
   // ── ADMIN: /send <email> <message> ───────────────────────────
 
   bot.onText(/\/send\s+(\S+)\s+([\s\S]+)/, async (msg, match) => {
-    if (msg.from?.id !== ADMIN_ID) return;
+    const { data: config } = await db.from('nexus_config').select('telegram_admin_id').eq('id', 1).single();
+    const envAdminId = parseInt(process.env.TELEGRAM_ADMIN_ID || '0', 10);
+    const dynamicAdminId = config && config.telegram_admin_id ? parseInt(config.telegram_admin_id, 10) : envAdminId;
+    if (msg.from?.id !== dynamicAdminId) return;
     const chatId = msg.chat.id;
     const email = match?.[1]?.trim();
     const text = match?.[2]?.trim();

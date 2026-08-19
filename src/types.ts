@@ -44,6 +44,8 @@ export interface PlatformConfig {
   kycRequired: boolean;
   autoApproveLimit: number; // e.g., 2000
   reminder_time?: string;
+  telegram_admin_id?: string;
+  enable_admin_reports?: boolean;
 }
 
 export interface PlatformStats {

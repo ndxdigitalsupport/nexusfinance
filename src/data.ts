@@ -139,7 +139,9 @@ export const DEFAULT_CONFIG: PlatformConfig = {
   maxLoanAmount: 500000,
   kycRequired: true,
   autoApproveLimit: 5000,
-  reminder_time: '07:00'
+  reminder_time: '07:00',
+  telegram_admin_id: '',
+  enable_admin_reports: true
 };
 
 export const DEFAULT_STATS: PlatformStats = {
