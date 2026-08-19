@@ -124,9 +124,9 @@ export default function App() {
       apiFetch('/loans').catch(() => defaults.loans),
       apiFetch('/transactions').catch(() => defaults.txs),
       apiFetch('/tasks').catch(() => defaults.tasks),
-      apiFetch('/config').catch(() => null),
-      apiFetch('/stats').catch(() => null),
-      apiFetch('/audit/logs').catch(() => []),
+      apiFetch('/config?cb=' + Date.now()).catch((err) => { console.error('Config fetch failed:', err); return null; }),
+      apiFetch('/stats?cb=' + Date.now()).catch(() => null),
+      apiFetch('/audit/logs?cb=' + Date.now()).catch(() => []),
     ]);
     if (!localStorage.getItem('nexus_token')) { handleLogout(); return; }
     setApplications(loans.map((l: any) => ({ ...l, assignedToMe: l.assignedTo === portalUser?.id })));
@@ -283,8 +283,8 @@ export default function App() {
     try {
       await apiFetch('/config', { method: 'PATCH', body: JSON.stringify(newConfig) });
       const [configData, auditData] = await Promise.all([
-        apiFetch('/config'),
-        apiFetch('/audit/logs').catch(() => [])
+        apiFetch('/config?cb=' + Date.now()),
+        apiFetch('/audit/logs?cb=' + Date.now()).catch(() => [])
       ]);
       setConfig(configData);
       setAuditLogs(auditData);

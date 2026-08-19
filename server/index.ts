@@ -58,6 +58,14 @@ app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(cookieParser());
 app.use(express.json());
 
+// Prevent caching on API routes by CDNs and edge networks
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 function logAudit(action: string, details: string, user: any) {
   db.from('nexus_audit_logs').insert({ action, details, userId: user.id, userEmail: user.email }).then(null, (err) => console.error('logAudit failed:', err));
 }
