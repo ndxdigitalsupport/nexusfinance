@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, Trash2, Edit, Save, Bell, RefreshCw, X, Eye, HelpCircle, Play } from 'lucide-react';
+import { PlusCircle, Trash2, Edit, Save, Bell, RefreshCw, X, Eye, HelpCircle, Play, Clock } from 'lucide-react';
 import { apiFetch } from '../api';
 import { showToast } from './Toast';
 import Modal from './Modal';
@@ -51,6 +51,8 @@ export default function ReminderSettingsView() {
   }, []);
 
   const [testingSweep, setTestingSweep] = useState(false);
+  const [reminderTime, setReminderTime] = useState('07:00');
+  const [savingTime, setSavingTime] = useState(false);
 
   const handleTestSweep = async () => {
     setTestingSweep(true);
@@ -88,6 +90,31 @@ export default function ReminderSettingsView() {
     }, 0);
   };
 
+  const fetchConfig = async () => {
+    try {
+      const config = await apiFetch('/config');
+      if (config && config.reminder_time) {
+        setReminderTime(config.reminder_time);
+      }
+    } catch {}
+  };
+
+  const handleSaveReminderTime = async (newVal: string) => {
+    setReminderTime(newVal);
+    setSavingTime(true);
+    try {
+      await apiFetch('/config', {
+        method: 'PATCH',
+        body: JSON.stringify({ reminder_time: newVal })
+      });
+      showToast('Daily trigger time updated successfully');
+    } catch {
+      showToast('Failed to update trigger time', 'error');
+    } finally {
+      setSavingTime(false);
+    }
+  };
+
   const fetchSettings = async () => {
     try {
       const data = await apiFetch('/reminder-settings');
@@ -101,6 +128,7 @@ export default function ReminderSettingsView() {
 
   useEffect(() => {
     fetchSettings();
+    fetchConfig();
   }, []);
 
   const openCreateModal = () => {
@@ -270,6 +298,27 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
           >
             <PlusCircle className="w-4.5 h-4.5" /> Create Reminder Rule
           </button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-4.5">
+        <div className="flex items-center gap-2.5">
+          <Clock className="w-5 h-5 text-[var(--accent)]" />
+          <div>
+            <h4 className="text-[13.5px] font-bold text-[var(--text-primary)]">Automated Sweep Schedule</h4>
+            <p className="text-[12px] text-[var(--text-secondary)]">Daily reminder scans will run automatically at your configured time.</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <label className="text-[13px] font-bold text-[var(--text-primary)]">Trigger Time:</label>
+          <input
+            type="time"
+            value={reminderTime}
+            onChange={(e) => handleSaveReminderTime(e.target.value)}
+            disabled={savingTime}
+            className="bg-[var(--surface-secondary)] border border-[var(--border-primary)] px-3 py-1.5 rounded-lg text-[13.5px] font-mono focus:outline-none focus:border-[var(--accent)] transition-all cursor-pointer"
+          />
+          {savingTime && <span className="text-[12px] text-[var(--text-secondary)] animate-pulse">Saving...</span>}
         </div>
       </div>
 
