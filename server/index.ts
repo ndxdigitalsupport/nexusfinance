@@ -824,12 +824,14 @@ app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'super-admin')
   const { data: allDisbursements } = await db.from('nexus_transactions').select('amount').eq('type', 'Loan Disbursement');
   const { data: allRepayments } = await db.from('nexus_transactions').select('amount').eq('type', 'Repayment');
   const { count: activeCustomers } = await db.from('nexus_users').select('*', { count: 'exact', head: true }).eq('role', 'customer');
+  const { data: config } = await db.from('nexus_config').select('baseInterestRate').eq('id', 1).single();
 
   const totalDisbursed = (allDisbursements || []).reduce((s: number, t: any) => s + Math.abs(t.amount), 0);
   const totalRepaid = (allRepayments || []).reduce((s: number, t: any) => s + Math.abs(t.amount), 0);
   const totalVolume = totalDisbursed + totalRepaid;
   const outstandingBalanceValue = totalDisbursed - totalRepaid;
-  const interestEarned = outstandingBalanceValue * 0.054;
+  const rate = config ? Number(config.baseInterestRate) / 100 : 0.054;
+  const interestEarned = outstandingBalanceValue * rate;
 
   res.json({ totalVolume, activeCustomers: activeCustomers || 0, outstandingBalanceValue, interestEarned });
 });
