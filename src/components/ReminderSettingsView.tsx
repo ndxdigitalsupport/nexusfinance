@@ -17,6 +17,18 @@ interface ReminderSetting {
   updated_at: string;
 }
 
+interface ReminderLog {
+  id: number;
+  loan_id: string;
+  customer_name: string;
+  rule_name: string;
+  message: string;
+  channel: string;
+  status: 'success' | 'failed';
+  error_message: string | null;
+  created_at: string;
+}
+
 export default function ReminderSettingsView() {
   const [settings, setSettings] = useState<ReminderSetting[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,6 +65,8 @@ export default function ReminderSettingsView() {
   const [testingSweep, setTestingSweep] = useState(false);
   const [reminderTime, setReminderTime] = useState('07:00');
   const [savingTime, setSavingTime] = useState(false);
+  const [logs, setLogs] = useState<ReminderLog[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
 
   const handleTestSweep = async () => {
     setTestingSweep(true);
@@ -60,12 +74,12 @@ export default function ReminderSettingsView() {
       const res = await apiFetch('/test-reminders');
       if (res.success) {
         showToast('Payment reminder sweep executed successfully!');
-        await fetchSettings();
+        await Promise.all([fetchSettings(), fetchLogs()]);
       } else {
         showToast(res.error || 'Failed to trigger sweep', 'error');
       }
     } catch {
-      showToast('Failed to trigger payment reminders sweep', 'error');
+      showToast('Failed to trigger sweep', 'error');
     } finally {
       setTestingSweep(false);
     }
@@ -115,6 +129,18 @@ export default function ReminderSettingsView() {
     }
   };
 
+  const fetchLogs = async () => {
+    setLoadingLogs(true);
+    try {
+      const data = await apiFetch('/reminder-logs');
+      setLogs(data);
+    } catch {
+      showToast('Failed to load reminder history logs', 'error');
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
+
   const fetchSettings = async () => {
     try {
       const data = await apiFetch('/reminder-settings');
@@ -129,6 +155,7 @@ export default function ReminderSettingsView() {
   useEffect(() => {
     fetchSettings();
     fetchConfig();
+    fetchLogs();
   }, []);
 
   const openCreateModal = () => {
@@ -414,6 +441,90 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
             <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={settings.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
           </div>
         )}
+      </div>
+
+      <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden shadow-xs space-y-4 p-6 sm:p-8">
+        <div className="flex items-center justify-between border-b border-[var(--border-primary)] pb-4">
+          <div>
+            <h3 className="text-[18px] font-sans font-bold text-[var(--text-primary)] flex items-center gap-2">
+              <Bell className="w-5 h-5 text-[var(--accent)]" /> Sent Reminders History
+            </h3>
+            <p className="text-[13px] text-[var(--text-secondary)]">Live log of automated relative payment notifications dispatched to customers.</p>
+          </div>
+          <button
+            onClick={fetchLogs}
+            disabled={loadingLogs}
+            className="p-2 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] transition cursor-pointer"
+            title="Refresh logs"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loadingLogs ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-[13.5px] text-left border-collapse">
+            <thead>
+              <tr className="border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/50 select-none">
+                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">Timestamp</th>
+                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">Customer</th>
+                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">Loan ID</th>
+                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">Rule Match</th>
+                <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-center">Channel</th>
+                <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {logs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center text-[var(--text-tertiary)] py-8 font-medium">
+                    No reminder logs recorded yet. Daily sweeps will generate histories.
+                  </td>
+                </tr>
+              ) : (
+                logs.map((l) => (
+                  <tr key={l.id} className="border-b border-[var(--border-primary)] hover:bg-[var(--surface-secondary)]/20 transition-all">
+                    <td className="px-6 py-4 font-mono text-[var(--text-secondary)]">
+                      {new Date(l.created_at).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: true
+                      })}
+                    </td>
+                    <td className="px-6 py-4 font-bold text-[var(--text-primary)]">{l.customer_name}</td>
+                    <td className="px-6 py-4 font-mono text-[var(--text-secondary)]">#{l.loan_id.startsWith('#') ? l.loan_id.substring(1) : l.loan_id}</td>
+                    <td className="px-6 py-4 font-medium text-[var(--text-primary)]">{l.rule_name}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 rounded-full text-[11.5px] font-bold block w-fit mx-auto ${
+                        l.channel === 'telegram' ? 'bg-[#229ED9]/10 text-[#229ED9]' :
+                        l.channel === 'in_app' ? 'bg-[#F59E0B]/10 text-[#F59E0B]' :
+                        'bg-[#10B981]/10 text-[#10B981]'
+                      }`}>
+                        {l.channel === 'telegram' ? 'TELEGRAM' : l.channel === 'in_app' ? 'IN-APP' : 'TELEGRAM & IN-APP'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {l.status === 'success' ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-bold bg-green-500/10 text-green-400">
+                          ✓ Sent Successfully
+                        </span>
+                      ) : (
+                        <span 
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-bold bg-red-500/10 text-red-400 cursor-help"
+                          title={l.error_message || 'Unknown error'}
+                        >
+                          ✗ Failed
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} maxWidth="max-w-4xl">

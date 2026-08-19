@@ -716,6 +716,15 @@ app.get('/api/test-reminders', authMiddleware, requireRole('super-admin'), async
   }
 });
 
+app.get('/api/reminder-logs', authMiddleware, async (req, res) => {
+  const { data: logs } = await db
+    .from('nexus_reminder_logs')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(100);
+  res.json(logs || []);
+});
+
 app.get('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
   const { data: broadcasts } = await db
     .from('nexus_broadcasts')

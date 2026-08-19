@@ -86,3 +86,16 @@ Please complete your payment immediately to avoid additional penalties or negati
 
 -- Add reminder_time column to platform configuration
 ALTER TABLE nexus_config ADD COLUMN IF NOT EXISTS reminder_time TEXT NOT NULL DEFAULT '07:00';
+
+-- Create reminder logs history table
+CREATE TABLE IF NOT EXISTS nexus_reminder_logs (
+  id SERIAL PRIMARY KEY,
+  loan_id TEXT NOT NULL,
+  customer_name TEXT NOT NULL,
+  rule_name TEXT NOT NULL,
+  message TEXT NOT NULL,
+  channel TEXT NOT NULL,
+  status TEXT NOT NULL, -- 'success', 'failed'
+  error_message TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

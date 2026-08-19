@@ -239,12 +239,36 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
           }
         }
 
+        let status = 'failed';
+        let errorMessage = null;
+
         if (sentTelegram || sentInApp) {
+          status = 'success';
           remindersSent++;
           if (!userNotifiedForThisLoan) {
             usersNotified++;
             userNotifiedForThisLoan = true;
           }
+        } else {
+          if ((channel === 'telegram' || channel === 'both') && !user.telegram_chat_id) {
+            errorMessage = 'Telegram account not linked.';
+          } else {
+            errorMessage = 'Channel dispatch failed or unavailable.';
+          }
+        }
+
+        try {
+          await db.from('nexus_reminder_logs').insert({
+            loan_id: loan.id,
+            customer_name: loan.applicantName,
+            rule_name: setting.name,
+            message: renderedMessage,
+            channel: channel,
+            status: status,
+            error_message: errorMessage
+          });
+        } catch (logErr) {
+          console.error('Failed to write nexus_reminder_logs:', logErr);
         }
       }
     }
