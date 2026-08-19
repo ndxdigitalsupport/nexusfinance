@@ -83,3 +83,6 @@ Dear {customer_name}, your loan installment payment is currently overdue.
 🚨 Delay: {days_overdue} days overdue
 
 Please complete your payment immediately to avoid additional penalties or negative credit impact.', 'both', true);
+
+-- Add reminder_time column to platform configuration
+ALTER TABLE nexus_config ADD COLUMN IF NOT EXISTS reminder_time TEXT NOT NULL DEFAULT '07:00';

@@ -138,7 +138,8 @@ export const DEFAULT_CONFIG: PlatformConfig = {
   baseInterestRate: 5.4,
   maxLoanAmount: 500000,
   kycRequired: true,
-  autoApproveLimit: 5000
+  autoApproveLimit: 5000,
+  reminder_time: '07:00'
 };
 
 export const DEFAULT_STATS: PlatformStats = {

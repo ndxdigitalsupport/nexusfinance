@@ -43,6 +43,7 @@ export interface PlatformConfig {
   maxLoanAmount: number; // e.g., 500000
   kycRequired: boolean;
   autoApproveLimit: number; // e.g., 2000
+  reminder_time?: string;
 }
 
 export interface PlatformStats {

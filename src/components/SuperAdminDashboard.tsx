@@ -147,6 +147,18 @@ export default function SuperAdminDashboard({
             </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Reminder Auto-Trigger Time (Cambodia Time)</label>
+              <input
+                type="time"
+                value={editingConfig.reminder_time || '07:00'}
+                onChange={(e) => setEditingConfig((p) => ({ ...p, reminder_time: e.target.value }))}
+                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+              />
+            </div>
+          </div>
+
           <div className="flex justify-between items-center pt-4 border-t border-[var(--border-primary)]">
             <div>
               {savedMessage && (

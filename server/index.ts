@@ -67,6 +67,36 @@ let notifyUser = function(userId: number, text: string) {
   db.from('nexus_notifications').insert({ userId, text, time }).then(null, (err) => console.error('notifyUser failed:', err));
 };
 
+let reminderCronTask: any = null;
+
+export function scheduleReminderCron(timeStr: string) {
+  const [hourStr, minStr] = (timeStr || '07:00').split(':');
+  const hour = parseInt(hourStr, 10) || 0;
+  const minute = parseInt(minStr, 10) || 0;
+
+  if (reminderCronTask) {
+    reminderCronTask.stop();
+  }
+
+  const cronPattern = `${minute} ${hour} * * *`;
+  reminderCronTask = cron.schedule(cronPattern, async () => {
+    console.log(`  📬 Running daily payment reminders (Scheduled at ${timeStr} Cambodia time)...`);
+    try {
+      const { sendPaymentReminders } = await import('./bot.js');
+      const ADMIN_ID = parseInt(process.env.TELEGRAM_ADMIN_ID || '0', 10);
+      if (ADMIN_ID) {
+        await sendPaymentReminders(undefined, ADMIN_ID);
+      } else {
+        await sendPaymentReminders(undefined);
+      }
+    } catch (e) {
+      console.error('  ❌ Payment reminder cron failed:', e);
+    }
+  }, { timezone: 'Asia/Phnom_Penh' });
+
+  console.log(`  ⏰ Daily payment reminder cron scheduled (${timeStr} Cambodia time)`);
+}
+
 function authMiddleware(req: any, res: any, next: any) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -604,6 +634,9 @@ app.patch('/api/config', authMiddleware, async (req, res) => {
   logAudit('config-updated', `Platform config updated: ${JSON.stringify(req.body)}`, req.user);
   await db.from('nexus_config').update(req.body).eq('id', 1);
   const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
+  if (config && config.reminder_time) {
+    scheduleReminderCron(config.reminder_time);
+  }
   res.json(config);
 });
 
@@ -1406,21 +1439,15 @@ app.listen(PORT, async () => {
   console.log(`     officer@nexus.com   / password123  → Loan Officer`);
   console.log(`     admin@nexus.com     / password123  → Super Admin\n`);
 
-  // ── Daily payment reminders at 7:00 AM Cambodia time (ICT/UTC+7) ──
-  cron.schedule('0 7 * * *', async () => {
-    console.log('  📬 Running daily payment reminders...');
-    try {
-      const { sendPaymentReminders } = await import('./bot.js');
-      const ADMIN_ID = parseInt(process.env.TELEGRAM_ADMIN_ID || '0', 10);
-      if (ADMIN_ID) {
-        await sendPaymentReminders(undefined, ADMIN_ID);
-      } else {
-        await sendPaymentReminders(undefined);
-      }
-    } catch (e) {
-      console.error('  ❌ Payment reminder cron failed:', e);
+  // ── Dynamic daily payment reminders cron startup ──
+  let reminderTime = '07:00';
+  try {
+    const { data: config } = await db.from('nexus_config').select('reminder_time').eq('id', 1).single();
+    if (config && config.reminder_time) {
+      reminderTime = config.reminder_time;
     }
-  }, { timezone: 'Asia/Phnom_Penh' });
-
-  console.log('  ⏰ Daily payment reminder cron scheduled (7:00 AM Cambodia time)\n');
+  } catch (err) {
+    console.warn('  ⚠️ Could not load reminder_time from nexus_config, defaulting to 07:00');
+  }
+  scheduleReminderCron(reminderTime);
 });
