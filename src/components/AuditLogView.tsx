@@ -66,7 +66,7 @@ export default function AuditLogView() {
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold ${actionColor(log.action)}`}>{actionLabel(log.action)}</span>
                   </td>
-                  <td className="px-6 py-4 text-[var(--text-secondary)] text-[13px] font-medium">{log.details}</td>
+                  <td className="px-6 py-4 text-[var(--text-secondary)] text-[13px] font-medium">{formatAuditDetails(log.details)}</td>
                   <td className="px-6 py-4 text-[var(--text-secondary)]">{log.userEmail}</td>
                   <td className="px-6 py-4 text-[var(--text-secondary)] text-[13px]">{new Date(log.timestamp).toLocaleString()}</td>
                 </tr>
@@ -78,4 +78,24 @@ export default function AuditLogView() {
       <Pagination currentPage={page} totalPages={totalPages} totalItems={logs.length} itemsPerPage={itemsPerPage} onPageChange={setPage} />
     </div>
   );
+}
+
+function formatAuditDetails(details: string): string {
+  if (details.startsWith('Platform config updated:')) {
+    try {
+      const jsonStr = details.replace('Platform config updated:', '').trim();
+      const configObj = JSON.parse(jsonStr);
+      const parts: string[] = [];
+      if (configObj.baseInterestRate !== undefined) parts.push(`APR: ${configObj.baseInterestRate}%`);
+      if (configObj.autoApproveLimit !== undefined) parts.push(`Auto-Approve Limit: $${configObj.autoApproveLimit.toLocaleString()}`);
+      if (configObj.kycRequired !== undefined) parts.push(`KYC: ${configObj.kycRequired ? 'Mandatory' : 'Optional'}`);
+      if (configObj.reminder_time !== undefined) parts.push(`Sweep Time: ${configObj.reminder_time}`);
+      if (configObj.telegram_admin_id !== undefined) parts.push(`Telegram Admin: ${configObj.telegram_admin_id || 'None'}`);
+      if (configObj.enable_admin_reports !== undefined) parts.push(`Reports: ${configObj.enable_admin_reports ? 'On' : 'Off'}`);
+      return `Updated Platform Config (${parts.join(', ')})`;
+    } catch {
+      return details;
+    }
+  }
+  return details;
 }

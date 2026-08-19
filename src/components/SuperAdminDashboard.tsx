@@ -268,7 +268,7 @@ export default function SuperAdminDashboard({
                 ) : (
                   auditLogs.slice(0, 4).map((log) => (
                     <div key={log.id} className="py-3.5 space-y-1">
-                      <span className="text-[var(--text-primary)] font-bold block leading-tight">{log.details}</span>
+                      <span className="text-[var(--text-primary)] font-bold block leading-tight">{formatAuditDetails(log.details)}</span>
                       <div className="flex items-center justify-between text-[11px] text-[var(--text-tertiary)]">
                         <span className="font-semibold text-[var(--text-secondary)]">{log.userEmail}</span>
                         <span>{new Date(log.timestamp).toLocaleString()}</span>
@@ -404,7 +404,7 @@ export default function SuperAdminDashboard({
             ) : auditLogs.map((log) => (
               <div key={log.id} className="py-3 flex justify-between items-start gap-4">
                 <div>
-                  <span className="text-[var(--text-primary)] font-extrabold block">{log.details}</span>
+                  <span className="text-[var(--text-primary)] font-extrabold block">{formatAuditDetails(log.details)}</span>
                   <span className="text-[11px] text-[var(--text-tertiary)] mt-0.5 block">{new Date(log.timestamp).toLocaleString()}</span>
                 </div>
                 <span className="text-[11px] px-2 py-0.5 rounded font-bold shrink-0 self-start"
@@ -419,4 +419,24 @@ export default function SuperAdminDashboard({
       </div>}
     </div>
   );
+}
+
+function formatAuditDetails(details: string): string {
+  if (details.startsWith('Platform config updated:')) {
+    try {
+      const jsonStr = details.replace('Platform config updated:', '').trim();
+      const configObj = JSON.parse(jsonStr);
+      const parts: string[] = [];
+      if (configObj.baseInterestRate !== undefined) parts.push(`APR: ${configObj.baseInterestRate}%`);
+      if (configObj.autoApproveLimit !== undefined) parts.push(`Auto-Approve Limit: $${configObj.autoApproveLimit.toLocaleString()}`);
+      if (configObj.kycRequired !== undefined) parts.push(`KYC: ${configObj.kycRequired ? 'Mandatory' : 'Optional'}`);
+      if (configObj.reminder_time !== undefined) parts.push(`Sweep Time: ${configObj.reminder_time}`);
+      if (configObj.telegram_admin_id !== undefined) parts.push(`Telegram Admin: ${configObj.telegram_admin_id || 'None'}`);
+      if (configObj.enable_admin_reports !== undefined) parts.push(`Reports: ${configObj.enable_admin_reports ? 'On' : 'Off'}`);
+      return `Updated Platform Config (${parts.join(', ')})`;
+    } catch {
+      return details;
+    }
+  }
+  return details;
 }
