@@ -131,33 +131,36 @@ export default function SuperAdminDashboard({
                       { month: 'Jul', volume: 12000, portfolio: 8900 },
                       { month: 'Aug', volume: stats.totalVolume || 12775, portfolio: stats.outstandingBalanceValue || 9025 }
                     ]}
-                    margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                    margin={{ top: 10, right: 10, left: 15, bottom: 5 }}
                   >
                     <defs>
                       <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.2}/>
+                        <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.25}/>
                         <stop offset="95%" stopColor="var(--accent)" stopOpacity={0}/>
                       </linearGradient>
                       <linearGradient id="colorPortfolio" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.2}/>
+                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.25}/>
                         <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" vertical={false} />
-                    <XAxis dataKey="month" stroke="var(--text-secondary)" tickLine={false} axisLine={false} />
-                    <YAxis stroke="var(--text-secondary)" tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                    <XAxis dataKey="month" stroke="var(--text-secondary)" tickLine={false} axisLine={false} dy={8} />
+                    <YAxis stroke="var(--text-secondary)" tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} dx={-8} />
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: 'var(--surface-card)', 
                         borderColor: 'var(--border-primary)',
-                        borderRadius: '12px',
-                        color: 'var(--text-primary)'
+                        borderRadius: '16px',
+                        color: 'var(--text-primary)',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1)',
+                        padding: '12px'
                       }} 
-                      itemStyle={{ color: 'var(--text-primary)' }}
+                      itemStyle={{ color: 'var(--text-primary)', padding: '2px 0' }}
+                      labelStyle={{ fontWeight: 'bold', marginBottom: '4px', color: 'var(--text-secondary)' }}
                     />
                     <Legend verticalAlign="top" height={36} iconType="circle" />
-                    <Area type="monotone" name="Total Volume" dataKey="volume" stroke="var(--accent)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorVolume)" />
-                    <Area type="monotone" name="Outstanding Portfolio" dataKey="portfolio" stroke="#3B82F6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPortfolio)" />
+                    <Area type="monotone" name="Total Volume" dataKey="volume" stroke="var(--accent)" strokeWidth={3} fillOpacity={1} fill="url(#colorVolume)" activeDot={{ r: 6, stroke: 'var(--surface-card)', strokeWidth: 2 }} />
+                    <Area type="monotone" name="Outstanding Portfolio" dataKey="portfolio" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorPortfolio)" activeDot={{ r: 6, stroke: 'var(--surface-card)', strokeWidth: 2 }} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
