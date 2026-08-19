@@ -34,6 +34,26 @@ export default function BroadcastView() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
+  // Custom select states
+  const [targetSelectOpen, setTargetSelectOpen] = useState(false);
+  const [channelSelectOpen, setChannelSelectOpen] = useState(false);
+
+  const targetSelectRef = React.useRef<HTMLDivElement>(null);
+  const channelSelectRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (targetSelectRef.current && !targetSelectRef.current.contains(event.target as Node)) {
+        setTargetSelectOpen(false);
+      }
+      if (channelSelectRef.current && !channelSelectRef.current.contains(event.target as Node)) {
+        setChannelSelectOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const fetchBroadcasts = async () => {
     try {
       const data = await apiFetch('/broadcasts');
@@ -106,31 +126,86 @@ export default function BroadcastView() {
           </h3>
 
           <div className="space-y-4">
-            <div>
-              <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1">Target Audience</label>
-              <select
-                value={target}
-                onChange={e => setTarget(e.target.value)}
-                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] focus:outline-none focus:border-[var(--accent)]"
+            <div className="relative" ref={targetSelectRef}>
+              <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5 select-none">Target Audience</label>
+              <button
+                type="button"
+                onClick={() => setTargetSelectOpen(!targetSelectOpen)}
+                className="w-full flex items-center justify-between bg-[var(--surface-secondary)] border border-[var(--border-primary)] hover:border-[var(--accent)] p-3 rounded-xl text-[14px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition cursor-pointer select-none"
               >
-                <option value="all">All Registered Users</option>
-                <option value="linked">Telegram Linked Users Only</option>
-                <option value="role:customer">Customers Only</option>
-                <option value="role:loan-officer">Loan Officers Only</option>
-              </select>
+                <span>
+                  {target === 'all' ? 'All Registered Users' :
+                   target === 'linked' ? 'Telegram Linked Users Only' :
+                   target === 'role:customer' ? 'Customers Only' : 'Loan Officers Only'}
+                </span>
+                <svg className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-200 ${targetSelectOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </button>
+
+              {targetSelectOpen && (
+                <div className="absolute left-0 w-full mt-1.5 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl shadow-xl z-50 overflow-hidden backdrop-blur-md animate-in fade-in duration-100 slide-in-from-top-2">
+                  {[
+                    { value: 'all', label: 'All Registered Users' },
+                    { value: 'linked', label: 'Telegram Linked Users Only' },
+                    { value: 'role:customer', label: 'Customers Only' },
+                    { value: 'role:loan-officer', label: 'Loan Officers Only' }
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => {
+                        setTarget(opt.value);
+                        setTargetSelectOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-3 text-[13.5px] transition flex items-center justify-between cursor-pointer ${target === opt.value ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-bold' : 'text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)]'}`}
+                    >
+                      <span>{opt.label}</span>
+                      {target === opt.value && (
+                        <svg className="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            <div>
-              <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1">Alert Channel</label>
-              <select
-                value={channel}
-                onChange={e => setChannel(e.target.value as any)}
-                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] focus:outline-none focus:border-[var(--accent)]"
+            <div className="relative" ref={channelSelectRef}>
+              <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5 select-none">Alert Channel</label>
+              <button
+                type="button"
+                onClick={() => setChannelSelectOpen(!channelSelectOpen)}
+                className="w-full flex items-center justify-between bg-[var(--surface-secondary)] border border-[var(--border-primary)] hover:border-[var(--accent)] p-3 rounded-xl text-[14px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition cursor-pointer select-none"
               >
-                <option value="both">Telegram & In-App Alerts</option>
-                <option value="telegram">Telegram Direct Messages Only</option>
-                <option value="in_app">In-App Notification Feed Only</option>
-              </select>
+                <span>
+                  {channel === 'both' ? 'Telegram & In-App Alerts' :
+                   channel === 'telegram' ? 'Telegram Direct Messages Only' : 'In-App Notification Feed Only'}
+                </span>
+                <svg className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-200 ${channelSelectOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </button>
+
+              {channelSelectOpen && (
+                <div className="absolute left-0 w-full mt-1.5 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl shadow-xl z-50 overflow-hidden backdrop-blur-md animate-in fade-in duration-100 slide-in-from-top-2">
+                  {[
+                    { value: 'both', label: 'Telegram & In-App Alerts' },
+                    { value: 'telegram', label: 'Telegram Direct Messages Only' },
+                    { value: 'in_app', label: 'In-App Notification Feed Only' }
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => {
+                        setChannel(opt.value as any);
+                        setChannelSelectOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-3 text-[13.5px] transition flex items-center justify-between cursor-pointer ${channel === opt.value ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-bold' : 'text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)]'}`}
+                    >
+                      <span>{opt.label}</span>
+                      {channel === opt.value && (
+                        <svg className="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
