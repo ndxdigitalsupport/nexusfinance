@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Settings2, 
   Activity, 
@@ -45,6 +45,10 @@ export default function SuperAdminDashboard({
 }: SuperAdminDashboardProps) {
   const [editingConfig, setEditingConfig] = useState<PlatformConfig>({ ...config });
   const [savedMessage, setSavedMessage] = useState(false);
+
+  useEffect(() => {
+    setEditingConfig({ ...config });
+  }, [config]);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
