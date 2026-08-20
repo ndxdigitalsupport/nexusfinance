@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -18,8 +19,8 @@ export default function Modal({ isOpen, onClose, children, maxWidth = 'max-w-lg'
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150" onClick={onClose}>
+  return createPortal(
+    <div className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm flex items-center justify-center p-4 z-55 animate-in fade-in duration-150" onClick={onClose}>
       <div className={`bg-[var(--surface-card)] w-full ${maxWidth} rounded-2xl shadow-xl border border-[var(--border-primary)] relative animate-modal-enter`} onClick={e => e.stopPropagation()}>
         <button
           onClick={onClose}
@@ -29,6 +30,7 @@ export default function Modal({ isOpen, onClose, children, maxWidth = 'max-w-lg'
         </button>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
