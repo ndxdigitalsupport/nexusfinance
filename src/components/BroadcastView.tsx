@@ -41,6 +41,10 @@ export default function BroadcastView() {
   const targetSelectRef = React.useRef<HTMLDivElement>(null);
   const channelSelectRef = React.useRef<HTMLDivElement>(null);
 
+  // Individual user selection states
+  const [users, setUsers] = useState<any[]>([]);
+  const [isSelectingIndividual, setIsSelectingIndividual] = useState(false);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (targetSelectRef.current && !targetSelectRef.current.contains(event.target as Node)) {
@@ -65,8 +69,18 @@ export default function BroadcastView() {
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      const data = await apiFetch('/users');
+      setUsers(data || []);
+    } catch {
+      // silent fallback
+    }
+  };
+
   useEffect(() => {
     fetchBroadcasts();
+    fetchUsers();
   }, []);
 
   const handleSendClick = (e: React.FormEvent) => {
@@ -102,6 +116,11 @@ export default function BroadcastView() {
       const role = t.split(':')[1];
       return `${role.charAt(0).toUpperCase() + role.slice(1)}s`;
     }
+    if (t.startsWith('user:')) {
+      const uid = Number(t.split(':')[1]);
+      const found = users.find(x => x.id === uid);
+      return found ? `User: ${found.name}` : `User ID: ${uid}`;
+    }
     return t;
   };
 
@@ -136,7 +155,13 @@ export default function BroadcastView() {
                 <span>
                   {target === 'all' ? 'All Registered Users' :
                    target === 'linked' ? 'Telegram Linked Users Only' :
-                   target === 'role:customer' ? 'Customers Only' : 'Loan Officers Only'}
+                   target === 'role:customer' ? 'Customers Only' :
+                   target === 'role:loan-officer' ? 'Loan Officers Only' :
+                   target.startsWith('user:') ? (() => {
+                     const uid = Number(target.split(':')[1]);
+                     const u = users.find(x => x.id === uid);
+                     return u ? `Individual: ${u.name} (${u.email})` : 'Specific Individual User';
+                   })() : 'Select Target Audience'}
                 </span>
                 <svg className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-200 ${targetSelectOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
               </button>
@@ -147,19 +172,33 @@ export default function BroadcastView() {
                     { value: 'all', label: 'All Registered Users' },
                     { value: 'linked', label: 'Telegram Linked Users Only' },
                     { value: 'role:customer', label: 'Customers Only' },
-                    { value: 'role:loan-officer', label: 'Loan Officers Only' }
+                    { value: 'role:loan-officer', label: 'Loan Officers Only' },
+                    { value: 'individual', label: 'Specific Individual User...' }
                   ].map(opt => (
                     <button
                       key={opt.value}
                       type="button"
                       onClick={() => {
-                        setTarget(opt.value);
+                        if (opt.value === 'individual') {
+                          const firstUser = users[0];
+                          if (firstUser) {
+                            setTarget(`user:${firstUser.id}`);
+                          }
+                          setIsSelectingIndividual(true);
+                        } else {
+                          setTarget(opt.value);
+                          setIsSelectingIndividual(false);
+                        }
                         setTargetSelectOpen(false);
                       }}
-                      className={`w-full text-left px-4 py-3 text-[13.5px] transition flex items-center justify-between cursor-pointer ${target === opt.value ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-bold' : 'text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)]'}`}
+                      className={`w-full text-left px-4 py-3 text-[13.5px] transition flex items-center justify-between cursor-pointer ${
+                        (opt.value === 'individual' && target.startsWith('user:')) || target === opt.value
+                          ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-bold'
+                          : 'text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)]'
+                      }`}
                     >
                       <span>{opt.label}</span>
-                      {target === opt.value && (
+                      {((opt.value === 'individual' && target.startsWith('user:')) || target === opt.value) && (
                         <svg className="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                       )}
                     </button>
@@ -167,6 +206,25 @@ export default function BroadcastView() {
                 </div>
               )}
             </div>
+
+            {/* Individual User Selector */}
+            {(isSelectingIndividual || target.startsWith('user:')) && (
+              <div className="space-y-1.5 animate-in fade-in duration-200">
+                <label className="block text-[12.5px] font-bold text-[var(--text-primary)] select-none">Select Target User</label>
+                <select
+                  value={target.startsWith('user:') ? target.split(':')[1] : ''}
+                  onChange={(e) => setTarget(`user:${e.target.value}`)}
+                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] hover:border-[var(--accent)] p-3 rounded-xl text-[14px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition cursor-pointer"
+                >
+                  <option value="" disabled>-- Select a user --</option>
+                  {users.map(u => (
+                    <option key={u.id} value={u.id}>
+                      {u.name} ({u.email}) - {u.role.toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="relative" ref={channelSelectRef}>
               <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5 select-none">Alert Channel</label>

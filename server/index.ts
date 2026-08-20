@@ -808,6 +808,9 @@ app.post('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'super-a
   } else if (activeTarget.startsWith('role:')) {
     const roleName = activeTarget.split(':')[1];
     query = query.eq('role', roleName);
+  } else if (activeTarget.startsWith('user:')) {
+    const userId = Number(activeTarget.split(':')[1]);
+    query = query.eq('id', userId);
   }
   const { data: targetUsers, error } = await query;
   if (error) return res.status(500).json({ error: error.message });
