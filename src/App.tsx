@@ -607,6 +607,7 @@ export default function App() {
                 onUpdateConfig={handleUpdateConfig}
                 view="dashboard"
                 applications={applications}
+                setActiveMenu={handleSetActiveMenu}
               />
             ) : activeMenu === 'users' ? (
               <UsersView />

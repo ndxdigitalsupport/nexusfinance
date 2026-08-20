@@ -33,6 +33,7 @@ interface SuperAdminDashboardProps {
   onUpdateConfig: (newConfig: PlatformConfig) => void;
   view?: 'dashboard' | 'settings';
   applications?: any[];
+  setActiveMenu?: (menu: string) => void;
 }
 
 export default function SuperAdminDashboard({
@@ -41,7 +42,8 @@ export default function SuperAdminDashboard({
   auditLogs,
   onUpdateConfig,
   view = 'dashboard',
-  applications = []
+  applications = [],
+  setActiveMenu
 }: SuperAdminDashboardProps) {
   const [editingConfig, setEditingConfig] = useState<PlatformConfig>({ ...config });
   const [savedMessage, setSavedMessage] = useState(false);
@@ -207,12 +209,18 @@ export default function SuperAdminDashboard({
               <div className="border-t border-[var(--border-primary)] pt-4 space-y-2 select-none">
                 <span className="text-[11px] uppercase tracking-wider font-bold text-[var(--text-tertiary)] block mb-2">Shortcuts & Diagnostics</span>
                 <div className="grid grid-cols-2 gap-2 text-[12px] font-bold text-center">
-                  <a href="#reminders" className="py-2.5 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition">
+                  <button
+                    onClick={() => setActiveMenu && setActiveMenu('reminders')}
+                    className="py-2.5 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer"
+                  >
                     🔔 Reminders
-                  </a>
-                  <a href="#broadcast" className="py-2.5 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition">
+                  </button>
+                  <button
+                    onClick={() => setActiveMenu && setActiveMenu('broadcast')}
+                    className="py-2.5 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer"
+                  >
                     📢 Broadcast
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>
