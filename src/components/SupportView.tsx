@@ -30,14 +30,11 @@ export default function SupportView() {
       <div className="relative overflow-hidden bg-gradient-to-r from-[var(--surface-card)] to-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-3xl p-8 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xs">
         <div className="absolute top-0 right-0 w-80 h-80 bg-[var(--accent)]/5 rounded-full blur-3xl" />
         <div className="space-y-2 relative z-10">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase bg-[var(--accent)]/10 text-[var(--accent)] tracking-wider">
-            Helpdesk Portal
-          </span>
           <h2 className="text-[28px] md:text-[32px] font-sans font-extrabold text-[var(--text-primary)] tracking-tight">
             Support & Customer Care
           </h2>
-          <p className="text-[14px] text-[var(--text-secondary)] font-medium max-w-xl leading-relaxed">
-            Have questions about your loan ledger, repayment options, or automatic sweep rules? Get in touch with our Phnom Penh desk or leave a message.
+          <p className="text-[14.5px] text-[var(--text-secondary)] font-medium max-w-xl leading-relaxed">
+            Get in touch with our support desk or send a message directly to our team.
           </p>
         </div>
       </div>
