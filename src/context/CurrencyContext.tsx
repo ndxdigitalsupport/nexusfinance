@@ -34,10 +34,10 @@ const translations: Record<string, { en: string; kh: string }> = {
   'super_admin_desc': { en: 'Global ledger controls, parameters and auto-underwriting engines config.', kh: 'ការគ្រប់គ្រងសៀវភៅបញ្ជីសកល ដែនកំណត់ និងការកំណត់ម៉ាស៊ីនអនុម័តស្វ័យប្រវត្ត។' },
   
   // Stats Cards
-  'total_volume': { en: 'Total Volume under Management', kh: 'ទំហំដើមទុនសរុបដែលគ្រប់គ្រង' },
-  'active_customers': { en: 'Active Enrolled Customers', kh: 'អតិថិជនសកម្មដែលបានចុះឈ្មោះ' },
-  'outstanding_portfolio': { en: 'Outstanding Portfolio', kh: 'ផលប័ត្រឥណទានមិនទាន់ទូទាត់' },
-  'gross_yields': { en: 'Gross Yields (APR)', kh: 'ផលចំណេញការប្រាក់សរុប (APR)' },
+  'total_volume': { en: 'Total Cash Disbursed', kh: 'ទឹកប្រាក់បានបើកផ្តល់សរុប' },
+  'active_customers': { en: 'Active Customers', kh: 'អតិថិជនសកម្ម' },
+  'outstanding_portfolio': { en: 'Total Owed by Customers', kh: 'ទឹកប្រាក់អតិថិជនជំពាក់សរុប' },
+  'gross_yields': { en: 'Projected Interest (1 Year)', kh: 'ការប្រាក់រំពឹងទុក (១ ឆ្នាំ)' },
   
   // Stats Descriptions
   'volume_desc': { en: 'Total value of all disbursed loans', kh: 'តម្លៃដើមសរុបនៃកម្ចីទាំងអស់ដែលបានបើកផ្តល់' },
@@ -46,7 +46,7 @@ const translations: Record<string, { en: string; kh: string }> = {
   
   // Layout headers & widgets
   'portfolio_trend': { en: 'Platform Growth & Portfolio Trend', kh: 'កំណើនវេទិកា និងនិន្នាការផលប័ត្រឥណទាន' },
-  'portfolio_trend_desc': { en: 'Overview of total volume under management and outstanding portfolio balance (USD).', kh: 'ទិដ្ឋភាពទូទៅនៃដើមទុនសរុបដែលគ្រប់គ្រង និងតុល្យភាពផលប័ត្រ بقایا (ដុល្លារ)។' },
+  'portfolio_trend_desc': { en: 'Overview of total cash disbursed and active outstanding balance (USD).', kh: 'ទិដ្ឋភាពទូទៅនៃទឹកប្រាក់បើកផ្តល់សរុប និងប្រាក់ដែលអតិថិជនជំពាក់សរុប (ដុល្លារ)។' },
   'system_health': { en: 'System Core Health', kh: 'សុខភាពស្នូលប្រព័ន្ធ' },
   'sweep_schedule': { en: 'Automatic Sweep Schedule', kh: 'កាលវិភាគត្រួតពិនិត្យស្វ័យប្រវត្តិ' },
   'bot_status': { en: 'Telegram Bot Status', kh: 'ស្ថានភាពតេឡេក្រាមបូត' },

@@ -487,19 +487,19 @@ export default function SuperAdminDashboard({
             <div className="flex justify-between items-center pb-2 border-b border-[var(--border-primary)]">
               <h3 className="text-lg font-bold text-[var(--text-primary)]">
                 {selectedStat === 'volume'
-                  ? 'Total Volume Breakdown'
+                  ? 'Total Cash Disbursed'
                   : selectedStat === 'customers'
                   ? 'Active Customers Directory'
                   : selectedStat === 'outstanding'
-                  ? 'Outstanding Debt Portfolio'
-                  : 'Projected Gross Yields (APR)'}
+                  ? 'Total Owed by Customers'
+                  : 'Projected Interest (1 Year)'}
               </h3>
             </div>
 
             <div className="space-y-4">
               <p className="text-[13px] text-[var(--text-secondary)]">
                 {selectedStat === 'volume'
-                  ? 'History of all disbursed loans and principal repayments contributing to total volume under management.'
+                  ? 'History of all disbursed loans contributing to total cash outlays.'
                   : selectedStat === 'customers'
                   ? 'Directory of registered customer profiles active on the platform.'
                   : selectedStat === 'outstanding'
@@ -515,7 +515,6 @@ export default function SuperAdminDashboard({
                         <th className="px-4 py-3">Date</th>
                         <th className="px-4 py-3">ID</th>
                         <th className="px-4 py-3">Customer</th>
-                        <th className="px-4 py-3">Type</th>
                         <th className="px-4 py-3 text-right">Amount</th>
                       </tr>
                     )}
@@ -547,7 +546,7 @@ export default function SuperAdminDashboard({
                     {selectedStat === 'volume' && (
                       (!stats.volumeTransactions || stats.volumeTransactions.length === 0) ? (
                         <tr>
-                          <td colSpan={5} className="px-4 py-8 text-center text-[var(--text-tertiary)]">No transactions found.</td>
+                          <td colSpan={4} className="px-4 py-8 text-center text-[var(--text-tertiary)]">No disbursements found.</td>
                         </tr>
                       ) : stats.volumeTransactions.map((tx: any) => (
                         <tr key={tx.id} className="hover:bg-[var(--surface-secondary)]/50 transition-colors">
@@ -557,19 +556,8 @@ export default function SuperAdminDashboard({
                             <span className="font-bold block">{tx.userName}</span>
                             <span className="text-[11px] text-[var(--text-tertiary)] block">{tx.userEmail}</span>
                           </td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              tx.type === 'Loan Disbursement'
-                                ? 'bg-emerald-500/10 text-emerald-600'
-                                : 'bg-blue-500/10 text-blue-600'
-                            }`}>
-                              {tx.type === 'Loan Disbursement' ? 'Disbursement' : 'Repayment'}
-                            </span>
-                          </td>
-                          <td className={`px-4 py-3 text-right font-extrabold font-mono ${
-                            tx.type === 'Loan Disbursement' ? 'text-emerald-600' : 'text-blue-600'
-                          }`}>
-                            {tx.type === 'Loan Disbursement' ? '+' : '-'}{formatCurrency(Math.abs(tx.amount))}
+                          <td className="px-4 py-3 text-right font-extrabold font-mono text-emerald-600">
+                            +{formatCurrency(Math.abs(tx.amount))}
                           </td>
                         </tr>
                       ))

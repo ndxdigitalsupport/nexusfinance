@@ -905,17 +905,16 @@ app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'super-admin')
         customerBalances[t.userId] = { name: u.name, email: u.email, balance: 0 };
       }
 
-      volumeTransactions.push({
-        id: t.id,
-        title: t.title,
-        date: t.date,
-        amount: Number(t.amount),
-        type: t.type,
-        userName: u.name,
-        userEmail: u.email
-      });
-
       if (t.type === 'Loan Disbursement') {
+        volumeTransactions.push({
+          id: t.id,
+          title: t.title,
+          date: t.date,
+          amount: Number(t.amount),
+          type: t.type,
+          userName: u.name,
+          userEmail: u.email
+        });
         totalDisbursed += amountVal;
         customerBalances[t.userId].balance += amountVal;
       } else {
@@ -925,7 +924,7 @@ app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'super-admin')
     }
   }
 
-  const totalVolume = totalDisbursed + totalRepaid;
+  const totalVolume = totalDisbursed;
   const outstandingBalanceValue = totalDisbursed - totalRepaid;
   const interestEarned = outstandingBalanceValue * rateMultiplier;
 
