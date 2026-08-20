@@ -46,6 +46,14 @@ export interface PlatformConfig {
   reminder_time?: string;
   telegram_admin_id?: string;
   enable_admin_reports?: boolean;
+  sms_gateway?: string;
+  twilio_account_sid?: string;
+  twilio_auth_token?: string;
+  twilio_phone_number?: string;
+  vonage_api_key?: string;
+  vonage_api_secret?: string;
+  vonage_from_number?: string;
+  custom_sms_url?: string;
 }
 
 export interface PlatformStats {

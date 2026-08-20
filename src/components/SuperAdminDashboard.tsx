@@ -377,6 +377,112 @@ export default function SuperAdminDashboard({
             </div>
           </div>
 
+          <div className="border-t border-[var(--border-primary)] pt-5 space-y-4">
+            <h4 className="text-[14px] font-extrabold text-[var(--text-primary)] flex items-center gap-1.5">
+              💬 SMS Gateway Configurations
+            </h4>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Active SMS Gateway</label>
+                <select
+                  value={editingConfig.sms_gateway || 'sandbox'}
+                  onChange={(e) => setEditingConfig((p) => ({ ...p, sms_gateway: e.target.value }))}
+                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-sans focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all cursor-pointer"
+                >
+                  <option value="sandbox">Sandbox (Console Logging)</option>
+                  <option value="twilio">Twilio (International)</option>
+                  <option value="vonage">Vonage / Nexmo (International)</option>
+                  <option value="custom">Custom HTTP Gateway (Cambodia / Local)</option>
+                </select>
+              </div>
+
+              {editingConfig.sms_gateway === 'twilio' && (
+                <>
+                  <div>
+                    <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Twilio Account SID</label>
+                    <input
+                      type="text"
+                      value={editingConfig.twilio_account_sid || ''}
+                      onChange={(e) => setEditingConfig((p) => ({ ...p, twilio_account_sid: e.target.value }))}
+                      placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxx"
+                      className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Twilio Auth Token</label>
+                    <input
+                      type="password"
+                      value={editingConfig.twilio_auth_token || ''}
+                      onChange={(e) => setEditingConfig((p) => ({ ...p, twilio_auth_token: e.target.value }))}
+                      placeholder="••••••••••••••••"
+                      className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Twilio Phone Number (From)</label>
+                    <input
+                      type="text"
+                      value={editingConfig.twilio_phone_number || ''}
+                      onChange={(e) => setEditingConfig((p) => ({ ...p, twilio_phone_number: e.target.value }))}
+                      placeholder="e.g. +1234567890"
+                      className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)]"
+                    />
+                  </div>
+                </>
+              )}
+
+              {editingConfig.sms_gateway === 'vonage' && (
+                <>
+                  <div>
+                    <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Vonage API Key</label>
+                    <input
+                      type="text"
+                      value={editingConfig.vonage_api_key || ''}
+                      onChange={(e) => setEditingConfig((p) => ({ ...p, vonage_api_key: e.target.value }))}
+                      placeholder="API Key"
+                      className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Vonage API Secret</label>
+                    <input
+                      type="password"
+                      value={editingConfig.vonage_api_secret || ''}
+                      onChange={(e) => setEditingConfig((p) => ({ ...p, vonage_api_secret: e.target.value }))}
+                      placeholder="••••••••••••"
+                      className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Vonage Sender ID (From)</label>
+                    <input
+                      type="text"
+                      value={editingConfig.vonage_from_number || ''}
+                      onChange={(e) => setEditingConfig((p) => ({ ...p, vonage_from_number: e.target.value }))}
+                      placeholder="e.g. Nexus"
+                      className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)]"
+                    />
+                  </div>
+                </>
+              )}
+
+              {editingConfig.sms_gateway === 'custom' && (
+                <div className="sm:col-span-2">
+                  <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Custom HTTP GET/POST URL Template</label>
+                  <input
+                    type="text"
+                    value={editingConfig.custom_sms_url || ''}
+                    onChange={(e) => setEditingConfig((p) => ({ ...p, custom_sms_url: e.target.value }))}
+                    placeholder="e.g. https://api.localgateway.com/send?to={{to}}&text={{text}}&apikey=YOUR_API_KEY"
+                    className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)]"
+                  />
+                  <p className="text-[11px] text-[var(--text-secondary)] mt-1.5">Use <code>{"{{to}}"}</code> and <code>{"{{text}}"}</code> as templates. The backend will inject recipient phone and message strings automatically.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="flex justify-between items-center pt-4 border-t border-[var(--border-primary)]">
             <div>
               {savedMessage && (

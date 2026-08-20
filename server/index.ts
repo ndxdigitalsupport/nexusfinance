@@ -430,7 +430,8 @@ app.get('/api/auth/google/callback', async (req, res) => {
 app.post('/api/sms/send', authMiddleware, async (req, res) => {
   const { to, text } = req.body;
   if (!to || !text) return res.status(400).json({ error: 'Phone number and text are required.' });
-  const result = await sendSMS(to, text);
+  const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
+  const result = await sendSMS(to, text, config);
   if (result.success) {
     await logAudit('sms_sent', `SMS sent to ${to}`, req.user);
     res.json(result);
@@ -678,18 +679,26 @@ app.get('/api/config', authMiddleware, async (req, res) => {
 app.patch('/api/config', authMiddleware, async (req, res) => {
   if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
   
-  const { error } = await db.from('nexus_config').update(req.body).eq('id', 1);
+  const { data: currentConfig } = await db.from('nexus_config').select('*').eq('id', 1).single();
+  const updatePayload: any = {};
+  for (const key of Object.keys(req.body)) {
+    if (currentConfig && key in currentConfig) {
+      updatePayload[key] = req.body[key];
+    }
+  }
+
+  const { error } = await db.from('nexus_config').update(updatePayload).eq('id', 1);
   if (error) {
     console.error('Error updating config:', error);
     return res.status(500).json({ error: error.message });
   }
 
-  logAudit('config-updated', `Platform config updated: ${JSON.stringify(req.body)}`, req.user);
+  logAudit('config-updated', `Platform config updated: ${JSON.stringify(updatePayload)}`, req.user);
   const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
   if (config && config.reminder_time) {
     scheduleReminderCron(config.reminder_time);
   }
-  res.json(config);
+  res.json(config || {});
 });
 
 // ── REMINDER SETTINGS & BROADCASTS ROUTES (Super Admin & Loan Officers) ──

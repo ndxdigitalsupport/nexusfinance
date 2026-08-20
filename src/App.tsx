@@ -104,6 +104,19 @@ export default function App() {
 
   const [userData, setUserData] = useState<{ id: number; name: string; email: string; role: string } | null>(null);
 
+  const portalUser = useMemo(() => userData || (() => {
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return {
+        id: Number(payload.id),
+        name: (payload as any).name || 'User',
+        email: (payload as any).email || '',
+        role: (payload as any).role || 'customer',
+      };
+    } catch { return null; }
+  })(), [token, userData]);
+
   const [searchTermInvoice, setSearchTermInvoice] = useState('');
   const [selectedApplication, setSelectedApplication] = useState<LoanApplication | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -151,7 +164,13 @@ export default function App() {
       .forEach(k => localStorage.removeItem(k));
     const savedPortal = localStorage.getItem('nexus_portal');
     const savedMenu = localStorage.getItem('nexus_active_menu');
-    if (savedPortal) setCurrentPortal(savedPortal as PortalType);
+    if (savedPortal && savedPortal !== 'portal-selection') {
+      setCurrentPortal(savedPortal as PortalType);
+    } else if (portalUser) {
+      const target = portalUser.role === 'super-admin' ? 'super-admin' : (portalUser.role as PortalType);
+      setCurrentPortal(target);
+      localStorage.setItem('nexus_portal', target);
+    }
     if (savedMenu) setActiveMenu(savedMenu);
 
     // Check for Google OAuth callback token
@@ -167,6 +186,16 @@ export default function App() {
     }
   }, []);
 
+  useEffect(() => {
+    if (portalUser && portalUser.role) {
+      const targetPortal: PortalType = portalUser.role === 'super-admin' ? 'super-admin' : (portalUser.role as PortalType);
+      if (currentPortal !== targetPortal) {
+        setCurrentPortal(targetPortal);
+        localStorage.setItem('nexus_portal', targetPortal);
+      }
+    }
+  }, [portalUser, currentPortal]);
+
   const saveToStorage = (key: string, val: string) => localStorage.setItem(key, val);
 
   async function fetchUserData(newToken: string) {
@@ -177,7 +206,7 @@ export default function App() {
         setUserData(data);
         if (data.role === 'customer') handleSetPortal('customer');
         else if (data.role === 'loan-officer') handleSetPortal('loan-officer');
-        else handleSetPortal('portal-selection');
+        else handleSetPortal('super-admin');
       }
     } catch { /* fallback */ }
   }
@@ -196,7 +225,7 @@ export default function App() {
     setIsLoggedIn(false);
     setToken(null);
     ['nexus_token', 'nexus_portal', 'nexus_active_menu'].forEach(k => localStorage.removeItem(k));
-    setCurrentPortal('portal-selection');
+    setCurrentPortal('customer');
     setMobileMenuOpen(false);
     setApplications([]);
     setTasks([]);
@@ -339,18 +368,6 @@ export default function App() {
     setIsMeetingOpen(true);
   };
 
-  const portalUser = useMemo(() => userData || (() => {
-    if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return {
-        id: Number(payload.id),
-        name: (payload as any).name || 'User',
-        email: (payload as any).email || '',
-        role: (payload as any).role || 'customer',
-      };
-    } catch { return null; }
-  })(), [token, userData]);
 
   const isPaymentResult = window.location.pathname === '/payment/success' || window.location.pathname === '/payment/cancel';
 
