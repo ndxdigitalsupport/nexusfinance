@@ -871,19 +871,92 @@ app.post('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'super-a
 // ── STATS ROUTES ────────────────────────────────────────────
 
 app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
-  const { data: allDisbursements } = await db.from('nexus_transactions').select('amount').eq('type', 'Loan Disbursement');
-  const { data: allRepayments } = await db.from('nexus_transactions').select('amount').eq('type', 'Repayment');
-  const { count: activeCustomers } = await db.from('nexus_users').select('*', { count: 'exact', head: true }).eq('role', 'customer');
-  const { data: config } = await db.from('nexus_config').select('baseInterestRate').eq('id', 1).single();
+  // Fetch transactions and join with users to get name/email
+  const { data: txs } = await db
+    .from('nexus_transactions')
+    .select('id, title, date, amount, type, userId, nexus_users(name, email)')
+    .order('id', { ascending: false });
 
-  const totalDisbursed = (allDisbursements || []).reduce((s: number, t: any) => s + Math.abs(t.amount), 0);
-  const totalRepaid = (allRepayments || []).reduce((s: number, t: any) => s + Math.abs(t.amount), 0);
+  // Fetch all customers
+  const { data: customers } = await db
+    .from('nexus_users')
+    .select('id, name, email, phone')
+    .eq('role', 'customer')
+    .order('name', { ascending: true });
+
+  const { data: config } = await db.from('nexus_config').select('baseInterestRate').eq('id', 1).single();
+  const rate = config ? Number(config.baseInterestRate) : 5.4;
+  const rateMultiplier = rate / 100;
+
+  // Process disbursements and repayments
+  const volumeTransactions: any[] = [];
+  const customerBalances: Record<number, { name: string; email: string; balance: number }> = {};
+
+  // Initialize all customers with 0 balance
+  for (const c of customers || []) {
+    customerBalances[c.id] = { name: c.name, email: c.email, balance: 0 };
+  }
+
+  let totalDisbursed = 0;
+  let totalRepaid = 0;
+
+  for (const t of txs || []) {
+    const amountVal = Math.abs(Number(t.amount));
+    const u = (t as any).nexus_users || { name: 'Unknown', email: '' };
+
+    if (t.type === 'Loan Disbursement' || t.type === 'Repayment') {
+      volumeTransactions.push({
+        id: t.id,
+        title: t.title,
+        date: t.date,
+        amount: Number(t.amount),
+        type: t.type,
+        userName: u.name,
+        userEmail: u.email
+      });
+
+      if (t.type === 'Loan Disbursement') {
+        totalDisbursed += amountVal;
+        if (customerBalances[t.userId]) customerBalances[t.userId].balance += amountVal;
+      } else {
+        totalRepaid += amountVal;
+        if (customerBalances[t.userId]) customerBalances[t.userId].balance -= amountVal;
+      }
+    }
+  }
+
   const totalVolume = totalDisbursed + totalRepaid;
   const outstandingBalanceValue = totalDisbursed - totalRepaid;
-  const rate = config ? Number(config.baseInterestRate) / 100 : 0.054;
-  const interestEarned = outstandingBalanceValue * rate;
+  const interestEarned = outstandingBalanceValue * rateMultiplier;
 
-  res.json({ totalVolume, activeCustomers: activeCustomers || 0, outstandingBalanceValue, interestEarned });
+  // Outstanding customers (balance > 0)
+  const outstandingCustomers = Object.values(customerBalances)
+    .filter(c => c.balance > 0.01)
+    .map(c => ({
+      name: c.name,
+      email: c.email,
+      balance: c.balance
+    }));
+
+  // Yield customers
+  const yieldCustomers = outstandingCustomers.map(c => ({
+    name: c.name,
+    email: c.email,
+    balance: c.balance,
+    rate: rate,
+    annualYield: c.balance * rateMultiplier
+  }));
+
+  res.json({
+    totalVolume,
+    activeCustomers: customers?.length || 0,
+    outstandingBalanceValue,
+    interestEarned,
+    volumeTransactions,
+    customerList: customers || [],
+    outstandingCustomers,
+    yieldCustomers
+  });
 });
 
 // ── NOTIFICATION ROUTES ────────────────────────────────────

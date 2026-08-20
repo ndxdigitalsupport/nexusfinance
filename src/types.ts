@@ -61,6 +61,10 @@ export interface PlatformStats {
   activeCustomers: number;
   outstandingBalanceValue: number;
   interestEarned: number;
+  volumeTransactions?: any[];
+  customerList?: any[];
+  outstandingCustomers?: any[];
+  yieldCustomers?: any[];
 }
 
 export type CurrencyCode = 'USD' | 'KHR';

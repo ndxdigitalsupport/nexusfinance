@@ -148,5 +148,9 @@ export const DEFAULT_STATS: PlatformStats = {
   totalVolume: 843500,
   activeCustomers: 142,
   outstandingBalanceValue: 124500,
-  interestEarned: 24320
+  interestEarned: 24320,
+  volumeTransactions: [],
+  customerList: [],
+  outstandingCustomers: [],
+  yieldCustomers: []
 };
