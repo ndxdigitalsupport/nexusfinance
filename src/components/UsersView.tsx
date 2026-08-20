@@ -21,7 +21,11 @@ export default function UsersView() {
   const [resettingPw, setResettingPw] = useState(false);
 
   useEffect(() => {
-    const handler = () => setRoleDropdownId(null);
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('.role-dropdown-wrapper')) return;
+      setRoleDropdownId(null);
+    };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
@@ -75,8 +79,15 @@ export default function UsersView() {
   if (loading) return <div className="animate-in fade-in duration-200"><SkeletonTable rows={6} /></div>;
 
   const sortedUsers = [...users].sort((a, b) => {
-    if (a.role === 'super-admin' && b.role !== 'super-admin') return -1;
-    if (b.role === 'super-admin' && a.role !== 'super-admin') return 1;
+    const getRoleRank = (role: string) => {
+      if (role === 'super-admin') return 0;
+      if (role === 'loan-officer') return 1;
+      return 2;
+    };
+    const rankA = getRoleRank(a.role);
+    const rankB = getRoleRank(b.role);
+    if (rankA !== rankB) return rankA - rankB;
+
     const nameA = (a.name || '').toLowerCase().trim();
     const nameB = (b.name || '').toLowerCase().trim();
     return nameA.localeCompare(nameB);
@@ -144,7 +155,7 @@ export default function UsersView() {
                       }}
                     >Super Admin</span>
                   ) : (
-                    <div className="relative">
+                    <div className="relative role-dropdown-wrapper">
                       <button
                         onClick={(e) => { e.stopPropagation(); setRoleDropdownId(roleDropdownId === u.id ? null : u.id); }}
                         className="flex items-center gap-1.5 text-[12px] font-bold border border-[var(--border-primary)] rounded-xl px-2.5 py-1.5 bg-[var(--surface-card)] hover:border-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all cursor-pointer min-w-[120px]"
