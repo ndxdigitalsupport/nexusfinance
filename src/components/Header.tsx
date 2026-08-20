@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Menu, X, User, LogOut, Layers, Sun, Moon, DollarSign } from 'lucide-react';
+import { Search, Bell, Menu, X, User, LogOut, Layers, Sun, Moon, DollarSign, Languages } from 'lucide-react';
 import { PortalType } from '../types';
 import { API, apiFetch } from '../api';
 import { useCurrency } from '../context/CurrencyContext';
@@ -35,7 +35,7 @@ export default function Header({
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [connected, setConnected] = useState(false);
-  const { currency, setCurrency, formatCurrencyShort } = useCurrency();
+  const { currency, setCurrency, formatCurrencyShort, language, setLanguage } = useCurrency();
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('nexus_dark_mode');
     if (saved !== null) {
@@ -162,18 +162,18 @@ export default function Header({
             {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
 
-          {/* Currency Toggle */}
+          {/* Language Toggle */}
           <button
-            onClick={() => setCurrency(currency === 'USD' ? 'KHR' : 'USD')}
-            aria-label="Toggle currency"
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-extrabold rounded-full transition-all cursor-pointer border ${
-              currency === 'KHR'
-                ? 'bg-[var(--accent)]/15 text-[var(--accent)] border-[var(--accent)]/30 shadow-sm'
-                : 'text-[var(--text-secondary)] border-[var(--border-primary)] hover:bg-[var(--surface-secondary)]'
-            }`}
+            onClick={() => setLanguage(language === 'en' ? 'kh' : 'en')}
+            aria-label="Toggle language"
+            className="group flex items-center gap-2 px-3 py-1.5 text-[12px] font-bold rounded-xl transition-all duration-300 border border-[var(--border-primary)] bg-[var(--surface-card)] hover:border-[var(--text-tertiary)] hover:shadow-lg hover:shadow-black/5 hover:-translate-y-0.5 cursor-pointer"
           >
-            <span className={`w-1.5 h-1.5 rounded-full ${currency === 'KHR' ? 'bg-[var(--accent)]' : 'bg-[var(--text-tertiary)]'}`} />
-            {currency === 'USD' ? '៛ KHR' : '$ USD'}
+            <Languages className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors duration-200" />
+            <div className="flex items-center gap-1">
+              <span className={language === 'en' ? 'text-[var(--accent)] font-extrabold' : 'text-[var(--text-tertiary)]'}>EN</span>
+              <span className="text-[var(--border-primary)]">|</span>
+              <span className={language === 'kh' ? 'text-[var(--accent)] font-extrabold' : 'text-[var(--text-tertiary)]'}>KH</span>
+            </div>
           </button>
 
           {/* Notifications */}

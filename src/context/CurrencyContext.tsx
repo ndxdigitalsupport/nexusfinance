@@ -9,6 +9,8 @@ interface CurrencyContextType {
   exchangeRate: number;
   t: (key: string) => string;
   isKhmer: boolean;
+  language: 'en' | 'kh';
+  setLanguage: (lang: 'en' | 'kh') => void;
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
@@ -68,47 +70,45 @@ const translations: Record<string, { en: string; kh: string }> = {
 };
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
-  const [currency, setCurrencyState] = useState<CurrencyCode>(() => {
-    const saved = localStorage.getItem('nexus_currency');
-    return (saved as CurrencyCode) || 'USD';
+  const [language, setLanguageState] = useState<'en' | 'kh'>(() => {
+    const saved = localStorage.getItem('nexus_language');
+    if (saved) return saved as 'en' | 'kh';
+    const oldCurrency = localStorage.getItem('nexus_currency');
+    return oldCurrency === 'KHR' ? 'kh' : 'en';
   });
 
-  const setCurrency = useCallback((c: CurrencyCode) => {
-    localStorage.setItem('nexus_currency', c);
-    setCurrencyState(c);
-    window.dispatchEvent(new StorageEvent('storage', { key: 'nexus_currency', newValue: c }));
+  const setLanguage = useCallback((lang: 'en' | 'kh') => {
+    localStorage.setItem('nexus_language', lang);
+    localStorage.setItem('nexus_currency', lang === 'kh' ? 'KHR' : 'USD');
+    setLanguageState(lang);
+    window.dispatchEvent(new StorageEvent('storage', { key: 'nexus_currency', newValue: lang === 'kh' ? 'KHR' : 'USD' }));
   }, []);
 
+  const isKhmer = language === 'kh';
+  const currency: CurrencyCode = 'USD';
+
+  const setCurrency = useCallback((c: CurrencyCode) => {
+    setLanguage(c === 'KHR' ? 'kh' : 'en');
+  }, [setLanguage]);
+
   const formatCurrency = useCallback((amount: number) => {
-    if (currency === 'KHR') {
-      const khr = Math.round(amount * EXCHANGE_RATE_KHR);
-      return `៛${khr.toLocaleString()}`;
-    }
     return `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }, [currency]);
+  }, []);
 
   const formatCurrencyShort = useCallback((amount: number) => {
-    if (currency === 'KHR') {
-      const khr = Math.round(amount * EXCHANGE_RATE_KHR);
-      if (khr >= 1000000) return `៛${(khr / 1000000).toFixed(1)}M`;
-      if (khr >= 1000) return `៛${(khr / 1000).toFixed(0)}K`;
-      return `៛${khr}`;
-    }
     if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
     if (amount >= 1000) return `$${(amount / 1000).toFixed(0)}K`;
     return `$${amount.toFixed(0)}`;
-  }, [currency]);
-
-  const isKhmer = currency === 'KHR';
+  }, []);
 
   const t = useCallback((key: string) => {
     const entry = translations[key];
     if (!entry) return key;
     return isKhmer ? entry.kh : entry.en;
-  }, [currency, isKhmer]);
+  }, [isKhmer]);
 
   return (
-    <CurrencyContext.Provider value={{ currency, setCurrency, formatCurrency, formatCurrencyShort, exchangeRate: EXCHANGE_RATE_KHR, t, isKhmer }}>
+    <CurrencyContext.Provider value={{ currency, setCurrency, formatCurrency, formatCurrencyShort, exchangeRate: EXCHANGE_RATE_KHR, t, isKhmer, language, setLanguage }}>
       {children}
     </CurrencyContext.Provider>
   );
