@@ -505,7 +505,8 @@ export default function BroadcastView() {
             <button
               type="button"
               onClick={handleSelectAllFiltered}
-              className="text-[var(--accent)] hover:text-[var(--accent)]/80 font-bold cursor-pointer transition"
+              disabled={searchQuery.trim().length === 1}
+              className={`text-[var(--accent)] font-bold cursor-pointer transition ${searchQuery.trim().length === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:text-[var(--accent)]/80'}`}
             >
               {filteredUsers.length > 0 && filteredUsers.every(u => tempSelectedUserIds.includes(u.id)) ? 'Deselect All Search Results' : 'Select All Search Results'}
             </button>
@@ -516,7 +517,11 @@ export default function BroadcastView() {
 
           {/* Scrollable Customer List */}
           <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-0 py-1">
-            {filteredUsers.length === 0 ? (
+            {searchQuery.trim().length === 1 ? (
+              <p className="text-[var(--text-secondary)] text-[13px] py-16 text-center bg-[var(--surface-secondary)]/10 rounded-xl border border-[var(--border-primary)] border-dashed select-none">
+                Please enter at least 2 characters to search.
+              </p>
+            ) : filteredUsers.length === 0 ? (
               <p className="text-[var(--text-tertiary)] text-[13px] py-16 text-center bg-[var(--surface-secondary)]/10 rounded-xl border border-[var(--border-primary)] border-dashed">
                 No matching customers found.
               </p>
