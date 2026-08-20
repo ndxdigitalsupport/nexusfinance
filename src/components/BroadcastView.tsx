@@ -41,9 +41,11 @@ export default function BroadcastView() {
   const targetSelectRef = React.useRef<HTMLDivElement>(null);
   const channelSelectRef = React.useRef<HTMLDivElement>(null);
 
-  // Individual user selection states
+  // User search/select states for Selected Customer modal
   const [users, setUsers] = useState<any[]>([]);
-  const [isSelectingIndividual, setIsSelectingIndividual] = useState(false);
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [tempSelectedUserIds, setTempSelectedUserIds] = useState<number[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -119,9 +121,78 @@ export default function BroadcastView() {
     if (t.startsWith('user:')) {
       const uid = Number(t.split(':')[1]);
       const found = users.find(x => x.id === uid);
-      return found ? `User: ${found.name}` : `User ID: ${uid}`;
+      return found ? `${found.name} (${found.email})` : `User ID: ${uid}`;
+    }
+    if (t.startsWith('users:')) {
+      const uids = t.split(':')[1].split(',').map(id => Number(id.trim())).filter(id => !isNaN(id) && id > 0);
+      if (uids.length === 0) return 'Selected Customer';
+      const selectedNames = uids.map(uid => {
+        const found = users.find(x => x.id === uid);
+        return found ? found.name : `ID: ${uid}`;
+      });
+      if (selectedNames.length <= 2) return selectedNames.join(', ');
+      return `${uids.length} Customers Selected`;
     }
     return t;
+  };
+
+  const getSelectedUserIds = (t: string): number[] => {
+    if (t.startsWith('user:')) {
+      return [Number(t.split(':')[1])];
+    }
+    if (t.startsWith('users:')) {
+      return t.split(':')[1].split(',').map(Number).filter(id => !isNaN(id) && id > 0);
+    }
+    return [];
+  };
+
+  const openSelectModal = () => {
+    setTempSelectedUserIds(getSelectedUserIds(target));
+    setSearchQuery('');
+    setShowCustomerModal(true);
+  };
+
+  const handleToggleUser = (userId: number) => {
+    setTempSelectedUserIds(prev =>
+      prev.includes(userId)
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  // Only customers will be search-filtered in the popup form list
+  const filteredUsers = users.filter(u => {
+    if (u.role !== 'customer') return false;
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return true;
+    return (
+      (u.name && u.name.toLowerCase().includes(query)) ||
+      (u.email && u.email.toLowerCase().includes(query)) ||
+      (u.phone && u.phone.toLowerCase().includes(query))
+    );
+  });
+
+  const handleSelectAllFiltered = () => {
+    const allFilteredIds = filteredUsers.map(u => u.id);
+    const areAllSelected = allFilteredIds.every(id => tempSelectedUserIds.includes(id));
+    if (areAllSelected) {
+      setTempSelectedUserIds(prev => prev.filter(id => !allFilteredIds.includes(id)));
+    } else {
+      setTempSelectedUserIds(prev => Array.from(new Set([...prev, ...allFilteredIds])));
+    }
+  };
+
+  const handleSaveCustomerSelection = () => {
+    if (tempSelectedUserIds.length === 0) {
+      showToast('Please select at least one customer', 'error');
+      return;
+    }
+    if (tempSelectedUserIds.length === 1) {
+      setTarget(`user:${tempSelectedUserIds[0]}`);
+    } else {
+      setTarget(`users:${tempSelectedUserIds.join(',')}`);
+    }
+    setShowCustomerModal(false);
   };
 
   if (loading) return <div className="animate-in fade-in duration-200"><SkeletonTable rows={6} /></div>;
@@ -157,10 +228,8 @@ export default function BroadcastView() {
                    target === 'linked' ? 'Telegram Linked Users Only' :
                    target === 'role:customer' ? 'Customers Only' :
                    target === 'role:loan-officer' ? 'Loan Officers Only' :
-                   target.startsWith('user:') ? (() => {
-                     const uid = Number(target.split(':')[1]);
-                     const u = users.find(x => x.id === uid);
-                     return u ? `Individual: ${u.name} (${u.email})` : 'Specific Individual User';
+                   (target.startsWith('user:') || target.startsWith('users:')) ? (() => {
+                     return formatTarget(target);
                    })() : 'Select Target Audience'}
                 </span>
                 <svg className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-200 ${targetSelectOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
@@ -173,32 +242,27 @@ export default function BroadcastView() {
                     { value: 'linked', label: 'Telegram Linked Users Only' },
                     { value: 'role:customer', label: 'Customers Only' },
                     { value: 'role:loan-officer', label: 'Loan Officers Only' },
-                    { value: 'individual', label: 'Specific Individual User...' }
+                    { value: 'individual', label: 'Selected Customer...' }
                   ].map(opt => (
                     <button
                       key={opt.value}
                       type="button"
                       onClick={() => {
                         if (opt.value === 'individual') {
-                          const firstUser = users[0];
-                          if (firstUser) {
-                            setTarget(`user:${firstUser.id}`);
-                          }
-                          setIsSelectingIndividual(true);
+                          openSelectModal();
                         } else {
                           setTarget(opt.value);
-                          setIsSelectingIndividual(false);
                         }
                         setTargetSelectOpen(false);
                       }}
                       className={`w-full text-left px-4 py-3 text-[13.5px] transition flex items-center justify-between cursor-pointer ${
-                        (opt.value === 'individual' && target.startsWith('user:')) || target === opt.value
+                        (opt.value === 'individual' && (target.startsWith('user:') || target.startsWith('users:'))) || target === opt.value
                           ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-bold'
                           : 'text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)]'
                       }`}
                     >
                       <span>{opt.label}</span>
-                      {((opt.value === 'individual' && target.startsWith('user:')) || target === opt.value) && (
+                      {(((opt.value === 'individual' && (target.startsWith('user:') || target.startsWith('users:')))) || target === opt.value) && (
                         <svg className="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                       )}
                     </button>
@@ -207,22 +271,22 @@ export default function BroadcastView() {
               )}
             </div>
 
-            {/* Individual User Selector */}
-            {(isSelectingIndividual || target.startsWith('user:')) && (
-              <div className="space-y-1.5 animate-in fade-in duration-200">
-                <label className="block text-[12.5px] font-bold text-[var(--text-primary)] select-none">Select Target User</label>
-                <select
-                  value={target.startsWith('user:') ? target.split(':')[1] : ''}
-                  onChange={(e) => setTarget(`user:${e.target.value}`)}
-                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] hover:border-[var(--accent)] p-3 rounded-xl text-[14px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition cursor-pointer"
+            {/* Selected Customers Indicator Panel */}
+            {(target.startsWith('user:') || target.startsWith('users:')) && (
+              <div className="p-3 bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl flex items-center justify-between gap-3 text-[13px] animate-in fade-in duration-200">
+                <div className="flex-1 min-w-0">
+                  <span className="block text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] mb-0.5">Selected Recipients</span>
+                  <p className="font-semibold text-[var(--text-primary)] truncate">
+                    {formatTarget(target)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={openSelectModal}
+                  className="px-3 py-1.5 bg-[var(--surface-card)] hover:bg-[var(--surface-tertiary)] border border-[var(--border-primary)] rounded-lg text-[12px] font-bold text-[var(--text-primary)] transition cursor-pointer select-none shrink-0"
                 >
-                  <option value="" disabled>-- Select a user --</option>
-                  {users.map(u => (
-                    <option key={u.id} value={u.id}>
-                      {u.name} ({u.email}) - {u.role.toUpperCase()}
-                    </option>
-                  ))}
-                </select>
+                  Edit List
+                </button>
               </div>
             )}
 
@@ -396,6 +460,102 @@ export default function BroadcastView() {
               className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[13.5px] rounded-lg cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
             >
               {sending ? 'Sending...' : 'Confirm & Dispatch'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Customer Selection Modal */}
+      <Modal isOpen={showCustomerModal} onClose={() => setShowCustomerModal(false)} maxWidth="max-w-2xl">
+        <div className="space-y-4 p-2 font-sans flex flex-col h-[540px]">
+          <div>
+            <h3 className="text-[18px] font-extrabold text-[var(--text-primary)]">Select Customers</h3>
+            <p className="text-[12.5px] text-[var(--text-secondary)]">Search and select one or more customers to receive the broadcast alert.</p>
+          </div>
+
+          {/* Search Box */}
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name, email, or phone number..."
+              className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] pl-4 pr-10 py-2.5 rounded-xl text-[13.5px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+            />
+            <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-[var(--text-tertiary)]">
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </div>
+          </div>
+
+          {/* Selection Stats */}
+          <div className="flex items-center justify-between text-[12px] text-[var(--text-secondary)] select-none pb-1 border-b border-[var(--border-primary)]">
+            <button
+              type="button"
+              onClick={handleSelectAllFiltered}
+              className="text-[var(--accent)] hover:underline font-bold cursor-pointer"
+            >
+              {filteredUsers.length > 0 && filteredUsers.every(u => tempSelectedUserIds.includes(u.id)) ? 'Deselect All Search Results' : 'Select All Search Results'}
+            </button>
+            <span>{tempSelectedUserIds.length} customer(s) selected</span>
+          </div>
+
+          {/* Scrollable Customer List */}
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-0">
+            {filteredUsers.length === 0 ? (
+              <p className="text-[var(--text-tertiary)] text-[13px] py-12 text-center bg-[var(--surface-secondary)]/10 rounded-xl">No matching customers found.</p>
+            ) : (
+              filteredUsers.map((u) => {
+                const isChecked = tempSelectedUserIds.includes(u.id);
+                return (
+                  <div
+                    key={u.id}
+                    onClick={() => handleToggleUser(u.id)}
+                    className={`flex items-center justify-between p-3 rounded-xl border transition cursor-pointer select-none ${
+                      isChecked
+                        ? 'bg-[var(--accent)]/5 border-[var(--accent)]'
+                        : 'bg-[var(--surface-secondary)]/20 border-[var(--border-primary)] hover:bg-[var(--surface-secondary)]/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Checkbox Icon */}
+                      <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition shrink-0 ${
+                        isChecked ? 'bg-[var(--accent)] border-[var(--accent)] text-white' : 'border-[var(--border-primary)] bg-[var(--surface-card)]'
+                      }`}>
+                        {isChecked && (
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="block text-[13.5px] font-extrabold text-[var(--text-primary)] truncate">{u.name}</span>
+                        <span className="block text-[11px] text-[var(--text-tertiary)] truncate">
+                          {u.email} {u.phone ? `• Phone: ${u.phone}` : ''}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold select-none bg-emerald-500/10 text-emerald-500 uppercase shrink-0">
+                      {u.role}
+                    </span>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-3 border-t border-[var(--border-primary)] select-none">
+            <button
+              type="button"
+              onClick={() => setShowCustomerModal(false)}
+              className="px-4 py-2 border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] font-bold text-[13.5px] rounded-lg cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveCustomerSelection}
+              className="px-5 py-2 premium-btn-primary text-white font-bold text-[13.5px] rounded-lg cursor-pointer hover:shadow-lg transition"
+            >
+              Save Selection
             </button>
           </div>
         </div>

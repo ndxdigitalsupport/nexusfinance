@@ -638,7 +638,7 @@ app.patch('/api/tasks/:id/complete', authMiddleware, async (req, res) => {
 
 app.get('/api/users', authMiddleware, async (req, res) => {
   if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
-  const { data: users } = await db.from('nexus_users').select('id, name, email, role');
+  const { data: users } = await db.from('nexus_users').select('id, name, email, role, phone, telegram_chat_id');
   res.json(users || []);
 });
 
