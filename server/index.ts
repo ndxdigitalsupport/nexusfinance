@@ -892,11 +892,6 @@ app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'super-admin')
   const volumeTransactions: any[] = [];
   const customerBalances: Record<number, { name: string; email: string; balance: number }> = {};
 
-  // Initialize all customers with 0 balance
-  for (const c of customers || []) {
-    customerBalances[c.id] = { name: c.name, email: c.email, balance: 0 };
-  }
-
   let totalDisbursed = 0;
   let totalRepaid = 0;
 
@@ -905,6 +900,11 @@ app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'super-admin')
     const u = (t as any).nexus_users || { name: 'Unknown', email: '' };
 
     if (t.type === 'Loan Disbursement' || t.type === 'Repayment') {
+      // Dynamically initialize user balance if not already present
+      if (!customerBalances[t.userId]) {
+        customerBalances[t.userId] = { name: u.name, email: u.email, balance: 0 };
+      }
+
       volumeTransactions.push({
         id: t.id,
         title: t.title,
@@ -917,10 +917,10 @@ app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'super-admin')
 
       if (t.type === 'Loan Disbursement') {
         totalDisbursed += amountVal;
-        if (customerBalances[t.userId]) customerBalances[t.userId].balance += amountVal;
+        customerBalances[t.userId].balance += amountVal;
       } else {
         totalRepaid += amountVal;
-        if (customerBalances[t.userId]) customerBalances[t.userId].balance -= amountVal;
+        customerBalances[t.userId].balance -= amountVal;
       }
     }
   }
