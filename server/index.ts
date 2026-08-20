@@ -543,7 +543,7 @@ app.patch('/api/loans/:id/approve', authMiddleware, requireRole('loan-officer', 
     });
     notifyUser(applicantUser.id, `Your loan ${loan.id} has been approved — $${loan.amount.toLocaleString()} disbursed.`);
     const tmpl = emailTemplates.loanApproved(applicantUser.name, loan.id, loan.amount);
-    await sendEmail(applicantUser.email, tmpl.subject, tmpl.html);
+    await sendEmail(applicantUser.email, tmpl.subject, tmpl.html).catch((err) => console.error('Failed to send approval email:', err));
   }
   dispatchWebhook('loan.approved', { loanId: loan.id, applicant: loan.applicantName, amount: loan.amount, type: loan.type });
   res.json({ ...loan, status: 'Approved', assignedTo: req.user.id });
@@ -558,7 +558,7 @@ app.patch('/api/loans/:id/reject', authMiddleware, requireRole('loan-officer', '
   if (applicantUser) {
     notifyUser(applicantUser.id, `Your loan ${loan.id} application has been rejected.`);
     const tmpl = emailTemplates.loanRejected(applicantUser.name, loan.id);
-    await sendEmail(applicantUser.email, tmpl.subject, tmpl.html);
+    await sendEmail(applicantUser.email, tmpl.subject, tmpl.html).catch((err) => console.error('Failed to send rejection email:', err));
   }
   dispatchWebhook('loan.rejected', { loanId: loan.id, applicant: loan.applicantName, type: loan.type });
   res.json({ ...loan, status: 'Rejected' });
@@ -651,7 +651,7 @@ app.patch('/api/users/:id/role', authMiddleware, async (req, res) => {
   logAudit('role-changed', `${user.name} (${user.email}) role changed to ${req.body.role}`, req.user);
   notifyUser(user.id, `Your role has been updated to ${req.body.role.replace('-', ' ')}.`);
   const tmpl = emailTemplates.roleChanged(user.name, req.body.role);
-  await sendEmail(user.email, tmpl.subject, tmpl.html);
+  await sendEmail(user.email, tmpl.subject, tmpl.html).catch((err) => console.error('Failed to send role changed email:', err));
   res.json({ id: user.id, ...req.body });
 });
 
