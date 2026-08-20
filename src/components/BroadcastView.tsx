@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, Megaphone, Users, RefreshCw, Eye, MessageSquare, AlertTriangle, User } from 'lucide-react';
+import { Send, Megaphone, Users, RefreshCw, Eye, MessageSquare, AlertTriangle, User, Search, Check, X } from 'lucide-react';
 import { apiFetch } from '../api';
 import { showToast } from './Toast';
 import Modal from './Modal';
@@ -465,44 +465,61 @@ export default function BroadcastView() {
         </div>
       </Modal>
 
-      {/* Customer Selection Modal */}
+      {/* Premium Customer Selection Modal */}
       <Modal isOpen={showCustomerModal} onClose={() => setShowCustomerModal(false)} maxWidth="max-w-2xl">
-        <div className="space-y-4 p-2 font-sans flex flex-col h-[540px]">
-          <div>
-            <h3 className="text-[18px] font-extrabold text-[var(--text-primary)]">Select Customers</h3>
-            <p className="text-[12.5px] text-[var(--text-secondary)]">Search and select one or more customers to receive the broadcast alert.</p>
+        <div className="space-y-4 p-5 font-sans flex flex-col h-[560px]">
+          <div className="flex justify-between items-start">
+            <div className="space-y-1">
+              <h3 className="text-[19px] font-extrabold text-[var(--text-primary)] flex items-center gap-2">
+                <Users className="w-5 h-5 text-[var(--accent)]" /> Select Customers
+              </h3>
+              <p className="text-[12.5px] text-[var(--text-secondary)]">Search and select one or more customers to receive the broadcast alert.</p>
+            </div>
           </div>
 
-          {/* Search Box */}
+          {/* Search Box Wrapper */}
           <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-tertiary)]">
+              <Search className="w-4 h-4" />
+            </div>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name, email, or phone number..."
-              className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] pl-4 pr-10 py-2.5 rounded-xl text-[13.5px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+              className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] focus:border-[var(--accent)] pl-10 pr-10 py-3 rounded-xl text-[13.5px] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15 transition-all font-sans"
             />
-            <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-[var(--text-tertiary)]">
-              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            </div>
+            {searchQuery && (
+              <button 
+                type="button" 
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
-          {/* Selection Stats */}
-          <div className="flex items-center justify-between text-[12px] text-[var(--text-secondary)] select-none pb-1 border-b border-[var(--border-primary)]">
+          {/* Selection Control Panel */}
+          <div className="flex items-center justify-between text-[12.5px] text-[var(--text-secondary)] select-none py-1 border-b border-[var(--border-primary)]">
             <button
               type="button"
               onClick={handleSelectAllFiltered}
-              className="text-[var(--accent)] hover:underline font-bold cursor-pointer"
+              className="text-[var(--accent)] hover:text-[var(--accent)]/80 font-bold cursor-pointer transition"
             >
               {filteredUsers.length > 0 && filteredUsers.every(u => tempSelectedUserIds.includes(u.id)) ? 'Deselect All Search Results' : 'Select All Search Results'}
             </button>
-            <span>{tempSelectedUserIds.length} customer(s) selected</span>
+            <span className="font-semibold text-[var(--text-primary)]">
+              {tempSelectedUserIds.length} customer(s) selected
+            </span>
           </div>
 
           {/* Scrollable Customer List */}
-          <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-0">
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-0 py-1">
             {filteredUsers.length === 0 ? (
-              <p className="text-[var(--text-tertiary)] text-[13px] py-12 text-center bg-[var(--surface-secondary)]/10 rounded-xl">No matching customers found.</p>
+              <p className="text-[var(--text-tertiary)] text-[13px] py-16 text-center bg-[var(--surface-secondary)]/10 rounded-xl border border-[var(--border-primary)] border-dashed">
+                No matching customers found.
+              </p>
             ) : (
               filteredUsers.map((u) => {
                 const isChecked = tempSelectedUserIds.includes(u.id);
@@ -510,29 +527,36 @@ export default function BroadcastView() {
                   <div
                     key={u.id}
                     onClick={() => handleToggleUser(u.id)}
-                    className={`flex items-center justify-between p-3 rounded-xl border transition cursor-pointer select-none ${
+                    className={`flex items-center justify-between p-3.5 rounded-xl border transition cursor-pointer select-none ${
                       isChecked
                         ? 'bg-[var(--accent)]/5 border-[var(--accent)]'
-                        : 'bg-[var(--surface-secondary)]/20 border-[var(--border-primary)] hover:bg-[var(--surface-secondary)]/50'
+                        : 'bg-[var(--surface-secondary)]/20 border-[var(--border-primary)] hover:border-[var(--accent)]/40 hover:bg-[var(--surface-secondary)]/40'
                     }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      {/* Checkbox Icon */}
-                      <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition shrink-0 ${
-                        isChecked ? 'bg-[var(--accent)] border-[var(--accent)] text-white' : 'border-[var(--border-primary)] bg-[var(--surface-card)]'
-                      }`}>
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      {/* Checkbox Icon - explicitly rounded to 6px */}
+                      <div 
+                        style={{ borderRadius: '6px', borderWidth: '2px', borderStyle: 'solid' }}
+                        className={`w-5 h-5 flex items-center justify-center transition shrink-0 ${
+                          isChecked 
+                            ? 'bg-[var(--accent)] border-[var(--accent)] text-white' 
+                            : 'border-[var(--border-primary)] bg-[var(--surface-card)]'
+                        }`}
+                      >
                         {isChecked && (
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                          <Check className="w-3.5 h-3.5 stroke-[3.5]" />
                         )}
                       </div>
-                      <div className="min-w-0">
-                        <span className="block text-[13.5px] font-extrabold text-[var(--text-primary)] truncate">{u.name}</span>
-                        <span className="block text-[11px] text-[var(--text-tertiary)] truncate">
+                      
+                      <div className="min-w-0 space-y-0.5">
+                        <span className="block text-[14px] font-extrabold text-[var(--text-primary)] truncate">{u.name}</span>
+                        <span className="block text-[11.5px] text-[var(--text-tertiary)] truncate">
                           {u.email} {u.phone ? `• Phone: ${u.phone}` : ''}
                         </span>
                       </div>
                     </div>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold select-none bg-emerald-500/10 text-emerald-500 uppercase shrink-0">
+                    
+                    <span className="text-[10px] px-2.5 py-1 rounded-full font-bold select-none bg-emerald-500/10 text-emerald-500 uppercase tracking-wide shrink-0">
                       {u.role}
                     </span>
                   </div>
@@ -546,14 +570,14 @@ export default function BroadcastView() {
             <button
               type="button"
               onClick={() => setShowCustomerModal(false)}
-              className="px-4 py-2 border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] font-bold text-[13.5px] rounded-lg cursor-pointer"
+              className="px-5 py-2.5 border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] font-bold text-[13.5px] rounded-xl cursor-pointer transition"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSaveCustomerSelection}
-              className="px-5 py-2 premium-btn-primary text-white font-bold text-[13.5px] rounded-lg cursor-pointer hover:shadow-lg transition"
+              className="px-6 py-2.5 premium-btn-primary text-white font-bold text-[13.5px] rounded-xl cursor-pointer hover:shadow-lg transition"
             >
               Save Selection
             </button>
