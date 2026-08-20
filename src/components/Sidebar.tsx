@@ -1,6 +1,7 @@
 import { PlusCircle, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, ChevronRight, ClipboardList, QrCode, Bell, Megaphone } from 'lucide-react';
 import { PortalType } from '../types';
 import Logo from './Logo';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface SidebarProps {
   currentPortal: PortalType;
@@ -13,16 +14,19 @@ interface SidebarProps {
 const s = (name: string) => `var(--${name})`;
 
 export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onApplyForLoan, onLogout }: SidebarProps) {
+  const { t } = useCurrency();
+
   const menuItems = currentPortal === 'loan-officer'
-    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'tasks', label: 'Compliance Tasks', icon: CheckSquare }]
+    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'tasks', label: 'Compliance Tasks', icon: CheckSquare }]
     : currentPortal === 'super-admin'
-    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'users', label: 'Users', icon: Users }, { id: 'reminders', label: 'Reminders', icon: Bell }, { id: 'broadcast', label: 'Broadcast', icon: Megaphone }, { id: 'audit', label: 'Audit Log', icon: ClipboardList }, { id: 'settings', label: 'Settings', icon: Settings }]
-    : [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'loans', label: 'Loans Ledger', icon: Landmark }, { id: 'wallets', label: 'Wallets', icon: Wallet }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }, { id: 'transactions', label: 'History Logs', icon: History }];
+    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]
+    : [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'loans', label: 'Loans Ledger', icon: Landmark }, { id: 'wallets', label: 'Wallets', icon: Wallet }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }, { id: 'transactions', label: 'History Logs', icon: History }];
 
   const bottomItems = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'support', label: 'Support', icon: HelpCircle },
   ];
+
 
   return (
     <nav role="navigation" aria-label="Main navigation"
@@ -135,7 +139,7 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
           >
             <LogOut className="w-4 h-4" />
           </div>
-          Logout
+          {t('logout')}
         </button>
       </div>
     </nav>
