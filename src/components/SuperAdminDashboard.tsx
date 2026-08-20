@@ -62,10 +62,10 @@ export default function SuperAdminDashboard({
   };
 
   const currentStatsItems = [
-    { label: t('total_volume'), value: formatCurrency(stats.totalVolume), change: '+14% mom', icon: Database, desc: t('volume_desc') },
-    { label: t('active_customers'), value: stats.activeCustomers.toString(), change: '+8 this week', icon: Users, desc: '' },
-    { label: t('outstanding_portfolio'), value: formatCurrency(stats.outstandingBalanceValue), change: '-5% repayments', icon: FileCheck2, desc: t('outstanding_desc') },
-    { label: t('gross_yields'), value: formatCurrency(stats.interestEarned), change: '+18% yoy', icon: TrendingUp, desc: t('yields_desc') },
+    { label: t('total_volume'), value: formatCurrency(stats.totalVolume), change: '+14% mom', icon: Database },
+    { label: t('active_customers'), value: stats.activeCustomers.toString(), change: '+8 this week', icon: Users },
+    { label: t('outstanding_portfolio'), value: formatCurrency(stats.outstandingBalanceValue), change: '-5% repayments', icon: FileCheck2 },
+    { label: t('gross_yields'), value: formatCurrency(stats.interestEarned), change: '+18% yoy', icon: TrendingUp },
   ];
 
   return (
@@ -94,16 +94,11 @@ export default function SuperAdminDashboard({
                   <Icon className="w-5 h-5" />
                 </div>
               </div>
-              <div className="relative z-10 space-y-1">
+              <div className="relative z-10">
                 <span className="text-[24px] font-extrabold font-mono block leading-none tracking-tight animate-fade-in"
                   style={{ color: 'var(--card-dark-text-bright)' }}
                 >{st.value}</span>
-                {st.desc && (
-                  <span className="text-[10px] block leading-normal font-semibold opacity-70" style={{ color: 'var(--card-dark-text)' }}>
-                    {st.desc}
-                  </span>
-                )}
-                <span className="text-[11px] font-bold block pt-1 flex items-center gap-1"
+                <span className="text-[11px] font-bold block mt-1.5 flex items-center gap-1"
                   style={{ color: 'var(--accent)' }}
                 >
                   <ArrowUpRight className="w-3.5 h-3.5" /> {st.change}
