@@ -116,8 +116,8 @@ export default function UsersView() {
             <tr className="bg-[var(--surface-secondary)] text-[11px] uppercase tracking-wider text-[var(--text-secondary)] font-bold sticky top-0">
               <th className="px-5 py-3.5">Name</th>
               <th className="px-5 py-3.5">Email</th>
+              <th className="px-5 py-3.5">Phone</th>
               <th className="px-5 py-3.5">Role</th>
-              <th className="px-5 py-3.5"></th>
               <th className="px-5 py-3.5"></th>
             </tr>
           </thead>
@@ -126,18 +126,16 @@ export default function UsersView() {
                   <tr key={u.id} className="text-[14px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]/70 transition-colors bg-[var(--surface-card)]">
                 <td className="px-5 py-3.5">{u.name}</td>
                 <td className="px-5 py-3.5 text-[var(--text-secondary)]">{u.email}</td>
+                <td className="px-5 py-3.5 text-[var(--text-secondary)]">{u.phone || '-'}</td>
                 <td className="px-5 py-3.5">
-                  <span className="px-2.5 py-1 rounded-md text-[11px] font-bold"
-                    style={{
-                      backgroundColor: u.role === 'super-admin' ? 'var(--info-bg)' :
-                        u.role === 'loan-officer' ? 'var(--info-bg)' : 'var(--success-bg)',
-                      color: u.role === 'super-admin' ? 'var(--info-text)' :
-                        u.role === 'loan-officer' ? 'var(--info-text)' : 'var(--success-text)'
-                    }}
-                  >{u.role}</span>
-                </td>
-                <td className="px-5 py-3.5">
-                  {u.role !== 'super-admin' && (
+                  {u.role === 'super-admin' ? (
+                    <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-[var(--info-bg)] text-[var(--info-text)]"
+                      style={{
+                        backgroundColor: 'var(--info-bg)',
+                        color: 'var(--info-text)'
+                      }}
+                    >Super Admin</span>
+                  ) : (
                     <div className="relative">
                       <button
                         onClick={(e) => { e.stopPropagation(); setRoleDropdownId(roleDropdownId === u.id ? null : u.id); }}
@@ -153,7 +151,7 @@ export default function UsersView() {
                         <ChevronDown className={`w-3.5 h-3.5 text-[var(--text-tertiary)] ml-auto transition-transform duration-150 ${roleDropdownId === u.id ? 'rotate-180' : ''}`} />
                       </button>
                       {roleDropdownId === u.id && (
-                        <div className="absolute right-0 top-full mt-1 w-48 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl shadow-xl shadow-black/5 z-20 py-1.5 overflow-hidden animate-dropdown-enter">
+                        <div className="absolute left-0 top-full mt-1 w-48 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl shadow-xl shadow-black/5 z-20 py-1.5 overflow-hidden animate-dropdown-enter">
                           {['customer', 'loan-officer'].map(r => (
                             <button
                               key={r}
