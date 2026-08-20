@@ -22,6 +22,10 @@ const translations: Record<string, { en: string; kh: string }> = {
   'audit': { en: 'Audit Log', kh: 'កំណត់ត្រាសវនកម្ម' },
   'settings': { en: 'Settings', kh: 'ការកំណត់' },
   'logout': { en: 'Logout', kh: 'ចាកចេញ' },
+  'menu': { en: 'Menu', kh: 'ម៉ឺនុយ' },
+  'account': { en: 'Account', kh: 'គណនី' },
+  'profile': { en: 'Profile', kh: 'ប្រវត្តិរូប' },
+  'support': { en: 'Support', kh: 'ការគាំទ្រ' },
   
   // Dashboard Titles & Descriptions
   'super_admin_hub': { en: 'Super Admin Hub', kh: 'មជ្ឈមណ្ឌលអភិបាលជាន់ខ្ពស់' },

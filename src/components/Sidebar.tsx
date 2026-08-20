@@ -23,8 +23,8 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
     : [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'loans', label: 'Loans Ledger', icon: Landmark }, { id: 'wallets', label: 'Wallets', icon: Wallet }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }, { id: 'transactions', label: 'History Logs', icon: History }];
 
   const bottomItems = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'support', label: 'Support', icon: HelpCircle },
+    { id: 'profile', label: t('profile'), icon: User },
+    { id: 'support', label: t('support'), icon: HelpCircle },
   ];
 
 
@@ -64,7 +64,7 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
         <p className="text-[10px] font-bold uppercase tracking-widest px-3 pb-2 pt-1"
           style={{ color: s('sidebar-text-muted') }}
-        >Menu</p>
+        >{t('menu')}</p>
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeMenu === item.id;
@@ -101,7 +101,7 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
       >
         <p className="text-[10px] font-bold uppercase tracking-widest px-3 pb-1"
           style={{ color: s('sidebar-text-muted') }}
-        >Account</p>
+        >{t('account')}</p>
         {bottomItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeMenu === item.id;
