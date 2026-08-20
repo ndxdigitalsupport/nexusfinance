@@ -41,10 +41,15 @@ export default function UsersView() {
   };
 
   const changeRole = async (userId: number, newRole: string) => {
+    const originalUsers = [...users];
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
     try {
       await apiFetch(`/users/${userId}/role`, { method: 'PATCH', body: JSON.stringify({ role: newRole }) });
       await fetchUsers();
-    } catch (e: any) { showToast(e.message || 'Failed to update role', 'error'); }
+    } catch (e: any) {
+      setUsers(originalUsers);
+      showToast(e.message || 'Failed to update role', 'error');
+    }
   };
 
   const resetPassword = async (userId: number) => {
