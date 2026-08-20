@@ -74,8 +74,16 @@ export default function UsersView() {
 
   if (loading) return <div className="animate-in fade-in duration-200"><SkeletonTable rows={6} /></div>;
 
-  const totalPages = Math.ceil(users.length / itemsPerPage) || 1;
-  const paginatedUsers = users.slice((userPage - 1) * itemsPerPage, userPage * itemsPerPage);
+  const sortedUsers = [...users].sort((a, b) => {
+    if (a.role === 'super-admin' && b.role !== 'super-admin') return -1;
+    if (b.role === 'super-admin' && a.role !== 'super-admin') return 1;
+    const nameA = (a.name || '').toLowerCase().trim();
+    const nameB = (b.name || '').toLowerCase().trim();
+    return nameA.localeCompare(nameB);
+  });
+
+  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage) || 1;
+  const paginatedUsers = sortedUsers.slice((userPage - 1) * itemsPerPage, sortedUsers.length === 0 ? 0 : Math.min(sortedUsers.length, userPage * itemsPerPage));
 
   return (
     <div className="animate-in fade-in duration-200">
