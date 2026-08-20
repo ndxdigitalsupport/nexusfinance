@@ -1061,7 +1061,7 @@ app.post('/api/users/:id/send-reset-link', authMiddleware, async (req, res) => {
   if (!user) return res.status(404).json({ error: 'User not found.' });
 
   const tmpl = emailTemplates.passwordReset(user.name, user.email);
-  await sendEmail(user.email, tmpl.subject, tmpl.html);
+  await sendEmail(user.email, tmpl.subject, tmpl.html).catch((err) => console.error('Failed to send password reset email:', err));
 
   logAudit('password-reset-link', `Reset link sent to ${user.email}`, req.user);
   notifyUser(user.id, 'A password reset link has been sent to your email.');
