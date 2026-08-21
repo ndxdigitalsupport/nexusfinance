@@ -71,7 +71,7 @@ function logAudit(action: string, details: string, user: any) {
 }
 
 let notifyUser = function(userId: number, text: string) {
-  const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const time = new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Phnom_Penh', hour: '2-digit', minute: '2-digit', hour12: false });
   db.from('nexus_notifications').insert({ userId, text, time }).then(null, (err) => console.error('notifyUser failed:', err));
 };
 
@@ -658,7 +658,7 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
       title: allowedTasks[(existingTasks?.length || 0) % allowedTasks.length],
       applicant: newLoan.applicantName,
       regarding: `${newLoan.type} Loan ${newLoan.id}`,
-      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      time: new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Phnom_Penh', hour: '2-digit', minute: '2-digit', hour12: false }),
       completed: false,
     });
     dispatchWebhook('loan.created', { loanId: newLoan.id, applicant: newLoan.applicantName, amount: newLoan.amount, type: newLoan.type });
@@ -1234,7 +1234,7 @@ app.get('/api/notifications/stream', (req, res) => {
 function notifyUserRealtime(userId: number, text: string) {
   const clients = sseClients.get(userId);
   if (clients) {
-    const data = JSON.stringify({ type: 'notification', text, time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) });
+    const data = JSON.stringify({ type: 'notification', text, time: new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Phnom_Penh', hour: '2-digit', minute: '2-digit', hour12: false }) });
     for (const client of clients) {
       client.write(`data: ${data}\n\n`);
     }
@@ -1821,7 +1821,7 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'su
     // 4. In-App Notification
     (async () => {
       try {
-        const time = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+        const time = new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Phnom_Penh', hour: '2-digit', minute: '2-digit', hour12: false });
         const text = `🚨 OVERDUE PAYMENT WARNING: Your monthly installment of $${monthly.toFixed(2)} is overdue for Loan ${loan.id}. Please repay immediately.`;
         await db.from('nexus_notifications').insert({
           userId: user.id,
