@@ -693,7 +693,15 @@ app.patch('/api/config', authMiddleware, async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
-  logAudit('config-updated', `Platform config updated: ${JSON.stringify(updatePayload)}`, req.user);
+  const changeDetails: any = {};
+  for (const key of Object.keys(updatePayload)) {
+    changeDetails[key] = {
+      from: currentConfig ? currentConfig[key] : null,
+      to: updatePayload[key]
+    };
+  }
+
+  logAudit('config-updated', `Platform config updated: ${JSON.stringify(changeDetails)}`, req.user);
   const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
   if (config && config.reminder_time) {
     scheduleReminderCron(config.reminder_time);
@@ -737,6 +745,8 @@ app.patch('/api/reminder-settings/:id', authMiddleware, requireRole('loan-office
   const id = parseInt(req.params.id);
   const { name, days_before, message_template, channel, is_active } = req.body;
 
+  const { data: currentReminder } = await db.from('nexus_reminder_settings').select('*').eq('id', id).single();
+
   const updateData: Record<string, any> = {};
   if (name !== undefined) updateData.name = name;
   if (days_before !== undefined) updateData.days_before = parseInt(days_before) || 0;
@@ -753,7 +763,17 @@ app.patch('/api/reminder-settings/:id', authMiddleware, requireRole('loan-office
     .single();
 
   if (error) return res.status(500).json({ error: error.message });
-  logAudit('reminder-setting-updated', `Updated reminder ID ${id}: ${JSON.stringify(updateData)}`, req.user);
+
+  const changeDetails: any = {};
+  for (const key of Object.keys(updateData)) {
+    if (key === 'updated_at') continue;
+    changeDetails[key] = {
+      from: currentReminder ? currentReminder[key] : null,
+      to: updateData[key]
+    };
+  }
+
+  logAudit('reminder-setting-updated', `Updated reminder ID ${id}: ${JSON.stringify(changeDetails)}`, req.user);
   res.json(data);
 });
 
