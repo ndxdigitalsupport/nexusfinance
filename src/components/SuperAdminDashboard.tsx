@@ -311,7 +311,8 @@ export default function SuperAdminDashboard({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Base System interest Rate (APR %)</label>
+              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">Annual Interest Rate (APR %)</label>
+              <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">The default yearly interest rate applied to all new loan packages.</p>
               <input
                 type="number"
                 step="0.05"
@@ -322,7 +323,8 @@ export default function SuperAdminDashboard({
             </div>
 
             <div>
-              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Auto-Underwrite Limit (USD)</label>
+              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">Auto-Approval Limit (USD)</label>
+              <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">Maximum loan amount that can be auto-approved instantly without officer review.</p>
               <input
                 type="number"
                 step="500"
@@ -335,7 +337,8 @@ export default function SuperAdminDashboard({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">System Maximum Credit Limit (USD)</label>
+              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">Maximum Loan Limit (USD)</label>
+              <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">The absolute maximum amount a single customer can borrow in total.</p>
               <input
                 type="number"
                 step="50000"
@@ -346,8 +349,9 @@ export default function SuperAdminDashboard({
             </div>
 
             <div>
-              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Enforce KYC Compliance Video Calls</label>
-              <div className="flex items-center gap-2.5 mt-2 select-none">
+              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">Require Video KYC Verification</label>
+              <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">Enforces a mandatory live video identification call before funds are disbursed.</p>
+              <div className="flex items-center gap-2.5 mt-3.5 select-none">
                 <input
                   type="checkbox"
                   id="kycToggle"
