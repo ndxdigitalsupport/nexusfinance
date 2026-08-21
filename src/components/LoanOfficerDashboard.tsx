@@ -349,46 +349,42 @@ export default function LoanOfficerDashboard({
             </div>
           </div>
 
-          {/* Next Task Call Panel CARD */}
-          {nextVideoTask && (
-            <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 shadow-xs relative overflow-hidden group">
-              <div className="absolute top-0 left-0 w-1 h-full rounded-r bg-[var(--accent)]" />
-              
-              <div className="relative z-10 space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-[16px] font-extrabold text-[var(--text-primary)] tracking-tight">Next Task</h3>
-                    <p className="text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider mt-0.5">Scheduled: {nextVideoTask.time}</p>
-                  </div>
-                  <div className="p-1.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] animate-pulse">
-                    <BellRing className="w-4 h-4" />
-                  </div>
+          {/* Compliance Tasks Checklist Card */}
+          <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 shadow-xs relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-1 h-full rounded-r bg-[var(--accent)]" />
+            
+            <div className="relative z-10 space-y-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-[16px] font-extrabold text-[var(--text-primary)] tracking-tight">Pending Tasks</h3>
+                  <p className="text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider mt-0.5">Compliance checklist</p>
                 </div>
-
-                <div className="bg-[var(--surface-secondary)] border border-[var(--border-primary)]/80 rounded-xl p-4 hover:border-[var(--text-primary)] transition-all duration-150">
-                  <div className="flex items-center gap-3 mb-2.5">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--card-dark-bg)] text-[var(--accent)] shadow-sm">
-                      <Video className="w-4 h-4" />
-                    </div>
-                    <h4 className="text-[14.5px] font-extrabold text-[var(--text-primary)] leading-tight">{nextVideoTask.title}</h4>
-                  </div>
-
-                  <div className="space-y-1 text-[12.5px] mb-4 border-b border-[var(--border-primary)] pb-3">
-                    <p className="text-[var(--text-secondary)] font-medium">Applicant: <span className="font-bold text-[var(--text-primary)]">{nextVideoTask.applicant}</span></p>
-                    <p className="text-[var(--text-secondary)] font-medium">Regarding: <span className="font-bold text-[var(--text-primary)]">{nextVideoTask.regarding}</span></p>
-                  </div>
-
-                  <button
-                    onClick={() => onJoinMeeting(nextVideoTask)}
-                    className="w-full premium-btn-primary text-white py-3 rounded-lg flex justify-center items-center gap-2 group cursor-pointer text-[13px] font-bold hover:brightness-105 active:scale-98 transition duration-200"
-                  >
-                    <Video className="w-4 h-4" />
-                    JOIN MEETING
-                  </button>
+                <div className="p-1.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent)]">
+                  <BellRing className="w-4 h-4" />
                 </div>
               </div>
+
+              <div className="space-y-3">
+                {tasks && tasks.filter(t => !t.completed).slice(0, 3).map((task) => (
+                  <div key={task.id} className="p-3.5 bg-[var(--surface-secondary)] border border-[var(--border-primary)]/80 rounded-xl hover:border-[var(--text-primary)] transition-all flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-md border border-[var(--border-primary)] flex items-center justify-center shrink-0 mt-0.5 bg-[var(--surface-primary)] select-none">
+                      <span className="w-2.5 h-2.5 rounded-sm bg-[var(--accent)] opacity-40" />
+                    </div>
+                    <div className="space-y-1 flex-1">
+                      <h4 className="text-[13px] font-bold text-[var(--text-primary)] leading-tight">{task.title}</h4>
+                      <p className="text-[11.5px] text-[var(--text-secondary)] font-medium">Applicant: <span className="font-bold text-[var(--text-primary)]">{task.applicant}</span></p>
+                      <p className="text-[11px] text-[var(--text-tertiary)] font-bold uppercase tracking-wider mt-0.5">{task.regarding}</p>
+                    </div>
+                  </div>
+                ))}
+                {(!tasks || tasks.filter(t => !t.completed).length === 0) && (
+                  <div className="p-6 text-center text-[12px] text-[var(--text-secondary)] font-medium">
+                    🎉 All compliance tasks completed!
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
