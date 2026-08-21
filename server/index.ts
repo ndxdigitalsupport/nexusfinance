@@ -1756,15 +1756,10 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'su
   let sentEmail = false;
 
   // 1. Telegram
-  if (user.telegram_chat_id) {
+  if (user.telegram_chat_id && bot) {
     try {
-      const { default: TelegramBot } = await import('node-telegram-bot-api');
-      const token = process.env.TELEGRAM_BOT_TOKEN;
-      if (token) {
-        const tempBot = new TelegramBot(token);
-        await tempBot.sendMessage(user.telegram_chat_id, message, { parse_mode: 'Markdown' });
-        sentTelegram = true;
-      }
+      await bot.sendMessage(user.telegram_chat_id, message, { parse_mode: 'Markdown' });
+      sentTelegram = true;
     } catch (e) {
       console.error('Failed to send Telegram chase notice:', e);
     }
