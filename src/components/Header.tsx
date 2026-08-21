@@ -141,7 +141,6 @@ export default function Header({
                     <X className="w-4 h-4" />
                   </button>
                 )}
-                <kbd className="hidden sm:inline-flex text-[10px] font-bold text-[var(--text-tertiary)] bg-[var(--surface-primary)] border border-[var(--border-primary)] px-1.5 py-0.5 rounded-[6px] leading-none">⌘K</kbd>
               </div>
             </div>
           )}

@@ -76,11 +76,7 @@ export default function LoanOfficerDashboard({
   // Find next task
   const nextVideoTask = tasks.find(t => t.title.toLowerCase().includes('verification') && !t.completed) || tasks[0];
 
-  const getCreditScoreColor = (score: number) => {
-    if (score >= 700) return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
-    if (score >= 600) return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
-    return 'text-rose-500 bg-rose-500/10 border-rose-500/20';
-  };
+
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -231,9 +227,6 @@ export default function LoanOfficerDashboard({
                         <div className="space-y-1">
                           <div className="flex items-center flex-wrap gap-2">
                             <span className="text-[15.5px] text-[var(--text-primary)] font-bold group-hover:text-[var(--accent)] transition-colors">{app.applicantName}</span>
-                            <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${getCreditScoreColor(score)}`}>
-                              Score: {score}
-                            </span>
                           </div>
                           
                           <div className="flex items-center gap-2 text-[12px] text-[var(--text-secondary)] font-medium">
