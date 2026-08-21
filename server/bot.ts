@@ -12,7 +12,7 @@ if (!TOKEN) {
   console.log('  🤖 Telegram bot disabled — TELEGRAM_BOT_TOKEN not set');
 }
 
-const SITE_URL = process.env.SITE_URL || 'https://nexusfinancefintech.vercel.app';
+const SITE_URL = 'https://nexusfinancefintech.vercel.app';
 const ADMIN_ID = parseInt(process.env.TELEGRAM_ADMIN_ID || '0', 10);
 
 export let notifyUserCallback: ((userId: number, text: string) => void) | null = null;

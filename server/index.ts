@@ -97,7 +97,7 @@ async function notifyAdminOfNewLoan(loan: any) {
         await bot.sendMessage(adminChatId, message, {
           parse_mode: 'Markdown',
           reply_markup: {
-            inline_keyboard: [[{ text: '🚀 View Applications', url: process.env.SITE_URL || 'https://nexusfinancefintech.vercel.app' }]]
+            inline_keyboard: [[{ text: '🚀 View Applications', url: 'https://nexusfinancefintech.vercel.app' }]]
           }
         });
       }
@@ -156,7 +156,7 @@ async function notifyAdminOfNewLoan(loan: any) {
             </div>
             
             <div style="text-align: center;">
-              <a href="${process.env.SITE_URL || 'https://nexusfinancefintech.vercel.app'}" style="display: inline-block; padding: 12px 24px; background-color: #0d9488; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold;">Review Application</a>
+              <a href="https://nexusfinancefintech.vercel.app" style="display: inline-block; padding: 12px 24px; background-color: #0d9488; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold;">Review Application</a>
             </div>
           </div>
         `;
