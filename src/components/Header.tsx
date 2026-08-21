@@ -123,32 +123,10 @@ export default function Header({
           </div>
         </div>
 
-        {/* Desktop Search field */}
-        <div className="hidden md:flex items-center flex-1 gap-4">
-          {currentPortal === 'loan-officer' && (
-            <div className="relative w-80">
-              <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
-              <input
-                type="text"
-                value={searchTermInvoice}
-                onChange={(e) => setSearchTermInvoice(e.target.value)}
-                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-[14px] py-2.5 pl-10 pr-20 text-[14px] leading-tight focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all duration-150 shadow-sm placeholder:text-[var(--text-tertiary)]"
-                placeholder="Search applicants, loans..."
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                {searchTermInvoice && (
-                  <button onClick={() => setSearchTermInvoice('')} className="p-0.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] cursor-pointer">
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
           <div className="flex items-center gap-2 text-[12px] font-semibold">
             <span className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-500 animate-glow-pulse' : 'bg-red-400'}`} />
             <span className="text-[var(--text-tertiary)]">{connected ? 'Connected' : 'Disconnected'}</span>
           </div>
-        </div>
 
         {/* Action Tray */}
         <div className="flex items-center gap-2 relative ml-auto">
