@@ -1767,7 +1767,7 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'su
   const monthly = calculateMonthlyPayment(amount, duration);
 
   const { message: customMessage } = req.body;
-  const message = customMessage || `⚠️ *URGENT PAYMENT REMINDER* ⚠️\n\nDear *${loan.applicantName}*,\n\nOur records show that your monthly installment of *$${monthly.toFixed(2)}* is currently overdue for Loan *#${loan.id}*.\n\nPlease log in to the portal and settle your outstanding payment immediately.\n\n🔗 [Pay Outstanding Balance](https://nexusfinancefintech.vercel.app/)`;
+  const message = customMessage || `⚠️ *URGENT PAYMENT REMINDER* ⚠️\n\nDear *${loan.applicantName}*,\n\nOur records show that your monthly installment of *$${monthly.toFixed(2)}* is currently overdue for Loan *${loan.id}*.\n\nPlease log in to the portal and settle your outstanding payment immediately.\n\n🔗 [Pay Outstanding Balance](https://nexusfinancefintech.vercel.app/)`;
 
   let sentTelegram = false;
   let sentSMS = false;
