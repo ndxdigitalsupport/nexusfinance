@@ -1739,6 +1739,14 @@ function formatMessageToHtml(msg: string): string {
     .replace(/\n/g, '<br/>');
 }
 
+function withTimeout<T>(promise: Promise<T>, ms = 2500): Promise<T> {
+  let timeoutId: any;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error('Network request timeout')), ms);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
+}
+
 app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
   const { id } = req.params;
   const cleanId = id.startsWith('#') ? id : '#' + id;
@@ -1768,7 +1776,7 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'su
   // 1. Telegram
   if (user.telegram_chat_id && bot) {
     try {
-      await bot.sendMessage(user.telegram_chat_id, message, { parse_mode: 'Markdown' });
+      await withTimeout(bot.sendMessage(user.telegram_chat_id, message, { parse_mode: 'Markdown' }));
       sentTelegram = true;
     } catch (e) {
       console.error('Failed to send Telegram chase notice:', e);
@@ -1779,7 +1787,7 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'su
   try {
     const subject = `🚨 OVERDUE NOTICE: Loan Payment Outstanding - Loan #${loan.id}`;
     const htmlContent = formatMessageToHtml(message);
-    await sendEmail(loan.applicantEmail, subject, `
+    await withTimeout(sendEmail(loan.applicantEmail, subject, `
       <div style="font-family: sans-serif; padding: 20px; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px;">
         <h2 style="color: #ef4444; margin-top: 0;">🚨 Urgent: Payment Overdue Notice</h2>
         <p style="line-height: 1.6; font-size: 14px;">${htmlContent}</p>
@@ -1788,7 +1796,7 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'su
         </div>
         <p style="color: #64748b; font-size: 12px; border-top: 1px solid #e2e8f0; padding-top: 15px; margin-top: 25px;">NexusFinance Fintech Inc. Cambodia</p>
       </div>
-    `);
+    `));
     sentEmail = true;
   } catch (e) {
     console.error('Failed to send Email chase notice:', e);
@@ -1798,7 +1806,7 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'su
   try {
     if (user.phone) {
       const plainText = message.replace(/\*(.*?)\*/g, '$1');
-      await sendSMS(user.phone, plainText);
+      await withTimeout(sendSMS(user.phone, plainText));
       sentSMS = true;
     }
   } catch (e) {
