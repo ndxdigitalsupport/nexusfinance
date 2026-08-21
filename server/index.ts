@@ -1730,6 +1730,15 @@ function calculateMonthlyPayment(amount: number, durationMonths: number, annualR
   return (amount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
 }
 
+function formatMessageToHtml(msg: string): string {
+  return msg
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br/>');
+}
+
 app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
   const { id } = req.params;
   const cleanId = id.startsWith('#') ? id : '#' + id;
@@ -1749,7 +1758,8 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'su
   const duration = Number(loan.durationMonths) || 1;
   const monthly = calculateMonthlyPayment(amount, duration);
 
-  const message = `⚠️ *URGENT PAYMENT REMINDER* ⚠️\n\nDear *${loan.applicantName}*,\n\nOur records show that your monthly installment of *$${monthly.toFixed(2)}* is currently overdue for Loan *#${loan.id}*.\n\nPlease log in to the portal and settle your outstanding payment immediately.\n\n🔗 [Pay Outstanding Balance](https://nexusfinancefintech.vercel.app/)`;
+  const { message: customMessage } = req.body;
+  const message = customMessage || `⚠️ *URGENT PAYMENT REMINDER* ⚠️\n\nDear *${loan.applicantName}*,\n\nOur records show that your monthly installment of *$${monthly.toFixed(2)}* is currently overdue for Loan *#${loan.id}*.\n\nPlease log in to the portal and settle your outstanding payment immediately.\n\n🔗 [Pay Outstanding Balance](https://nexusfinancefintech.vercel.app/)`;
 
   let sentTelegram = false;
   let sentSMS = false;
@@ -1768,12 +1778,11 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'su
   // 2. Email
   try {
     const subject = `🚨 OVERDUE NOTICE: Loan Payment Outstanding - Loan #${loan.id}`;
+    const htmlContent = formatMessageToHtml(message);
     await sendEmail(loan.applicantEmail, subject, `
       <div style="font-family: sans-serif; padding: 20px; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px;">
         <h2 style="color: #ef4444; margin-top: 0;">🚨 Urgent: Payment Overdue Notice</h2>
-        <p>Dear ${loan.applicantName},</p>
-        <p>This is a formal notice that your monthly installment of <strong>$${monthly.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong> for Loan <strong>${loan.id}</strong> is overdue.</p>
-        <p>Please log in to the customer dashboard and complete your payment immediately to avoid negative credit marks or late fees.</p>
+        <p style="line-height: 1.6; font-size: 14px;">${htmlContent}</p>
         <div style="margin: 25px 0;">
           <a href="https://nexusfinancefintech.vercel.app/" style="background: #ef4444; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">Make Payment Now</a>
         </div>
@@ -1788,7 +1797,8 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'su
   // 3. SMS
   try {
     if (user.phone) {
-      await sendSMS(user.phone, `NexusFinance Urgent Notice: Your monthly installment of $${monthly.toFixed(0)} is overdue for Loan ${loan.id}. Please settle immediately.`);
+      const plainText = message.replace(/\*(.*?)\*/g, '$1');
+      await sendSMS(user.phone, plainText);
       sentSMS = true;
     }
   } catch (e) {

@@ -27,6 +27,10 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
+  // Custom Chase Message Modal State
+  const [customizingLoan, setCustomizingLoan] = useState<LoanApplication | null>(null);
+  const [customMessageText, setCustomMessageText] = useState('');
+  
   const itemsPerPage = 5;
 
   // Filter only approved/active loans
@@ -60,22 +64,34 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
   const startIdx = (currentPage - 1) * itemsPerPage + 1;
   const endIdx = Math.min(currentPage * itemsPerPage, filteredLoans.length);
 
-  const handleChasePayment = async (loanId: string) => {
+  const openCustomChaseModal = (loan: LoanApplication) => {
+    const monthly = loan.monthlyPayment || 0;
+    const defaultText = `⚠️ *URGENT PAYMENT REMINDER* ⚠️\n\nDear *${loan.applicantName}*,\n\nOur records show that your monthly installment of *$${monthly.toFixed(2)}* is currently overdue for Loan *#${loan.id}*.\n\nPlease log in to the portal and settle your outstanding payment immediately.\n\n🔗 [Pay Outstanding Balance](https://nexusfinancefintech.vercel.app/)`;
+    
+    setCustomizingLoan(loan);
+    setCustomMessageText(defaultText);
+  };
+
+  const submitCustomChase = async () => {
+    if (!customizingLoan) return;
+    const loanId = customizingLoan.id;
+    
     setChasingId(loanId);
     setSuccessMessage(null);
     setErrorMessage(null);
+    setCustomizingLoan(null); // Close modal
     
     try {
       const res = await apiFetch(`/loans/${encodeURIComponent(loanId)}/chase`, {
-        method: 'POST'
+        method: 'POST',
+        body: JSON.stringify({ message: customMessageText })
       });
       
       if (res.error) {
         setErrorMessage(res.error || 'Failed to dispatch payment chase notifications.');
       } else {
-        setSuccessMessage(`⚡ Chase notification sent successfully for Loan ${loanId}! Telegram, Email, and SMS alerts dispatched.`);
+        setSuccessMessage(`⚡ Custom chase notification sent successfully for Loan ${loanId}! Telegram, Email, and SMS alerts dispatched.`);
         onRefresh();
-        // Clear success message after 5 seconds
         setTimeout(() => setSuccessMessage(null), 5000);
       }
     } catch (err: any) {
@@ -251,7 +267,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                   <div className="col-span-1.5 text-left sm:text-right ml-13 sm:ml-0 w-full sm:w-auto">
                     {isOverdue ? (
                       <button
-                        onClick={() => handleChasePayment(loan.id)}
+                        onClick={() => openCustomChaseModal(loan)}
                         disabled={chasingId === loan.id}
                         className="premium-btn-primary py-2 px-4 rounded-lg flex items-center justify-center gap-1.5 text-[12px] font-bold text-white shadow-sm hover:brightness-105 active:scale-97 disabled:opacity-50 cursor-pointer w-full sm:w-auto"
                       >
@@ -307,6 +323,74 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
         )}
 
       </div>
+
+      {/* Customize Chase Alert Modal */}
+      {customizingLoan && (
+        <div className="fixed inset-0 bg-black/65 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-255 select-none">
+          <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            
+            {/* Modal Header */}
+            <div className="px-6 py-5 border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/30">
+              <h3 className="text-[17px] font-extrabold text-[var(--text-primary)] flex items-center gap-2">
+                <span>⚡</span> Customize Chase Message
+              </h3>
+              <p className="text-[12px] text-[var(--text-secondary)] font-medium mt-1">
+                Customize the emergency alert below. This will be sent instantly via Telegram, Email, and SMS.
+              </p>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
+                  Target Customer
+                </label>
+                <div className="p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border-primary)] flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/15 text-[var(--accent)] flex items-center justify-center text-[12px] font-extrabold">
+                    {customizingLoan.initials}
+                  </div>
+                  <div>
+                    <div className="text-[13px] text-[var(--text-primary)] font-bold">{customizingLoan.applicantName}</div>
+                    <div className="text-[11px] text-[var(--text-secondary)] font-medium">Email: {customizingLoan.applicantEmail}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
+                  Message Content (Markdown formatting supported)
+                </label>
+                <textarea
+                  value={customMessageText}
+                  onChange={(e) => setCustomMessageText(e.target.value)}
+                  className="w-full h-44 bg-[var(--surface-secondary)]/50 border border-[var(--border-primary)] rounded-xl p-3.5 text-[13px] leading-relaxed font-mono focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/10 transition resize-none text-[var(--text-primary)]"
+                  placeholder="Type your custom notice..."
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-[var(--border-primary)] bg-[var(--surface-secondary)]/30 flex justify-end gap-3">
+              <button
+                onClick={() => setCustomizingLoan(null)}
+                className="py-2.5 px-4 text-[12.5px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              
+              <button
+                onClick={submitCustomChase}
+                className="premium-btn-primary py-2.5 px-5 rounded-xl flex items-center gap-2 text-[12.5px] font-bold text-white shadow-md hover:brightness-105 active:scale-97 cursor-pointer"
+              >
+                <Send className="w-4 h-4" />
+                Send Reminder
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
