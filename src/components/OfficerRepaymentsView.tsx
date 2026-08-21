@@ -66,7 +66,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
     setErrorMessage(null);
     
     try {
-      const res = await apiFetch(`/api/loans/${encodeURIComponent(loanId)}/chase`, {
+      const res = await apiFetch(`/loans/${encodeURIComponent(loanId)}/chase`, {
         method: 'POST'
       });
       
