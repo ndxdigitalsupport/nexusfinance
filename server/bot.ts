@@ -53,7 +53,7 @@ const bot = TOKEN && process.env.DISABLE_TELEGRAM_POLLING !== 'true'
 
 // ── Shared keyboards ──────────────────────────────────────────
 
-const siteButton: TelegramBot.InlineKeyboardButton = { text: '🚀 Open NexusFinance', url: SITE_URL };
+const siteButton: TelegramBot.InlineKeyboardButton = { text: '🚀 Open NexusFinance', web_app: { url: SITE_URL } };
 
 function adminMenu(): TelegramBot.SendMessageOptions {
   return {
