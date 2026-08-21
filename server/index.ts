@@ -1773,47 +1773,54 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'su
   let sentSMS = false;
   let sentEmail = false;
 
-  // 1. Telegram
-  if (user.telegram_chat_id && bot) {
-    try {
-      await withTimeout(bot.sendMessage(user.telegram_chat_id, message, { parse_mode: 'Markdown' }));
-      sentTelegram = true;
-    } catch (e) {
-      console.error('Failed to send Telegram chase notice:', e);
-    }
-  }
+  const subject = `🚨 OVERDUE NOTICE: Loan Payment Outstanding - Loan #${loan.id}`;
+  const htmlContent = formatMessageToHtml(message);
+  const plainText = message.replace(/\*(.*?)\*/g, '$1');
 
-  // 2. Email
-  try {
-    const subject = `🚨 OVERDUE NOTICE: Loan Payment Outstanding - Loan #${loan.id}`;
-    const htmlContent = formatMessageToHtml(message);
-    await withTimeout(sendEmail(loan.applicantEmail, subject, `
-      <div style="font-family: sans-serif; padding: 20px; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px;">
-        <h2 style="color: #ef4444; margin-top: 0;">🚨 Urgent: Payment Overdue Notice</h2>
-        <p style="line-height: 1.6; font-size: 14px;">${htmlContent}</p>
-        <div style="margin: 25px 0;">
-          <a href="https://nexusfinancefintech.vercel.app/" style="background: #ef4444; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">Make Payment Now</a>
-        </div>
-        <p style="color: #64748b; font-size: 12px; border-top: 1px solid #e2e8f0; padding-top: 15px; margin-top: 25px;">NexusFinance Fintech Inc. Cambodia</p>
-      </div>
-    `));
-    sentEmail = true;
-  } catch (e) {
-    console.error('Failed to send Email chase notice:', e);
-  }
+  await Promise.allSettled([
+    // 1. Telegram
+    (async () => {
+      if (user.telegram_chat_id && bot) {
+        try {
+          await withTimeout(bot.sendMessage(user.telegram_chat_id, message, { parse_mode: 'Markdown' }));
+          sentTelegram = true;
+        } catch (e) {
+          console.error('Failed to send Telegram chase notice:', e);
+        }
+      }
+    })(),
+    // 2. Email
+    (async () => {
+      try {
+        await withTimeout(sendEmail(loan.applicantEmail, subject, `
+          <div style="font-family: sans-serif; padding: 20px; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px;">
+            <h2 style="color: #ef4444; margin-top: 0;">🚨 Urgent: Payment Overdue Notice</h2>
+            <p style="line-height: 1.6; font-size: 14px;">${htmlContent}</p>
+            <div style="margin: 25px 0;">
+              <a href="https://nexusfinancefintech.vercel.app/" style="background: #ef4444; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">Make Payment Now</a>
+            </div>
+            <p style="color: #64748b; font-size: 12px; border-top: 1px solid #e2e8f0; padding-top: 15px; margin-top: 25px;">NexusFinance Fintech Inc. Cambodia</p>
+          </div>
+        `));
+        sentEmail = true;
+      } catch (e) {
+        console.error('Failed to send Email chase notice:', e);
+      }
+    })(),
+    // 3. SMS
+    (async () => {
+      try {
+        if (user.phone) {
+          await withTimeout(sendSMS(user.phone, plainText));
+          sentSMS = true;
+        }
+      } catch (e) {
+        console.error('Failed to send SMS chase notice:', e);
+      }
+    })()
+  ]);
 
-  // 3. SMS
-  try {
-    if (user.phone) {
-      const plainText = message.replace(/\*(.*?)\*/g, '$1');
-      await withTimeout(sendSMS(user.phone, plainText));
-      sentSMS = true;
-    }
-  } catch (e) {
-    console.error('Failed to send SMS chase notice:', e);
-  }
-
-  await logAudit('payment_chase', `Sent payment chase reminder (Telegram: ${sentTelegram}, Email: ${sentEmail}, SMS: ${sentSMS}) to customer ${loan.applicantEmail}`, req.user);
+  logAudit('payment_chase', `Sent payment chase reminder (Telegram: ${sentTelegram}, Email: ${sentEmail}, SMS: ${sentSMS}) to customer ${loan.applicantEmail}`, req.user);
 
   res.json({ success: true, message: 'Chase reminder notifications dispatched successfully.' });
 });

@@ -47,7 +47,7 @@ function installmentDates(dateStr: string, durationMonths: number): Date[] {
 }
 
 // Bot instance — null if token not set (commands won't register)
-const bot = TOKEN && process.env.DISABLE_TELEGRAM_POLLING !== 'true'
+const bot = TOKEN && process.env.DISABLE_TELEGRAM_POLLING !== 'true' && !process.env.VERCEL
   ? new TelegramBot(TOKEN, { polling: true })
   : null;
 
