@@ -1,8 +1,7 @@
-// Support & Contact Portal View - c8ee6de restore
+// Support & Contact Portal View - Compact Height Redesign
 import React, { useState } from 'react';
 import { apiFetch } from '../api';
 import { showToast } from './Toast';
-import Heading from './Heading';
 import { Phone, Mail, Clock, MapPin, Send, Globe, MessageCircle, User, MessageSquare } from 'lucide-react';
 
 export default function SupportView() {
@@ -24,92 +23,92 @@ export default function SupportView() {
   };
 
   return (
-    <div className="animate-in fade-in duration-200 w-full max-w-[1200px] mx-auto space-y-8 px-2">
+    <div className="animate-in fade-in duration-200 w-full max-w-[1200px] mx-auto space-y-4 px-2">
       
-      {/* Visual Header Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[var(--surface-card)] to-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-3xl p-8 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xs">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-[var(--accent)]/5 rounded-full blur-3xl" />
-        <div className="space-y-2 relative z-10">
-          <h2 className="text-[28px] md:text-[32px] font-sans font-extrabold text-[var(--text-primary)] tracking-tight">
+      {/* Visual Header Banner - Compacted */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-[var(--surface-card)] to-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-3xl p-5 md:py-5 md:px-8 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+        <div className="absolute top-0 right-0 w-60 h-60 bg-[var(--accent)]/5 rounded-full blur-3xl" />
+        <div className="space-y-1 relative z-10">
+          <h2 className="text-[22px] md:text-[24px] font-sans font-extrabold text-[var(--text-primary)] tracking-tight">
             Support & Customer Care
           </h2>
-          <p className="text-[14.5px] text-[var(--text-secondary)] font-medium max-w-xl leading-relaxed">
+          <p className="text-[13px] text-[var(--text-secondary)] font-medium max-w-xl leading-relaxed">
             Get in touch with our support desk or send a message directly to our team.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
         {/* Left Column: Get in touch contact card (Spans 5) */}
-        <div className="lg:col-span-5 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-3xl p-8 flex flex-col justify-between space-y-6 shadow-xs relative overflow-hidden group">
+        <div className="lg:col-span-5 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-3xl p-6 flex flex-col justify-between shadow-xs relative overflow-hidden group">
           <div className="absolute -top-10 -left-10 w-32 h-32 bg-[var(--accent)]/5 rounded-full blur-2xl transition-all duration-300 group-hover:scale-110" />
           
-          <div className="space-y-6 relative z-10">
+          <div className="space-y-4 relative z-10">
             <div>
-              <h3 className="text-[18px] font-sans font-extrabold text-[var(--text-primary)] flex items-center gap-2">
+              <h3 className="text-[16px] font-sans font-extrabold text-[var(--text-primary)] flex items-center gap-2">
                 📍 Get in Touch
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 gap-4.5">
-              <a href="tel:+85581968581" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-[var(--surface-secondary)]/50 transition border border-transparent hover:border-[var(--border-primary)] group/item">
-                <div className="p-3 bg-[var(--surface-secondary)] rounded-xl text-[var(--accent)] group-hover/item:bg-[var(--accent)]/10 transition-colors">
-                  <Phone className="w-5 h-5" />
+            <div className="grid grid-cols-1 gap-2.5">
+              <a href="tel:+85581968581" className="flex items-center gap-3.5 py-2 px-3.5 rounded-2xl hover:bg-[var(--surface-secondary)]/50 transition border border-transparent hover:border-[var(--border-primary)] group/item">
+                <div className="p-2 bg-[var(--surface-secondary)] rounded-lg text-[var(--accent)] group-hover/item:bg-[var(--accent)]/10 transition-colors">
+                  <Phone className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[11px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Phone Number</span>
-                  <span className="text-[15px] font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent)] transition-colors">+855 81 968 581</span>
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Phone Number</span>
+                  <span className="text-[13.5px] font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent)] transition-colors">+855 81 968 581</span>
                 </div>
               </a>
 
-              <a href="https://t.me/Nexusfinance_Support" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-[var(--surface-secondary)]/50 transition border border-transparent hover:border-[var(--border-primary)] group/item">
-                <div className="p-3 bg-[var(--surface-secondary)] rounded-xl text-[var(--accent)] group-hover/item:bg-[var(--accent)]/10 transition-colors">
-                  <MessageCircle className="w-5 h-5" />
+              <a href="https://t.me/Nexusfinance_Support" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3.5 py-2 px-3.5 rounded-2xl hover:bg-[var(--surface-secondary)]/50 transition border border-transparent hover:border-[var(--border-primary)] group/item">
+                <div className="p-2 bg-[var(--surface-secondary)] rounded-lg text-[var(--accent)] group-hover/item:bg-[var(--accent)]/10 transition-colors">
+                  <MessageCircle className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[11px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Telegram Support</span>
-                  <span className="text-[15px] font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent)] transition-colors">@Nexusfinance_Support</span>
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Telegram Support</span>
+                  <span className="text-[13.5px] font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent)] transition-colors">@Nexusfinance_Support</span>
                 </div>
               </a>
 
-              <a href="mailto:support@nexusfinance.asia" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-[var(--surface-secondary)]/50 transition border border-transparent hover:border-[var(--border-primary)] group/item">
-                <div className="p-3 bg-[var(--surface-secondary)] rounded-xl text-[var(--accent)] group-hover/item:bg-[var(--accent)]/10 transition-colors">
-                  <Mail className="w-5 h-5" />
+              <a href="mailto:support@nexusfinance.asia" className="flex items-center gap-3.5 py-2 px-3.5 rounded-2xl hover:bg-[var(--surface-secondary)]/50 transition border border-transparent hover:border-[var(--border-primary)] group/item">
+                <div className="p-2 bg-[var(--surface-secondary)] rounded-lg text-[var(--accent)] group-hover/item:bg-[var(--accent)]/10 transition-colors">
+                  <Mail className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[11px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Email Support</span>
-                  <span className="text-[15px] font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent)] transition-colors">support@nexusfinance.asia</span>
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Email Support</span>
+                  <span className="text-[13.5px] font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent)] transition-colors">support@nexusfinance.asia</span>
                 </div>
               </a>
 
-              <a href="https://www.nexusfinance.asia" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-[var(--surface-secondary)]/50 transition border border-transparent hover:border-[var(--border-primary)] group/item">
-                <div className="p-3 bg-[var(--surface-secondary)] rounded-xl text-[var(--accent)] group-hover/item:bg-[var(--accent)]/10 transition-colors">
-                  <Globe className="w-5 h-5" />
+              <a href="https://www.nexusfinance.asia" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3.5 py-2 px-3.5 rounded-2xl hover:bg-[var(--surface-secondary)]/50 transition border border-transparent hover:border-[var(--border-primary)] group/item">
+                <div className="p-2 bg-[var(--surface-secondary)] rounded-lg text-[var(--accent)] group-hover/item:bg-[var(--accent)]/10 transition-colors">
+                  <Globe className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[11px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Official Website</span>
-                  <span className="text-[15px] font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent)] transition-colors">www.nexusfinance.asia</span>
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Official Website</span>
+                  <span className="text-[13.5px] font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent)] transition-colors">www.nexusfinance.asia</span>
                 </div>
               </a>
 
-              <div className="flex items-center gap-4 p-4 rounded-2xl">
-                <div className="p-3 bg-[var(--surface-secondary)] rounded-xl text-[var(--accent)]">
-                  <MapPin className="w-5 h-5" />
+              <div className="flex items-center gap-3.5 py-2 px-3.5 rounded-2xl">
+                <div className="p-2 bg-[var(--surface-secondary)] rounded-lg text-[var(--accent)]">
+                  <MapPin className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[11px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Corporate Address</span>
-                  <span className="text-[14px] font-bold text-[var(--text-primary)] leading-normal block">OCIC, Phnom Penh, Cambodia</span>
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Corporate Address</span>
+                  <span className="text-[13px] font-bold text-[var(--text-primary)] leading-normal block">OCIC, Phnom Penh, Cambodia</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-4 rounded-2xl">
-                <div className="p-3 bg-[var(--surface-secondary)] rounded-xl text-[var(--accent)]">
-                  <Clock className="w-5 h-5" />
+              <div className="flex items-center gap-3.5 py-2 px-3.5 rounded-2xl">
+                <div className="p-2 bg-[var(--surface-secondary)] rounded-lg text-[var(--accent)]">
+                  <Clock className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[11px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Business Hours</span>
-                  <span className="text-[14px] font-bold text-[var(--text-primary)]">Mon–Fri, 8:00 AM – 5:00 PM ICT</span>
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Business Hours</span>
+                  <span className="text-[13px] font-bold text-[var(--text-primary)]">Mon–Fri, 8:00 AM – 5:00 PM ICT</span>
                 </div>
               </div>
             </div>
@@ -117,23 +116,23 @@ export default function SupportView() {
         </div>
 
         {/* Right Column: Send a message contact form (Spans 7) */}
-        <div className="lg:col-span-7 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-3xl p-8 flex flex-col justify-between shadow-xs relative">
+        <div className="lg:col-span-7 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-3xl p-6 flex flex-col justify-between shadow-xs relative">
           
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div>
-              <h3 className="text-[18px] font-sans font-extrabold text-[var(--text-primary)] flex items-center gap-2">
+              <h3 className="text-[16px] font-sans font-extrabold text-[var(--text-primary)] flex items-center gap-2">
                 ✉️ Send a Message
               </h3>
-              <p className="text-[12px] text-[var(--text-secondary)] mt-1">Leave us a message, and our helpdesk will respond to you within 24 hours.</p>
+              <p className="text-[11.5px] text-[var(--text-secondary)] mt-0.5">Leave us a message, and our helpdesk will respond to you within 24 hours.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-[var(--text-secondary)]">Your Name</label>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-secondary)]">Your Name</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-tertiary)]">
-                      <User className="w-4 h-4" />
+                      <User className="w-3.5 h-3.5" />
                     </div>
                     <input 
                       type="text" 
@@ -141,16 +140,16 @@ export default function SupportView() {
                       onChange={e => setName(e.target.value)} 
                       placeholder="Enter your name" 
                       required 
-                      className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl pl-11 pr-4 py-3.5 text-[14px] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all font-sans" 
+                      className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl pl-10 pr-4 py-2.5 text-[13px] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all font-sans font-semibold" 
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-[var(--text-secondary)]">Your Email Address</label>
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-secondary)]">Your Email Address</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-tertiary)]">
-                      <Mail className="w-4 h-4" />
+                      <Mail className="w-3.5 h-3.5" />
                     </div>
                     <input 
                       type="email" 
@@ -158,35 +157,35 @@ export default function SupportView() {
                       onChange={e => setEmail(e.target.value)} 
                       placeholder="Enter your email" 
                       required 
-                      className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl pl-11 pr-4 py-3.5 text-[14px] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all font-sans" 
+                      className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl pl-10 pr-4 py-2.5 text-[13px] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all font-sans font-semibold" 
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-[var(--text-secondary)]">Message Details</label>
+              <div className="space-y-1.5">
+                <label className="block text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-secondary)]">Message Details</label>
                 <div className="relative">
-                  <div className="absolute top-3.5 left-3.5 pointer-events-none text-[var(--text-tertiary)]">
-                    <MessageSquare className="w-4 h-4" />
+                  <div className="absolute top-3 left-3.5 pointer-events-none text-[var(--text-tertiary)]">
+                    <MessageSquare className="w-3.5 h-3.5" />
                   </div>
                   <textarea 
                     value={message} 
                     onChange={e => setMessage(e.target.value)} 
                     placeholder="Enter your message" 
-                    rows={6} 
+                    rows={3} 
                     required 
-                    className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl pl-11 pr-4 py-3.5 text-[14px] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all resize-none font-sans" 
+                    className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl pl-10 pr-4 py-2.5 text-[13px] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all resize-none font-sans font-semibold" 
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-end pt-1">
                 <button 
                   type="submit" 
-                  className="px-8 py-4 premium-btn-primary text-white rounded-xl text-[14px] font-bold cursor-pointer flex items-center gap-2 hover:shadow-lg hover:brightness-105 active:scale-98 transition duration-200"
+                  className="px-6 py-3 premium-btn-primary text-white rounded-xl text-[13px] font-bold cursor-pointer flex items-center gap-2 hover:shadow-lg hover:brightness-105 active:scale-98 transition duration-200"
                 >
-                  <Send className="w-4 h-4" /> {sent ? 'Message Sent!' : 'Send Message'}
+                  <Send className="w-3.5 h-3.5" /> {sent ? 'Message Sent!' : 'Send Message'}
                 </button>
               </div>
             </form>
