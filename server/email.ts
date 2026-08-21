@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import { sendBrevoEmail } from './brevo.js';
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
@@ -13,24 +14,23 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendEmail(to: string, subject: string, html: string) {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.log(`\n  📧 Email not sent (SMTP not configured): ${subject} -> ${to}`);
-    console.log(`  └─ HTML body: ${html.slice(0, 200)}...`);
-    return { success: false, info: 'SMTP not configured. Email logged to console.' };
+  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    try {
+      const info = await transporter.sendMail({
+        from: `"NexusFinance" <${process.env.SMTP_USER}>`,
+        to,
+        subject,
+        html,
+      });
+      console.log(`  📧 Email sent (SMTP): ${subject} -> ${to} (id: ${info.messageId})`);
+      return { success: true, messageId: info.messageId };
+    } catch (err) {
+      console.error(`  📧 Email send failed (SMTP): ${subject} -> ${to}`, err);
+    }
   }
-  try {
-    const info = await transporter.sendMail({
-      from: `"NexusFinance" <${process.env.SMTP_USER}>`,
-      to,
-      subject,
-      html,
-    });
-    console.log(`  📧 Email sent: ${subject} -> ${to} (id: ${info.messageId})`);
-    return { success: true, messageId: info.messageId };
-  } catch (err) {
-    console.error(`  📧 Email send failed: ${subject} -> ${to}`, err);
-    return { success: false, error: String(err) };
-  }
+
+  // Fallback/use Brevo API
+  return sendBrevoEmail(to, subject, html);
 }
 
 export const emailTemplates = {
