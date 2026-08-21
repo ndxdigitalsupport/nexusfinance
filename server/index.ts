@@ -20,7 +20,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import fs from 'fs';
 import cookieParser from 'cookie-parser';
-import { setNotifyUserCallback } from './bot.js';
+import bot, { setNotifyUserCallback } from './bot.js';
 import cron from 'node-cron';
 import TelegramBot from 'node-telegram-bot-api';
 
@@ -74,6 +74,100 @@ let notifyUser = function(userId: number, text: string) {
   const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
   db.from('nexus_notifications').insert({ userId, text, time }).then(null, (err) => console.error('notifyUser failed:', err));
 };
+
+async function notifyAdminOfNewLoan(loan: any) {
+  try {
+    const { data: config } = await db.from('nexus_config').select('telegram_admin_id').eq('id', 1).single();
+    if (config && config.telegram_admin_id && bot) {
+      const adminChatId = parseInt(config.telegram_admin_id, 10);
+      if (adminChatId) {
+        const isApproved = loan.status === 'Approved' || loan.status === 'approved';
+        const statusText = isApproved ? '🟢 Auto-Approved & Disbursed' : '⏳ Pending Underwriting Review';
+        
+        const message = `🔔 *New Loan Application Received!*\n\n` +
+          `• *Applicant*: ${loan.applicantName}\n` +
+          `• *Loan ID*: ${loan.id}\n` +
+          `• *Amount*: $${Number(loan.amount).toLocaleString()}\n` +
+          `• *Loan Type*: ${loan.type}\n` +
+          `• *Purpose*: ${loan.purpose || 'Not specified'}\n` +
+          `• *Credit Score*: ${loan.creditScore || 'N/A'}\n` +
+          `• *Status*: *${statusText}*\n\n` +
+          `Please review the application on the platform dashboard.`;
+        
+        await bot.sendMessage(adminChatId, message, {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [[{ text: '🚀 View Applications', web_app: { url: process.env.SITE_URL || 'https://nexusfinancefintech.vercel.app' } }]]
+          }
+        });
+      }
+    }
+  } catch (err) {
+    console.error('Failed to notify admin of new loan via Telegram:', err);
+  }
+
+  try {
+    const { data: staff } = await db.from('nexus_users').select('name, email').in('role', ['super-admin', 'loan-officer']);
+    if (staff && staff.length > 0) {
+      const isApproved = loan.status === 'Approved' || loan.status === 'approved';
+      const statusText = isApproved ? 'Auto-Approved & Disbursed' : 'Pending Underwriting Review';
+
+      const emailPromises = staff.map(member => {
+        const subject = `[NexusFinance] New Loan Application: ${loan.id}`;
+        const html = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 12px; background-color: #ffffff;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <h2 style="color: #0d9488; margin: 0;">NexusFinance</h2>
+              <p style="color: #666666; margin: 5px 0 0 0; font-size: 14px;">Smart Lending Platform Notification</p>
+            </div>
+            
+            <div style="padding: 20px; background-color: #f9f9f9; border-radius: 8px; margin-bottom: 20px;">
+              <h3 style="margin-top: 0; color: #111827;">New Loan Application Received</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; color: #666666; font-weight: bold; width: 40%;">Applicant Name:</td>
+                  <td style="padding: 8px 0; color: #111827; font-weight: bold;">${loan.applicantName}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #666666; font-weight: bold;">Loan ID:</td>
+                  <td style="padding: 8px 0; color: #111827; font-family: monospace;">${loan.id}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #666666; font-weight: bold;">Requested Amount:</td>
+                  <td style="padding: 8px 0; color: #0d9488; font-weight: bold;">$${Number(loan.amount).toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #666666; font-weight: bold;">Loan Type:</td>
+                  <td style="padding: 8px 0; color: #111827;">${loan.type}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #666666; font-weight: bold;">Purpose:</td>
+                  <td style="padding: 8px 0; color: #111827;">${loan.purpose || 'Not specified'}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #666666; font-weight: bold;">Credit Score:</td>
+                  <td style="padding: 8px 0; color: #111827;">${loan.creditScore || 'N/A'}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #666666; font-weight: bold;">Status:</td>
+                  <td style="padding: 8px 0; color: ${isApproved ? '#10b981' : '#f59e0b'}; font-weight: bold;">${statusText}</td>
+                </tr>
+              </table>
+            </div>
+            
+            <div style="text-align: center;">
+              <a href="${process.env.SITE_URL || 'https://nexusfinancefintech.vercel.app'}" style="display: inline-block; padding: 12px 24px; background-color: #0d9488; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold;">Review Application</a>
+            </div>
+          </div>
+        `;
+        return sendEmail(member.email, subject, html).catch(() => null);
+      });
+      return Promise.all(emailPromises);
+    }
+  } catch (err) {
+    console.error('Failed to send new loan email notifications:', err);
+  }
+}
 
 let reminderCronTask: any = null;
 
@@ -522,6 +616,7 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
     dispatchWebhook('loan.created', { loanId: newLoan.id, applicant: newLoan.applicantName, amount: newLoan.amount, type: newLoan.type });
   }
 
+  notifyAdminOfNewLoan(newLoan).catch((err) => console.error('Failed to notify admin of new loan:', err));
   res.status(201).json(newLoan);
 });
 
