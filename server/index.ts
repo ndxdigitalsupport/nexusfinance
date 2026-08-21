@@ -97,7 +97,7 @@ async function notifyAdminOfNewLoan(loan: any) {
         await bot.sendMessage(adminChatId, message, {
           parse_mode: 'Markdown',
           reply_markup: {
-            inline_keyboard: [[{ text: '🚀 View Applications', web_app: { url: process.env.SITE_URL || 'https://nexusfinancefintech.vercel.app' } }]]
+            inline_keyboard: [[{ text: '🚀 View Applications', url: process.env.SITE_URL || 'https://nexusfinancefintech.vercel.app' }]]
           }
         });
       }
