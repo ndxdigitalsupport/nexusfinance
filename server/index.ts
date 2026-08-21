@@ -1817,6 +1817,21 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'su
       } catch (e) {
         console.error('Failed to send SMS chase notice:', e);
       }
+    })(),
+    // 4. In-App Notification
+    (async () => {
+      try {
+        const time = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+        const text = `🚨 OVERDUE PAYMENT WARNING: Your monthly installment of $${monthly.toFixed(2)} is overdue for Loan ${loan.id}. Please repay immediately.`;
+        await db.from('nexus_notifications').insert({
+          userId: user.id,
+          text,
+          time,
+          unread: true
+        });
+      } catch (e) {
+        console.error('Failed to create in-app notice:', e);
+      }
     })()
   ]);
 
