@@ -19,6 +19,10 @@ export interface LoanApplication {
   creditScore: number;
   monthlyIncome: number;
   durationMonths: number;
+  monthlyPayment?: number;
+  overdueCount?: number;
+  nextPaymentDate?: string | null;
+  repaymentStatus?: 'On Time' | 'Overdue' | 'Paid';
 }
 
 export interface Task {

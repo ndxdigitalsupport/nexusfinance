@@ -542,7 +542,55 @@ app.get('/api/loans', authMiddleware, async (req, res) => {
     query = query.eq('applicantEmail', req.user.email);
   }
   const { data: loans } = await query.order('date', { ascending: false });
-  res.json(loans || []);
+
+  // Calculate dynamic repayment metrics for active/approved loans
+  const loansWithRepayments = await Promise.all((loans || []).map(async (loan) => {
+    const isApproved = ['approved', 'Approved', 'active', 'Active', 'disbursed', 'Disbursed'].includes(loan.status);
+    if (!isApproved) return loan;
+
+    const amount = Number(loan.amount) || 0;
+    const duration = Number(loan.durationMonths) || 1;
+    const monthly = calculateMonthlyPayment(amount, duration);
+    
+    // installment dates
+    const start = new Date(loan.date);
+    const installments: Date[] = [];
+    for (let m = 1; m <= duration; m++) {
+      const d = new Date(start);
+      d.setMonth(d.getMonth() + m);
+      installments.push(d);
+    }
+
+    // calculate due status
+    let overdueCount = 0;
+    let nextDue: Date | null = null;
+    for (const d of installments) {
+      // Calculate days until
+      const diffTime = d.getTime() - new Date().getTime();
+      const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (days < 0) {
+        overdueCount++;
+      } else if (nextDue === null && days <= 7) {
+        nextDue = d;
+      }
+    }
+    if (!nextDue) {
+      const diffTimes = installments.map(d => d.getTime() - new Date().getTime());
+      const futureIdx = diffTimes.findIndex(t => t >= 0);
+      nextDue = futureIdx >= 0 ? installments[futureIdx] : installments[installments.length - 1];
+    }
+
+    return {
+      ...loan,
+      monthlyPayment: monthly,
+      overdueCount,
+      nextPaymentDate: nextDue ? nextDue.toISOString() : null,
+      repaymentStatus: overdueCount > 0 ? 'Overdue' : 'On Time'
+    };
+  }));
+
+  res.json(loansWithRepayments);
 });
 
 app.post('/api/loans', authMiddleware, async (req, res) => {
@@ -1672,6 +1720,90 @@ if (process.env.NODE_ENV === 'production') {
     }
   });
 }
+
+// Amortization math helpers for Repayment Schedule calculations
+function calculateMonthlyPayment(amount: number, durationMonths: number, annualRate = 0.054): number {
+  if (durationMonths <= 0) return amount;
+  const r = annualRate / 12;
+  const n = durationMonths;
+  if (r === 0) return amount / n;
+  return (amount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
+app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
+  const { id } = req.params;
+  const cleanId = id.startsWith('#') ? id : '#' + id;
+  const { data: loan } = await db.from('nexus_loans').select('*').eq('id', cleanId).maybeSingle();
+  
+  if (!loan) {
+    return res.status(404).json({ error: 'Loan application not found.' });
+  }
+
+  // Fetch target customer
+  const { data: user } = await db.from('nexus_users').select('*').eq('email', loan.applicantEmail).maybeSingle();
+  if (!user) {
+    return res.status(404).json({ error: 'Applicant customer account not found.' });
+  }
+
+  const amount = Number(loan.amount) || 0;
+  const duration = Number(loan.durationMonths) || 1;
+  const monthly = calculateMonthlyPayment(amount, duration);
+
+  const message = `⚠️ *URGENT PAYMENT REMINDER* ⚠️\n\nDear *${loan.applicantName}*,\n\nOur records show that your monthly installment of *$${monthly.toFixed(2)}* is currently overdue for Loan *#${loan.id}*.\n\nPlease log in to the portal and settle your outstanding payment immediately.\n\n🔗 [Pay Outstanding Balance](https://nexusfinancefintech.vercel.app/)`;
+
+  let sentTelegram = false;
+  let sentSMS = false;
+  let sentEmail = false;
+
+  // 1. Telegram
+  if (user.telegram_chat_id) {
+    try {
+      const { default: TelegramBot } = await import('node-telegram-bot-api');
+      const token = process.env.TELEGRAM_BOT_TOKEN;
+      if (token) {
+        const tempBot = new TelegramBot(token);
+        await tempBot.sendMessage(user.telegram_chat_id, message, { parse_mode: 'Markdown' });
+        sentTelegram = true;
+      }
+    } catch (e) {
+      console.error('Failed to send Telegram chase notice:', e);
+    }
+  }
+
+  // 2. Email
+  try {
+    const subject = `🚨 OVERDUE NOTICE: Loan Payment Outstanding - Loan #${loan.id}`;
+    await sendEmail(loan.applicantEmail, subject, `
+      <div style="font-family: sans-serif; padding: 20px; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px;">
+        <h2 style="color: #ef4444; margin-top: 0;">🚨 Urgent: Payment Overdue Notice</h2>
+        <p>Dear ${loan.applicantName},</p>
+        <p>This is a formal notice that your monthly installment of <strong>$${monthly.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong> for Loan <strong>${loan.id}</strong> is overdue.</p>
+        <p>Please log in to the customer dashboard and complete your payment immediately to avoid negative credit marks or late fees.</p>
+        <div style="margin: 25px 0;">
+          <a href="https://nexusfinancefintech.vercel.app/" style="background: #ef4444; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">Make Payment Now</a>
+        </div>
+        <p style="color: #64748b; font-size: 12px; border-top: 1px solid #e2e8f0; padding-top: 15px; margin-top: 25px;">NexusFinance Fintech Inc. Cambodia</p>
+      </div>
+    `);
+    sentEmail = true;
+  } catch (e) {
+    console.error('Failed to send Email chase notice:', e);
+  }
+
+  // 3. SMS
+  try {
+    if (user.phone) {
+      await sendSMS(user.phone, `NexusFinance Urgent Notice: Your monthly installment of $${monthly.toFixed(0)} is overdue for Loan ${loan.id}. Please settle immediately.`);
+      sentSMS = true;
+    }
+  } catch (e) {
+    console.error('Failed to send SMS chase notice:', e);
+  }
+
+  await logAudit('payment_chase', `Sent payment chase reminder (Telegram: ${sentTelegram}, Email: ${sentEmail}, SMS: ${sentSMS}) to customer ${loan.applicantEmail}`, req.user);
+
+  res.json({ success: true, message: 'Chase reminder notifications dispatched successfully.' });
+});
 
 // ── 404 catch-all ────────────────────────────────────────────
 

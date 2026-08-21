@@ -38,6 +38,7 @@ const LoanManagement = lazy(() => import('./components/LoanManagement'));
 const WebhooksPage = lazy(() => import('./components/WebhooksPage'));
 const SupportView = lazy(() => import('./components/SupportView'));
 const UsersView = lazy(() => import('./components/UsersView'));
+const OfficerRepaymentsView = lazy(() => import('./components/OfficerRepaymentsView'));
 const ReminderSettingsView = lazy(() => import('./components/ReminderSettingsView'));
 const BroadcastView = lazy(() => import('./components/BroadcastView'));
 
@@ -442,7 +443,7 @@ export default function App() {
                 <p className="text-[10px] font-bold uppercase tracking-widest px-3 pb-2 pt-1" style={{ color: 'var(--sidebar-text-muted)' }}>Menu</p>
                 {(() => {
                   const items = currentPortal === 'loan-officer'
-                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }]
+                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'repayments', label: 'Repayments Checklist', icon: ClipboardList }]
                     : currentPortal === 'super-admin'
                     ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'manage', label: 'Loan Management', icon: ClipboardList }, { id: 'webhooks', label: 'Webhooks', icon: Webhook }, { id: 'users', label: 'Users', icon: Users }, { id: 'reminders', label: 'Reminders', icon: Bell }, { id: 'broadcast', label: 'Broadcast', icon: Megaphone }, { id: 'audit', label: 'Audit Log', icon: ClipboardList }, { id: 'settings', label: 'Settings', icon: Settings }]
                     : [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'loans', label: 'Loans Ledger', icon: Landmark }, { id: 'documents', label: 'KYC Documents', icon: FileText }, { id: 'calculator', label: 'Loan Calculator', icon: Calculator }, { id: 'wallets', label: 'Wallets', icon: Wallet }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }, { id: 'transactions', label: 'History Logs', icon: History }];
@@ -566,8 +567,8 @@ export default function App() {
               <WebhooksPage />
             ) : activeMenu === 'manage' ? (
               <LoanManagement applications={applications} onRefresh={refetchAll} />
-            ) : activeMenu === 'tasks' ? (
-              <ComplianceTasksSection tasks={tasks} taskPage={taskPage} setTaskPage={setTaskPage} onJoinMeeting={handleJoinMeeting} />
+            ) : activeMenu === 'repayments' ? (
+              <OfficerRepaymentsView loans={applications} onRefresh={refetchAll} />
             ) : null
           )}
 
