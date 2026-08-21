@@ -640,12 +640,40 @@ function formatAuditDetails(details: string): string {
       const jsonStr = details.replace('Platform config updated:', '').trim();
       const configObj = JSON.parse(jsonStr);
       const parts: string[] = [];
-      if (configObj.baseInterestRate !== undefined) parts.push(`APR: ${configObj.baseInterestRate}%`);
-      if (configObj.autoApproveLimit !== undefined) parts.push(`Auto-Approve Limit: $${configObj.autoApproveLimit.toLocaleString()}`);
-      if (configObj.kycRequired !== undefined) parts.push(`KYC: ${configObj.kycRequired ? 'Mandatory' : 'Optional'}`);
-      if (configObj.reminder_time !== undefined) parts.push(`Sweep Time: ${configObj.reminder_time}`);
-      if (configObj.telegram_admin_id !== undefined) parts.push(`Telegram Admin: ${configObj.telegram_admin_id || 'None'}`);
-      if (configObj.enable_admin_reports !== undefined) parts.push(`Reports: ${configObj.enable_admin_reports ? 'On' : 'Off'}`);
+
+      const formatVal = (item: any, formatter: (val: any) => string) => {
+        if (item === undefined || item === null) return '';
+        if (typeof item === 'object' && 'from' in item && 'to' in item) {
+          if (item.from === item.to) return formatter(item.to);
+          return `${formatter(item.from)} ➔ ${formatter(item.to)}`;
+        }
+        return formatter(item);
+      };
+
+      if (configObj.baseInterestRate !== undefined) {
+        const valStr = formatVal(configObj.baseInterestRate, (v) => `${v}%`);
+        if (valStr) parts.push(`APR: ${valStr}`);
+      }
+      if (configObj.autoApproveLimit !== undefined) {
+        const valStr = formatVal(configObj.autoApproveLimit, (v) => `$${Number(v).toLocaleString()}`);
+        if (valStr) parts.push(`Auto-Approve Limit: ${valStr}`);
+      }
+      if (configObj.kycRequired !== undefined) {
+        const valStr = formatVal(configObj.kycRequired, (v) => v ? 'Mandatory' : 'Optional');
+        if (valStr) parts.push(`KYC: ${valStr}`);
+      }
+      if (configObj.reminder_time !== undefined) {
+        const valStr = formatVal(configObj.reminder_time, (v) => String(v));
+        if (valStr) parts.push(`Sweep Time: ${valStr}`);
+      }
+      if (configObj.telegram_admin_id !== undefined) {
+        const valStr = formatVal(configObj.telegram_admin_id, (v) => v ? String(v) : 'None');
+        if (valStr) parts.push(`Telegram Admin: ${valStr}`);
+      }
+      if (configObj.enable_admin_reports !== undefined) {
+        const valStr = formatVal(configObj.enable_admin_reports, (v) => v ? 'On' : 'Off');
+        if (valStr) parts.push(`Reports: ${valStr}`);
+      }
       return `Updated Platform Config (${parts.join(', ')})`;
     } catch {
       return details;

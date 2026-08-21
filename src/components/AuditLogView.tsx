@@ -188,12 +188,40 @@ function formatAuditDetails(details: string): string {
       const jsonStr = details.replace('Platform config updated:', '').trim();
       const configObj = JSON.parse(jsonStr);
       const parts: string[] = [];
-      if (configObj.baseInterestRate !== undefined) parts.push(`APR: ${configObj.baseInterestRate}%`);
-      if (configObj.autoApproveLimit !== undefined) parts.push(`Auto-Approve Limit: $${configObj.autoApproveLimit.toLocaleString()}`);
-      if (configObj.kycRequired !== undefined) parts.push(`KYC: ${configObj.kycRequired ? 'Mandatory' : 'Optional'}`);
-      if (configObj.reminder_time !== undefined) parts.push(`Sweep Time: ${configObj.reminder_time}`);
-      if (configObj.telegram_admin_id !== undefined) parts.push(`Telegram Admin: ${configObj.telegram_admin_id || 'None'}`);
-      if (configObj.enable_admin_reports !== undefined) parts.push(`Reports: ${configObj.enable_admin_reports ? 'On' : 'Off'}`);
+
+      const formatVal = (item: any, formatter: (val: any) => string) => {
+        if (item === undefined || item === null) return '';
+        if (typeof item === 'object' && 'from' in item && 'to' in item) {
+          if (item.from === item.to) return formatter(item.to);
+          return `${formatter(item.from)} ➔ ${formatter(item.to)}`;
+        }
+        return formatter(item);
+      };
+
+      if (configObj.baseInterestRate !== undefined) {
+        const valStr = formatVal(configObj.baseInterestRate, (v) => `${v}%`);
+        if (valStr) parts.push(`APR: ${valStr}`);
+      }
+      if (configObj.autoApproveLimit !== undefined) {
+        const valStr = formatVal(configObj.autoApproveLimit, (v) => `$${Number(v).toLocaleString()}`);
+        if (valStr) parts.push(`Auto-Approve Limit: ${valStr}`);
+      }
+      if (configObj.kycRequired !== undefined) {
+        const valStr = formatVal(configObj.kycRequired, (v) => v ? 'Mandatory' : 'Optional');
+        if (valStr) parts.push(`KYC: ${valStr}`);
+      }
+      if (configObj.reminder_time !== undefined) {
+        const valStr = formatVal(configObj.reminder_time, (v) => String(v));
+        if (valStr) parts.push(`Sweep Time: ${valStr}`);
+      }
+      if (configObj.telegram_admin_id !== undefined) {
+        const valStr = formatVal(configObj.telegram_admin_id, (v) => v ? String(v) : 'None');
+        if (valStr) parts.push(`Telegram Admin: ${valStr}`);
+      }
+      if (configObj.enable_admin_reports !== undefined) {
+        const valStr = formatVal(configObj.enable_admin_reports, (v) => v ? 'On' : 'Off');
+        if (valStr) parts.push(`Reports: ${valStr}`);
+      }
       return `Updated Platform Config (${parts.join(', ')})`;
     } catch {
       return details;
@@ -209,6 +237,23 @@ function parseAuditExplanation(log: any) {
     try {
       const jsonStr = details.replace('Platform config updated:', '').trim();
       const configObj = JSON.parse(jsonStr);
+
+      const renderVal = (propKey: string, formatter: (val: any) => string | React.ReactNode) => {
+        const item = configObj[propKey];
+        if (item === undefined) return null;
+        if (item && typeof item === 'object' && 'from' in item && 'to' in item) {
+          if (item.from === item.to) return <span className="font-mono text-[var(--text-primary)] font-extrabold">{formatter(item.to)}</span>;
+          return (
+            <span className="flex items-center gap-1.5 font-mono">
+              <span className="text-[var(--text-tertiary)] line-through">{formatter(item.from)}</span>
+              <span className="text-[var(--text-tertiary)] text-[10px]">➔</span>
+              <span className="text-[var(--accent)] font-extrabold">{formatter(item.to)}</span>
+            </span>
+          );
+        }
+        return <span className="font-mono text-[var(--text-primary)] font-extrabold">{formatter(item)}</span>;
+      };
+
       return (
         <div className="space-y-3">
           <p className="text-[13px] text-[var(--text-secondary)] font-medium">The system configuration parameters were updated with the following values:</p>
@@ -216,45 +261,43 @@ function parseAuditExplanation(log: any) {
             {configObj.baseInterestRate !== undefined && (
               <div>
                 <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider">Interest Rate (APR)</span>
-                <span className="text-[14px] text-[var(--accent)] font-extrabold font-mono">{configObj.baseInterestRate}%</span>
+                {renderVal('baseInterestRate', (v) => `${v}%`)}
               </div>
             )}
             {configObj.autoApproveLimit !== undefined && (
               <div>
                 <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider">Auto-Approve Limit</span>
-                <span className="text-[14px] text-[var(--text-primary)] font-extrabold font-mono">${configObj.autoApproveLimit.toLocaleString()}</span>
+                {renderVal('autoApproveLimit', (v) => `$${Number(v).toLocaleString()}`)}
               </div>
             )}
             {configObj.maxLoanAmount !== undefined && (
               <div>
                 <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider">Max Loan Amount</span>
-                <span className="text-[14px] text-[var(--text-primary)] font-extrabold font-mono">${configObj.maxLoanAmount.toLocaleString()}</span>
+                {renderVal('maxLoanAmount', (v) => `$${Number(v).toLocaleString()}`)}
               </div>
             )}
             {configObj.kycRequired !== undefined && (
               <div>
                 <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider">Video KYC Requirement</span>
-                <span className={`text-[13px] font-bold ${configObj.kycRequired ? 'text-amber-600' : 'text-emerald-600'}`}>
-                  {configObj.kycRequired ? 'Mandatory' : 'Optional'}
-                </span>
+                {renderVal('kycRequired', (v) => v ? 'Mandatory' : 'Optional')}
               </div>
             )}
             {configObj.reminder_time !== undefined && (
               <div>
                 <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider">Sweep Schedule Time</span>
-                <span className="text-[13px] text-[var(--text-primary)] font-bold font-mono">{configObj.reminder_time}</span>
+                {renderVal('reminder_time', (v) => String(v))}
               </div>
             )}
             {configObj.telegram_admin_id !== undefined && (
               <div>
                 <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider">Telegram Admin ID</span>
-                <span className="text-[13px] text-[var(--text-primary)] font-bold font-mono">{configObj.telegram_admin_id || 'None'}</span>
+                {renderVal('telegram_admin_id', (v) => v ? String(v) : 'None')}
               </div>
             )}
             {configObj.enable_admin_reports !== undefined && (
               <div>
                 <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider">Admin Status Reports</span>
-                <span className="text-[13px] text-[var(--text-primary)] font-bold">{configObj.enable_admin_reports ? 'Enabled' : 'Disabled'}</span>
+                {renderVal('enable_admin_reports', (v) => v ? 'Enabled' : 'Disabled')}
               </div>
             )}
           </div>
@@ -270,6 +313,23 @@ function parseAuditExplanation(log: any) {
       const match = details.match(/Updated reminder ID \d+:\s*(.*)/);
       if (match) {
         const configObj = JSON.parse(match[1]);
+
+        const renderVal = (propKey: string, formatter: (val: any) => string | React.ReactNode) => {
+          const item = configObj[propKey];
+          if (item === undefined) return null;
+          if (item && typeof item === 'object' && 'from' in item && 'to' in item) {
+            if (item.from === item.to) return <span className="font-mono text-[var(--text-primary)] font-bold">{formatter(item.to)}</span>;
+            return (
+              <span className="flex items-center gap-1.5 font-mono">
+                <span className="text-[var(--text-tertiary)] line-through">{formatter(item.from)}</span>
+                <span className="text-[var(--text-tertiary)] text-[10px]">➔</span>
+                <span className="text-[var(--accent)] font-bold">{formatter(item.to)}</span>
+              </span>
+            );
+          }
+          return <span className="font-mono text-[var(--text-primary)] font-bold">{formatter(item)}</span>;
+        };
+
         return (
           <div className="space-y-3">
             <p className="text-[13px] text-[var(--text-secondary)] font-medium">A repayment notification reminder was updated:</p>
@@ -277,21 +337,21 @@ function parseAuditExplanation(log: any) {
               {configObj.name !== undefined && (
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider">Reminder Name</span>
-                  <span className="text-[13px] text-[var(--text-primary)] font-bold">{configObj.name}</span>
+                  {renderVal('name', (v) => String(v))}
                 </div>
               )}
               {configObj.days_before !== undefined && (
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider">Days Before Due Date</span>
-                  <span className="text-[14px] text-[var(--text-primary)] font-extrabold font-mono">{configObj.days_before} days</span>
+                  {renderVal('days_before', (v) => `${v} days`)}
                 </div>
               )}
               {configObj.message_template !== undefined && (
                 <div className="md:col-span-2">
                   <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider">Message Template</span>
-                  <span className="text-[13px] text-[var(--text-secondary)] font-medium mt-1.5 block leading-relaxed p-3 bg-[var(--surface-primary)] border border-[var(--border-primary)] rounded-xl font-mono">
-                    {configObj.message_template}
-                  </span>
+                  <div className="mt-1.5 p-3 bg-[var(--surface-primary)] border border-[var(--border-primary)] rounded-xl font-mono text-[13px] text-[var(--text-secondary)] whitespace-pre-wrap leading-relaxed">
+                    {renderVal('message_template', (v) => String(v))}
+                  </div>
                 </div>
               )}
             </div>
