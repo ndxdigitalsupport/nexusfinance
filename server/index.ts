@@ -1474,14 +1474,24 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     }
     const finalPhone = '+' + normalizedPhone;
 
-    const { data: existing } = await db.from('nexus_users').select('id').eq('email', email).maybeSingle();
+    const { data: existing } = await db.from('nexus_users').select('id, email_verified').eq('email', email).maybeSingle();
     if (existing) {
-      return res.status(400).json({ error: 'An account with this email already exists.' });
+      if (existing.email_verified === false) {
+        // Silently delete the unverified stale registration
+        await db.from('nexus_users').delete().eq('id', existing.id);
+      } else {
+        return res.status(400).json({ error: 'An account with this email already exists.' });
+      }
     }
 
-    const { data: existingPhone } = await db.from('nexus_users').select('id').eq('phone', finalPhone).maybeSingle();
+    const { data: existingPhone } = await db.from('nexus_users').select('id, email_verified').eq('phone', finalPhone).maybeSingle();
     if (existingPhone) {
-      return res.status(400).json({ error: 'An account with this phone number already exists.' });
+      if (existingPhone.email_verified === false) {
+        // Silently delete the unverified stale registration
+        await db.from('nexus_users').delete().eq('id', existingPhone.id);
+      } else {
+        return res.status(400).json({ error: 'An account with this phone number already exists.' });
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
