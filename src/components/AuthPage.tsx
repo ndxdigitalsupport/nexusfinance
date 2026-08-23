@@ -963,7 +963,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                             </ol>
                             <div className="pt-2">
                               <a
-                                href="https://t.me/nexusfinance_bot"
+                                href="https://t.me/nexusfinancefintech_bot"
                                 target="_blank"
                                 rel="noreferrer"
                                 className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[13px] py-3 rounded-xl flex items-center justify-center gap-1.5 transition shadow-sm hover:shadow active:scale-98 cursor-pointer text-center"
