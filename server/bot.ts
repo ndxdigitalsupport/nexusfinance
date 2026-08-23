@@ -325,6 +325,34 @@ if (bot) {
     const userId = msg.from?.id;
 
     if (userId === ADMIN_ID) {
+      const user = await getLinkedUser(chatId);
+      if (!user) {
+        return bot.sendMessage(chatId,
+`🤖 *NexusFinance Admin Bot*
+
+Commands:
+/stats — Platform statistics
+/loans — Recent loan applications
+/users — User list
+/notifications — Latest notifications
+/broadcast — Send message to all linked users
+/send <email> — Send message to a specific user
+/reminder-check — Manually trigger payment reminders
+/help — This message
+
+💡 *Note*: To link this Telegram to a website customer account, click the button below to share your contact.`,
+          {
+            parse_mode: 'Markdown',
+            reply_markup: {
+              keyboard: [
+                [{ text: '📱 Share Phone Number to Link', request_contact: true }]
+              ],
+              resize_keyboard: true,
+              one_time_keyboard: true
+            }
+          }
+        );
+      }
       return bot.sendMessage(chatId,
 `🤖 *NexusFinance Admin Bot*
 
@@ -383,6 +411,31 @@ Example: \`/link john@example.com\``,
   bot.onText(/\/help/, async (msg) => {
     const chatId = msg.chat.id;
     if (msg.from?.id === ADMIN_ID) {
+      const user = await getLinkedUser(chatId);
+      if (!user) {
+        return bot.sendMessage(chatId,
+`*Admin Commands:*
+/stats — Platform statistics
+/loans — Recent loan applications
+/users — User list
+/notifications — Latest notifications
+/broadcast — Send message to all linked users
+/send <email> — Send message to a specific user
+/reminder-check — Manually trigger payment reminders
+
+💡 *Note*: To link this Telegram to a website customer account, click the button below to share your contact.`,
+          {
+            parse_mode: 'Markdown',
+            reply_markup: {
+              keyboard: [
+                [{ text: '📱 Share Phone Number to Link', request_contact: true }]
+              ],
+              resize_keyboard: true,
+              one_time_keyboard: true
+            }
+          }
+        );
+      }
       return bot.sendMessage(chatId,
 `*Admin Commands:*
 /stats — Platform statistics
