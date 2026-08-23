@@ -442,25 +442,28 @@ app.post('/api/auth/otp/send', authLimiter, sendOtpHandler);
 const verifyOtpHandler = async (req: express.Request, res: express.Response) => {
   try {
     const { phone_number, session_id, code } = req.body;
-    if (!phone_number || !session_id || !code) {
-      return res.status(400).json({ status: 'error', message: 'phone_number, session_id, and code are required.' });
+    if (!phone_number || !code) {
+      return res.status(400).json({ status: 'error', message: 'phone_number and code are required.' });
     }
     
     const finalPhone = normalizePhoneInput(phone_number);
-    const session = otpSessions.get(session_id);
-    if (!session) {
-      return res.status(400).json({ status: 'error', message: 'Invalid or expired session ID.' });
-    }
-    if (session.phone !== finalPhone) {
-      return res.status(400).json({ status: 'error', message: 'Phone number does not match this session.' });
-    }
-    if (Date.now() > session.expiresAt) {
-      otpSessions.delete(session_id);
-      return res.status(400).json({ status: 'error', message: 'Verification session has expired.' });
-    }
-    if (session.attempts >= 3) {
-      otpSessions.delete(session_id);
-      return res.status(400).json({ status: 'error', message: 'Too many invalid attempts. Session locked.' });
+    
+    if (session_id) {
+      const session = otpSessions.get(session_id);
+      if (!session) {
+        return res.status(400).json({ status: 'error', message: 'Invalid or expired session ID.' });
+      }
+      if (session.phone !== finalPhone) {
+        return res.status(400).json({ status: 'error', message: 'Phone number does not match this session.' });
+      }
+      if (Date.now() > session.expiresAt) {
+        otpSessions.delete(session_id);
+        return res.status(400).json({ status: 'error', message: 'Verification session has expired.' });
+      }
+      if (session.attempts >= 3) {
+        otpSessions.delete(session_id);
+        return res.status(400).json({ status: 'error', message: 'Too many invalid attempts. Session locked.' });
+      }
     }
     
     const { data: user } = await db.from('nexus_users')
@@ -477,7 +480,10 @@ const verifyOtpHandler = async (req: express.Request, res: express.Response) => 
     
     const matches = await bcrypt.compare(String(code).trim(), user.otp_code);
     if (!matches) {
-      session.attempts += 1;
+      if (session_id) {
+        const session = otpSessions.get(session_id);
+        if (session) session.attempts += 1;
+      }
       return res.status(400).json({ status: 'error', message: 'Incorrect verification code.' });
     }
     
