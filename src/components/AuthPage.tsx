@@ -962,37 +962,74 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                               <li>Click the <strong>📱 Share Phone Number to Link</strong> button that pops up at the bottom of your screen to get your code instantly.</li>
                             </ol>
                             <div className="pt-2">
-                              <a
-                                href="https://t.me/nexusfinancefintech_bot"
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={() => {
-                                  // Instantly transition to code input screen
-                                  setTgOtpSent(true);
-                                  setTgOtpTimer(300);
-                                  const interval = setInterval(() => {
-                                    setTgOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
-                                  }, 1000);
-                                  
-                                  // Start background polling for linking success
-                                  const pollInterval = setInterval(async () => {
-                                    try {
-                                      const res = await fetch(`${API}/auth/check-link?phone=${encodeURIComponent(registerPhone)}`);
-                                      const data = await res.json();
-                                      if (data.linked) {
-                                        setTelegramLinked(true);
-                                        clearInterval(pollInterval);
+                              {typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const webApp = (window as any).Telegram.WebApp;
+                                    webApp.requestContact((shared: boolean) => {
+                                      if (shared) {
+                                        setTgOtpSent(true);
+                                        setTgOtpTimer(300);
+                                        const interval = setInterval(() => {
+                                          setTgOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
+                                        }, 1000);
+                                        
+                                        const pollInterval = setInterval(async () => {
+                                          try {
+                                            const res = await fetch(`${API}/auth/check-link?phone=${encodeURIComponent(registerPhone)}`);
+                                            const data = await res.json();
+                                            if (data.linked) {
+                                              setTelegramLinked(true);
+                                              clearInterval(pollInterval);
+                                            }
+                                          } catch (e) {
+                                            console.error(e);
+                                          }
+                                        }, 2000);
+                                        setTimeout(() => clearInterval(pollInterval), 300000);
+                                      } else {
+                                        showToast('Sharing contact is required to link Telegram.', 'error');
                                       }
-                                    } catch (e) {
-                                      console.error(e);
-                                    }
-                                  }, 2000);
-                                  setTimeout(() => clearInterval(pollInterval), 300000);
-                                }}
-                                className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[14px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition shadow-sm hover:shadow active:scale-98 cursor-pointer text-center"
-                              >
-                                💬 Link & Get Code on Telegram
-                              </a>
+                                    });
+                                  }}
+                                  className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[14px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition shadow-sm hover:shadow active:scale-98 cursor-pointer text-center"
+                                >
+                                  📱 Share Phone Number
+                                </button>
+                              ) : (
+                                <a
+                                  href="https://t.me/nexusfinancefintech_bot"
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={() => {
+                                    // Instantly transition to code input screen
+                                    setTgOtpSent(true);
+                                    setTgOtpTimer(300);
+                                    const interval = setInterval(() => {
+                                      setTgOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
+                                    }, 1000);
+                                    
+                                    // Start background polling for linking success
+                                    const pollInterval = setInterval(async () => {
+                                      try {
+                                        const res = await fetch(`${API}/auth/check-link?phone=${encodeURIComponent(registerPhone)}`);
+                                        const data = await res.json();
+                                        if (data.linked) {
+                                          setTelegramLinked(true);
+                                          clearInterval(pollInterval);
+                                        }
+                                      } catch (e) {
+                                        console.error(e);
+                                      }
+                                    }, 2000);
+                                    setTimeout(() => clearInterval(pollInterval), 300000);
+                                  }}
+                                  className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[14px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition shadow-sm hover:shadow active:scale-98 cursor-pointer text-center"
+                                >
+                                  💬 Link & Get Code on Telegram
+                                </a>
+                              )}
                             </div>
                           </div>
                         </div>
