@@ -946,118 +946,111 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   ) : (
                     /* Telegram OTP Flow */
                     <div className="space-y-6 animate-in fade-in duration-300">
-                      {telegramLinked === false || telegramLinked === null ? (
-                        /* Case 1: Unlinked Onboarding Guide */
+                      {!tgOtpSent ? (
+                        /* Step A: Link & Trigger Onboarding Button */
                         <div className="space-y-5">
                           <div className="bg-[var(--surface-secondary)]/50 rounded-2xl p-5 border border-[var(--border-primary)]/40 space-y-3">
                             <h4 className="text-[13.5px] font-bold text-[var(--text-primary)] flex items-center gap-1.5">
-                              🔗 Link Telegram to Verify
+                              🔗 Link Telegram & Receive OTP
                             </h4>
                             <p className="text-[12.5px] text-[var(--text-secondary)] leading-relaxed">
-                              To receive your verification code, please link your Telegram account to your phone number <strong className="text-[var(--text-primary)]">{registerPhone}</strong>:
+                              We will link your Telegram account to phone number <strong className="text-[var(--text-primary)]">{registerPhone}</strong> and send your verification code instantly:
                             </p>
                             <ol className="text-[12px] text-[var(--text-secondary)] space-y-2 list-decimal pl-4">
-                              <li>Open our Telegram Bot by clicking the button below.</li>
+                              <li>Click the button below to open our Telegram Bot.</li>
                               <li>Press <strong>Start</strong> in the chat.</li>
-                              <li>Click the <strong>📱 Share Phone Number to Link</strong> button that pops up at the bottom of your screen to link instantly.</li>
+                              <li>Click the <strong>📱 Share Phone Number to Link</strong> button that pops up at the bottom of your screen to get your code instantly.</li>
                             </ol>
                             <div className="pt-2">
                               <a
                                 href="https://t.me/nexusfinancefintech_bot"
                                 target="_blank"
                                 rel="noreferrer"
-                                className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[13px] py-3 rounded-xl flex items-center justify-center gap-1.5 transition shadow-sm hover:shadow active:scale-98 cursor-pointer text-center"
+                                onClick={() => {
+                                  // Instantly transition to code input screen
+                                  setTgOtpSent(true);
+                                  setTgOtpTimer(300);
+                                  const interval = setInterval(() => {
+                                    setTgOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
+                                  }, 1000);
+                                  
+                                  // Start background polling for linking success
+                                  const pollInterval = setInterval(async () => {
+                                    try {
+                                      const res = await fetch(`${API}/auth/check-link?phone=${encodeURIComponent(registerPhone)}`);
+                                      const data = await res.json();
+                                      if (data.linked) {
+                                        setTelegramLinked(true);
+                                        clearInterval(pollInterval);
+                                      }
+                                    } catch (e) {
+                                      console.error(e);
+                                    }
+                                  }, 2000);
+                                  setTimeout(() => clearInterval(pollInterval), 300000);
+                                }}
+                                className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[14px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition shadow-sm hover:shadow active:scale-98 cursor-pointer text-center"
                               >
-                                💬 Open Telegram Bot
+                                💬 Link & Get Code on Telegram
                               </a>
                             </div>
                           </div>
-
-                          <button
-                            type="button"
-                            onClick={() => checkTelegramLink(false)}
-                            disabled={tgCheckLoading}
-                            className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[14.5px] py-3.5 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md cursor-pointer disabled:opacity-50"
-                          >
-                            {tgCheckLoading ? (
-                              <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> CHECKING STATUS...</span>
-                            ) : (
-                              <>🔄 I have linked my Telegram</>
-                            )}
-                          </button>
                         </div>
                       ) : (
-                        /* Case 2: Linked and ready to send/verify OTP */
-                        <div className="space-y-6">
-                          {!tgOtpSent ? (
-                            /* Send Code Trigger Screen */
-                            <div className="space-y-5 text-center">
-                              <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl p-4 text-[13px] font-semibold flex items-center justify-center gap-2">
-                                <span>✅ Telegram linked to your phone successfully!</span>
-                              </div>
-                              <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
-                                Click below to send a 6-digit verification code to your Telegram chat.
-                              </p>
-                              <button
-                                type="button"
-                                onClick={() => handleSendTgOtp()}
-                                disabled={registerLoading}
-                                className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md cursor-pointer disabled:opacity-50"
-                              >
-                                {registerLoading ? (
-                                  <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> SENDING CODE...</span>
-                                ) : (
-                                  <>⚡ Send OTP to Telegram</>
-                                )}
-                              </button>
+                        /* Step B: Verify Code Form Screen */
+                        <form onSubmit={handleVerifyTgOtp} className="space-y-6">
+                          {telegramLinked ? (
+                            <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl p-4 text-[13px] font-semibold flex items-center justify-center gap-2 animate-in fade-in duration-300">
+                              <span>✅ Telegram linked to your phone successfully!</span>
                             </div>
                           ) : (
-                            /* Verify Code Form Screen */
-                            <form onSubmit={handleVerifyTgOtp} className="space-y-6">
-                              <div className="text-center">
-                                <p className="text-[13px] text-[var(--text-secondary)] font-medium">
-                                  Enter the 6-digit code sent to your Telegram chat.
-                                </p>
-                              </div>
-                              <div>
-                                <input
-                                  type="text"
-                                  maxLength={6}
-                                  value={tgOtpCode}
-                                  onChange={(e) => setTgOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                  placeholder="000000"
-                                  className="w-full text-center text-[28px] tracking-[12px] font-mono rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-4 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
-                                  required
-                                />
-                              </div>
-                              <button
-                                type="submit"
-                                disabled={registerLoading || tgOtpCode.length < 6}
-                                className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50"
-                              >
-                                {registerLoading ? (
-                                  <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
-                                ) : (
-                                  <>VERIFY CODE <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
-                                )}
-                              </button>
-                              <div className="flex justify-between items-center text-[13px]">
-                                <button type="button" onClick={() => handleSendTgOtp()} disabled={tgOtpTimer > 0}
-                                  className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40 font-medium"
-                                >
-                                  Resend code {tgOtpTimer > 0 && `(${Math.floor(tgOtpTimer / 60)}:${String(tgOtpTimer % 60).padStart(2, '0')})`}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => { setTgOtpSent(false); setTgOtpCode(''); }}
-                                  className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
-                                >
-                                  Back
-                                </button>
-                              </div>
-                            </form>
+                            <div className="bg-[var(--surface-secondary)]/50 border border-[var(--border-primary)]/30 text-[var(--text-secondary)] rounded-2xl p-4 text-[13px] font-semibold flex items-center justify-center gap-2">
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>⏳ Waiting for Telegram link & code...</span>
+                            </div>
                           )}
-                        </div>
+                          <div className="text-center">
+                            <p className="text-[13px] text-[var(--text-secondary)] font-medium">
+                              Enter the 6-digit code sent to your Telegram chat.
+                            </p>
+                          </div>
+                          <div>
+                            <input
+                              type="text"
+                              maxLength={6}
+                              value={tgOtpCode}
+                              onChange={(e) => setTgOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                              placeholder="000000"
+                              className="w-full text-center text-[28px] tracking-[12px] font-mono rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-4 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                              required
+                            />
+                          </div>
+                          <button
+                            type="submit"
+                            disabled={registerLoading || tgOtpCode.length < 6}
+                            className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50"
+                          >
+                            {registerLoading ? (
+                              <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
+                            ) : (
+                              <>VERIFY CODE <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                            )}
+                          </button>
+                          <div className="flex justify-between items-center text-[13px]">
+                            <button type="button" onClick={() => handleSendTgOtp()} disabled={tgOtpTimer > 0}
+                              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40 font-medium"
+                            >
+                              Resend code {tgOtpTimer > 0 && `(${Math.floor(tgOtpTimer / 60)}:${String(tgOtpTimer % 60).padStart(2, '0')})`}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setTgOtpSent(false); setTgOtpCode(''); }}
+                              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
+                            >
+                              Back
+                            </button>
+                          </div>
+                        </form>
                       )}
                     </div>
                   )}

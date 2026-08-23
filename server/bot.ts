@@ -2,6 +2,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import { db } from './db.js';
 import { sendOtpEmail } from './brevo.js';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -919,16 +920,26 @@ ${lines.join('\n')}`,
       return bot.sendMessage(chatId, '⚠️ This phone number is already linked to another Telegram account.');
     }
     
+    // Generate a 6-digit numeric OTP code
+    const otpCode = String(crypto.randomInt(100000, 1000000));
+    const hashed = await bcrypt.hash(otpCode, 10);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
     const { error: updateError } = await db
       .from('nexus_users')
-      .update({ telegram_chat_id: String(chatId) })
+      .update({
+        telegram_chat_id: String(chatId),
+        otp_code: hashed,
+        otp_expires_at: expiresAt,
+        otp_verified_at: null
+      })
       .eq('id', matchingUser.id);
       
     if (updateError) {
       return bot.sendMessage(chatId, '❌ Failed to link Telegram account. Try again.');
     }
     
-    bot.sendMessage(chatId, `✅ *Success!* Your Telegram account has been linked to *${matchingUser.name}* (${matchingUser.email}).\n\nYou can now request OTP codes on the website.`, {
+    bot.sendMessage(chatId, `✅ *Success!* Your Telegram account has been linked to *${matchingUser.name}* (${matchingUser.email}).\n\n🔐 *Your Account Verification Code:*\n\`${otpCode}\`\n\nPlease type this code on the website to complete your account registration. It expires in 5 minutes.`, {
       parse_mode: 'Markdown',
       reply_markup: { remove_keyboard: true }
     });
