@@ -57,6 +57,15 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [registerOtpCode, setRegisterOtpCode] = useState('');
   const [registerOtpTimer, setRegisterOtpTimer] = useState(0);
 
+  // Telegram verification states
+  const [verifyMethod, setVerifyMethod] = useState<'email' | 'telegram'>('email');
+  const [telegramLinked, setTelegramLinked] = useState<boolean | null>(null);
+  const [tgOtpSent, setTgOtpSent] = useState(false);
+  const [tgOtpCode, setTgOtpCode] = useState('');
+  const [tgOtpTimer, setTgOtpTimer] = useState(0);
+  const [tgSessionId, setTgSessionId] = useState('');
+  const [tgCheckLoading, setTgCheckLoading] = useState(false);
+
   // Forgot / reset states
   const [forgotOtpSent, setForgotOtpSent] = useState(false);
   const [forgotOtpCode, setForgotOtpCode] = useState('');
@@ -207,6 +216,80 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       showToast('New OTP sent!', 'success');
     } catch (err: any) {
       showToast(err?.message || 'Failed to resend OTP.', 'error');
+    } finally {
+      setRegisterLoading(false);
+    }
+  };
+
+  const handleTabChange = (method: 'email' | 'telegram') => {
+    setVerifyMethod(method);
+    if (method === 'telegram') {
+      checkTelegramLink(true);
+    }
+  };
+
+  const checkTelegramLink = async (silent = false) => {
+    if (!silent) setTgCheckLoading(true);
+    try {
+      const res = await fetch(`${API}/auth/check-link?phone=${encodeURIComponent(registerPhone)}`);
+      const data = await res.json();
+      setTelegramLinked(!!data.linked);
+      if (data.linked && !silent) {
+        showToast('Telegram account linked successfully!', 'success');
+      } else if (!data.linked && !silent) {
+        showToast('Telegram account not linked yet. Please open the bot first.', 'warning');
+      }
+    } catch (e) {
+      console.error('Failed to check Telegram link:', e);
+    } finally {
+      if (!silent) setTgCheckLoading(false);
+    }
+  };
+
+  const handleSendTgOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setRegisterLoading(true);
+    try {
+      const res = await fetch(`${API}/v1/auth/otp/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone_number: registerPhone, channel: 'telegram' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to send Telegram OTP.');
+      
+      setTgSessionId(data.data.session_id);
+      setTgOtpSent(true);
+      setTgOtpTimer(300);
+      const interval = setInterval(() => {
+        setTgOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
+      }, 1000);
+      showToast('OTP sent to your Telegram!', 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to send Telegram OTP.', 'error');
+    } finally {
+      setRegisterLoading(false);
+    }
+  };
+
+  const handleVerifyTgOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tgOtpCode || tgOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
+    setRegisterLoading(true);
+    try {
+      const res = await fetch(`${API}/v1/auth/otp/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone_number: registerPhone, session_id: tgSessionId, code: tgOtpCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Invalid or expired OTP.');
+      
+      showToast('Phone number verified successfully!', 'success');
+      onLoginSuccess(data.data.auth_token);
+    } catch (err: any) {
+      showToast(err?.message || 'Invalid or expired OTP.', 'error');
+      setTgOtpCode('');
     } finally {
       setRegisterLoading(false);
     }
@@ -790,48 +873,195 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   </div>
                 </form>
               ) : (
-                /* Step 2: Register OTP input */
-                <form onSubmit={handleVerifyRegisterOtp} className="space-y-6">
-                  <div className="text-center">
-                    <p className="text-[13px] text-[var(--text-secondary)] font-medium">
-                      Enter the code sent to <strong className="text-[var(--text-primary)]">{registerEmail}</strong>
-                    </p>
-                  </div>
-                  <div>
-                    <input
-                      type="text"
-                      maxLength={6}
-                      value={registerOtpCode}
-                      onChange={(e) => setRegisterOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="000000"
-                      className="w-full text-center text-[28px] tracking-[12px] font-mono rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-4 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
-                      required
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={registerLoading || registerOtpCode.length < 6}
-                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50"
-                  >
-                    {registerLoading ? (
-                      <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
-                    ) : (
-                      <>VERIFY <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
-                    )}
-                  </button>
-                  <div className="flex justify-between items-center text-[13px]">
-                    <button type="button" onClick={handleResendRegisterOtp} disabled={registerOtpTimer > 0}
-                      className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40 font-medium"
+                <div className="space-y-6">
+                  {/* Tab Headers */}
+                  <div className="flex border-b border-[var(--border-primary)]/50 pb-2">
+                    <button
+                      type="button"
+                      onClick={() => handleTabChange('email')}
+                      className={`flex-1 text-center pb-2.5 text-[14px] font-bold transition-all cursor-pointer border-b-2 ${
+                        verifyMethod === 'email'
+                          ? 'border-[var(--accent)] text-[var(--accent)]'
+                          : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      }`}
                     >
-                      Resend code {registerOtpTimer > 0 && `(${Math.floor(registerOtpTimer / 60)}:${String(registerOtpTimer % 60).padStart(2, '0')})`}
+                      📧 Email Verification
                     </button>
-                    <button type="button" onClick={() => { setRegisterOtpSent(false); setRegisterOtpCode(''); setView('register'); }}
-                      className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
+                    <button
+                      type="button"
+                      onClick={() => handleTabChange('telegram')}
+                      className={`flex-1 text-center pb-2.5 text-[14px] font-bold transition-all cursor-pointer border-b-2 ${
+                        verifyMethod === 'telegram'
+                          ? 'border-[var(--accent)] text-[var(--accent)]'
+                          : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      }`}
                     >
-                      Use different email
+                      📱 Telegram Verification
                     </button>
                   </div>
-                </form>
+
+                  {verifyMethod === 'email' ? (
+                    /* Email OTP Form */
+                    <form onSubmit={handleVerifyRegisterOtp} className="space-y-6">
+                      <div className="text-center">
+                        <p className="text-[13px] text-[var(--text-secondary)] font-medium">
+                          Enter the code sent to <strong className="text-[var(--text-primary)]">{registerEmail}</strong>
+                        </p>
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          maxLength={6}
+                          value={registerOtpCode}
+                          onChange={(e) => setRegisterOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          placeholder="000000"
+                          className="w-full text-center text-[28px] tracking-[12px] font-mono rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-4 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                          required
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={registerLoading || registerOtpCode.length < 6}
+                        className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50"
+                      >
+                        {registerLoading ? (
+                          <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
+                        ) : (
+                          <>VERIFY <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                        )}
+                      </button>
+                      <div className="flex justify-between items-center text-[13px]">
+                        <button type="button" onClick={handleResendRegisterOtp} disabled={registerOtpTimer > 0}
+                          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40 font-medium"
+                        >
+                          Resend code {registerOtpTimer > 0 && `(${Math.floor(registerOtpTimer / 60)}:${String(registerOtpTimer % 60).padStart(2, '0')})`}
+                        </button>
+                        <button type="button" onClick={() => { setRegisterOtpSent(false); setRegisterOtpCode(''); setView('register'); }}
+                          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
+                        >
+                          Use different email
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    /* Telegram OTP Flow */
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                      {telegramLinked === false || telegramLinked === null ? (
+                        /* Case 1: Unlinked Onboarding Guide */
+                        <div className="space-y-5">
+                          <div className="bg-[var(--surface-secondary)]/50 rounded-2xl p-5 border border-[var(--border-primary)]/40 space-y-3">
+                            <h4 className="text-[13.5px] font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                              🔗 Link Telegram to Verify
+                            </h4>
+                            <p className="text-[12.5px] text-[var(--text-secondary)] leading-relaxed">
+                              To receive your verification code, please link your Telegram account to your phone number <strong className="text-[var(--text-primary)]">{registerPhone}</strong>:
+                            </p>
+                            <ol className="text-[12px] text-[var(--text-secondary)] space-y-2 list-decimal pl-4">
+                              <li>Open our Telegram Bot by clicking the button below.</li>
+                              <li>Press <strong>Start</strong> in the chat.</li>
+                              <li>Click the <strong>📱 Share Phone Number to Link</strong> button that pops up at the bottom of your screen to link instantly.</li>
+                            </ol>
+                            <div className="pt-2">
+                              <a
+                                href="https://t.me/nexusfinance_bot"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[13px] py-3 rounded-xl flex items-center justify-center gap-1.5 transition shadow-sm hover:shadow active:scale-98 cursor-pointer text-center"
+                              >
+                                💬 Open Telegram Bot
+                              </a>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => checkTelegramLink(false)}
+                            disabled={tgCheckLoading}
+                            className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[14.5px] py-3.5 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md cursor-pointer disabled:opacity-50"
+                          >
+                            {tgCheckLoading ? (
+                              <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> CHECKING STATUS...</span>
+                            ) : (
+                              <>🔄 I have linked my Telegram</>
+                            )}
+                          </button>
+                        </div>
+                      ) : (
+                        /* Case 2: Linked and ready to send/verify OTP */
+                        <div className="space-y-6">
+                          {!tgOtpSent ? (
+                            /* Send Code Trigger Screen */
+                            <div className="space-y-5 text-center">
+                              <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl p-4 text-[13px] font-semibold flex items-center justify-center gap-2">
+                                <span>✅ Telegram linked to your phone successfully!</span>
+                              </div>
+                              <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
+                                Click below to send a 6-digit verification code to your Telegram chat.
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => handleSendTgOtp()}
+                                disabled={registerLoading}
+                                className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md cursor-pointer disabled:opacity-50"
+                              >
+                                {registerLoading ? (
+                                  <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> SENDING CODE...</span>
+                                ) : (
+                                  <>⚡ Send OTP to Telegram</>
+                                )}
+                              </button>
+                            </div>
+                          ) : (
+                            /* Verify Code Form Screen */
+                            <form onSubmit={handleVerifyTgOtp} className="space-y-6">
+                              <div className="text-center">
+                                <p className="text-[13px] text-[var(--text-secondary)] font-medium">
+                                  Enter the 6-digit code sent to your Telegram chat.
+                                </p>
+                              </div>
+                              <div>
+                                <input
+                                  type="text"
+                                  maxLength={6}
+                                  value={tgOtpCode}
+                                  onChange={(e) => setTgOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                  placeholder="000000"
+                                  className="w-full text-center text-[28px] tracking-[12px] font-mono rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-4 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                                  required
+                                />
+                              </div>
+                              <button
+                                type="submit"
+                                disabled={registerLoading || tgOtpCode.length < 6}
+                                className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50"
+                              >
+                                {registerLoading ? (
+                                  <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
+                                ) : (
+                                  <>VERIFY CODE <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                                )}
+                              </button>
+                              <div className="flex justify-between items-center text-[13px]">
+                                <button type="button" onClick={() => handleSendTgOtp()} disabled={tgOtpTimer > 0}
+                                  className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40 font-medium"
+                                >
+                                  Resend code {tgOtpTimer > 0 && `(${Math.floor(tgOtpTimer / 60)}:${String(tgOtpTimer % 60).padStart(2, '0')})`}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => { setTgOtpSent(false); setTgOtpCode(''); }}
+                                  className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
+                                >
+                                  Back
+                                </button>
+                              </div>
+                            </form>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Already have accounts */}

@@ -52,6 +52,8 @@ const authLimiter = rateLimit({
   message: { error: 'Too many requests. Try again later.' },
 });
 
+const otpSessions = new Map<string, { phone: string; expiresAt: number; attempts: number }>();
+
 app.set('trust proxy', 1);
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
 app.use(cors({ origin: corsOrigin, credentials: true }));
@@ -331,6 +333,187 @@ app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
+
+// Helper to normalize phone digits suffix
+function normalizePhoneInput(phone: string): string {
+  let normalized = phone.replace(/\D/g, '');
+  if (normalized.startsWith('0')) {
+    normalized = '855' + normalized.substring(1);
+  }
+  if (!normalized.startsWith('855') && normalized.length <= 9) {
+    normalized = '855' + normalized;
+  }
+  return '+' + normalized;
+}
+
+// Check if a phone number is linked to Telegram
+app.get('/api/auth/check-link', async (req, res) => {
+  try {
+    const { phone } = req.query;
+    if (!phone) return res.status(400).json({ error: 'Phone query param is required.' });
+    
+    const finalPhone = normalizePhoneInput(String(phone));
+    const { data: user } = await db.from('nexus_users').select('telegram_chat_id').eq('phone', finalPhone).maybeSingle();
+    
+    res.json({ linked: !!user?.telegram_chat_id });
+  } catch (err) {
+    console.error('Check link error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// Send OTP
+const sendOtpHandler = async (req: express.Request, res: express.Response) => {
+  try {
+    const { phone_number, channel } = req.body;
+    if (!phone_number) {
+      return res.status(400).json({ status: 'error', message: 'Phone number is required.' });
+    }
+    
+    const finalPhone = normalizePhoneInput(phone_number);
+    const { data: user } = await db.from('nexus_users').select('id, name, email, telegram_chat_id').eq('phone', finalPhone).maybeSingle();
+    
+    if (!user) {
+      return res.status(404).json({ status: 'error', message: 'No account found with this phone number. Please register on the website first.' });
+    }
+    
+    const activeChannel = channel || 'telegram';
+    if (activeChannel === 'telegram' && !user.telegram_chat_id) {
+      return res.status(400).json({ status: 'error', message: 'Your phone number is not linked to Telegram yet. Please open our Telegram bot first.' });
+    }
+    
+    // Generate a 6-digit numeric OTP code
+    const code = String(crypto.randomInt(100000, 1000000));
+    const hashed = await bcrypt.hash(code, 10);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+    
+    // Update db with hashed otp
+    await db.from('nexus_users')
+      .update({ otp_code: hashed, otp_expires_at: expiresAt, otp_verified_at: null })
+      .eq('id', user.id);
+      
+    // Send via channel
+    if (activeChannel === 'telegram' && user.telegram_chat_id) {
+      const token = process.env.TELEGRAM_BOT_TOKEN;
+      if (token) {
+        try {
+          const TelegramBot = (await import('node-telegram-bot-api')).default;
+          const tempBot = new TelegramBot(token, { polling: false });
+          await withTimeout(tempBot.sendMessage(user.telegram_chat_id, `🔐 *NexusFinance Verification Code*\n\nYour code is: *${code}*\n\nDo not share this code with anyone. It expires in 5 minutes.`, { parse_mode: 'Markdown' }), 2500);
+        } catch (botErr) {
+          console.error('Failed to send Telegram OTP code:', botErr);
+        }
+      }
+    } else {
+      // SMS channel (Twilio fallback/sandbox log)
+      try {
+        await withTimeout(sendSMS(finalPhone, `Your NexusFinance verification code is: ${code}. It expires in 5 minutes.`), 2500);
+      } catch (smsErr) {
+        console.error('Failed to send SMS OTP code:', smsErr);
+      }
+    }
+    
+    const sessionId = 'otp_sess_' + crypto.randomBytes(6).toString('hex');
+    otpSessions.set(sessionId, {
+      phone: finalPhone,
+      expiresAt: Date.now() + 5 * 60 * 1000,
+      attempts: 0
+    });
+    
+    res.json({
+      status: 'success',
+      message: 'OTP sent successfully',
+      data: {
+        session_id: sessionId,
+        expires_in: 300
+      }
+    });
+  } catch (err) {
+    console.error('Send OTP handler error:', err);
+    res.status(500).json({ status: 'error', message: 'Internal server error.' });
+  }
+};
+
+app.post('/v1/auth/otp/send', authLimiter, sendOtpHandler);
+app.post('/api/auth/otp/send', authLimiter, sendOtpHandler);
+
+// Verify OTP
+const verifyOtpHandler = async (req: express.Request, res: express.Response) => {
+  try {
+    const { phone_number, session_id, code } = req.body;
+    if (!phone_number || !session_id || !code) {
+      return res.status(400).json({ status: 'error', message: 'phone_number, session_id, and code are required.' });
+    }
+    
+    const finalPhone = normalizePhoneInput(phone_number);
+    const session = otpSessions.get(session_id);
+    if (!session) {
+      return res.status(400).json({ status: 'error', message: 'Invalid or expired session ID.' });
+    }
+    if (session.phone !== finalPhone) {
+      return res.status(400).json({ status: 'error', message: 'Phone number does not match this session.' });
+    }
+    if (Date.now() > session.expiresAt) {
+      otpSessions.delete(session_id);
+      return res.status(400).json({ status: 'error', message: 'Verification session has expired.' });
+    }
+    if (session.attempts >= 3) {
+      otpSessions.delete(session_id);
+      return res.status(400).json({ status: 'error', message: 'Too many invalid attempts. Session locked.' });
+    }
+    
+    const { data: user } = await db.from('nexus_users')
+      .select('id, name, email, role, otp_code, otp_expires_at')
+      .eq('phone', finalPhone)
+      .maybeSingle();
+      
+    if (!user || !user.otp_code) {
+      return res.status(400).json({ status: 'error', message: 'Invalid or expired verification session.' });
+    }
+    if (new Date(user.otp_expires_at).getTime() < Date.now()) {
+      return res.status(400).json({ status: 'error', message: 'Verification code has expired.' });
+    }
+    
+    const matches = await bcrypt.compare(String(code).trim(), user.otp_code);
+    if (!matches) {
+      session.attempts += 1;
+      return res.status(400).json({ status: 'error', message: 'Incorrect verification code.' });
+    }
+    
+    // Success: activate account
+    await db.from('nexus_users').update({
+      email_verified: true,
+      otp_code: null,
+      otp_expires_at: null,
+      otp_verified_at: new Date().toISOString()
+    }).eq('id', user.id);
+    
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, name: user.name, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+    
+    otpSessions.delete(session_id);
+    logAudit('otp-verified', `Phone verified via Telegram OTP for ${user.email}`, { id: user.id, email: user.email, name: user.name, role: user.role });
+    
+    res.json({
+      status: 'success',
+      message: 'OTP verified successfully',
+      data: {
+        verified: true,
+        auth_token: token
+      }
+    });
+  } catch (err) {
+    console.error('Verify OTP handler error:', err);
+    res.status(500).json({ status: 'error', message: 'Internal server error.' });
+  }
+};
+
+app.post('/v1/auth/otp/verify', authLimiter, verifyOtpHandler);
+app.post('/api/auth/otp/verify', authLimiter, verifyOtpHandler);
 
 // Self-service password reset (called after OTP verification on forgot password)
 app.post('/api/auth/update-password', authLimiter, async (req, res) => {
@@ -1274,21 +1457,36 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
   try {
     const { name, password, phone } = req.body;
     const email = normalizeEmail(req.body.email);
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Name, email, and password are required.' });
+    if (!name || !email || !password || !phone) {
+      return res.status(400).json({ error: 'Name, email, password, and phone number are required.' });
     }
     if (password.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters.' });
     }
+
+    // Normalize phone number (e.g. 012345678 -> +85512345678)
+    let normalizedPhone = phone.replace(/\D/g, '');
+    if (normalizedPhone.startsWith('0')) {
+      normalizedPhone = '855' + normalizedPhone.substring(1);
+    }
+    if (!normalizedPhone.startsWith('855') && normalizedPhone.length <= 9) {
+      normalizedPhone = '855' + normalizedPhone;
+    }
+    const finalPhone = '+' + normalizedPhone;
 
     const { data: existing } = await db.from('nexus_users').select('id').eq('email', email).maybeSingle();
     if (existing) {
       return res.status(400).json({ error: 'An account with this email already exists.' });
     }
 
+    const { data: existingPhone } = await db.from('nexus_users').select('id').eq('phone', finalPhone).maybeSingle();
+    if (existingPhone) {
+      return res.status(400).json({ error: 'An account with this phone number already exists.' });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const { data: newUser } = await db.from('nexus_users').insert({
-      name, email, password: hashedPassword, role: 'customer', phone: phone || '',
+      name, email, password: hashedPassword, role: 'customer', phone: finalPhone,
       email_verified: false,
     }).select('id, name, email, role').single();
     if (!newUser) return res.status(500).json({ error: 'Failed to create account.' });

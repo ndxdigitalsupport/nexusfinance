@@ -359,13 +359,22 @@ Commands:
 
 Your Telegram account is not linked yet.
 
-To link your account:
+To link your account, share your phone number using the button below, or use the email link command:
 1. Type: /link <your registered email>
 2. A code is emailed to you
 3. Type: /confirm <code>
 
 Example: \`/link john@example.com\``,
-      customerMenu()
+      {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          keyboard: [
+            [{ text: '📱 Share Phone Number to Link', request_contact: true }]
+          ],
+          resize_keyboard: true,
+          one_time_keyboard: true
+        }
+      }
     );
   });
 
@@ -402,8 +411,19 @@ Example: \`/link john@example.com\``,
 `*Commands:*
 /link <email> — Link your Telegram to your NexusFinance account
 /confirm <code> — Complete linking with the emailed code
-/help — This message`,
-      customerMenu()
+/help — This message
+
+You can also link automatically by sharing your phone number using the button below.`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          keyboard: [
+            [{ text: '📱 Share Phone Number to Link', request_contact: true }]
+          ],
+          resize_keyboard: true,
+          one_time_keyboard: true
+        }
+      }
     );
   });
 
@@ -812,6 +832,53 @@ ${lines.join('\n')}`,
 ${lines.join('\n')}`,
       adminMenu()
     );
+  });
+
+  bot.on('contact', async (msg) => {
+    const chatId = msg.chat.id;
+    const contact = msg.contact;
+    if (!contact) return;
+    
+    // Safety check: ensure contact belongs to the user who sent it
+    if (contact.user_id !== msg.from?.id) {
+      return bot.sendMessage(chatId, '❌ You can only link your own phone number.');
+    }
+    
+    // Normalize phone number (remove +, spaces, leading zeros, keep only digits)
+    const phoneDigits = contact.phone_number.replace(/\D/g, '');
+    
+    const { data: users, error } = await db.from('nexus_users').select('id, name, email, phone, telegram_chat_id');
+    if (error || !users) {
+      return bot.sendMessage(chatId, '❌ Database error occurred. Please try again later.');
+    }
+    
+    const matchingUser = users.find(u => {
+      if (!u.phone) return false;
+      const dbPhoneDigits = u.phone.replace(/\D/g, '');
+      return phoneDigits.endsWith(dbPhoneDigits.slice(-8)) || dbPhoneDigits.endsWith(phoneDigits.slice(-8));
+    });
+    
+    if (!matchingUser) {
+      return bot.sendMessage(chatId, `❌ No NexusFinance account found with phone number: ${contact.phone_number}.\n\nPlease register with this phone number on the website first!`);
+    }
+    
+    if (matchingUser.telegram_chat_id && matchingUser.telegram_chat_id !== String(chatId)) {
+      return bot.sendMessage(chatId, '⚠️ This phone number is already linked to another Telegram account.');
+    }
+    
+    const { error: updateError } = await db
+      .from('nexus_users')
+      .update({ telegram_chat_id: String(chatId) })
+      .eq('id', matchingUser.id);
+      
+    if (updateError) {
+      return bot.sendMessage(chatId, '❌ Failed to link Telegram account. Try again.');
+    }
+    
+    bot.sendMessage(chatId, `✅ *Success!* Your Telegram account has been linked to *${matchingUser.name}* (${matchingUser.email}).\n\nYou can now request OTP codes on the website.`, {
+      parse_mode: 'Markdown',
+      reply_markup: { remove_keyboard: true }
+    });
   });
 
   // ── Initialize admin session ──────────────────────────────────
