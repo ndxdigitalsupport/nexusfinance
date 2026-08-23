@@ -435,6 +435,7 @@ const sendOtpHandler = async (req: express.Request, res: express.Response) => {
 };
 
 app.post('/v1/auth/otp/send', authLimiter, sendOtpHandler);
+app.post('/api/v1/auth/otp/send', authLimiter, sendOtpHandler);
 app.post('/api/auth/otp/send', authLimiter, sendOtpHandler);
 
 // Verify OTP
@@ -513,6 +514,7 @@ const verifyOtpHandler = async (req: express.Request, res: express.Response) => 
 };
 
 app.post('/v1/auth/otp/verify', authLimiter, verifyOtpHandler);
+app.post('/api/v1/auth/otp/verify', authLimiter, verifyOtpHandler);
 app.post('/api/auth/otp/verify', authLimiter, verifyOtpHandler);
 
 // Self-service password reset (called after OTP verification on forgot password)
