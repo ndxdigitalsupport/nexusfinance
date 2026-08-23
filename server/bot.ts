@@ -341,15 +341,18 @@ Commands:
 /reminder-check — Manually trigger payment reminders
 /help — This message
 
-💡 *Note*: To link this Telegram to a website customer account, click the button below to share your contact.`,
+💡 *Note*: To link this Telegram to a website customer account, click the button below.`,
           {
             parse_mode: 'Markdown',
             reply_markup: {
-              keyboard: [
-                [{ text: '📱 Share Phone Number to Link', request_contact: true }]
-              ],
-              resize_keyboard: true,
-              one_time_keyboard: true
+              inline_keyboard: [
+                [{
+                  text: '📱 Share Phone Number to Link',
+                  web_app: {
+                    url: 'https://nexusfinancefintech.vercel.app/tg-share-phone'
+                  }
+                }]
+              ]
             }
           }
         );
@@ -397,11 +400,14 @@ Example: \`/link john@example.com\``,
       {
         parse_mode: 'Markdown',
         reply_markup: {
-          keyboard: [
-            [{ text: '📱 Share Phone Number to Link', request_contact: true }]
-          ],
-          resize_keyboard: true,
-          one_time_keyboard: true
+          inline_keyboard: [
+            [{
+              text: '📱 Share Phone Number to Link',
+              web_app: {
+                url: 'https://nexusfinancefintech.vercel.app/tg-share-phone'
+              }
+            }]
+          ]
         }
       }
     );
@@ -424,15 +430,18 @@ Example: \`/link john@example.com\``,
 /send <email> — Send message to a specific user
 /reminder-check — Manually trigger payment reminders
 
-💡 *Note*: To link this Telegram to a website customer account, click the button below to share your contact.`,
+💡 *Note*: To link this Telegram to a website customer account, click the button below.`,
           {
             parse_mode: 'Markdown',
             reply_markup: {
-              keyboard: [
-                [{ text: '📱 Share Phone Number to Link', request_contact: true }]
-              ],
-              resize_keyboard: true,
-              one_time_keyboard: true
+              inline_keyboard: [
+                [{
+                  text: '📱 Share Phone Number to Link',
+                  web_app: {
+                    url: 'https://nexusfinancefintech.vercel.app/tg-share-phone'
+                  }
+                }]
+              ]
             }
           }
         );
@@ -471,11 +480,14 @@ You can also link automatically by sharing your phone number using the button be
       {
         parse_mode: 'Markdown',
         reply_markup: {
-          keyboard: [
-            [{ text: '📱 Share Phone Number to Link', request_contact: true }]
-          ],
-          resize_keyboard: true,
-          one_time_keyboard: true
+          inline_keyboard: [
+            [{
+              text: '📱 Share Phone Number to Link',
+              web_app: {
+                url: 'https://nexusfinancefintech.vercel.app/tg-share-phone'
+              }
+            }]
+          ]
         }
       }
     );

@@ -41,6 +41,7 @@ const UsersView = lazy(() => import('./components/UsersView'));
 const OfficerRepaymentsView = lazy(() => import('./components/OfficerRepaymentsView'));
 const ReminderSettingsView = lazy(() => import('./components/ReminderSettingsView'));
 const BroadcastView = lazy(() => import('./components/BroadcastView'));
+const TgSharePhone = lazy(() => import('./components/TgSharePhone'));
 
 const enc = (id: string) => encodeURIComponent(id);
 
@@ -371,12 +372,17 @@ export default function App() {
 
 
   const isPaymentResult = window.location.pathname === '/payment/success' || window.location.pathname === '/payment/cancel';
+  const isTgSharePhone = window.location.pathname === '/tg-share-phone';
 
   return (
     <div className="min-h-screen bg-[var(--surface-secondary)] app-root">
       <Toast />
       {isPaymentResult ? (
         <PaymentResult />
+      ) : isTgSharePhone ? (
+        <Suspense fallback={<div className="p-8 text-center text-white">Loading...</div>}>
+          <TgSharePhone />
+        </Suspense>
       ) : !isLoggedIn ? (
         <AuthPage onLoginSuccess={handleLoginSuccess} />
       ) : currentPortal === 'portal-selection' ? (
