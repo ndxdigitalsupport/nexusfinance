@@ -342,14 +342,14 @@ Welcome to NexusFinance! Click the button below to share your phone number and a
         {
           parse_mode: 'Markdown',
           reply_markup: {
-            keyboard: [
+            inline_keyboard: [
               [{
                 text: '📱 Share Phone Number to Link',
-                request_contact: true
+                web_app: {
+                  url: `${SITE_URL}/tg-share-phone`
+                }
               }]
-            ],
-            resize_keyboard: true,
-            one_time_keyboard: true
+            ]
           }
         }
       );
