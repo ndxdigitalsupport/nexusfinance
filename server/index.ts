@@ -252,15 +252,30 @@ function generateToken(user: { id: number; email: string; name: string; role: st
 // Login with email + password (bcrypt verified against database)
 app.post('/api/auth/login', authLimiter, async (req, res) => {
   try {
-    const email = normalizeEmail(req.body.email);
+    const loginIdentifier = req.body.email; // holds email or phone number
     const { password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required.' });
+    if (!loginIdentifier || !password) {
+      return res.status(400).json({ error: 'Identifier and password are required.' });
     }
 
-    const { data: dbUser } = await db.from('nexus_users').select('*').eq('email', email).maybeSingle();
+    let query = db.from('nexus_users').select('*');
+    if (loginIdentifier.includes('@')) {
+      query = query.eq('email', normalizeEmail(loginIdentifier));
+    } else {
+      let normalizedPhone = loginIdentifier.replace(/\D/g, '');
+      if (normalizedPhone.startsWith('0')) {
+        normalizedPhone = '855' + normalizedPhone.substring(1);
+      }
+      if (!normalizedPhone.startsWith('855') && normalizedPhone.length <= 9) {
+        normalizedPhone = '855' + normalizedPhone;
+      }
+      const finalPhone = '+' + normalizedPhone;
+      query = query.eq('phone', finalPhone);
+    }
+
+    const { data: dbUser } = await query.maybeSingle();
     if (!dbUser) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
+      return res.status(401).json({ error: 'Invalid email/phone or password.' });
     }
 
     const isValid = await bcrypt.compare(password, dbUser.password || '');
@@ -1485,9 +1500,15 @@ app.get('/api/audit/logs', authMiddleware, async (req, res) => {
 app.post('/api/auth/register', authLimiter, async (req, res) => {
   try {
     const { name, password, phone } = req.body;
-    const email = normalizeEmail(req.body.email);
-    if (!name || !email || !password || !phone) {
+    const { data: config } = await db.from('nexus_config').select('emailVerificationRequired').eq('id', 1).single();
+    const isEmailVerificationRequired = config ? config.emailVerificationRequired !== false : true;
+
+    let email = req.body.email ? normalizeEmail(req.body.email) : '';
+    if (isEmailVerificationRequired && (!email || !name || !password || !phone)) {
       return res.status(400).json({ error: 'Name, email, password, and phone number are required.' });
+    }
+    if (!name || !password || !phone) {
+      return res.status(400).json({ error: 'Name, password, and phone number are required.' });
     }
     if (password.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters.' });
@@ -1502,6 +1523,10 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
       normalizedPhone = '855' + normalizedPhone;
     }
     const finalPhone = '+' + normalizedPhone;
+
+    if (!email) {
+      email = `${normalizedPhone}@nexus.local`;
+    }
 
     const { data: existing } = await db.from('nexus_users').select('id, email_verified').eq('email', email).maybeSingle();
     if (existing) {
@@ -1524,8 +1549,6 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const { data: config } = await db.from('nexus_config').select('emailVerificationRequired').eq('id', 1).single();
-    const isEmailVerificationRequired = config ? config.emailVerificationRequired !== false : true;
 
     const { data: newUser } = await db.from('nexus_users').insert({
       name, email, password: hashedPassword, role: 'customer', phone: finalPhone,

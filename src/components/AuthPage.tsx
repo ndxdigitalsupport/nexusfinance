@@ -164,10 +164,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (registerPassword !== registerConfirmPassword) return showToast('Passwords do not match', 'error');
     setRegisterLoading(true);
     try {
+      const targetEmail = emailVerificationRequired ? registerEmail : `${registerPhone.replace(/\D/g, '')}@nexus.local`;
       const registerRes = await fetch(`${API}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: registerName, email: registerEmail, password: registerPassword, phone: registerPhone }),
+        body: JSON.stringify({ name: registerName, email: targetEmail, password: registerPassword, phone: registerPhone }),
       });
       const registerData = await registerRes.json();
       if (!registerRes.ok) throw new Error(registerData.error || 'Registration failed.');
@@ -176,7 +177,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         const otpRes = await fetch(`${API}/auth/send-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: registerEmail }),
+          body: JSON.stringify({ email: targetEmail }),
         });
         const otpData = await otpRes.json();
         if (!otpRes.ok) throw new Error(otpData.error || 'Failed to send the verification code.');
@@ -188,8 +189,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         }, 1000);
         showToast('OTP sent to your email!', 'success');
       } else {
-        setView('login');
-        showToast('Account created successfully! Login with your email and password.', 'success');
+        setRegisterOtpSent(true);
+        setVerifyMethod('telegram');
+        showToast('Account created! Please link your Telegram to continue.', 'success');
       }
     } catch (err: any) {
       showToast(err?.message || 'Registration failed.', 'error');
@@ -492,10 +494,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 <form onSubmit={handleLoginSubmit} className="space-y-4">
                   <div>
                     <input
-                      type="email"
+                      type={emailVerificationRequired ? "email" : "text"}
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
-                      placeholder="Email"
+                      placeholder={emailVerificationRequired ? "Email" : "Phone Number"}
                       className="w-full rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-medium transition-all"
                       required
                     />
@@ -784,24 +786,26 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   </div>
 
                   {/* Field: Email Address */}
-                  <div className="space-y-1.5">
-                    <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
-                      Email Address
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
-                        <span className="text-[17px] font-light leading-none select-none">@</span>
+                  {emailVerificationRequired && (
+                    <div className="space-y-1.5">
+                      <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
+                        Email Address
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
+                          <span className="text-[17px] font-light leading-none select-none">@</span>
+                        </div>
+                        <input
+                          type="email"
+                          value={registerEmail}
+                          onChange={(e) => setRegisterEmail(e.target.value)}
+                          placeholder="Enter your email address"
+                          className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
+                          required
+                        />
                       </div>
-                      <input
-                        type="email"
-                        value={registerEmail}
-                        onChange={(e) => setRegisterEmail(e.target.value)}
-                        placeholder="Enter your email address"
-                        className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
-                        required
-                      />
                     </div>
-                  </div>
+                  )}
 
                   {/* Field: Password */}
                   <div className="space-y-1.5">
@@ -895,30 +899,32 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               ) : (
                 <div className="space-y-6">
                   {/* Tab Headers */}
-                  <div className="flex border-b border-[var(--border-primary)]/50 pb-2">
-                    <button
-                      type="button"
-                      onClick={() => handleTabChange('email')}
-                      className={`flex-1 text-center pb-2.5 text-[14px] font-bold transition-all cursor-pointer border-b-2 ${
-                        verifyMethod === 'email'
-                          ? 'border-[var(--accent)] text-[var(--accent)]'
-                          : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                      }`}
-                    >
-                      📧 Email Verification
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleTabChange('telegram')}
-                      className={`flex-1 text-center pb-2.5 text-[14px] font-bold transition-all cursor-pointer border-b-2 ${
-                        verifyMethod === 'telegram'
-                          ? 'border-[var(--accent)] text-[var(--accent)]'
-                          : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                      }`}
-                    >
-                      📱 Telegram Verification
-                    </button>
-                  </div>
+                  {emailVerificationRequired && (
+                    <div className="flex border-b border-[var(--border-primary)]/50 pb-2">
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange('email')}
+                        className={`flex-1 text-center pb-2.5 text-[14px] font-bold transition-all cursor-pointer border-b-2 ${
+                          verifyMethod === 'email'
+                            ? 'border-[var(--accent)] text-[var(--accent)]'
+                            : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                        }`}
+                      >
+                        📧 Email Verification
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange('telegram')}
+                        className={`flex-1 text-center pb-2.5 text-[14px] font-bold transition-all cursor-pointer border-b-2 ${
+                          verifyMethod === 'telegram'
+                            ? 'border-[var(--accent)] text-[var(--accent)]'
+                            : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                        }`}
+                      >
+                        📱 Telegram Verification
+                      </button>
+                    </div>
+                  )}
 
                   {verifyMethod === 'email' ? (
                     /* Email OTP Form */
