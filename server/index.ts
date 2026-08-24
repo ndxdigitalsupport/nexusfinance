@@ -383,10 +383,17 @@ function normalizePhoneInput(phone: string): string {
 app.get('/api/auth/check-link', async (req, res) => {
   try {
     const { phone, userId } = req.query;
-    if (!phone) return res.status(400).json({ error: 'Phone query param is required.' });
+    if (!phone && !userId) return res.status(400).json({ error: 'Phone or userId query param is required.' });
     
-    const finalPhone = normalizePhoneInput(String(phone));
-    const { data: user } = await db.from('nexus_users').select('id, telegram_chat_id, email, name, role').eq('phone', finalPhone).maybeSingle();
+    let user;
+    if (phone) {
+      const finalPhone = normalizePhoneInput(String(phone));
+      const { data } = await db.from('nexus_users').select('id, telegram_chat_id, email, name, role').eq('phone', finalPhone).maybeSingle();
+      user = data;
+    } else {
+      const { data } = await db.from('nexus_users').select('id, telegram_chat_id, email, name, role').eq('id', Number(userId)).maybeSingle();
+      user = data;
+    }
     
     const linked = !!user?.telegram_chat_id;
 
