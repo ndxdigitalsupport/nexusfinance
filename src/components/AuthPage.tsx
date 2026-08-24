@@ -1003,7 +1003,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                   // Start polling checks
                                   const pollInterval = setInterval(async () => {
                                     try {
-                                      const res = await fetch(`${API}/auth/check-link?id=${registeredUserId}`);
+                                      const res = await fetch(`${API}/auth/check-link?phone=${encodeURIComponent(registerPhone)}`);
                                       const data = await res.json();
                                       if (data.linked) {
                                         clearInterval(pollInterval);
