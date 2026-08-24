@@ -1499,33 +1499,39 @@ app.get('/api/audit/logs', authMiddleware, async (req, res) => {
 // (email verification via /api/auth/send-otp + /api/auth/verify-otp)
 app.post('/api/auth/register', authLimiter, async (req, res) => {
   try {
-    const { name, password, phone } = req.body;
+    const { name, password } = req.body;
+    const phone = req.body.phone || '';
     const { data: config } = await db.from('nexus_config').select('emailVerificationRequired').eq('id', 1).single();
     const isEmailVerificationRequired = config ? config.emailVerificationRequired !== false : true;
 
     let email = req.body.email ? normalizeEmail(req.body.email) : '';
-    if (isEmailVerificationRequired && (!email || !name || !password || !phone)) {
-      return res.status(400).json({ error: 'Name, email, password, and phone number are required.' });
-    }
-    if (!name || !password || !phone) {
-      return res.status(400).json({ error: 'Name, password, and phone number are required.' });
+    if (isEmailVerificationRequired) {
+      if (!email || !name || !password || !phone) {
+        return res.status(400).json({ error: 'Name, email, password, and phone number are required.' });
+      }
+    } else {
+      if (!name || !password) {
+        return res.status(400).json({ error: 'Name and password are required.' });
+      }
     }
     if (password.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters.' });
     }
 
-    // Normalize phone number (e.g. 012345678 -> +85512345678)
-    let normalizedPhone = phone.replace(/\D/g, '');
-    if (normalizedPhone.startsWith('0')) {
-      normalizedPhone = '855' + normalizedPhone.substring(1);
-    }
-    if (!normalizedPhone.startsWith('855') && normalizedPhone.length <= 9) {
-      normalizedPhone = '855' + normalizedPhone;
-    }
-    const finalPhone = '+' + normalizedPhone;
-
     if (!email) {
-      email = `${normalizedPhone}@nexus.local`;
+      if (phone) {
+        let normalizedPhone = phone.replace(/\D/g, '');
+        if (normalizedPhone.startsWith('0')) {
+          normalizedPhone = '855' + normalizedPhone.substring(1);
+        }
+        if (!normalizedPhone.startsWith('855') && normalizedPhone.length <= 9) {
+          normalizedPhone = '855' + normalizedPhone;
+        }
+        email = `${normalizedPhone}@nexus.local`;
+      } else {
+        const randId = Math.random().toString(36).substring(2, 10);
+        email = `pending_${randId}@nexus.local`;
+      }
     }
 
     const { data: existing } = await db.from('nexus_users').select('id, email_verified').eq('email', email).maybeSingle();
@@ -1538,20 +1544,32 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
       }
     }
 
-    const { data: existingPhone } = await db.from('nexus_users').select('id, email_verified').eq('phone', finalPhone).maybeSingle();
-    if (existingPhone) {
-      if (existingPhone.email_verified === false) {
-        // Silently delete the unverified stale registration
-        await db.from('nexus_users').delete().eq('id', existingPhone.id);
-      } else {
-        return res.status(400).json({ error: 'An account with this phone number already exists.' });
+    let finalPhone = '';
+    if (phone) {
+      let normalizedPhone = phone.replace(/\D/g, '');
+      if (normalizedPhone.startsWith('0')) {
+        normalizedPhone = '855' + normalizedPhone.substring(1);
+      }
+      if (!normalizedPhone.startsWith('855') && normalizedPhone.length <= 9) {
+        normalizedPhone = '855' + normalizedPhone;
+      }
+      finalPhone = '+' + normalizedPhone;
+
+      const { data: existingPhone } = await db.from('nexus_users').select('id, email_verified').eq('phone', finalPhone).maybeSingle();
+      if (existingPhone) {
+        if (existingPhone.email_verified === false) {
+          // Silently delete the unverified stale registration
+          await db.from('nexus_users').delete().eq('id', existingPhone.id);
+        } else {
+          return res.status(400).json({ error: 'An account with this phone number already exists.' });
+        }
       }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const { data: newUser } = await db.from('nexus_users').insert({
-      name, email, password: hashedPassword, role: 'customer', phone: finalPhone,
+      name, email, password: hashedPassword, role: 'customer', phone: finalPhone || null,
       email_verified: !isEmailVerificationRequired,
     }).select('id, name, email, role').single();
     if (!newUser) return res.status(500).json({ error: 'Failed to create account.' });

@@ -71,6 +71,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   // Telegram verification states
   const [verifyMethod, setVerifyMethod] = useState<'email' | 'telegram'>('email');
+  const [registeredUserId, setRegisteredUserId] = useState<number | null>(null);
   const [telegramLinked, setTelegramLinked] = useState<boolean | null>(null);
   const [tgOtpSent, setTgOtpSent] = useState(false);
   const [tgOtpCode, setTgOtpCode] = useState('');
@@ -164,11 +165,12 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (registerPassword !== registerConfirmPassword) return showToast('Passwords do not match', 'error');
     setRegisterLoading(true);
     try {
-      const targetEmail = emailVerificationRequired ? registerEmail : `${registerPhone.replace(/\D/g, '')}@nexus.local`;
+      const targetEmail = emailVerificationRequired ? registerEmail : '';
+      const targetPhone = emailVerificationRequired ? registerPhone : '';
       const registerRes = await fetch(`${API}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: registerName, email: targetEmail, password: registerPassword, phone: registerPhone }),
+        body: JSON.stringify({ name: registerName, email: targetEmail, password: registerPassword, phone: targetPhone }),
       });
       const registerData = await registerRes.json();
       if (!registerRes.ok) throw new Error(registerData.error || 'Registration failed.');
@@ -189,6 +191,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         }, 1000);
         showToast('OTP sent to your email!', 'success');
       } else {
+        if (registerData.user && registerData.user.id) {
+          setRegisteredUserId(registerData.user.id);
+        }
         setRegisterOtpSent(true);
         setVerifyMethod('telegram');
         showToast('Account created! Please link your Telegram to continue.', 'success');
@@ -862,24 +867,26 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   </div>
 
                   {/* Field: Phone Number */}
-                  <div className="space-y-1.5">
-                    <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
-                      Phone Number
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
-                        <Phone className="w-4.5 h-4.5" />
+                  {emailVerificationRequired && (
+                    <div className="space-y-1.5">
+                      <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
+                        Phone Number
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
+                          <Phone className="w-4.5 h-4.5" />
+                        </div>
+                        <input
+                          type="tel"
+                          value={registerPhone}
+                          onChange={(e) => setRegisterPhone(e.target.value)}
+                          placeholder="Enter your phone number"
+                          className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
+                          required
+                        />
                       </div>
-                      <input
-                        type="tel"
-                        value={registerPhone}
-                        onChange={(e) => setRegisterPhone(e.target.value)}
-                        placeholder="Enter your phone number"
-                        className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
-                        required
-                      />
                     </div>
-                  </div>
+                  )}
 
                   {/* Button Action */}
                   <div className="pt-2">
@@ -972,7 +979,61 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   ) : (
                     /* Telegram OTP Flow */
                     <div className="space-y-6 animate-in fade-in duration-300">
-                      {!tgOtpSent ? (
+                      {!emailVerificationRequired ? (
+                        /* Direct Linkage without OTP */
+                        <div className="space-y-5">
+                          <div className="bg-[var(--surface-secondary)]/50 rounded-2xl p-5 border border-[var(--border-primary)]/40 space-y-3">
+                            <h4 className="text-[13.5px] font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                              🔗 Link Telegram to Activate Profile
+                            </h4>
+                            <p className="text-[12.5px] text-[var(--text-secondary)] leading-relaxed">
+                              We will link your Telegram account to activate your profile. Follow these simple steps:
+                            </p>
+                            <ol className="text-[12px] text-[var(--text-secondary)] space-y-2 list-decimal pl-4">
+                              <li>Click the button below to open our Telegram Bot.</li>
+                              <li>Press <strong>Start</strong> in the chat.</li>
+                              <li>Click the <strong>📱 Share Phone Number to Link</strong> button that pops up.</li>
+                            </ol>
+                            <div className="pt-2">
+                              <a
+                                href={`https://t.me/nexusfinancefintech_bot?start=${registeredUserId}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={() => {
+                                  // Start polling checks
+                                  const pollInterval = setInterval(async () => {
+                                    try {
+                                      const res = await fetch(`${API}/auth/check-link?id=${registeredUserId}`);
+                                      const data = await res.json();
+                                      if (data.linked) {
+                                        clearInterval(pollInterval);
+                                        showToast('Telegram account linked and verified successfully!', 'success');
+                                        setView('login');
+                                        setRegisterOtpSent(false);
+                                      }
+                                    } catch (e) {
+                                      console.error(e);
+                                    }
+                                  }, 2000);
+                                  setTimeout(() => clearInterval(pollInterval), 300000);
+                                }}
+                                className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[14px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition shadow-sm hover:shadow active:scale-98 cursor-pointer text-center"
+                              >
+                                💬 Open Telegram Bot
+                              </a>
+                            </div>
+                            <div className="pt-2.5 text-center">
+                              <button
+                                type="button"
+                                onClick={() => { setRegisterOtpSent(false); setView('register'); }}
+                                className="text-[12px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-bold inline-flex items-center gap-1 hover:underline"
+                              >
+                                ✏️ Back to Register
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : !tgOtpSent ? (
                         /* Step A: Link & Trigger Onboarding Button */
                         <div className="space-y-5">
                           <div className="bg-[var(--surface-secondary)]/50 rounded-2xl p-5 border border-[var(--border-primary)]/40 space-y-3">

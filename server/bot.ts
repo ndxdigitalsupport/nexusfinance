@@ -319,11 +319,41 @@ async function sendPaymentConfirmation(chatId: string, data: { loanId: string | 
 // ── Register commands (only if bot is active) ──────────────────
 
 if (bot) {
+  // Key: Telegram chatId, Value: database userId string
+  const pendingLinkages = new Map<number, string>();
+
   // ── /start ────────────────────────────────────────────────────
 
   bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     const userId = msg.from?.id;
+    const text = msg.text || '';
+    
+    // Check if start command has a parameter (e.g. /start 12)
+    const matchStart = text.match(/\/start\s+(\d+)/);
+    const startParam = matchStart ? matchStart[1] : null;
+
+    if (startParam) {
+      pendingLinkages.set(chatId, startParam);
+      return bot.sendMessage(chatId,
+`🤖 *NexusFinance Account Link*
+
+Welcome to NexusFinance! Click the button below to share your phone number and activate your website account:`,
+        {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            keyboard: [
+              [{
+                text: '📱 Share Phone Number to Link',
+                request_contact: true
+              }]
+            ],
+            resize_keyboard: true,
+            one_time_keyboard: true
+          }
+        }
+      );
+    }
 
     if (userId === ADMIN_ID) {
       const user = await getLinkedUser(chatId);
@@ -912,6 +942,49 @@ ${lines.join('\n')}`,
     
     // Normalize phone number (remove +, spaces, leading zeros, keep only digits)
     const phoneDigits = contact.phone_number.replace(/\D/g, '');
+    const finalPhone = '+' + phoneDigits;
+
+    // Check if there is a pending linkage from /start parameter
+    if (pendingLinkages.has(chatId)) {
+      const dbUserId = pendingLinkages.get(chatId);
+      pendingLinkages.delete(chatId);
+
+      const { data: dbUser } = await db.from('nexus_users').select('*').eq('id', dbUserId).maybeSingle();
+      if (!dbUser) {
+        return bot.sendMessage(chatId, '❌ Linkage session not found. Please register on the website first.');
+      }
+
+      // Update user with phone and link chat ID, set otp_verified_at to mark fully verified!
+      const emailPattern = `${phoneDigits}@nexus.local`;
+      const { error: updateError } = await db
+        .from('nexus_users')
+        .update({
+          phone: finalPhone,
+          telegram_chat_id: String(chatId),
+          otp_verified_at: new Date().toISOString(),
+          email: emailPattern
+        })
+        .eq('id', dbUser.id);
+
+      if (updateError) {
+        return bot.sendMessage(chatId, '❌ Database link update error. Please try again.');
+      }
+
+      return bot.sendMessage(chatId,
+`✅ *Account Activated successfully!*
+
+Your website profile is now linked with Telegram and verified:
+* Phone Number: ${finalPhone}
+
+You can now log in using your phone number and password on the website!`,
+        {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            remove_keyboard: true
+          }
+        }
+      );
+    }
     
     const { data: users, error } = await db.from('nexus_users').select('id, name, email, phone, telegram_chat_id');
     if (error || !users) {
