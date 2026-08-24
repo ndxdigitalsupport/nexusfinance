@@ -19,159 +19,65 @@ def doc_hosting():
                    doc_number="NF-DOC-COST-001",
                    footer_note="Internal & Confidential")
 
-    doc.cover(version="2.0", date="August 2026", author="NDX Digital Support",
-              tags=["Hosting", "Costing", "Namecheap", "Per-Client", "Scalability"])
+    doc.cover(version="3.0", date="August 2026", author="NDX Digital Support",
+              tags=["Hosting", "Costing", "VPS", "Per-Client", "Scalability"])
 
     doc.toc([
         ("1", "Executive Summary"),
-        ("2", "Current Hosting Setup"),
-        ("3", "Per-Client Cost Model"),
-        ("4", "Scaling Scenarios"),
-        ("5", "Alternative VPS Providers"),
+        ("2", "NexusFinance Resource Requirements"),
+        ("3", "Hosting Provider Comparison"),
+        ("4", "Per-Client Cost Model"),
+        ("5", "Scaling Scenarios"),
         ("6", "Total Cost of Ownership"),
         ("7", "Recommendation"),
     ])
 
     # ── 1. Executive Summary ──
     doc.h1("1. Executive Summary")
-    doc.p("This document analyzes the cost of hosting private NexusFinance instances for "
-          "individual clients. We evaluate the current Namecheap Stellar Business shared hosting "
-          "setup against VPS alternatives to determine the most cost-effective approach.")
+    doc.p("This document evaluates hosting options for deploying private NexusFinance instances "
+          "for individual clients. Each client receives an isolated deployment with their own "
+          "database, frontend, and backend — ensuring data separation and customization.")
     doc.callout("Key Finding",
-                "With Namecheap Stellar Business ($11.88/mo), hosting is essentially FREE per client — "
-                "unlimited websites, subdomains, SSL, and backups are all included. The only variable "
-                "cost per client is SMS/OTP delivery via Twilio ($0.0105/OTP).",
+                "A single VPS can host 10-20 small-to-medium clients running the NexusFinance "
+                "stack (Node.js backend + Supabase/PostgreSQL). The most cost-effective option is "
+                "Hostinger KVM 2 at $8.99/month per VPS, yielding $0.45-0.90 per client per month.",
                 kind="tip")
 
-    # ── 2. Current Hosting Setup ──
-    doc.h1("2. Current Hosting Setup")
-
-    doc.h2("2.1 Namecheap Stellar Business Plan")
+    # ── 2. Resource Requirements ──
+    doc.h1("2. NexusFinance Resource Requirements")
+    doc.p("Based on the current NexusFinance stack, each client deployment requires:")
     doc.table(
-        ["Feature", "Details"],
+        ["Resource", "Minimum", "Recommended", "Notes"],
         [
-            ["Plan", "Stellar Business"],
-            ["Monthly Rate", "$11.88/mo (billed monthly)"],
-            ["Yearly Rate", "$58.88/yr (intro), $112.88/yr (renewal)"],
-            ["Websites", "Unlimited"],
-            ["Storage", "50 GB SSD (cloud storage architecture)"],
-            ["Bandwidth", "Unmetered"],
-            ["Email", "Unlimited mailboxes"],
-            ["SSL", "Free (included)"],
-            ["CDN", "Free Cloudflare CDN"],
-            ["Backups", "AutoBackup (included)"],
-            ["Security", "Imunify360 (included)"],
-            ["Server", "LiteSpeed web server"],
-            ["Panel", "cPanel access"],
-            ["SSH", "Included"],
-            ["Free Domain", "1 domain free (first year)"],
+            ["vCPU", "1 core", "2 cores", "Node.js + PostgreSQL run on same VPS"],
+            ["RAM", "1 GB", "2 GB", "512MB for Node.js, 512MB for PostgreSQL"],
+            ["Storage", "10 GB", "20 GB", "OS + app + database + backups"],
+            ["Bandwidth", "500 GB", "1 TB", "API calls + static assets + notifications"],
+            ["OS", "Ubuntu 22.04", "Ubuntu 24.04", "LTS for security updates"],
         ],
-        col_widths=[1.5, 4.5],
+        col_widths=[1.2, 1.0, 1.2, 3.2],
     )
+    doc.callout("Architecture Note",
+                "NexusFinance uses a monolithic Node.js backend. For per-client isolation, "
+                "each client gets their own VPS with both the backend and database running "
+                "locally. Supabase is replaced with a local PostgreSQL instance.",
+                kind="info")
 
-    doc.h2("2.2 What's Included Per Client")
-    doc.bullet("Unlimited websites on existing hosting — no extra hosting cost")
-    doc.bullet("Subdomain (client1.yourdomain.com) — free, no domain purchase needed")
-    doc.bullet("Free SSL via Namecheap/Cloudflare — auto-renewal")
-    doc.bullet("AutoBackup included — no separate backup service needed")
-    doc.bullet("Unlimited email mailboxes per client")
+    doc.h2("2.1 What's Included Per Client")
+    doc.bullet("Dedicated VPS with Node.js backend + PostgreSQL database")
+    doc.bullet("Custom domain (e.g., client.nexusfinance.com)")
+    doc.bullet("Free SSL via Let's Encrypt (auto-renewal)")
+    doc.bullet("Daily automated backups (7-day retention)")
     doc.bullet("Telegram bot integration (shared bot, separate chat IDs)")
     doc.bullet("SMS OTP via Twilio (shared account, per-message billing)")
     doc.bullet("Email notifications via Brevo (shared account)")
 
-    doc.callout("Architecture Advantage",
-                "NexusFinance uses Supabase (hosted PostgreSQL) for the database. This means "
-                "the Namecheap shared hosting only needs to serve the frontend (React SPA) and "
-                "proxy API calls to the Render backend. No database hosting required on Namecheap.",
-                kind="info")
+    # ── 3. Hosting Provider Comparison ──
+    doc.h1("3. Hosting Provider Comparison")
+    doc.p("Five hosting providers are evaluated based on price, performance, and suitability "
+          "for running a Node.js + PostgreSQL stack.")
 
-    # ── 3. Per-Client Cost Model ──
-    doc.h1("3. Per-Client Cost Model")
-
-    doc.h2("3.1 With Namecheap Stellar Business (Current Setup)")
-    doc.table(
-        ["Item", "Cost", "Frequency", "Notes"],
-        [
-            ["Hosting (Stellar Business)", "$0", "Already paid", "Unlimited websites included"],
-            ["Domain (subdomain)", "$0", "Free", "client1.yourdomain.com"],
-            ["SSL certificate", "$0", "Included", "Free with Namecheap/Cloudflare"],
-            ["Backup storage", "$0", "Included", "AutoBackup included in plan"],
-            ["Monitoring", "$0", "Free tier", "UptimeRobot free tier"],
-            ["Twilio SMS", "$0.0105", "Per OTP", "Shared across all clients"],
-            ["Brevo email", "$0", "Free tier", "300 emails/day free"],
-            ["Telegram Bot", "$0", "Free", "Bot API has no per-message cost"],
-        ],
-        col_widths=[2.0, 0.8, 1.0, 2.5],
-    )
-
-    doc.callout("Zero Hosting Cost Per Client",
-                "Since Namecheap Stellar Business already supports unlimited websites at a flat "
-                "monthly rate, each additional client costs $0 for hosting. The only variable cost "
-                "is SMS OTP delivery at $0.0105 per message.",
-                kind="tip")
-
-    doc.h2("3.2 Cost Comparison: Namecheap vs VPS")
-    doc.table(
-        ["Metric", "Namecheap Stellar Business", "Hostinger KVM 2 VPS"],
-        [
-            ["Monthly Cost", "$11.88 (flat)", "$8.99 + per-client setup"],
-            ["Clients Supported", "Unlimited", "10-20 per VPS"],
-            ["Cost Per Client (10)", "$1.19/mo", "$0.90/mo + maintenance"],
-            ["Cost Per Client (50)", "$0.24/mo", "$0.45/mo + maintenance"],
-            ["Cost Per Client (100)", "$0.12/mo", "$0.45/mo + maintenance"],
-            ["SSL", "Free", "Self-configure (Let's Encrypt)"],
-            ["Backups", "AutoBackup included", "Paid add-on"],
-            ["Email", "Unlimited mailboxes", "Separate service needed"],
-            ["Panel", "cPanel (visual)", "Command line only"],
-            ["Support", "24/7 live chat", "Ticket only"],
-            ["Root Access", "No", "Yes"],
-        ],
-        col_widths=[1.5, 2.5, 2.5],
-    )
-
-    # ── 4. Scaling Scenarios ──
-    doc.h1("4. Scaling Scenarios")
-    doc.p("Projected costs as the client base grows using Namecheap Stellar Business:")
-
-    doc.h2("4.1 Cost Projection Table")
-    doc.table(
-        ["Clients", "Hosting/Mo", "Subdomains", "SMS/Mo (100 OTPs)", "Total/Mo", "Total/Year"],
-        [
-            ["10", "$11.88", "Free", "$10.50", "$22.38", "$268.56"],
-            ["20", "$11.88", "Free", "$21.00", "$32.88", "$394.56"],
-            ["50", "$11.88", "Free", "$52.50", "$64.38", "$772.56"],
-            ["100", "$11.88", "Free", "$105.00", "$116.88", "$1,402.56"],
-            ["200", "$11.88", "Free", "$210.00", "$221.88", "$2,662.56"],
-            ["500", "$11.88", "Free", "$525.00", "$536.88", "$6,442.56"],
-        ],
-        col_widths=[0.7, 1.0, 0.9, 1.2, 1.0, 1.1],
-    )
-    doc.p("* Assumes 100 OTPs per client per month (new user + login + password reset).", size=9, italic=True)
-
-    doc.h2("4.2 Cost Per Client At Scale")
-    doc.table(
-        ["Clients", "Total Monthly", "Cost Per Client/Mo", "Cost Per Client/Year"],
-        [
-            ["10", "$22.38", "$2.24", "$26.86"],
-            ["20", "$32.88", "$1.64", "$19.73"],
-            ["50", "$64.38", "$1.29", "$15.45"],
-            ["100", "$116.88", "$1.17", "$14.03"],
-            ["200", "$221.88", "$1.11", "$13.31"],
-            ["500", "$536.88", "$1.07", "$12.89"],
-        ],
-        col_widths=[1.0, 1.5, 1.8, 1.8],
-    )
-    doc.callout("SMS Is the Main Cost Driver",
-                "With Namecheap hosting at a flat $11.88/mo, SMS OTP costs dominate the per-client "
-                "expense. A hybrid Telegram+SMS strategy (40% Telegram, 60% SMS) can reduce total "
-                "costs by 40% — see the OTP Costing document (NF-DOC-COST-002).",
-                kind="tip")
-
-    # ── 5. Alternative VPS Providers ──
-    doc.h1("5. Alternative VPS Providers")
-    doc.p("If VPS hosting is needed in the future (e.g., for custom backend logic or "
-          "database isolation), these providers are available:")
-
+    doc.h2("3.1 Pricing Overview")
     doc.table(
         ["Provider", "Plan", "vCPU", "RAM", "Storage", "Bandwidth", "Monthly", "Yearly"],
         [
@@ -185,52 +91,149 @@ def doc_hosting():
     )
     doc.p("* Railway and Render are usage-based; actual costs vary by traffic.", size=9, italic=True)
 
+    doc.h2("3.2 Feature Comparison")
+    doc.table(
+        ["Feature", "Hostinger", "Vultr", "DigitalOcean", "Railway", "Render"],
+        [
+            ["Managed DB", "No", "No", "Yes ($15+)", "Yes", "Yes ($7+)"],
+            ["Auto-scaling", "No", "No", "Yes", "Yes", "Yes"],
+            ["Backups", "Weekly free", "Paid add-on", "20% extra", "Included", "Included"],
+            ["SSL", "Free Let's Encrypt", "Self-configure", "Self-configure", "Auto", "Auto"],
+            ["Support", "24/7 chat", "Ticket only", "Ticket only", "Discord", "Email"],
+            ["Regions", "Global", "32 regions", "15 regions", "US (expanding)", "US/EU/SG"],
+            ["Uptime SLA", "99.9%", "100%", "99.99%", "99.5%", "99.9%"],
+            ["Root access", "Yes", "Yes", "Yes", "No", "No"],
+        ],
+        col_widths=[1.0, 0.85, 0.85, 0.85, 0.85, 0.85],
+    )
+
+    doc.h2("3.3 Cost-Per-Spec Analysis")
+    doc.table(
+        ["Provider", "Price/GB RAM", "Price/vCPU", "Best Value Tier"],
+        [
+            ["Hostinger", "$1.12", "$4.50", "KVM 2 — best overall value"],
+            ["Vultr", "$6.00", "$6.00", "HP 1GB — good for single clients"],
+            ["DigitalOcean", "$6.00", "$12.00", "Basic 2vCPU — ecosystem premium"],
+            ["Railway", "~$10.00", "N/A", "Usage-based, hard to compare directly"],
+            ["Render", "$14.00", "$14.00", "Starter — simplest setup"],
+        ],
+        col_widths=[1.2, 1.2, 1.2, 3.0],
+    )
+
+    # ── 4. Per-Client Cost Model ──
+    doc.h1("4. Per-Client Cost Model")
+    doc.p("Assuming each VPS hosts 10-20 clients (shared backend, separate database schemas):")
+
+    doc.h2("4.1 Shared Resource Assumption")
+    doc.table(
+        ["Scenario", "Clients/VPS", "VPS Plan", "Monthly Cost", "Cost/Client"],
+        [
+            ["Conservative", "10", "Hostinger KVM 2 ($8.99)", "$8.99", "$0.90"],
+            ["Moderate", "15", "Hostinger KVM 2 ($8.99)", "$8.99", "$0.60"],
+            ["Aggressive", "20", "Hostinger KVM 2 ($8.99)", "$8.99", "$0.45"],
+            ["Premium", "10", "DigitalOcean 2vCPU ($24)", "$24.00", "$2.40"],
+            ["Premium+", "15", "DigitalOcean 2vCPU ($24)", "$24.00", "$1.60"],
+        ],
+        col_widths=[1.2, 1.0, 1.8, 1.0, 1.0],
+    )
+    doc.callout("Why 10-20 clients per VPS?",
+                "NexusFinance is a lightweight Node.js app. With 2GB RAM, the backend uses ~200MB, "
+                "PostgreSQL ~300MB, leaving 1.5GB for OS and headroom. Each additional client adds "
+                "~50MB for their database schema. At 20 clients, total DB usage is ~1GB, well within limits.",
+                kind="tip")
+
+    doc.h2("4.2 Additional Per-Client Costs")
+    doc.table(
+        ["Item", "Cost", "Frequency", "Notes"],
+        [
+            ["Domain name", "$10-15", "Per year", "client-domain.com"],
+            ["SSL certificate", "$0", "Free", "Let's Encrypt auto-renewal"],
+            ["Backup storage", "$0-2", "Per month", "Included or low-cost add-on"],
+            ["Twilio SMS", "$0.0105", "Per OTP", "Shared across clients"],
+            ["Brevo email", "$0", "Free tier", "300 emails/day free"],
+            ["Monitoring", "$0-5", "Per month", "UptimeRobot free tier or paid"],
+        ],
+        col_widths=[1.4, 1.0, 1.0, 3.0],
+    )
+
+    # ── 5. Scaling Scenarios ──
+    doc.h1("5. Scaling Scenarios")
+    doc.p("Projected costs as the client base grows:")
+
+    doc.h2("5.1 Cost Projection Table")
+    doc.table(
+        ["Clients", "VPS Needed", "VPS Cost/Mo", "SMS/Mo", "Total/Mo", "Total/Year"],
+        [
+            ["10", "1", "$8.99", "$1.05", "$10.04", "$120.48"],
+            ["20", "1", "$8.99", "$2.10", "$11.09", "$133.08"],
+            ["50", "3", "$26.97", "$5.25", "$32.22", "$386.64"],
+            ["100", "5", "$44.95", "$10.50", "$55.45", "$665.40"],
+            ["200", "10", "$89.90", "$21.00", "$110.90", "$1,330.80"],
+            ["500", "25", "$224.75", "$52.50", "$277.25", "$3,327.00"],
+        ],
+        col_widths=[0.7, 0.8, 1.0, 0.9, 1.0, 1.1],
+    )
+    doc.p("* Assumes 100 OTPs per client per month.", size=9, italic=True)
+
+    doc.h2("5.2 Cost Per Client At Scale")
+    doc.table(
+        ["Clients", "Total Monthly", "Cost Per Client/Mo", "Cost Per Client/Year"],
+        [
+            ["10", "$10.04", "$1.00", "$12.05"],
+            ["20", "$11.09", "$0.55", "$6.65"],
+            ["50", "$32.22", "$0.64", "$7.73"],
+            ["100", "$55.45", "$0.55", "$6.65"],
+            ["200", "$110.90", "$0.55", "$6.65"],
+            ["500", "$277.25", "$0.55", "$6.65"],
+        ],
+        col_widths=[1.0, 1.5, 1.8, 1.8],
+    )
+    doc.callout("Economy of Scale",
+                "At 20+ clients, the cost per client drops below $0.60/month — "
+                "SMS costs become the primary variable expense. The VPS model becomes "
+                "increasingly efficient as you scale.",
+                kind="tip")
+
     # ── 6. Total Cost of Ownership ──
     doc.h1("6. Total Cost of Ownership")
-    doc.p("Full TCO breakdown for a 50-client deployment using Namecheap Stellar Business (Year 1):")
+    doc.p("Full TCO breakdown for a 50-client deployment (Year 1):")
 
     doc.table(
         ["Category", "Item", "Monthly", "Yearly"],
         [
-            ["Hosting", "Namecheap Stellar Business", "$11.88", "$142.56"],
-            ["Domain", "1 main domain (free 1st yr)", "$0", "$0"],
-            ["Backups", "AutoBackup (included)", "$0", "$0"],
-            ["SSL", "Free (included)", "$0", "$0"],
-            ["SMS (Twilio)", "500 OTPs/month (50 clients x 100)", "$5.25", "$63.00"],
+            ["Compute", "3x Hostinger KVM 2 VPS", "$26.97", "$323.64"],
+            ["Domains", "50 client domains", "$4.17", "$50.00"],
+            ["Monitoring", "UptimeRobot Pro", "$5.00", "$60.00"],
+            ["Backups", "Off-site backup storage", "$5.00", "$60.00"],
+            ["SMS (Twilio)", "500 OTPs/month", "$5.25", "$63.00"],
             ["Email (Brevo)", "Transactional emails", "$0", "$0"],
-            ["Telegram Bot", "OTP delivery (40% of users)", "$0", "$0"],
-            ["Monitoring", "UptimeRobot free tier", "$0", "$0"],
+            ["SSL", "Let's Encrypt", "$0", "$0"],
+            ["Labor", "Server maintenance (5 hrs/mo)", "$50.00", "$600.00"],
             ["", "", "", ""],
-            ["TOTAL", "", "$17.13", "$205.56"],
+            ["TOTAL", "", "$96.39", "$1,156.64"],
         ],
-        col_widths=[1.2, 2.2, 1.2, 1.2],
+        col_widths=[1.2, 2.0, 1.2, 1.2],
     )
-    doc.p("Cost per client: $0.34/month or $4.11/year (excluding labor).", bold=True)
-
-    doc.callout("Compared to VPS Model",
-                "The VPS model (3x Hostinger KVM 2) would cost $96.39/month or $1,156.64/year for "
-                "50 clients. Namecheap Stellar Business costs $17.13/month or $205.56/year — "
-                "a savings of $951/year (82% cheaper).",
-                kind="tip")
+    doc.p("Cost per client: $1.93/month or $23.13/year (including labor).", bold=True)
 
     # ── 7. Recommendation ──
     doc.h1("7. Recommendation")
     doc.table(
         ["Criterion", "Recommendation", "Rationale"],
         [
-            ["Current Setup", "Namecheap Stellar Business", "$11.88/mo flat, unlimited sites, free SSL/backups"],
-            ["Per-Client Cost", "$0 hosting", "Subdomains are free, no extra hosting charges"],
-            ["Only Variable Cost", "Twilio SMS", "$0.0105 per OTP — the only per-client expense"],
-            ["If VPS Needed", "Hostinger KVM 2", "$8.99/mo — best specs/price if VPS is required"],
-            ["Cost Optimization", "Hybrid Telegram+SMS", "40% Telegram adoption saves 40% on OTP costs"],
+            ["Best Value", "Hostinger KVM 2", "$8.99/mo, 8GB RAM, 100GB NVMe — best specs/price"],
+            ["Easiest Setup", "Hostinger KVM 2", "hPanel control panel, 24/7 support"],
+            ["Best Ecosystem", "DigitalOcean", "Managed databases, one-click apps"],
+            ["Simplest (PaaS)", "Render", "Zero server management, auto-deploys"],
+            ["Most Flexible", "Railway", "Usage-based billing, pay for what you use"],
         ],
-        col_widths=[1.5, 2.0, 3.0],
+        col_widths=[1.2, 1.5, 3.5],
     )
     doc.callout("Final Recommendation",
-                "Continue with Namecheap Stellar Business as the hosting platform. The flat $11.88/mo "
-                "fee covers unlimited clients with zero marginal hosting cost. Focus cost optimization "
-                "on OTP delivery — implement the hybrid Telegram+SMS strategy from NF-DOC-COST-002 "
-                "to reduce per-client OTP costs by 40%.",
+                "For NexusFinance per-client hosting, Hostinger KVM 2 is the recommended choice. "
+                "At $8.99/month for 2 vCPUs, 8GB RAM, and 100GB NVMe storage, it delivers the best "
+                "price-to-performance ratio. A single VPS can comfortably host 10-20 clients at "
+                "a cost of $0.45-0.90 per client per month.",
                 kind="tip")
 
     path = os.path.join(BASE, "NexusFinance_Private_Account_Hosting_Costing.docx")
