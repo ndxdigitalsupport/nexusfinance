@@ -387,11 +387,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans relative auth-page overflow-y-auto w-full">
+    <div className="h-screen w-full relative bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans auth-page overflow-hidden">
       
       {/* Background soft glowing decorative orbs */}
       <div className="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full bg-[#c0f5ea]/40 blur-[120px] pointer-events-none z-0" />
       <div className="absolute bottom-[-150px] right-[-100px] w-[600px] h-[600px] rounded-full bg-[#d0effa]/50 blur-[130px] pointer-events-none z-0" />
+
+      {/* Content wrapper with isolated scrollbar */}
+      <div className="absolute inset-0 overflow-y-auto w-full h-full flex flex-col z-10">
 
       {/* VIEW: LOGIN */}
       {view === 'login' && (
@@ -1251,7 +1254,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           </footer>
         </div>
       )}
-
+      </div>
     </div>
   );
 }
