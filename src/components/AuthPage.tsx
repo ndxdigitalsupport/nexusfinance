@@ -387,7 +387,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   };
 
   return (
-    <div className="min-h-screen grid grid-rows-[auto_1fr_auto] bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans relative auth-page overflow-y-auto">
+    <div className="min-h-screen bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans relative auth-page overflow-y-auto w-full">
       
       {/* Background soft glowing decorative orbs */}
       <div className="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full bg-[#c0f5ea]/40 blur-[120px] pointer-events-none z-0" />
@@ -395,7 +395,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
       {/* VIEW: LOGIN */}
       {view === 'login' && (
-        <React.Fragment key="login">
+        <div key="login" className="min-h-screen grid grid-rows-[auto_1fr_auto] w-full relative z-10">
           {/* Header */}
           <header className="relative z-10 px-6 py-5 sm:px-12 flex justify-between items-center bg-transparent">
             <div className="flex items-center gap-2">
@@ -712,12 +712,12 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Security</a>
             </div>
           </footer>
-        </React.Fragment>
+        </div>
       )}
 
       {/* VIEW: REGISTER / CREATE ACCOUNT */}
       {view === 'register' && (
-        <>
+        <div key="register" className="min-h-screen grid grid-rows-[auto_1fr_auto] w-full relative z-10">
           {/* Header */}
           <header className="relative z-10 px-6 py-5 sm:px-12 flex justify-between items-center bg-transparent">
             <div className="flex items-center gap-2">
@@ -1119,7 +1119,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Security</a>
             </div>
           </footer>
-        </>
+        </div>
       )}
 
       {view === 'forgot' && (
