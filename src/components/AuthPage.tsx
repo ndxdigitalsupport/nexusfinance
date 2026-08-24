@@ -1003,13 +1003,17 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                   // Start polling checks
                                   const pollInterval = setInterval(async () => {
                                     try {
-                                      const res = await fetch(`${API}/auth/check-link?phone=${encodeURIComponent(registerPhone)}`);
+                                      const res = await fetch(`${API}/auth/check-link?phone=${encodeURIComponent(registerPhone)}&userId=${registeredUserId}`);
                                       const data = await res.json();
                                       if (data.linked) {
                                         clearInterval(pollInterval);
                                         showToast('Telegram account linked and verified successfully!', 'success');
-                                        setView('login');
-                                        setRegisterOtpSent(false);
+                                        if (data.token) {
+                                          onLoginSuccess(data.token);
+                                        } else {
+                                          setView('login');
+                                          setRegisterOtpSent(false);
+                                        }
                                       }
                                     } catch (e) {
                                       console.error(e);

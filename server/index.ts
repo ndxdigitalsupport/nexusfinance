@@ -382,13 +382,20 @@ function normalizePhoneInput(phone: string): string {
 // Check if a phone number is linked to Telegram
 app.get('/api/auth/check-link', async (req, res) => {
   try {
-    const { phone } = req.query;
+    const { phone, userId } = req.query;
     if (!phone) return res.status(400).json({ error: 'Phone query param is required.' });
     
     const finalPhone = normalizePhoneInput(String(phone));
-    const { data: user } = await db.from('nexus_users').select('telegram_chat_id').eq('phone', finalPhone).maybeSingle();
+    const { data: user } = await db.from('nexus_users').select('id, telegram_chat_id, email, name, role').eq('phone', finalPhone).maybeSingle();
     
-    res.json({ linked: !!user?.telegram_chat_id });
+    const linked = !!user?.telegram_chat_id;
+
+    if (linked && userId && user) {
+      const token = generateToken({ id: user.id, email: user.email, name: user.name, role: user.role });
+      return res.json({ linked: true, token });
+    }
+
+    res.json({ linked });
   } catch (err) {
     console.error('Check link error:', err);
     res.status(500).json({ error: 'Internal server error.' });
