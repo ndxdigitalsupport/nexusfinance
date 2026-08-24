@@ -1056,6 +1056,15 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                   💬 Link & Get Code on Telegram
                                 </a>
                               )}
+                              <div className="pt-2.5 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => { setRegisterOtpSent(false); setView('register'); }}
+                                  className="text-[12px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-bold inline-flex items-center gap-1 hover:underline"
+                                >
+                                  ✏️ Change phone number
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1107,10 +1116,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                             </button>
                             <button
                               type="button"
-                              onClick={() => { setTgOtpSent(false); setTgOtpCode(''); }}
+                              onClick={() => { setRegisterOtpSent(false); setTgOtpSent(false); setTgOtpCode(''); setView('register'); }}
                               className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
                             >
-                              Back
+                              Change phone number
                             </button>
                           </div>
                         </form>
