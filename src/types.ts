@@ -58,6 +58,7 @@ export interface PlatformConfig {
   vonage_api_secret?: string;
   vonage_from_number?: string;
   custom_sms_url?: string;
+  emailVerificationRequired?: boolean;
 }
 
 export interface PlatformStats {

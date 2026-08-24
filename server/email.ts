@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import { sendBrevoEmail } from './brevo.js';
+import { db } from './db.js';
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
@@ -14,6 +15,16 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendEmail(to: string, subject: string, html: string) {
+  try {
+    const { data: config } = await db.from('nexus_config').select('emailVerificationRequired').eq('id', 1).single();
+    if (config && config.emailVerificationRequired === false) {
+      console.log(`  [Email Sandbox] Email dispatch disabled by configuration. Target: ${to}, Subject: ${subject}`);
+      return { success: true, messageId: 'disabled_by_config' };
+    }
+  } catch (dbErr) {
+    console.error('  📧 Failed to query email configuration:', dbErr);
+  }
+
   if (process.env.SMTP_USER && process.env.SMTP_PASS) {
     try {
       const info = await transporter.sendMail({

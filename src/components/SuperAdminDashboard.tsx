@@ -205,6 +205,13 @@ export default function SuperAdminDashboard({
                     </span>
                   </div>
 
+                  <div className="flex items-center justify-between text-[13px] border-b border-[var(--border-primary)] pb-2.5">
+                    <span className="text-[var(--text-secondary)] font-medium">Email Verification</span>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${config.emailVerificationRequired !== false ? 'bg-green-500/10 text-green-400' : 'bg-gray-500/10 text-gray-400'}`}>
+                      {config.emailVerificationRequired !== false ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </div>
+
                   <div className="flex items-center justify-between text-[13px]">
                     <span className="text-[var(--text-secondary)] font-medium">{t('auto_approve')}</span>
                     <span className="font-mono font-bold text-[var(--text-primary)]">
@@ -348,20 +355,35 @@ export default function SuperAdminDashboard({
               />
             </div>
 
-            <div>
-              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">Require Video KYC Verification</label>
-              <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">Enforces a mandatory live video identification call before funds are disbursed.</p>
-              <div className="flex items-center gap-2.5 mt-3.5 select-none">
-                <input
-                  type="checkbox"
-                  id="kycToggle"
-                  checked={editingConfig.kycRequired}
-                  onChange={(e) => setEditingConfig((p) => ({ ...p, kycRequired: e.target.checked }))}
-                  className="w-5 h-5 text-[var(--accent)] focus:ring-[var(--accent)] border-[var(--border-primary)] rounded"
-                />
-                <label htmlFor="kycToggle" className="text-[13.5px] font-semibold text-[var(--text-primary)]">Active & Mandatory</label>
-              </div>
-            </div>
+             <div>
+               <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">Require Video KYC Verification</label>
+               <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">Enforces a mandatory live video identification call before funds are disbursed.</p>
+               <div className="flex items-center gap-2.5 mt-3.5 select-none">
+                 <input
+                   type="checkbox"
+                   id="kycToggle"
+                   checked={editingConfig.kycRequired}
+                   onChange={(e) => setEditingConfig((p) => ({ ...p, kycRequired: e.target.checked }))}
+                   className="w-5 h-5 text-[var(--accent)] focus:ring-[var(--accent)] border-[var(--border-primary)] rounded"
+                 />
+                 <label htmlFor="kycToggle" className="text-[13.5px] font-semibold text-[var(--text-primary)]">Active & Mandatory</label>
+               </div>
+             </div>
+
+             <div>
+               <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">Require Email Verification & Alerts</label>
+               <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">Enforces email verification checks on login/registration and enables SMTP/Brevo dispatches.</p>
+               <div className="flex items-center gap-2.5 mt-3.5 select-none">
+                 <input
+                   type="checkbox"
+                   id="emailVerificationToggle"
+                   checked={editingConfig.emailVerificationRequired !== false}
+                   onChange={(e) => setEditingConfig((p) => ({ ...p, emailVerificationRequired: e.target.checked }))}
+                   className="w-5 h-5 text-[var(--accent)] focus:ring-[var(--accent)] border-[var(--border-primary)] rounded"
+                 />
+                 <label htmlFor="emailVerificationToggle" className="text-[13.5px] font-semibold text-[var(--text-primary)]">Active & Enabled</label>
+               </div>
+             </div>
           </div>
 
           <div className="border-t border-[var(--border-primary)] pt-5 space-y-4">

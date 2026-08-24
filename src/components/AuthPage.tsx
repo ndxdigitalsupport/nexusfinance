@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowRight, 
   Lock, 
@@ -21,6 +21,18 @@ type AuthView = 'login' | 'register' | 'forgot';
 
 export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [view, setView] = useState<AuthView>('login');
+  const [emailVerificationRequired, setEmailVerificationRequired] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API}/diag`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.configRecord) {
+          setEmailVerificationRequired(data.configRecord.emailVerificationRequired !== false);
+        }
+      })
+      .catch(err => console.error('Failed to load email verification config:', err));
+  }, []);
   
   // Login states
   const [loginEmail, setLoginEmail] = useState('');
@@ -160,20 +172,25 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       const registerData = await registerRes.json();
       if (!registerRes.ok) throw new Error(registerData.error || 'Registration failed.');
 
-      const otpRes = await fetch(`${API}/auth/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: registerEmail }),
-      });
-      const otpData = await otpRes.json();
-      if (!otpRes.ok) throw new Error(otpData.error || 'Failed to send the verification code.');
+      if (emailVerificationRequired) {
+        const otpRes = await fetch(`${API}/auth/send-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: registerEmail }),
+        });
+        const otpData = await otpRes.json();
+        if (!otpRes.ok) throw new Error(otpData.error || 'Failed to send the verification code.');
 
-      setRegisterOtpSent(true);
-      setRegisterOtpTimer(300);
-      const interval = setInterval(() => {
-        setRegisterOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
-      }, 1000);
-      showToast('OTP sent to your email!', 'success');
+        setRegisterOtpSent(true);
+        setRegisterOtpTimer(300);
+        const interval = setInterval(() => {
+          setRegisterOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
+        }, 1000);
+        showToast('OTP sent to your email!', 'success');
+      } else {
+        setView('login');
+        showToast('Account created successfully! Login with your email and password.', 'success');
+      }
     } catch (err: any) {
       showToast(err?.message || 'Registration failed.', 'error');
     } finally {

@@ -141,7 +141,8 @@ export const DEFAULT_CONFIG: PlatformConfig = {
   autoApproveLimit: 5000,
   reminder_time: '07:00',
   telegram_admin_id: '',
-  enable_admin_reports: true
+  enable_admin_reports: true,
+  emailVerificationRequired: true
 };
 
 export const DEFAULT_STATS: PlatformStats = {

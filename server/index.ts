@@ -268,7 +268,10 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
-    if (dbUser.email_verified === false) {
+    const { data: config } = await db.from('nexus_config').select('emailVerificationRequired').eq('id', 1).single();
+    const isEmailVerificationRequired = config ? config.emailVerificationRequired !== false : true;
+
+    if (isEmailVerificationRequired && dbUser.email_verified === false) {
       return res.status(403).json({
         error: 'Email not verified. A verification code has been sent to your email.',
         code: 'EMAIL_NOT_VERIFIED',
@@ -1521,9 +1524,12 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const { data: config } = await db.from('nexus_config').select('emailVerificationRequired').eq('id', 1).single();
+    const isEmailVerificationRequired = config ? config.emailVerificationRequired !== false : true;
+
     const { data: newUser } = await db.from('nexus_users').insert({
       name, email, password: hashedPassword, role: 'customer', phone: finalPhone,
-      email_verified: false,
+      email_verified: !isEmailVerificationRequired,
     }).select('id, name, email, role').single();
     if (!newUser) return res.status(500).json({ error: 'Failed to create account.' });
 

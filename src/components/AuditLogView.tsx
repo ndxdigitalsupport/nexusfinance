@@ -210,6 +210,10 @@ function formatAuditDetails(details: string): string {
         const valStr = formatVal(configObj.kycRequired, (v) => v ? 'Mandatory' : 'Optional');
         if (valStr) parts.push(`KYC: ${valStr}`);
       }
+      if (configObj.emailVerificationRequired !== undefined) {
+        const valStr = formatVal(configObj.emailVerificationRequired, (v) => v ? 'Enabled' : 'Disabled');
+        if (valStr) parts.push(`Email Verification: ${valStr}`);
+      }
       if (configObj.reminder_time !== undefined) {
         const valStr = formatVal(configObj.reminder_time, (v) => String(v));
         if (valStr) parts.push(`Sweep Time: ${valStr}`);
@@ -280,6 +284,12 @@ function parseAuditExplanation(log: any) {
               <div>
                 <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider">Video KYC Requirement</span>
                 {renderVal('kycRequired', (v) => v ? 'Mandatory' : 'Optional')}
+              </div>
+            )}
+            {configObj.emailVerificationRequired !== undefined && (
+              <div>
+                <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider">Email Verification</span>
+                {renderVal('emailVerificationRequired', (v) => v ? 'Enabled' : 'Disabled')}
               </div>
             )}
             {configObj.reminder_time !== undefined && (
