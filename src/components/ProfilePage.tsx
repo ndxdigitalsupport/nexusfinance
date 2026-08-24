@@ -205,7 +205,7 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider leading-none">Access Clearance</span>
-                  <span className="text-[13px] text-[var(--text-primary)] font-medium block mt-0.5 capitalize">{user?.role === 'super-admin' ? 'Root Administrator' : user?.role === 'loan-officer' ? 'Operations Officer' : 'Verified Client'}</span>
+                  <span className="text-[13px] text-[var(--text-primary)] font-medium block mt-0.5 capitalize">{user?.role === 'super-admin' ? 'Root Administrator' : user?.role === 'admin' ? 'Administrator' : user?.role === 'loan-officer' ? 'Operations Officer' : 'Verified Client'}</span>
                 </div>
               </div>
             </div>

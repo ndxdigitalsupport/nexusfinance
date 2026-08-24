@@ -34,7 +34,7 @@ export default function PortalSelection({ onSelectPortal, userRole }: PortalSele
   ];
 
   const options = allOptions.filter(o => {
-    if (userRole === 'super-admin') return true;
+    if (userRole === 'super-admin' || userRole === 'admin') return true;
     if (userRole === 'loan-officer') return o.id === 'loan-officer';
     return o.id === 'customer';
   });

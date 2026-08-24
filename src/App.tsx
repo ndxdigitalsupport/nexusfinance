@@ -169,7 +169,7 @@ export default function App() {
     if (savedPortal && savedPortal !== 'portal-selection') {
       setCurrentPortal(savedPortal as PortalType);
     } else if (portalUser) {
-      const target = portalUser.role === 'super-admin' ? 'super-admin' : (portalUser.role as PortalType);
+      const target = (portalUser.role === 'super-admin' || portalUser.role === 'admin') ? 'super-admin' : (portalUser.role as PortalType);
       setCurrentPortal(target);
       localStorage.setItem('nexus_portal', target);
     }
@@ -190,7 +190,7 @@ export default function App() {
 
   useEffect(() => {
     if (portalUser && portalUser.role) {
-      const targetPortal: PortalType = portalUser.role === 'super-admin' ? 'super-admin' : (portalUser.role as PortalType);
+      const targetPortal: PortalType = (portalUser.role === 'super-admin' || portalUser.role === 'admin') ? 'super-admin' : (portalUser.role as PortalType);
       if (currentPortal !== targetPortal) {
         setCurrentPortal(targetPortal);
         localStorage.setItem('nexus_portal', targetPortal);
@@ -242,9 +242,9 @@ export default function App() {
 
   const handleSetPortal = (portal: PortalType) => {
     if (!portalUser) return;
-    if (portal === 'super-admin' && portalUser.role !== 'super-admin') return;
-    if (portal === 'loan-officer' && portalUser.role !== 'loan-officer' && portalUser.role !== 'super-admin') return;
-    if (portal === 'portal-selection' && portalUser.role !== 'super-admin') return;
+    if (portal === 'super-admin' && portalUser.role !== 'super-admin' && portalUser.role !== 'admin') return;
+    if (portal === 'loan-officer' && portalUser.role !== 'loan-officer' && portalUser.role !== 'super-admin' && portalUser.role !== 'admin') return;
+    if (portal === 'portal-selection' && portalUser.role !== 'super-admin' && portalUser.role !== 'admin') return;
     setCurrentPortal(portal);
     saveToStorage('nexus_portal', portal);
     if (portal === 'loan-officer') setActiveMenu('dashboard');

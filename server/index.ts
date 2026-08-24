@@ -75,7 +75,22 @@ function logAudit(action: string, details: string, user: any) {
 let notifyUser = function(userId: number, text: string) {
   const time = new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Phnom_Penh', hour: '2-digit', minute: '2-digit', hour12: false });
   db.from('nexus_notifications').insert({ userId, text, time }).then(null, (err) => console.error('notifyUser failed:', err));
+  sendTelegramNotificationToUser(userId, text);
 };
+
+async function sendTelegramNotificationToUser(userId: number, text: string) {
+  try {
+    const { data: user } = await db.from('nexus_users').select('telegram_chat_id').eq('id', userId).maybeSingle();
+    if (user && user.telegram_chat_id && bot) {
+      const chatId = parseInt(user.telegram_chat_id, 10);
+      if (chatId) {
+        await bot.sendMessage(chatId, `🔔 *NexusFinance Notification*\n\n${text}`, { parse_mode: 'Markdown' });
+      }
+    }
+  } catch (err) {
+    console.error('Failed to send Telegram notification to user:', err);
+  }
+}
 
 async function notifyAdminOfNewLoan(loan: any) {
   try {
@@ -859,7 +874,7 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
   res.status(201).json(newLoan);
 });
 
-app.patch('/api/loans/:id/approve', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
+app.patch('/api/loans/:id/approve', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
   const { data: loan } = await db.from('nexus_loans').select('*').eq('id', req.params.id).single();
   if (!loan) return res.status(404).json({ error: 'Loan not found.' });
 
@@ -884,7 +899,7 @@ app.patch('/api/loans/:id/approve', authMiddleware, requireRole('loan-officer', 
   res.json({ ...loan, status: 'Approved', assignedTo: req.user.id });
 });
 
-app.patch('/api/loans/:id/reject', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
+app.patch('/api/loans/:id/reject', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
   const { data: loan } = await db.from('nexus_loans').select('*').eq('id', req.params.id).single();
   if (!loan) return res.status(404).json({ error: 'Loan not found.' });
   await db.from('nexus_loans').update({ status: 'Rejected' }).eq('id', req.params.id);
@@ -899,7 +914,7 @@ app.patch('/api/loans/:id/reject', authMiddleware, requireRole('loan-officer', '
   res.json({ ...loan, status: 'Rejected' });
 });
 
-app.patch('/api/loans/:id/hold', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
+app.patch('/api/loans/:id/hold', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
   const { data: loan } = await db.from('nexus_loans').select('*').eq('id', req.params.id).single();
   if (!loan) return res.status(404).json({ error: 'Loan not found.' });
   await db.from('nexus_loans').update({ status: 'Hold' }).eq('id', req.params.id);
@@ -944,7 +959,7 @@ app.post('/api/transactions/disburse', authMiddleware, async (req, res) => {
 
 // ── TASK ROUTES ─────────────────────────────────────────────
 
-app.get('/api/tasks', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
+app.get('/api/tasks', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
   const { data: tasks } = await db.from('nexus_tasks').select('*');
   res.json(tasks || []);
 });
@@ -971,14 +986,14 @@ app.patch('/api/tasks/:id/complete', authMiddleware, async (req, res) => {
 // ── USER MANAGEMENT (Super Admin) ──────────────────────────
 
 app.get('/api/users', authMiddleware, async (req, res) => {
-  if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
+  if (req.user.role !== 'super-admin' && req.user.role !== 'admin') return res.status(403).json({ error: 'Admins only.' });
   const { data: users } = await db.from('nexus_users').select('id, name, email, role, phone, telegram_chat_id');
   res.json(users || []);
 });
 
 app.patch('/api/users/:id/role', authMiddleware, async (req, res) => {
-  if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
-  const allowedRoles = ['customer', 'loan-officer', 'super-admin'];
+  if (req.user.role !== 'super-admin' && req.user.role !== 'admin') return res.status(403).json({ error: 'Admins only.' });
+  const allowedRoles = ['customer', 'loan-officer', 'admin', 'super-admin'];
   if (!allowedRoles.includes(req.body.role)) return res.status(400).json({ error: 'Invalid role.' });
   const { data: user } = await db.from('nexus_users').select('id, name, email').eq('id', parseInt(req.params.id)).single();
   if (!user) return res.status(404).json({ error: 'User not found.' });
@@ -991,7 +1006,7 @@ app.patch('/api/users/:id/role', authMiddleware, async (req, res) => {
 });
 
 app.patch('/api/users/:id/reset-password', authMiddleware, async (req, res) => {
-  if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
+  if (req.user.role !== 'super-admin' && req.user.role !== 'admin') return res.status(403).json({ error: 'Admins only.' });
   const { password } = req.body;
   if (!password || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
   const { data: user } = await db.from('nexus_users').select('id, name, email').eq('id', parseInt(req.params.id)).single();
@@ -1011,7 +1026,7 @@ app.get('/api/config', authMiddleware, async (req, res) => {
 });
 
 app.patch('/api/config', authMiddleware, async (req, res) => {
-  if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
+  if (req.user.role !== 'super-admin' && req.user.role !== 'admin') return res.status(403).json({ error: 'Admins only.' });
   
   const { data: currentConfig } = await db.from('nexus_config').select('*').eq('id', 1).single();
   const updatePayload: any = {};
@@ -1053,7 +1068,7 @@ app.get('/api/reminder-settings', authMiddleware, async (req, res) => {
   res.json(settings || []);
 });
 
-app.post('/api/reminder-settings', authMiddleware, requireRole('super-admin'), async (req, res) => {
+app.post('/api/reminder-settings', authMiddleware, requireRole('super-admin', 'admin'), async (req, res) => {
   const { name, days_before, message_template, channel, is_active } = req.body;
   if (!name || message_template === undefined) {
     return res.status(400).json({ error: 'name and message_template are required.' });
@@ -1075,7 +1090,7 @@ app.post('/api/reminder-settings', authMiddleware, requireRole('super-admin'), a
   res.status(201).json(data);
 });
 
-app.patch('/api/reminder-settings/:id', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
+app.patch('/api/reminder-settings/:id', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
   const id = parseInt(req.params.id);
   const { name, days_before, message_template, channel, is_active } = req.body;
 
@@ -1111,7 +1126,7 @@ app.patch('/api/reminder-settings/:id', authMiddleware, requireRole('loan-office
   res.json(data);
 });
 
-app.delete('/api/reminder-settings/:id', authMiddleware, requireRole('super-admin'), async (req, res) => {
+app.delete('/api/reminder-settings/:id', authMiddleware, requireRole('super-admin', 'admin'), async (req, res) => {
   const id = parseInt(req.params.id);
   const { error } = await db.from('nexus_reminder_settings').delete().eq('id', id);
   if (error) return res.status(500).json({ error: error.message });
@@ -1119,7 +1134,7 @@ app.delete('/api/reminder-settings/:id', authMiddleware, requireRole('super-admi
   res.json({ ok: true });
 });
 
-app.get('/api/test-reminders', authMiddleware, requireRole('super-admin'), async (req, res) => {
+app.get('/api/test-reminders', authMiddleware, requireRole('super-admin', 'admin'), async (req, res) => {
   console.log('  📬 Manual trigger of payment reminders sweep requested by:', req.user.email);
   try {
     const { sendPaymentReminders } = await import('./bot.js');
@@ -1140,7 +1155,7 @@ app.get('/api/reminder-logs', authMiddleware, async (req, res) => {
   res.json(logs || []);
 });
 
-app.get('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
+app.get('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
   const { data: broadcasts } = await db
     .from('nexus_broadcasts')
     .select('*, sender:sent_by(name, email)')
@@ -1148,7 +1163,7 @@ app.get('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'super-ad
   res.json(broadcasts || []);
 });
 
-app.post('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
+app.post('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
   const { message, channel, target } = req.body;
   if (!message) return res.status(400).json({ error: 'message is required.' });
 
@@ -1224,7 +1239,7 @@ app.post('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'super-a
 
 // ── STATS ROUTES ────────────────────────────────────────────
 
-app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
+app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
   // Fetch transactions and join with users to get name/email
   const { data: txs } = await db
     .from('nexus_transactions')
@@ -1363,14 +1378,14 @@ app.post('/api/webhooks/register', authMiddleware, async (req, res) => {
 });
 
 app.get('/api/webhooks', authMiddleware, async (req, res) => {
-  const userWebhooks = webhooks.filter(w => w.userId === req.user.id || req.user.role === 'super-admin');
+  const userWebhooks = webhooks.filter(w => w.userId === req.user.id || req.user.role === 'super-admin' || req.user.role === 'admin');
   res.json(userWebhooks.map(w => ({ ...w, secret: undefined })));
 });
 
 app.delete('/api/webhooks/:id', authMiddleware, async (req, res) => {
   const idx = webhooks.findIndex(w => w.id === parseInt(req.params.id));
   if (idx === -1) return res.status(404).json({ error: 'Webhook not found.' });
-  if (webhooks[idx].userId !== req.user.id && req.user.role !== 'super-admin') {
+  if (webhooks[idx].userId !== req.user.id && req.user.role !== 'super-admin' && req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Access denied.' });
   }
   webhooks.splice(idx, 1);
@@ -1452,7 +1467,7 @@ app.get('/api/diag', async (req, res) => {
 // ── AUDIT LOG ROUTES (Super Admin) ─────────────────────────
 
 app.get('/api/audit/logs', authMiddleware, async (req, res) => {
-  if (req.user.role !== 'super-admin') return res.json([]);
+  if (req.user.role !== 'super-admin' && req.user.role !== 'admin') return res.json([]);
   const { data: logs } = await db.from('nexus_audit_logs').select('*').order('id', { ascending: false }).limit(100);
   res.json(logs || []);
 });
@@ -1519,7 +1534,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
 // ── SEND PASSWORD RESET LINK (stub — logs to console) ──────
 
 app.post('/api/users/:id/send-reset-link', authMiddleware, async (req, res) => {
-  if (req.user.role !== 'super-admin') return res.status(403).json({ error: 'Admins only.' });
+  if (req.user.role !== 'super-admin' && req.user.role !== 'admin') return res.status(403).json({ error: 'Admins only.' });
   const { data: user } = await db.from('nexus_users').select('id, name, email').eq('id', parseInt(req.params.id)).single();
   if (!user) return res.status(404).json({ error: 'User not found.' });
 
@@ -1559,7 +1574,7 @@ app.get('/api/documents', authMiddleware, async (req, res) => {
 app.delete('/api/documents/:id', authMiddleware, async (req, res) => {
   const { data: doc } = await db.from('nexus_documents').select('userId').eq('id', parseInt(req.params.id)).single();
   if (!doc) return res.status(404).json({ error: 'Document not found.' });
-  if (doc.userId !== req.user.id && req.user.role !== 'super-admin') {
+  if (doc.userId !== req.user.id && req.user.role !== 'super-admin' && req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Access denied.' });
   }
   await db.from('nexus_documents').delete().eq('id', parseInt(req.params.id));
@@ -1569,7 +1584,7 @@ app.delete('/api/documents/:id', authMiddleware, async (req, res) => {
 app.get('/api/documents/:id/view', authMiddleware, async (req, res) => {
   const { data: doc } = await db.from('nexus_documents').select('*').eq('id', parseInt(req.params.id)).single();
   if (!doc) return res.status(404).json({ error: 'Document not found.' });
-  if (doc.userId !== req.user.id && req.user.role !== 'super-admin') {
+  if (doc.userId !== req.user.id && req.user.role !== 'super-admin' && req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Access denied.' });
   }
   const buf = Buffer.from(doc.fileData, 'base64');
@@ -1963,7 +1978,7 @@ function withTimeout<T>(promise: Promise<T>, ms = 2500): Promise<T> {
   return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
 }
 
-app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'super-admin'), async (req, res) => {
+app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
   const { id } = req.params;
   const cleanId = id.startsWith('#') ? id : '#' + id;
   const { data: loan } = await db.from('nexus_loans').select('*').eq('id', cleanId).maybeSingle();

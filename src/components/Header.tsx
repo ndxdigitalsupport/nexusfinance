@@ -100,7 +100,7 @@ export default function Header({
     setShowNotificationsDropdown(!showNotificationsDropdown);
   };
 
-  const roleLabel = currentPortal === 'super-admin' ? 'Super Admin' : currentPortal === 'loan-officer' ? 'Loan Officer' : 'Customer';
+  const roleLabel = currentPortal === 'super-admin' ? (userRole === 'super-admin' ? 'Super Admin' : 'Admin') : currentPortal === 'loan-officer' ? 'Loan Officer' : 'Customer';
 
   return (
     <div className="sticky top-4 z-30 px-4 md:px-6 w-full mb-8">

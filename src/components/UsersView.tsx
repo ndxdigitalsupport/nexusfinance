@@ -168,15 +168,15 @@ export default function UsersView() {
                         <ShieldCheck className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
                         <span className="px-2 py-0.5 rounded-md text-[11px] font-bold"
                           style={{
-                            backgroundColor: u.role === 'loan-officer' ? 'var(--info-bg)' : 'var(--success-bg)',
-                            color: u.role === 'loan-officer' ? 'var(--info-text)' : 'var(--success-text)'
+                            backgroundColor: u.role === 'loan-officer' ? 'var(--info-bg)' : u.role === 'admin' ? 'rgba(109, 40, 217, 0.1)' : 'var(--success-bg)',
+                            color: u.role === 'loan-officer' ? 'var(--info-text)' : u.role === 'admin' ? 'rgb(109, 40, 217)' : 'var(--success-text)'
                           }}
-                        >{u.role === 'loan-officer' ? 'Loan Officer' : 'Customer'}</span>
+                        >{u.role === 'loan-officer' ? 'Loan Officer' : u.role === 'admin' ? 'Admin' : 'Customer'}</span>
                         <ChevronDown className={`w-3.5 h-3.5 text-[var(--text-tertiary)] ml-auto transition-transform duration-150 ${roleDropdownId === u.id ? 'rotate-180' : ''}`} />
                       </button>
                       {roleDropdownId === u.id && (
                         <div className="absolute left-0 top-full mt-1 w-48 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl shadow-xl shadow-black/5 z-20 py-1.5 overflow-hidden animate-dropdown-enter">
-                          {['customer', 'loan-officer'].map(r => (
+                          {['customer', 'loan-officer', 'admin'].map(r => (
                             <button
                               key={r}
                               onClick={() => { changeRole(u.id, r); setRoleDropdownId(null); }}
@@ -185,7 +185,7 @@ export default function UsersView() {
                               <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${r === u.role ? 'border-[#0d9488] bg-[#0d9488]' : 'border-[#cbd5e1]'}`}>
                                 {r === u.role && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
                               </span>
-                              <span className={`${r === u.role ? 'text-[#0d9488]' : 'text-[var(--text-primary)]'}`}>{r === 'loan-officer' ? 'Loan Officer' : 'Customer'}</span>
+                              <span className={`${r === u.role ? 'text-[#0d9488]' : 'text-[var(--text-primary)]'}`}>{r === 'loan-officer' ? 'Loan Officer' : r === 'admin' ? 'Admin' : 'Customer'}</span>
                             </button>
                           ))}
                         </div>
