@@ -1177,6 +1177,9 @@ app.post('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'admin',
   } else if (activeTarget.startsWith('role:')) {
     const roleName = activeTarget.split(':')[1];
     query = query.eq('role', roleName);
+  } else if (activeTarget.startsWith('users:')) {
+    const userIds = activeTarget.split(':')[1].split(',').map(Number).filter(n => !isNaN(n));
+    query = query.in('id', userIds);
   } else if (activeTarget.startsWith('user:')) {
     const userId = Number(activeTarget.split(':')[1]);
     query = query.eq('id', userId);
