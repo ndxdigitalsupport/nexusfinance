@@ -40,7 +40,7 @@ def doc_hosting():
     doc.callout("Key Finding",
                 "A single VPS can host 10-20 small-to-medium clients running the NexusFinance "
                 "stack (Node.js backend + Supabase/PostgreSQL). The most cost-effective option is "
-                "Hetzner Cloud at $4.59/month per VPS, yielding $0.23-0.46 per client per month.",
+                "Hostinger KVM 2 at $8.99/month per VPS, yielding $0.45-0.90 per client per month.",
                 kind="tip")
 
     # ── 2. Resource Requirements ──
@@ -81,7 +81,6 @@ def doc_hosting():
     doc.table(
         ["Provider", "Plan", "vCPU", "RAM", "Storage", "Bandwidth", "Monthly", "Yearly"],
         [
-            ["Hetzner", "CX22", "2", "4 GB", "40 GB NVMe", "20 TB", "$4.59", "$55.08"],
             ["Hostinger", "KVM 2", "2", "8 GB", "100 GB NVMe", "2 TB", "$8.99", "$107.88"],
             ["Vultr", "HP 1GB", "1", "1 GB", "25 GB NVMe", "2 TB", "$6.00", "$72.00"],
             ["DigitalOcean", "Basic 2vCPU", "2", "2 GB", "60 GB SSD", "3 TB", "$18.00", "$216.00"],
@@ -94,26 +93,25 @@ def doc_hosting():
 
     doc.h2("3.2 Feature Comparison")
     doc.table(
-        ["Feature", "Hetzner", "Hostinger", "Vultr", "DigitalOcean", "Railway", "Render"],
+        ["Feature", "Hostinger", "Vultr", "DigitalOcean", "Railway", "Render"],
         [
-            ["Managed DB", "No", "No", "No", "Yes ($15+)", "Yes", "Yes ($7+)"],
-            ["Auto-scaling", "No", "No", "No", "Yes", "Yes", "Yes"],
-            ["Backups", "Paid add-on", "Weekly free", "Paid add-on", "20% extra", "Included", "Included"],
-            ["SSL", "Self-configure", "Free Let's Encrypt", "Self-configure", "Self-configure", "Auto", "Auto"],
-            ["Support", "Ticket only", "24/7 chat", "Ticket only", "Ticket only", "Discord", "Email"],
-            ["Regions", "EU + US", "Global", "32 regions", "15 regions", "US (expanding)", "US/EU/SG"],
-            ["Uptime SLA", "99.9%", "99.9%", "100%", "99.99%", "99.5%", "99.9%"],
-            ["Root access", "Yes", "Yes", "Yes", "Yes", "No", "No"],
+            ["Managed DB", "No", "No", "Yes ($15+)", "Yes", "Yes ($7+)"],
+            ["Auto-scaling", "No", "No", "Yes", "Yes", "Yes"],
+            ["Backups", "Weekly free", "Paid add-on", "20% extra", "Included", "Included"],
+            ["SSL", "Free Let's Encrypt", "Self-configure", "Self-configure", "Auto", "Auto"],
+            ["Support", "24/7 chat", "Ticket only", "Ticket only", "Discord", "Email"],
+            ["Regions", "Global", "32 regions", "15 regions", "US (expanding)", "US/EU/SG"],
+            ["Uptime SLA", "99.9%", "100%", "99.99%", "99.5%", "99.9%"],
+            ["Root access", "Yes", "Yes", "Yes", "No", "No"],
         ],
-        col_widths=[1.0, 0.85, 0.85, 0.85, 0.85, 0.85, 0.85],
+        col_widths=[1.0, 0.85, 0.85, 0.85, 0.85, 0.85],
     )
 
     doc.h2("3.3 Cost-Per-Spec Analysis")
     doc.table(
         ["Provider", "Price/GB RAM", "Price/vCPU", "Best Value Tier"],
         [
-            ["Hetzner", "$1.15", "$2.30", "CX22 — best overall value"],
-            ["Hostinger", "$1.12", "$4.50", "KVM 2 — most RAM per dollar"],
+            ["Hostinger", "$1.12", "$4.50", "KVM 2 — best overall value"],
             ["Vultr", "$6.00", "$6.00", "HP 1GB — good for single clients"],
             ["DigitalOcean", "$9.00", "$9.00", "Basic 2vCPU — ecosystem premium"],
             ["Railway", "~$10.00", "N/A", "Usage-based, hard to compare directly"],
@@ -130,11 +128,11 @@ def doc_hosting():
     doc.table(
         ["Scenario", "Clients/VPS", "VPS Plan", "Monthly Cost", "Cost/Client"],
         [
-            ["Conservative", "10", "Hetzner CX22 ($4.59)", "$4.59", "$0.46"],
-            ["Moderate", "15", "Hetzner CX22 ($4.59)", "$4.59", "$0.31"],
-            ["Aggressive", "20", "Hetzner CX22 ($4.59)", "$4.59", "$0.23"],
-            ["Premium", "10", "Hostinger KVM 2 ($8.99)", "$8.99", "$0.90"],
-            ["Premium+", "15", "Hostinger KVM 2 ($8.99)", "$8.99", "$0.60"],
+            ["Conservative", "10", "Hostinger KVM 2 ($8.99)", "$8.99", "$0.90"],
+            ["Moderate", "15", "Hostinger KVM 2 ($8.99)", "$8.99", "$0.60"],
+            ["Aggressive", "20", "Hostinger KVM 2 ($8.99)", "$8.99", "$0.45"],
+            ["Premium", "10", "DigitalOcean 2vCPU ($18)", "$18.00", "$1.80"],
+            ["Premium+", "15", "DigitalOcean 2vCPU ($18)", "$18.00", "$1.20"],
         ],
         col_widths=[1.2, 1.0, 1.8, 1.0, 1.0],
     )
@@ -166,12 +164,12 @@ def doc_hosting():
     doc.table(
         ["Clients", "VPS Needed", "VPS Cost/Mo", "Domain/Year", "SMS/Mo", "Total/Mo", "Total/Year"],
         [
-            ["10", "1", "$4.59", "$10", "$1.05", "$6.42", "$87.04"],
-            ["20", "1", "$4.59", "$20", "$2.10", "$8.29", "$119.48"],
-            ["50", "3", "$13.77", "$50", "$5.25", "$23.02", "$326.24"],
-            ["100", "5", "$22.95", "$100", "$10.50", "$38.45", "$581.40"],
-            ["200", "10", "$45.90", "$200", "$21.00", "$71.57", "$1,118.84"],
-            ["500", "25", "$114.75", "$500", "$52.50", "$177.25", "$2,907.00"],
+            ["10", "1", "$8.99", "$10", "$1.05", "$11.04", "$142.48"],
+            ["20", "1", "$8.99", "$20", "$2.10", "$12.91", "$174.92"],
+            ["50", "3", "$26.97", "$50", "$5.25", "$36.22", "$494.64"],
+            ["100", "5", "$44.95", "$100", "$10.50", "$58.45", "$821.40"],
+            ["200", "10", "$89.90", "$200", "$21.00", "$114.57", "$1,514.84"],
+            ["500", "25", "$224.75", "$500", "$52.50", "$281.25", "$4,017.00"],
         ],
         col_widths=[0.7, 0.8, 1.0, 1.0, 0.9, 1.0, 1.1],
     )
@@ -180,19 +178,19 @@ def doc_hosting():
     doc.table(
         ["Clients", "Total Monthly", "Cost Per Client/Mo", "Cost Per Client/Year"],
         [
-            ["10", "$6.42", "$0.64", "$7.74"],
-            ["20", "$8.29", "$0.41", "$4.97"],
-            ["50", "$23.02", "$0.46", "$5.53"],
-            ["100", "$38.45", "$0.38", "$4.61"],
-            ["200", "$71.57", "$0.36", "$4.29"],
-            ["500", "$177.25", "$0.35", "$4.24"],
+            ["10", "$11.04", "$1.10", "$13.25"],
+            ["20", "$12.91", "$0.65", "$7.75"],
+            ["50", "$36.22", "$0.72", "$8.69"],
+            ["100", "$58.45", "$0.58", "$7.01"],
+            ["200", "$114.57", "$0.57", "$6.87"],
+            ["500", "$281.25", "$0.56", "$6.75"],
         ],
         col_widths=[1.0, 1.5, 1.8, 1.8],
     )
     doc.callout("Economy of Scale",
-                "At 100+ clients, the cost per client drops below $0.40/month — "
-                "less than the cost of a single SMS OTP. This makes the per-client "
-                "hosting model highly profitable for a microfinance operation.",
+                "At 100+ clients, the cost per client drops below $0.60/month — "
+                "well within profitable margins for a microfinance operation. "
+                "The per-client model becomes increasingly efficient as you scale.",
                 kind="tip")
 
     # ── 6. Total Cost of Ownership ──
@@ -202,7 +200,7 @@ def doc_hosting():
     doc.table(
         ["Category", "Item", "Monthly", "Yearly"],
         [
-            ["Compute", "3x Hetzner CX22 VPS", "$13.77", "$165.24"],
+            ["Compute", "3x Hostinger KVM 2 VPS", "$26.97", "$323.64"],
             ["Domains", "50 client domains", "$4.17", "$50.00"],
             ["Monitoring", "UptimeRobot Pro", "$5.00", "$60.00"],
             ["Backups", "Off-site backup storage", "$5.00", "$60.00"],
@@ -211,18 +209,18 @@ def doc_hosting():
             ["SSL", "Let's Encrypt", "$0", "$0"],
             ["Labor", "Server maintenance (5 hrs/mo)", "$50.00", "$600.00"],
             ["", "", "", ""],
-            ["TOTAL", "", "$83.19", "$998.24"],
+            ["TOTAL", "", "$96.39", "$1,156.64"],
         ],
         col_widths=[1.2, 2.0, 1.2, 1.2],
     )
-    doc.p("Cost per client: $1.66/month or $19.96/year (including labor).", bold=True)
+    doc.p("Cost per client: $1.93/month or $23.13/year (including labor).", bold=True)
 
     # ── 7. Recommendation ──
     doc.h1("7. Recommendation")
     doc.table(
         ["Criterion", "Recommendation", "Rationale"],
         [
-            ["Best Value", "Hetzner CX22", "$4.59/mo, 20TB bandwidth, 4GB RAM — unbeatable specs/price"],
+            ["Best Value", "Hostinger KVM 2", "$8.99/mo, 8GB RAM, 100GB NVMe — best specs/price in its class"],
             ["Easiest Setup", "Hostinger KVM 2", "hPanel control panel, 24/7 support, good for non-technical teams"],
             ["Best Ecosystem", "DigitalOcean", "Managed databases, one-click apps, great documentation"],
             ["Simplest (PaaS)", "Render", "Zero server management, auto-deploys, but more expensive"],
@@ -231,10 +229,10 @@ def doc_hosting():
         col_widths=[1.2, 1.5, 3.5],
     )
     doc.callout("Final Recommendation",
-                "For NexusFinance per-client hosting, Hetzner Cloud (CX22) is the recommended choice. "
-                "At $4.59/month for 2 vCPUs, 4GB RAM, and 20TB bandwidth, it delivers the best "
+                "For NexusFinance per-client hosting, Hostinger KVM 2 is the recommended choice. "
+                "At $8.99/month for 2 vCPUs, 8GB RAM, and 100GB NVMe storage, it delivers the best "
                 "price-to-performance ratio. A single VPS can comfortably host 10-20 clients at "
-                "a cost of $0.23-0.46 per client per month.",
+                "a cost of $0.45-0.90 per client per month.",
                 kind="tip")
 
     path = os.path.join(BASE, "NexusFinance_Private_Account_Hosting_Costing.docx")
