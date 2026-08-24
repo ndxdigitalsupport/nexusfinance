@@ -387,7 +387,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   };
 
   return (
-    <div className="h-screen grid grid-rows-[auto_1fr_auto] bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans relative auth-page overflow-hidden">
+    <div className="min-h-screen grid grid-rows-[auto_1fr_auto] bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans relative auth-page overflow-y-auto">
       
       {/* Background soft glowing decorative orbs */}
       <div className="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full bg-[#c0f5ea]/40 blur-[120px] pointer-events-none z-0" />
