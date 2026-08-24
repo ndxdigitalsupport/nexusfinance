@@ -932,102 +932,118 @@ ${lines.join('\n')}`,
 
   bot.on('contact', async (msg) => {
     const chatId = msg.chat.id;
-    const contact = msg.contact;
-    if (!contact) return;
-    
-    // Safety check: ensure contact belongs to the user who sent it
-    if (contact.user_id !== msg.from?.id) {
-      return bot.sendMessage(chatId, '❌ You can only link your own phone number.');
-    }
-    
-    // Normalize phone number (remove +, spaces, leading zeros, keep only digits)
-    const phoneDigits = contact.phone_number.replace(/\D/g, '');
-    const finalPhone = '+' + phoneDigits;
-
-    // Check if there is a pending linkage from /start parameter
-    if (pendingLinkages.has(chatId)) {
-      const dbUserId = pendingLinkages.get(chatId);
-      pendingLinkages.delete(chatId);
-
-      const { data: dbUser } = await db.from('nexus_users').select('*').eq('id', dbUserId).maybeSingle();
-      if (!dbUser) {
-        return bot.sendMessage(chatId, '❌ Linkage session not found. Please register on the website first.');
+    try {
+      const contact = msg.contact;
+      if (!contact) return;
+      
+      // Safety check: ensure contact belongs to the user who sent it
+      if (contact.user_id !== msg.from?.id) {
+        return bot.sendMessage(chatId, '❌ You can only link your own phone number.');
       }
+      
+      // Normalize phone number (remove +, spaces, leading zeros, keep only digits)
+      const phoneDigits = contact.phone_number.replace(/\D/g, '');
+      const finalPhone = '+' + phoneDigits;
 
-      // Update user with phone and link chat ID, set otp_verified_at to mark fully verified!
-      const emailPattern = `${phoneDigits}@nexus.local`;
-      const { error: updateError } = await db
-        .from('nexus_users')
-        .update({
-          phone: finalPhone,
-          telegram_chat_id: String(chatId),
-          otp_verified_at: new Date().toISOString(),
-          email: emailPattern
-        })
-        .eq('id', dbUser.id);
+      // Check if there is a pending linkage from /start parameter
+      if (pendingLinkages.has(chatId)) {
+        const dbUserId = pendingLinkages.get(chatId);
+        pendingLinkages.delete(chatId);
 
-      if (updateError) {
-        return bot.sendMessage(chatId, '❌ Database link update error. Please try again.');
-      }
+        const numericId = parseInt(dbUserId || '', 10);
+        if (isNaN(numericId)) {
+          return bot.sendMessage(chatId, '❌ Invalid user registration session.');
+        }
 
-      return bot.sendMessage(chatId,
+        const { data: dbUser, error: fetchErr } = await db.from('nexus_users').select('*').eq('id', numericId).maybeSingle();
+        if (fetchErr || !dbUser) {
+          console.error('Fetch pending user error:', fetchErr);
+          return bot.sendMessage(chatId, `❌ Linkage session not found. Please register on the website first. (ID: ${dbUserId})`);
+        }
+
+        // Update user with phone and link chat ID, set otp_verified_at to mark fully verified!
+        const emailPattern = `${phoneDigits}@nexus.local`;
+        const { error: updateError } = await db
+          .from('nexus_users')
+          .update({
+            phone: finalPhone,
+            telegram_chat_id: String(chatId),
+            otp_verified_at: new Date().toISOString(),
+            email: emailPattern
+          })
+          .eq('id', dbUser.id);
+
+        if (updateError) {
+          console.error('Linkage database update error:', updateError);
+          return bot.sendMessage(chatId, `❌ Database link update error: ${updateError.message || 'Unknown constraint'}`);
+        }
+
+        return bot.sendMessage(chatId,
 `✅ *Account Activated successfully!*
 
 Your website profile is now linked with Telegram and verified:
-* Phone Number: ${finalPhone}
+• Phone Number: ${finalPhone}
 
 You can now log in using your phone number and password on the website!`,
-        {
-          parse_mode: 'Markdown',
-          reply_markup: {
-            remove_keyboard: true
+          {
+            parse_mode: 'Markdown',
+            reply_markup: {
+              remove_keyboard: true
+            }
           }
-        }
-      );
-    }
-    
-    const { data: users, error } = await db.from('nexus_users').select('id, name, email, phone, telegram_chat_id');
-    if (error || !users) {
-      return bot.sendMessage(chatId, '❌ Database error occurred. Please try again later.');
-    }
-    
-    const matchingUser = users.find(u => {
-      if (!u.phone) return false;
-      const dbPhoneDigits = u.phone.replace(/\D/g, '');
-      return phoneDigits.endsWith(dbPhoneDigits.slice(-8)) || dbPhoneDigits.endsWith(phoneDigits.slice(-8));
-    });
-    
-    if (!matchingUser) {
-      return bot.sendMessage(chatId, `❌ No NexusFinance account found with phone number: ${contact.phone_number}.\n\nPlease register with this phone number on the website first!`);
-    }
-    
-    if (matchingUser.telegram_chat_id && matchingUser.telegram_chat_id !== String(chatId)) {
-      return bot.sendMessage(chatId, '⚠️ This phone number is already linked to another Telegram account.');
-    }
-    
-    // Generate a 6-digit numeric OTP code
-    const otpCode = String(crypto.randomInt(100000, 1000000));
-    const hashed = await bcrypt.hash(otpCode, 10);
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
-
-    const { error: updateError } = await db
-      .from('nexus_users')
-      .update({
-        telegram_chat_id: String(chatId),
-        otp_code: hashed,
-        otp_expires_at: expiresAt,
-        otp_verified_at: null
-      })
-      .eq('id', matchingUser.id);
+        );
+      }
       
-    if (updateError) {
-      return bot.sendMessage(chatId, '❌ Failed to link Telegram account. Try again.');
+      const { data: users, error } = await db.from('nexus_users').select('id, name, email, phone, telegram_chat_id');
+      if (error || !users) {
+        return bot.sendMessage(chatId, '❌ Database error occurred. Please try again later.');
+      }
+      
+      const matchingUser = users.find(u => {
+        if (!u.phone) return false;
+        const dbPhoneDigits = u.phone.replace(/\D/g, '');
+        return phoneDigits.endsWith(dbPhoneDigits.slice(-8)) || dbPhoneDigits.endsWith(phoneDigits.slice(-8));
+      });
+      
+      if (!matchingUser) {
+        return bot.sendMessage(chatId, `❌ No NexusFinance account found with phone number: ${contact.phone_number}.\n\nPlease register with this phone number on the website first!`);
+      }
+      
+      if (matchingUser.telegram_chat_id && matchingUser.telegram_chat_id !== String(chatId)) {
+        return bot.sendMessage(chatId, '⚠️ This phone number is already linked to another Telegram account.');
+      }
+      
+      // Generate a 6-digit numeric OTP code
+      const otpCode = String(crypto.randomInt(100000, 1000000));
+      const hashed = await bcrypt.hash(otpCode, 10);
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
+      const { error: updateError } = await db
+        .from('nexus_users')
+        .update({
+          telegram_chat_id: String(chatId),
+          otp_code: hashed,
+          otp_expires_at: expiresAt,
+          otp_verified_at: null
+        })
+        .eq('id', matchingUser.id);
+        
+      if (updateError) {
+        return bot.sendMessage(chatId, '❌ Failed to link Telegram account. Try again.');
+      }
+      
+      bot.sendMessage(chatId, `✅ *Success!* Your Telegram account has been linked to *${matchingUser.name}* (${matchingUser.email}).\n\n🔐 *Your Account Verification Code:*\n\`${otpCode}\`\n\nPlease type this code on the website to complete your account registration. It expires in 5 minutes.`, {
+        parse_mode: 'Markdown',
+        reply_markup: { remove_keyboard: true }
+      });
+    } catch (err: any) {
+      console.error('Contact sharing handler failed:', err);
+      try {
+        await bot.sendMessage(chatId, `❌ An unexpected linkage error occurred: ${err.message || err}`);
+      } catch (sendErr) {
+        console.error('Failed to notify chat of exception:', sendErr);
+      }
     }
-    
-    bot.sendMessage(chatId, `✅ *Success!* Your Telegram account has been linked to *${matchingUser.name}* (${matchingUser.email}).\n\n🔐 *Your Account Verification Code:*\n\`${otpCode}\`\n\nPlease type this code on the website to complete your account registration. It expires in 5 minutes.`, {
-      parse_mode: 'Markdown',
-      reply_markup: { remove_keyboard: true }
-    });
   });
 
   // ── Initialize admin session ──────────────────────────────────
