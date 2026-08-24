@@ -81,9 +81,9 @@ def doc_hosting():
     doc.table(
         ["Provider", "Plan", "vCPU", "RAM", "Storage", "Bandwidth", "Monthly", "Yearly"],
         [
-            ["Hostinger", "KVM 2", "2", "8 GB", "100 GB NVMe", "2 TB", "$8.99", "$107.88"],
+            ["Hostinger", "KVM 2", "2", "8 GB", "100 GB NVMe", "8 TB", "$8.99", "$107.88"],
             ["Vultr", "HP 1GB", "1", "1 GB", "25 GB NVMe", "2 TB", "$6.00", "$72.00"],
-            ["DigitalOcean", "Basic 2vCPU", "2", "2 GB", "60 GB SSD", "3 TB", "$18.00", "$216.00"],
+            ["DigitalOcean", "Basic 2vCPU", "2", "4 GB", "80 GB SSD", "4 TB", "$24.00", "$288.00"],
             ["Railway", "Hobby", "Shared", "512 MB", "Volume", "100 GB", "$5.00*", "$60.00*"],
             ["Render", "Starter", "0.5", "512 MB", "Persistent", "5 GB", "$7.00", "$84.00"],
         ],
@@ -113,7 +113,7 @@ def doc_hosting():
         [
             ["Hostinger", "$1.12", "$4.50", "KVM 2 — best overall value"],
             ["Vultr", "$6.00", "$6.00", "HP 1GB — good for single clients"],
-            ["DigitalOcean", "$9.00", "$9.00", "Basic 2vCPU — ecosystem premium"],
+            ["DigitalOcean", "$6.00", "$12.00", "Basic 2vCPU — ecosystem premium"],
             ["Railway", "~$10.00", "N/A", "Usage-based, hard to compare directly"],
             ["Render", "$14.00", "$14.00", "Starter — simplest setup"],
         ],
@@ -131,8 +131,8 @@ def doc_hosting():
             ["Conservative", "10", "Hostinger KVM 2 ($8.99)", "$8.99", "$0.90"],
             ["Moderate", "15", "Hostinger KVM 2 ($8.99)", "$8.99", "$0.60"],
             ["Aggressive", "20", "Hostinger KVM 2 ($8.99)", "$8.99", "$0.45"],
-            ["Premium", "10", "DigitalOcean 2vCPU ($18)", "$18.00", "$1.80"],
-            ["Premium+", "15", "DigitalOcean 2vCPU ($18)", "$18.00", "$1.20"],
+            ["Premium", "10", "DigitalOcean 2vCPU ($24)", "$24.00", "$2.40"],
+            ["Premium+", "15", "DigitalOcean 2vCPU ($24)", "$24.00", "$1.60"],
         ],
         col_widths=[1.2, 1.0, 1.8, 1.0, 1.0],
     )
