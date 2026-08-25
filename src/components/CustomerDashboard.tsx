@@ -116,7 +116,7 @@ export default function CustomerDashboard({
           </div>
 
           {/* Core Action Squares layout */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 select-none">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 select-none">
             <button onClick={onApplyLoanClick}
               className="stagger-1 p-5 text-center flex flex-col items-center justify-center hover-lift group cursor-pointer rounded-2xl transition-all duration-200"
               style={{ backgroundColor: 'var(--accent)', color: 'var(--text-inverse)' }}
@@ -126,19 +126,8 @@ export default function CustomerDashboard({
               </div>
               <span className="text-[13.5px] font-extrabold">Apply Loan</span>
             </button>
-            <button onClick={onRepayClick}
-              className="stagger-2 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift group cursor-pointer"
-              style={{ borderColor: 'rgba(59, 130, 246, 0.3)' }}
-            >
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3 group-hover:scale-105 duration-200"
-                style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent)' }}
-              >
-                <Coins className="w-6 h-6 stroke-[2.5]" style={{ color: 'var(--accent)' }} />
-              </div>
-              <span className="text-[13.5px] font-extrabold" style={{ color: 'var(--text-primary)' }}>Repay Account</span>
-            </button>
             <button onClick={() => onSetActiveMenu('khqr')}
-              className="stagger-3 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift group cursor-pointer"
+              className="stagger-2 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift group cursor-pointer"
               style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}
             >
               <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3 group-hover:scale-105 duration-200"
@@ -149,7 +138,7 @@ export default function CustomerDashboard({
               <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">KHQR Payment</span>
             </button>
             <button onClick={() => onSetActiveMenu('support')}
-              className="stagger-4 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift group cursor-pointer"
+              className="stagger-3 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift group cursor-pointer"
               style={{ borderColor: 'rgba(245, 158, 11, 0.3)' }}
             >
               <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3 group-hover:scale-105 duration-200"
