@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown, QrCode, Mail, HelpCircle as HelpIcon, Download, FileText, Calculator, Bell, Megaphone } from 'lucide-react';
+import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown, QrCode, Mail, HelpCircle as HelpIcon, Download, FileText, Calculator, Bell, Megaphone } from 'lucide-react';
 import AuthPage from './components/AuthPage';
 import Toast, { showToast } from './components/Toast';
 import Sidebar from './components/Sidebar';
@@ -13,7 +13,6 @@ import StatusBadge from './components/StatusBadge';
 import Heading from './components/Heading';
 import Table from './components/Table';
 import LoansLedgerSection from './components/LoansLedgerSection';
-import TransactionsSection from './components/TransactionsSection';
 import ComplianceTasksSection from './components/ComplianceTasksSection';
 import { LoanApplication, Task, Transaction, PlatformConfig, PlatformStats, PortalType } from './types';
 import { DEFAULT_CONFIG, DEFAULT_STATS } from './data';
@@ -450,7 +449,7 @@ export default function App() {
                     ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'repayments', label: 'Repayments Checklist', icon: ClipboardList }]
                     : currentPortal === 'super-admin'
                     ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'manage', label: 'Loan Management', icon: ClipboardList }, { id: 'users', label: 'Users', icon: Users }, { id: 'reminders', label: 'Reminders', icon: Bell }, { id: 'broadcast', label: 'Broadcast', icon: Megaphone }, { id: 'audit', label: 'Audit Log', icon: ClipboardList }, { id: 'settings', label: 'Settings', icon: Settings }]
-                    : [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'loans', label: 'My Loan', icon: Landmark }, { id: 'documents', label: 'KYC Documents', icon: FileText }, { id: 'calculator', label: 'Loan Calculator', icon: Calculator }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }, { id: 'transactions', label: 'History Logs', icon: History }];
+                    : [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'loans', label: 'Loans', icon: Landmark }, { id: 'documents', label: 'KYC Documents', icon: FileText }, { id: 'calculator', label: 'Loan Calculator', icon: Calculator }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }];
                   return items.map((item) => {
                     const Icon = item.icon;
                     const isActive = activeMenu === item.id;
@@ -587,15 +586,13 @@ export default function App() {
                 onInstantApprovedFastCash={handleInstantApprovedFastCash}
               />
             ) : activeMenu === 'loans' ? (
-              <LoansLedgerSection applications={applications} loanPage={loanPage} setLoanPage={setLoanPage} userEmail={portalUser?.email} />
+              <LoansLedgerSection applications={applications} loanPage={loanPage} setLoanPage={setLoanPage} userEmail={portalUser?.email} transactions={transactions} txPage={txPage} setTxPage={setTxPage} />
             ) : activeMenu === 'documents' ? (
               <KYCDocumentsPage />
             ) : activeMenu === 'calculator' ? (
               <LoanCalculator />
             ) : activeMenu === 'khqr' ? (
               <KHQRPage />
-            ) : activeMenu === 'transactions' ? (
-              <TransactionsSection transactions={transactions} txPage={txPage} setTxPage={setTxPage} />
             ) : null
           )}
 
