@@ -21,7 +21,7 @@ type AuthView = 'login' | 'register' | 'forgot';
 
 export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [view, setView] = useState<AuthView>('login');
-  const [emailVerificationRequired, setEmailVerificationRequired] = useState(true);
+  const [emailVerificationRequired, setEmailVerificationRequired] = useState<boolean | null>(null);
 
   useEffect(() => {
     fetch(`${API}/diag`)
@@ -29,9 +29,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       .then(data => {
         if (data && data.configRecord) {
           setEmailVerificationRequired(data.configRecord.emailVerificationRequired !== false);
+        } else {
+          setEmailVerificationRequired(true);
         }
       })
-      .catch(err => console.error('Failed to load email verification config:', err));
+      .catch(err => {
+        console.error('Failed to load email verification config:', err);
+        setEmailVerificationRequired(true);
+      });
   }, []);
   
   // Login states
@@ -438,6 +443,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       setForgotLoading(false);
     }
   };
+
+  if (emailVerificationRequired === null) {
+    return (
+      <div className="h-screen w-full relative bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] flex items-center justify-center">
+        <div className="w-8 h-8 border-3 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-full relative bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans auth-page overflow-hidden">
