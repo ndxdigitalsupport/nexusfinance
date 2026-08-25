@@ -354,16 +354,11 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                       {passwordLoading ? 'Verifying Code...' : 'Verify Code'}
                     </button>
                     
-                    <div className="flex justify-between items-center text-[12px] max-w-xs mx-auto pt-2">
+                    <div className="flex justify-center items-center text-[12px] max-w-xs mx-auto pt-2">
                       <button type="button" onClick={handleSendPasswordOtp} disabled={passwordOtpTimer > 0}
                         className="text-[var(--text-secondary)] font-bold hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40"
                       >
                         Resend code {passwordOtpTimer > 0 && `(${Math.floor(passwordOtpTimer / 60)}:${String(passwordOtpTimer % 60).padStart(2, '0')})`}
-                      </button>
-                      <button type="button" onClick={() => { setPasswordOtpSent(false); setPasswordOtpCode(''); }}
-                        className="text-[var(--text-secondary)] font-bold hover:text-[var(--text-primary)] cursor-pointer"
-                      >
-                        {email.endsWith('@nexus.local') ? 'Use a different method' : 'Choose another email'}
                       </button>
                     </div>
                   </form>
