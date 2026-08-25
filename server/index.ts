@@ -869,7 +869,7 @@ app.post('/api/sms/send', authMiddleware, async (req, res) => {
 app.get('/api/loans', authMiddleware, async (req, res) => {
   let query = db.from('nexus_loans').select('*');
   if (req.user.role === 'customer') {
-    query = query.eq('applicantEmail', req.user.email);
+    query = query.eq('user_id', req.user.id);
   }
   const { data: loans } = await query.order('date', { ascending: false });
 
@@ -943,6 +943,7 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
 
   const { data: newLoan } = await db.from('nexus_loans').insert({
     id: loanId,
+    user_id: req.user.id,
     applicantName: applicantName || req.user.name,
     applicantEmail: applicantEmail || req.user.email,
     initials: initials || req.user.name.split(' ').map(n => n[0]).join('').toUpperCase(),
