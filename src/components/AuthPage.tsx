@@ -103,7 +103,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         if (data.code === 'EMAIL_NOT_VERIFIED') {
           setLoginVerifyEmail(loginEmail);
           await sendLoginVerifyOtp(loginEmail);
-          showToast('Email not verified — a code was sent to your email.', 'info');
+          showToast(loginEmail.includes('@nexus.local') ? 'Account not verified — a code was sent via Telegram & SMS.' : 'Email not verified — a code was sent to your email.', 'info');
           return;
         }
         throw new Error(data.error || 'Invalid email or password.');
@@ -486,7 +486,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   <form onSubmit={handleVerifyLoginOtp} className="space-y-5">
                     <div className="text-center">
                       <p className="text-[13px] text-[var(--text-secondary)] font-medium">
-                        Enter the code sent to <strong className="text-[var(--text-primary)]">{loginVerifyEmail}</strong> to verify your email
+                        Enter the code sent to <strong className="text-[var(--text-primary)]">{loginVerifyEmail.includes('@nexus.local') ? loginVerifyEmail.replace('@nexus.local', '') : loginVerifyEmail}</strong> {loginVerifyEmail.includes('@nexus.local') ? 'via Telegram & SMS' : 'to verify your email'}
                       </p>
                     </div>
                     <div>

@@ -307,7 +307,10 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                   /* Step 1: Send OTP UI */
                   <div className="space-y-4">
                     <p className="text-[13px] text-[var(--text-secondary)] font-medium leading-relaxed">
-                      To modify your account password, we must first verify your email address (<strong>{email}</strong>). We will send a secure 6-digit one-time password (OTP) verification code.
+                      {email.endsWith('@nexus.local')
+                        ? <>To modify your account password, we must first verify your phone number (<strong>{phone}</strong>). We will send a secure 6-digit one-time password (OTP) via Telegram and SMS.</>
+                        : <>To modify your account password, we must first verify your email address (<strong>{email}</strong>). We will send a secure 6-digit one-time password (OTP) verification code.</>
+                      }
                     </p>
                     <div className="flex justify-start">
                       <button
@@ -316,8 +319,8 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                         disabled={passwordLoading}
                         className="premium-btn-primary text-white text-[13px] font-bold px-6 py-3 rounded-xl cursor-pointer disabled:opacity-50 flex items-center gap-2 bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition-all"
                       >
-                        {passwordLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-                        {passwordLoading ? 'Sending Verification...' : 'Send OTP to Email'}
+                        {passwordLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Phone className="w-4 h-4" />}
+                        {passwordLoading ? 'Sending Verification...' : email.endsWith('@nexus.local') ? 'Send OTP to Phone' : 'Send OTP to Email'}
                       </button>
                     </div>
                   </div>
@@ -325,7 +328,10 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                   /* Step 2: Enter OTP Code UI */
                   <form onSubmit={handleVerifyPasswordOtp} className="space-y-5">
                     <p className="text-[13px] text-[var(--text-secondary)] font-semibold text-center">
-                      Verification code sent to <strong>{email}</strong>
+                      {email.endsWith('@nexus.local')
+                        ? <>Verification code sent to <strong>{phone}</strong> via Telegram & SMS</>
+                        : <>Verification code sent to <strong>{email}</strong></>
+                      }
                     </p>
                     <div className="max-w-xs mx-auto">
                       <input
@@ -357,7 +363,7 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                       <button type="button" onClick={() => { setPasswordOtpSent(false); setPasswordOtpCode(''); }}
                         className="text-[var(--text-secondary)] font-bold hover:text-[var(--text-primary)] cursor-pointer"
                       >
-                        Choose another email
+                        {email.endsWith('@nexus.local') ? 'Use a different method' : 'Choose another email'}
                       </button>
                     </div>
                   </form>
