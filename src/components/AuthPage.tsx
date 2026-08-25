@@ -117,12 +117,17 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   };
 
   // Send OTP for the login verification step
-  const sendLoginVerifyOtp = async (email: string) => {
+  const sendLoginVerifyOtp = async (emailOrPhone: string) => {
     try {
-      const res = await fetch(`${API}/auth/send-otp`, {
+      const isPhoneOnly = emailOrPhone.includes('@nexus.local');
+      const endpoint = isPhoneOnly ? `${API}/auth/send-otp-phone` : `${API}/auth/send-otp`;
+      const body = isPhoneOnly
+        ? { phone: emailOrPhone.replace('@nexus.local', '') }
+        : { email: emailOrPhone };
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send the verification code.');
@@ -141,17 +146,22 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!loginOtpCode || loginOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
     setLoginLoading(true);
     try {
-      const res = await fetch(`${API}/auth/verify-otp`, {
+      const isPhoneOnly = loginVerifyEmail.includes('@nexus.local');
+      const endpoint = isPhoneOnly ? `${API}/auth/verify-otp-phone` : `${API}/auth/verify-otp`;
+      const body = isPhoneOnly
+        ? { phone: loginVerifyEmail.replace('@nexus.local', ''), code: loginOtpCode }
+        : { email: loginVerifyEmail, code: loginOtpCode };
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginVerifyEmail, code: loginOtpCode }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Invalid or expired code.');
       setLoginVerifyEmail('');
       setLoginOtpSent(false);
       setLoginOtpCode('');
-      showToast('Email verified! Login to continue.', 'success');
+      showToast('Verified! Login to continue.', 'success');
     } catch (err: any) {
       showToast(err?.message || 'Invalid or expired code.', 'error');
     } finally {
@@ -322,13 +332,17 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   // Forgot password OTP handlers
   const handleSendForgotOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!forgotEmail) return showToast('Enter your email address', 'error');
+    const input = forgotEmail;
+    if (!input) return showToast('Enter your email or phone number', 'error');
     setForgotLoading(true);
     try {
-      const res = await fetch(`${API}/auth/send-otp`, {
+      const isPhone = !input.includes('@');
+      const endpoint = isPhone ? `${API}/auth/forgot-password-phone` : `${API}/auth/send-otp`;
+      const body = isPhone ? { phone: input } : { email: input };
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send OTP.');
@@ -337,7 +351,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       const interval = setInterval(() => {
         setForgotOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
       }, 1000);
-      showToast('OTP sent to your email!', 'success');
+      showToast('Verification code sent!', 'success');
     } catch (err: any) {
       showToast(err?.message || 'Failed to send OTP.', 'error');
     } finally {
@@ -350,10 +364,16 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!forgotOtpCode || forgotOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
     setForgotLoading(true);
     try {
-      const res = await fetch(`${API}/auth/verify-otp`, {
+      const input = forgotEmail;
+      const isPhone = !input.includes('@');
+      const endpoint = isPhone ? `${API}/auth/verify-otp-phone` : `${API}/auth/verify-otp`;
+      const body = isPhone
+        ? { phone: input, code: forgotOtpCode }
+        : { email: input, code: forgotOtpCode };
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail, code: forgotOtpCode }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Invalid or expired code.');
@@ -371,10 +391,15 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (resetPassword !== resetConfirmPassword) return showToast('Passwords do not match', 'error');
     setForgotLoading(true);
     try {
+      const input = forgotEmail;
+      const isPhone = !input.includes('@');
+      const body = isPhone
+        ? { phone: input, newPassword: resetPassword }
+        : { email: input, newPassword: resetPassword };
       const res = await fetch(`${API}/auth/update-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail, newPassword: resetPassword }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to reset password.'); }
       showToast('Password reset! Login with your new password.', 'success');
@@ -394,10 +419,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const handleResendForgotOtp = async () => {
     setForgotLoading(true);
     try {
-      const res = await fetch(`${API}/auth/send-otp`, {
+      const input = forgotEmail;
+      const isPhone = !input.includes('@');
+      const endpoint = isPhone ? `${API}/auth/forgot-password-phone` : `${API}/auth/send-otp`;
+      const body = isPhone ? { phone: input } : { email: input };
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to resend OTP.');
@@ -1239,17 +1268,17 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 /* Step 1: Email input */
                 <form onSubmit={handleSendForgotOtp} className="w-full space-y-5">
                   <p className="text-[13px] text-[var(--text-secondary)] font-medium text-center">
-                    Enter your email to receive a 6-digit code
+                    {emailVerificationRequired ? 'Enter your email to receive a 6-digit code' : 'Enter your phone number to receive a 6-digit code'}
                   </p>
                   <div className="space-y-1.5">
-                    <label className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Email</label>
+                    <label className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">{emailVerificationRequired ? 'Email' : 'Phone Number'}</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                        <Lock className="w-4 h-4 text-[var(--text-tertiary)]" />
+                        {emailVerificationRequired ? <Lock className="w-4 h-4 text-[var(--text-tertiary)]" /> : <Phone className="w-4 h-4 text-[var(--text-tertiary)]" />}
                       </div>
                       <input
-                        type="email"
-                        placeholder="Enter your email address"
+                        type={emailVerificationRequired ? 'email' : 'tel'}
+                        placeholder={emailVerificationRequired ? 'Enter your email address' : 'Enter your phone number'}
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
                         className="w-full pl-10 pr-4 py-3.5 bg-[var(--surface-card)]/90 border border-[var(--border-primary)]/90 rounded-2xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"

@@ -58,9 +58,12 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
   const handleSendPasswordOtp = async () => {
     setPasswordLoading(true);
     try {
-      const res = await fetch(`${API}/auth/send-otp`, {
+      const isPhoneOnly = email.endsWith('@nexus.local');
+      const endpoint = isPhoneOnly ? `${API}/auth/send-otp-phone` : `${API}/auth/send-otp`;
+      const body = isPhoneOnly ? { phone } : { email };
+      const res = await fetch(endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send OTP.');
@@ -69,7 +72,7 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
       const interval = setInterval(() => {
         setPasswordOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
       }, 1000);
-      showToast('OTP sent to your email!', 'success');
+      showToast(isPhoneOnly ? 'OTP sent to your phone!' : 'OTP sent to your email!', 'success');
     } catch (err: any) {
       showToast(err?.message || 'Failed to send OTP.', 'error');
     } finally {
@@ -82,14 +85,19 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
     if (!passwordOtpCode || passwordOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
     setPasswordLoading(true);
     try {
-      const res = await fetch(`${API}/auth/verify-otp`, {
+      const isPhoneOnly = email.endsWith('@nexus.local');
+      const endpoint = isPhoneOnly ? `${API}/auth/verify-otp-phone` : `${API}/auth/verify-otp`;
+      const body = isPhoneOnly
+        ? { phone, code: passwordOtpCode }
+        : { email, code: passwordOtpCode };
+      const res = await fetch(endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code: passwordOtpCode }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Invalid or expired code.');
       setPasswordOtpVerified(true);
-      showToast('Email verified! Set your new password.', 'success');
+      showToast('Verified! Set your new password.', 'success');
     } catch (err: any) {
       showToast(err?.message || 'Invalid or expired code.', 'error');
     } finally {

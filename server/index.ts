@@ -10,7 +10,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import { db } from './db.js';
-import { createOtpForUser, verifyOtpForUser, requireOtpVerified, clearOtpVerified } from './otp.js';
+import { createOtpForUser, verifyOtpForUser, requireOtpVerified, clearOtpVerified, createOtpForUserByPhone, verifyOtpForUserByPhone, requireOtpVerifiedByPhone, clearOtpVerifiedByPhone } from './otp.js';
 import { sendSMS } from './sms.js';
 import { verifyKHQR, decodeKHQR, generateDeeplink } from './khqr.js';
 import { generateKHQR, checkTransaction } from './bakong.js';
@@ -570,17 +570,72 @@ app.post('/v1/auth/otp/verify', authLimiter, verifyOtpHandler);
 app.post('/api/v1/auth/otp/verify', authLimiter, verifyOtpHandler);
 app.post('/api/auth/otp/verify', authLimiter, verifyOtpHandler);
 
+// ── Phone-based OTP (parallel to email OTP) ──────────────────────
+
+app.post('/api/auth/send-otp-phone', authLimiter, async (req, res) => {
+  try {
+    const phone = normalizePhoneInput(req.body.phone);
+    if (!phone) return res.status(400).json({ error: 'Phone number is required.' });
+
+    const result = await createOtpForUserByPhone(phone);
+    if (!result.success) return res.status(400).json({ error: result.error });
+
+    logAudit('otp-sent', `Verification code sent to phone ${phone}`, {});
+    res.json({ message: 'Verification code sent.', telegramSent: result.telegramSent, smsSent: result.smsSent });
+  } catch (err) {
+    console.error('Send phone OTP error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+app.post('/api/auth/verify-otp-phone', authLimiter, async (req, res) => {
+  try {
+    const phone = normalizePhoneInput(req.body.phone);
+    const { code } = req.body;
+    if (!phone || !code) return res.status(400).json({ error: 'Phone and code are required.' });
+
+    const result = await verifyOtpForUserByPhone(phone, String(code).trim());
+    if (!result.success) return res.status(400).json({ error: result.error || 'Invalid or expired code.' });
+
+    const { data: user } = await db.from('nexus_users').select('id, name, email, role').eq('phone', phone).maybeSingle();
+    if (user) logAudit('otp-verified', `Phone OTP verified for ${phone}`, { id: user.id, email: user.email, name: user.name, role: user.role });
+    res.json({ message: 'Code verified successfully.' });
+  } catch (err) {
+    console.error('Verify phone OTP error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
 // Self-service password reset (called after OTP verification on forgot password)
 app.post('/api/auth/update-password', authLimiter, async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
+    const phone = req.body.phone ? normalizePhoneInput(req.body.phone) : null;
     const { newPassword } = req.body;
-    if (!email || !newPassword) {
-      return res.status(400).json({ error: 'email and newPassword are required.' });
+    if ((!email && !phone) || !newPassword) {
+      return res.status(400).json({ error: 'email or phone and newPassword are required.' });
     }
     if (newPassword.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters.' });
     }
+
+    // Phone-based path
+    if (phone && !email) {
+      const { data: user } = await db.from('nexus_users').select('id').eq('phone', phone).maybeSingle();
+      if (!user) return res.status(404).json({ error: 'User not found.' });
+
+      const verified = await requireOtpVerifiedByPhone(phone);
+      if (!verified) return res.status(403).json({ error: 'Phone not verified. Request a new code and verify first.' });
+
+      const bcryptHash = await bcrypt.hash(newPassword, 10);
+      await db.from('nexus_users').update({ password: bcryptHash }).eq('phone', phone);
+      await clearOtpVerifiedByPhone(phone);
+      logAudit('password-reset', `Password reset via phone OTP for ${phone}`, { id: user.id, email: '', name: '', role: '' });
+      return res.json({ message: 'Password updated successfully.' });
+    }
+
+    // Email-based path (existing)
+    if (!email) return res.status(400).json({ error: 'email or phone and newPassword are required.' });
     const { data: user } = await db.from('nexus_users').select('id').eq('email', email).maybeSingle();
     if (!user) return res.status(404).json({ error: 'User not found.' });
 
@@ -607,6 +662,23 @@ app.patch('/api/auth/password', authMiddleware, async (req, res) => {
     }
     const email = req.user.email;
 
+    // Look up user to get phone number
+    const { data: fullUser } = await db.from('nexus_users').select('id, phone').eq('id', req.user.id).maybeSingle();
+    const phone = fullUser?.phone;
+
+    // Phone-based path (for phone-only users with synthetic @nexus.local email)
+    if (phone && email && email.endsWith('@nexus.local')) {
+      const verified = await requireOtpVerifiedByPhone(phone);
+      if (!verified) return res.status(403).json({ error: 'Phone not verified. Request a new code and verify first.' });
+
+      const bcryptHash = await bcrypt.hash(newPassword, 10);
+      await db.from('nexus_users').update({ password: bcryptHash }).eq('phone', phone);
+      await clearOtpVerifiedByPhone(phone);
+      logAudit('password-change', `${phone} changed their password via phone OTP`, req.user);
+      return res.json({ message: 'Password updated successfully.' });
+    }
+
+    // Email-based path (existing)
     const verified = await requireOtpVerified(email);
     if (!verified) return res.status(403).json({ error: 'Email not verified. Request a new code and verify first.' });
 
@@ -659,6 +731,26 @@ app.post('/api/auth/forgot-password', authLimiter, async (req, res) => {
     res.json({ message: 'If an account exists with this email, a password reset link has been sent.' });
   } catch (err) {
     console.error('Forgot password error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+app.post('/api/auth/forgot-password-phone', authLimiter, async (req, res) => {
+  try {
+    const phone = normalizePhoneInput(req.body.phone);
+    if (!phone) return res.status(400).json({ error: 'Phone number is required.' });
+
+    const { data: dbUser } = await db.from('nexus_users').select('id, phone, telegram_chat_id').eq('phone', phone).maybeSingle();
+    if (dbUser) {
+      const result = await createOtpForUserByPhone(phone);
+      if (result.success) {
+        logAudit('password-reset-request', `Reset code sent to phone ${phone}`, { id: dbUser.id, email: '', name: '', role: 'customer' });
+      }
+    }
+
+    res.json({ message: 'If an account exists with this phone number, a verification code has been sent.' });
+  } catch (err) {
+    console.error('Forgot password phone error:', err);
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
