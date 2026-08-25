@@ -86,8 +86,8 @@ export default function CustomerDashboard({
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => onSetActiveMenu('khqr')}
-              className="px-6 py-3 text-[14px] font-bold rounded-xl transition-all duration-200 cursor-pointer select-none hover:brightness-110"
-              style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)' }}
+              className="px-6 py-3 text-[14px] font-bold rounded-xl bg-white transition-all duration-200 cursor-pointer select-none hover:bg-white/90 shadow-lg shadow-black/20"
+              style={{ color: '#0F171C' }}
             >
               Repay
             </button>
