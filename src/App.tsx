@@ -581,7 +581,6 @@ export default function App() {
                 walletBalance={walletBalance}
                 transactions={transactions}
                 onApplyLoanClick={() => setIsApplyOpen(true)}
-                onRepayClick={() => setIsRepayOpen(true)}
                 onSetActiveMenu={handleSetActiveMenu}
                 onInstantApprovedFastCash={handleInstantApprovedFastCash}
               />

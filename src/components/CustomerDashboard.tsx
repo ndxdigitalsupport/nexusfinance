@@ -17,7 +17,6 @@ interface CustomerDashboardProps {
   walletBalance: number;
   transactions: Transaction[];
   onApplyLoanClick: () => void;
-  onRepayClick: () => void;
   onSetActiveMenu: (menu: string) => void;
   onInstantApprovedFastCash: (amount: number) => void;
 }
@@ -28,7 +27,6 @@ export default function CustomerDashboard({
   walletBalance,
   transactions,
   onApplyLoanClick,
-  onRepayClick,
   onSetActiveMenu,
   onInstantApprovedFastCash
 }: CustomerDashboardProps) {
@@ -36,7 +34,6 @@ export default function CustomerDashboard({
 
   const nextDueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   const daysUntilDue = Math.ceil((nextDueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  const monthlyPayment = outstandingBalance > 0 ? Math.round((outstandingBalance / 24) * 100) / 100 : 0;
   const loanTermMonths = 24;
   const currentMonth = 1;
   const progressPercent = Math.round((currentMonth / loanTermMonths) * 100);
@@ -88,9 +85,9 @@ export default function CustomerDashboard({
 
           <div className="flex items-center gap-3 shrink-0">
             <button
-              onClick={onRepayClick}
-              className="px-6 py-3 text-[14px] font-bold rounded-xl border-2 transition-all duration-200 cursor-pointer select-none"
-              style={{ borderColor: 'rgba(255,255,255,0.3)', color: 'var(--text-primary)' }}
+              onClick={() => onSetActiveMenu('khqr')}
+              className="px-6 py-3 text-[14px] font-bold rounded-xl transition-all duration-200 cursor-pointer select-none hover:brightness-110"
+              style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)' }}
             >
               Repay
             </button>
