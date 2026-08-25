@@ -199,13 +199,6 @@ export default function SuperAdminDashboard({
                   </div>
 
                   <div className="flex items-center justify-between text-[13px] border-b border-[var(--border-primary)] pb-2.5">
-                    <span className="text-[var(--text-secondary)] font-medium">{t('kyc_enforcement')}</span>
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${config.kycRequired ? 'bg-purple-500/10 text-purple-400' : 'bg-gray-500/10 text-gray-400'}`}>
-                      {config.kycRequired ? t('mandatory') : t('optional')}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[13px] border-b border-[var(--border-primary)] pb-2.5">
                     <span className="text-[var(--text-secondary)] font-medium">Email Verification</span>
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${config.emailVerificationRequired !== false ? 'bg-green-500/10 text-green-400' : 'bg-gray-500/10 text-gray-400'}`}>
                       {config.emailVerificationRequired !== false ? 'Enabled' : 'Disabled'}
@@ -243,20 +236,20 @@ export default function SuperAdminDashboard({
 
           {/* Row 3: Pending applications + Audit logs */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left: Pending Applications List */}
+            {/* Left: Recent Applications List */}
             <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 space-y-4">
               <div>
                 <h3 className="text-[17px] font-sans font-bold text-[var(--text-primary)] flex items-center gap-2">
                   <FileText className="w-5 h-5 text-[var(--accent)]" /> {t('loan_review')}
                 </h3>
-                <p className="text-[12px] text-[var(--text-secondary)]">{t('loan_review_desc')}</p>
+                <p className="text-[12px] text-[var(--text-secondary)]">Recent loan applications and their current status.</p>
               </div>
 
               <div className="divide-y divide-[var(--border-primary)] text-[13px] max-h-[260px] overflow-y-auto pr-1">
-                {applications.filter((app: any) => app.status === 'New' || app.status === 'Review').length === 0 ? (
+                {applications.length === 0 ? (
                   <p className="text-[var(--text-tertiary)] text-[13px] py-10 text-center bg-[var(--surface-secondary)]/10 rounded-xl">{t('no_applications')}</p>
                 ) : (
-                  applications.filter((app: any) => app.status === 'New' || app.status === 'Review').slice(0, 4).map((app: any) => (
+                  applications.slice(0, 5).map((app: any) => (
                     <div key={app.id} className="py-3.5 flex justify-between items-center">
                       <div>
                         <div className="flex items-center gap-2">
@@ -268,9 +261,12 @@ export default function SuperAdminDashboard({
                       <div className="text-right space-y-1">
                         <span className="font-mono font-bold text-[var(--text-primary)] block">{formatCurrency(app.amount)}</span>
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold ${
-                          app.urgency === 'Urgent' ? 'bg-red-500/10 text-red-400' : 'bg-blue-500/10 text-blue-400'
+                          app.status === 'Approved' ? 'bg-green-500/10 text-green-400' :
+                          app.status === 'Rejected' ? 'bg-red-500/10 text-red-400' :
+                          app.status === 'Hold' ? 'bg-yellow-500/10 text-yellow-400' :
+                          'bg-blue-500/10 text-blue-400'
                         }`}>
-                          {app.urgency}
+                          {app.status}
                         </span>
                       </div>
                     </div>

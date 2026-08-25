@@ -448,7 +448,7 @@ export default function App() {
                   const items = currentPortal === 'loan-officer'
                     ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'repayments', label: 'Repayments Checklist', icon: ClipboardList }]
                     : currentPortal === 'super-admin'
-                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'manage', label: 'Loan Management', icon: ClipboardList }, { id: 'users', label: 'Users', icon: Users }, { id: 'reminders', label: 'Reminders', icon: Bell }, { id: 'broadcast', label: 'Broadcast', icon: Megaphone }, { id: 'audit', label: 'Audit Log', icon: ClipboardList }, { id: 'settings', label: 'Settings', icon: Settings }]
+                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'users', label: 'Users', icon: Users }, { id: 'reminders', label: 'Reminders', icon: Bell }, { id: 'broadcast', label: 'Broadcast', icon: Megaphone }, { id: 'audit', label: 'Audit Log', icon: ClipboardList }, { id: 'settings', label: 'Settings', icon: Settings }]
                     : [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'loans', label: 'Loans', icon: Landmark }, { id: 'documents', label: 'KYC Documents', icon: FileText }, { id: 'calculator', label: 'Loan Calculator', icon: Calculator }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }];
                   return items.map((item) => {
                     const Icon = item.icon;

@@ -19,7 +19,7 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
   const menuItems = currentPortal === 'loan-officer'
     ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'repayments', label: 'Repayments Checklist', icon: ClipboardList }]
     : currentPortal === 'super-admin'
-    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'manage', label: 'Loan Management', icon: ClipboardList }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]
+    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]
     : [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'loans', label: 'Loans', icon: Landmark }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }];
 
   const bottomItems = [
