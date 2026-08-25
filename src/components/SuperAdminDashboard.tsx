@@ -304,10 +304,10 @@ export default function SuperAdminDashboard({
         </div>
       )}
 
-      {view === 'settings' && <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {view === 'settings' && <div className="space-y-6">
         
-        {/* Form panel configuring parameters (Spans 7) */}
-        <form onSubmit={handleSave} className="lg:col-span-7 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 sm:p-8 space-y-6">
+        {/* Form panel configuring parameters */}
+        <form onSubmit={handleSave} className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 sm:p-8 space-y-6">
           <h3 className="text-[18px] font-sans font-bold text-[var(--text-primary)] border-b pb-2 flex items-center gap-2">
             <Settings2 className="w-5 h-5 text-[var(--text-primary)]" /> System Parameters Adjustments
           </h3>
@@ -350,21 +350,6 @@ export default function SuperAdminDashboard({
                 className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
               />
             </div>
-
-             <div>
-               <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">Require Video KYC Verification</label>
-               <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">Enforces a mandatory live video identification call before funds are disbursed.</p>
-               <div className="flex items-center gap-2.5 mt-3.5 select-none">
-                 <input
-                   type="checkbox"
-                   id="kycToggle"
-                   checked={editingConfig.kycRequired}
-                   onChange={(e) => setEditingConfig((p) => ({ ...p, kycRequired: e.target.checked }))}
-                   className="w-5 h-5 text-[var(--accent)] focus:ring-[var(--accent)] border-[var(--border-primary)] rounded"
-                 />
-                 <label htmlFor="kycToggle" className="text-[13.5px] font-semibold text-[var(--text-primary)]">Active & Mandatory</label>
-               </div>
-             </div>
 
              <div>
                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">Require Email Verification & Alerts</label>
@@ -471,30 +456,6 @@ export default function SuperAdminDashboard({
             </button>
           </div>
         </form>
-
-        {/* Audit logging trail panel (Spans 5) */}
-        <div className="lg:col-span-5 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 shadow-xs space-y-5">
-          <h3 className="text-[16px] font-extrabold text-[var(--text-primary)] border-b pb-2 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-[var(--text-primary)]" /> Core Audit Logs Trails
-          </h3>
-
-          <div className="divide-y divide-[var(--border-primary)] space-y-1.5 text-[13.5px] max-h-[320px] overflow-y-auto pr-1">
-            {auditLogs.length === 0 ? (
-              <p className="text-[var(--text-tertiary)] text-[13px] py-4 text-center">No audit logs yet.</p>
-            ) : auditLogs.map((log) => (
-              <div key={log.id} className="py-3 flex justify-between items-start gap-4">
-                <div>
-                  <span className="text-[var(--text-primary)] font-extrabold block">{formatAuditDetails(log.details)}</span>
-                  <span className="text-[11px] text-[var(--text-tertiary)] mt-0.5 block">{new Date(log.timestamp).toLocaleString()}</span>
-                </div>
-                <span className="text-[11px] px-2 py-0.5 rounded font-bold shrink-0 self-start"
-                  style={{backgroundColor: 'var(--surface-tertiary)', color: 'var(--text-secondary)'}}>
-                  {log.userEmail}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
 
       </div>}
 
