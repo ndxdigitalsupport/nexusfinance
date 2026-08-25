@@ -2075,10 +2075,11 @@ app.post('/api/payway/simulate-payment', async (req, res) => {
   }
 });
 
-app.get('/api/payway/transactions', async (req, res) => {
+app.get('/api/payway/transactions', authMiddleware, async (req, res) => {
   try {
     const { data: txs } = await db.from('nexus_payway_transactions')
       .select('tran_id, email, amount, currency, status, apv, loan_id, created_at, paid_at')
+      .eq('email', req.user.email)
       .order('id', { ascending: false })
       .limit(50);
     res.json(txs || []);

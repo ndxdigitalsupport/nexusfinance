@@ -53,8 +53,7 @@ export default function KHQRPage() {
   }, []);
 
   useEffect(() => {
-    fetch(`${API}/payway/transactions`)
-      .then(r => r.json())
+    apiFetch('/payway/transactions')
       .then(setTransactions)
       .catch(() => {});
   }, []);
