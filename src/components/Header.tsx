@@ -34,7 +34,6 @@ export default function Header({
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [connected, setConnected] = useState(false);
   const { currency, setCurrency, formatCurrencyShort, language, setLanguage } = useCurrency();
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('nexus_dark_mode');
@@ -52,12 +51,6 @@ export default function Header({
     document.documentElement.classList.toggle('dark', next);
     localStorage.setItem('nexus_dark_mode', String(next));
   };
-
-  useEffect(() => {
-    fetch(`${API}/health`, { signal: AbortSignal.timeout(3000) })
-      .then(() => setConnected(true))
-      .catch(() => setConnected(false));
-  }, []);
 
   useEffect(() => {
     const poll = () => {
@@ -122,11 +115,6 @@ export default function Header({
             </h1>
           </div>
         </div>
-
-          <div className="flex items-center gap-2 text-[12px] font-semibold">
-            <span className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-500 animate-glow-pulse' : 'bg-red-400'}`} />
-            <span className="text-[var(--text-tertiary)]">{connected ? 'Connected' : 'Disconnected'}</span>
-          </div>
 
         {/* Action Tray */}
         <div className="flex items-center gap-2 relative ml-auto">
