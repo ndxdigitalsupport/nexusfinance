@@ -6,7 +6,7 @@ import {
   ArrowRight, 
   Clock, 
   Sparkles, 
-  Wallet,
+  QrCode,
   Info,
   ArrowUpRight,
   ArrowDownLeft,
@@ -137,16 +137,16 @@ export default function CustomerDashboard({
               </div>
               <span className="text-[13.5px] font-extrabold" style={{ color: 'var(--text-primary)' }}>Repay Account</span>
             </button>
-            <button onClick={() => onSetActiveMenu('wallets')}
+            <button onClick={() => onSetActiveMenu('khqr')}
               className="stagger-3 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift group cursor-pointer"
               style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}
             >
               <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3 group-hover:scale-105 duration-200"
                 style={{ backgroundColor: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}
               >
-                <Wallet className="w-6 h-6 stroke-[2.5]" />
+                <QrCode className="w-6 h-6 stroke-[2.5]" />
               </div>
-              <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">My Wallets</span>
+              <span className="text-[13.5px] font-extrabold text-[var(--text-primary)]">KHQR Payment</span>
             </button>
             <button onClick={() => onSetActiveMenu('support')}
               className="stagger-4 premium-card p-5 text-center flex flex-col items-center justify-center hover-lift group cursor-pointer"

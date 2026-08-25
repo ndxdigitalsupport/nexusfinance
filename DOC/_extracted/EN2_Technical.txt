@@ -1,0 +1,162 @@
+NEXUSFINANCE
+Secure • Modern • Cutting-edge  |  Lending Platform for Cambodia
+NexusFinance — Technical Architecture
+Digital Lending Platform for Cambodia
+EN
+Document Number
+NF-DOC-007
+Version
+1.0
+Date
+August 2026
+Prepared By
+NDX Digital Support
+Classification
+Internal & Confidential
+Architecture  •  Tech Stack  •  Deployment  •  DevOps
+Table of Contents
+1.  System Architecture
+2.  Technology Stack
+3.  Project Structure
+4.  Database Schema
+5.  Frontend Architecture
+6.  Backend Architecture
+7.  Deployment Pipeline
+8.  Environment Variables
+9.  Local Development
+1. System Architecture
+Customer Browser ──> Vercel (React SPA)
+                            │
+                            ▼
+                     Render (Express API)
+                         │         │
+                         ▼         ▼
+                  Supabase    Telegram Bot
+                (PostgreSQL)     (polling)
+                         │
+                    Brevo Email
+                   (OTP delivery)
+2. Technology Stack
+Layer
+Technology
+Purpose
+Frontend
+React 18, TypeScript, Vite, Tailwind CSS
+User interface
+Backend
+Node.js, Express, TypeScript
+REST API server
+Database
+Supabase (PostgreSQL)
+Data storage
+Auth
+JWT + bcrypt + Brevo OTP
+Authentication
+Hosting
+Vercel + Render
+Deployment
+Payments
+KHQR, ABA PayWay
+Payment processing
+Notifications
+Telegram Bot API, Brevo
+Messaging
+Mobile
+Expo SDK 57
+Android app
+3. Project Structure
+nexusfinance/
+├── src/                    # React frontend
+│   ├── components/         # UI components
+│   ├── App.tsx             # Main app with routing
+│   ├── api.ts              # API client
+│   └── index.css           # Design tokens
+├── server/                 # Express backend
+│   ├── index.ts            # API routes + server start
+│   ├── db.ts               # Supabase client
+│   ├── bot.ts              # Telegram bot
+│   ├── brevo.ts            # Brevo email API
+│   ├── otp.ts              # OTP generation/verification
+│   ├── khqr.ts             # KHQR QR generation
+│   └── sms.ts              # Twilio SMS
+├── mobile/                 # Expo Android app
+├── supabase/migrations/    # Database migrations
+├── vercel.json             # Vercel rewrites to Render
+└── package.json
+4. Database Schema
+4.1 Core Tables
+Table
+Key Columns
+Purpose
+nexus_users
+id, name, email, password, role, phone, telegram_chat_id, email_verified, otp_*
+User accounts
+nexus_loans
+id, user_id, amount, type, status, duration_months, interest_rate
+Loan applications
+nexus_transactions
+id, user_id, loan_id, amount, type, status
+Payment transactions
+nexus_audit_logs
+id, action, description, user_id, metadata, created_at
+Audit trail
+nexus_tasks
+id, user_id, title, status, priority
+KYC and review tasks
+nexus_payway_transactions
+tran_id, email, amount, currency, status, apv, loan_id
+ABA PayWay payment records (persisted)
+5. Frontend Architecture
+Single-page application (SPA) with React 18 and TypeScript
+Three portals: Customer, Loan Officer, Super Admin
+Lazy-loaded route components for performance
+Design tokens in CSS custom properties (dark/light mode)
+Vercel proxies /api/* to the Render backend
+6. Backend Architecture
+Express.js REST API with TypeScript
+JWT authentication middleware with role checks
+Rate limiting on auth endpoints
+Cron job for daily payment reminders (9 AM Cambodia time)
+Telegram bot starts automatically with the server
+7. Deployment Pipeline
+Component
+Trigger
+URL
+Frontend (Vercel)
+Git push to main
+https://nexusfinancefintech.vercel.app
+Backend (Render)
+Git push to main (auto)
+https://nexusfinance-lof3.onrender.com
+Database (Supabase)
+Migration files
+https://jpltdxlljqqcobxuhfvb.supabase.co
+8. Environment Variables
+All secrets are managed via environment variables on Render. Key variables:
+Variable
+Purpose
+SUPABASE_URL
+Supabase project URL
+SUPABASE_SERVICE_ROLE
+Server-side Supabase access key
+BREVO_API_KEY
+Brevo transactional email API key
+TELEGRAM_BOT_TOKEN
+Telegram bot authentication token
+TELEGRAM_ADMIN_ID
+Admin Telegram user ID
+JWT_SECRET
+Token signing secret
+PAYWAY_MERCHANT_ID
+ABA PayWay merchant ID
+PAYWAY_API_KEY
+ABA PayWay API key
+PORT
+Server listening port (set by Render)
+9. Local Development
+git clone https://github.com/ndxdigitalsupport/nexusfinance.git
+cd nexusfinance
+npm install
+cp .env.example .env  # fill in your values
+npm run dev
+Frontend runs on http://localhost:5173, backend on http://localhost:3001.

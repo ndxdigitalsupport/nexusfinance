@@ -1,4 +1,4 @@
-import { PlusCircle, LayoutDashboard, Landmark, Wallet, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, ChevronRight, ClipboardList, QrCode, Bell, Megaphone } from 'lucide-react';
+import { PlusCircle, LayoutDashboard, Landmark, History, CheckSquare, Settings, Users, HelpCircle, LogOut, User, ChevronRight, ClipboardList, QrCode, Bell, Megaphone } from 'lucide-react';
 import { PortalType } from '../types';
 import Logo from './Logo';
 import { useCurrency } from '../context/CurrencyContext';
@@ -20,7 +20,7 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
     ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'repayments', label: 'Repayments Checklist', icon: ClipboardList }]
     : currentPortal === 'super-admin'
     ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'manage', label: 'Loan Management', icon: ClipboardList }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]
-    : [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'loans', label: 'My Loan', icon: Landmark }, { id: 'wallets', label: 'Wallets', icon: Wallet }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }, { id: 'transactions', label: 'History Logs', icon: History }];
+    : [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'loans', label: 'My Loan', icon: Landmark }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }, { id: 'transactions', label: 'History Logs', icon: History }];
 
   const bottomItems = [
     { id: 'profile', label: t('profile'), icon: User },

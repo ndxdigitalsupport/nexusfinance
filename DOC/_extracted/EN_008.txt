@@ -1,0 +1,331 @@
+NEXUSFINANCE
+Secure • Modern • Cutting-edge  |  Lending Platform for Cambodia
+NexusFinance — API & Database Reference
+Digital Lending Platform for Cambodia
+EN
+Document Number
+NF-DOC-008
+Version
+1.0
+Date
+August 2026
+Prepared By
+NDX Digital Support
+Classification
+Internal & Confidential
+API Reference  •  Endpoints  •  Database Schema  •  Developer Guide
+Table of Contents
+1.  API Overview
+2.  Authentication Endpoints
+3.  Loan Endpoints
+4.  Transaction Endpoints
+5.  Admin Endpoints
+6.  KHQR Endpoints
+7.  PayWay Endpoints
+8.  Database Schema Detail
+1. API Overview
+Base URL: https://nexusfinance-lof3.onrender.com/api
+All endpoints return JSON. Protected endpoints require a Bearer token in the Authorization header.
+Status Code
+Meaning
+200
+Success
+400
+Bad request (missing/invalid fields)
+401
+Unauthorized (invalid or missing token)
+403
+Forbidden (insufficient role)
+404
+Resource not found
+429
+Rate limited
+500
+Internal server error
+2. Authentication Endpoints
+POST /api/auth/register
+Register a new user account.
+Field
+Type
+Required
+Description
+name
+string
+Yes
+User's full name
+email
+string
+Yes
+Valid email address
+password
+string
+Yes
+Min 6 characters
+phone
+string
+No
+Phone number
+Response: 201 { message: 'Account created. Please verify your email.' }
+POST /api/auth/login
+Authenticate and receive a JWT token.
+Field
+Type
+Required
+Description
+email
+string
+Yes
+Registered email
+password
+string
+Yes
+Account password
+Response: 200 { token: 'jwt...', user: { id, name, email, role } }
+Response (unverified email): 403 { error: '...', code: 'EMAIL_NOT_VERIFIED' } — verify your email via send-otp + verify-otp first.
+POST /api/auth/send-otp
+Send a 6-digit OTP to the user's email.
+Field
+Type
+Required
+Description
+email
+string
+Yes
+Email to send OTP to
+POST /api/auth/verify-otp
+Verify the OTP code.
+Field
+Type
+Required
+Description
+email
+string
+Yes
+Email address
+code
+string
+Yes
+6-digit code
+3. Loan Endpoints
+GET /api/loans
+List all loans. Customers see only their own; admins see all.
+Response: 200 [ { id, user_id, name, email, amount, type, status, ... } ]
+POST /api/loans
+Create a new loan application. Requires authentication.
+Field
+Type
+Required
+name
+string
+Yes
+email
+string
+Yes
+amount
+number
+Yes
+type
+string
+Yes
+purpose
+string
+No
+monthlyIncome
+string
+No
+durationMonths
+string
+No
+PATCH /api/loans/:id
+Update a loan status. Requires loan-officer or super-admin role.
+Field
+Type
+Required
+status
+string
+Yes (approved/rejected/hold)
+Dedicated actions: PATCH /api/loans/:id/approve, /api/loans/:id/reject, /api/loans/:id/hold — all restricted to loan-officer and super-admin.
+4. Transaction Endpoints
+GET /api/transactions
+List transactions. Customers see their own; admins see all.
+POST /api/transactions
+Record a new transaction.
+POST /api/simulate-payment
+Simulate a payment callback (for testing). Triggers Telegram notification.
+5. Admin Endpoints
+The following endpoints require a loan-officer or super-admin role:
+Endpoint
+Method
+Description
+/api/stats
+GET
+Platform statistics
+/api/users
+GET
+List all users (paginated)
+/api/audit/logs
+GET
+Audit log entries
+/api/config
+GET/PATCH
+Platform configuration
+/api/tasks
+GET
+KYC/review tasks
+6. KHQR Endpoints
+Endpoint
+Method
+Description
+/api/khqr/generate
+POST
+Generate a KHQR code
+/api/khqr/verify
+POST
+Verify a payment by MD5
+/api/khqr/decode
+POST
+Decode a KHQR string
+/api/khqr/deeplink
+POST
+Generate a payment deeplink
+7. PayWay Endpoints
+Endpoint
+Method
+Description
+/api/payway/generate-qr
+POST
+Create a PayWay payment and persist a PENDING record
+/api/payway/verify-payment
+POST
+Check transaction status; marks APPROVED + writes ledger
+/api/payway/callback
+POST
+ABA webhook (HMAC-signed) with approval/decline updates
+/api/payway/simulate-payment
+POST
+Sandbox-only helper to approve a payment for testing
+/api/payway/transactions
+GET
+List recent PayWay transactions from the database
+Approved PayWay payments are written to nexus_payway_transactions and create a Repayment entry in nexus_transactions, plus an in-app and Telegram notification.
+8. Database Schema Detail
+nexus_users
+Column
+Type
+Description
+id
+SERIAL PK
+Auto-increment ID
+name
+TEXT
+User's full name
+email
+TEXT UNIQUE
+Email address
+password
+TEXT
+Bcrypt password hash
+role
+TEXT
+customer / loan-officer / super-admin
+phone
+TEXT
+Phone number
+telegram_chat_id
+BIGINT
+Telegram chat ID (if linked)
+email_verified
+BOOLEAN
+Whether the email has been verified (blocks login when false)
+otp_code
+TEXT
+Bcrypt hash of OTP
+otp_expires_at
+TIMESTAMPTZ
+OTP expiry time
+otp_verified_at
+TIMESTAMPTZ
+When OTP was verified
+created_at
+TIMESTAMPTZ
+Account creation time
+nexus_loans
+Column
+Type
+Description
+id
+SERIAL PK
+Auto-increment ID
+user_id
+INTEGER
+Applicant user ID
+name
+TEXT
+Applicant name (denormalized)
+email
+TEXT
+Applicant email (denormalized)
+amount
+NUMERIC
+Loan amount
+type
+TEXT
+Loan type (SME, Personal, etc.)
+status
+TEXT
+pending / approved / rejected / hold
+purpose
+TEXT
+Loan purpose
+duration_months
+INTEGER
+Repayment duration
+interest_rate
+NUMERIC
+Annual interest rate
+monthly_income
+NUMERIC
+Applicant monthly income
+assigned_to
+INTEGER
+Assigned officer user ID
+created_at
+TIMESTAMPTZ
+Application date
+nexus_payway_transactions
+Column
+Type
+Description
+id
+BIGSERIAL PK
+Auto-increment ID
+tran_id
+TEXT UNIQUE
+PayWay transaction ID
+email
+TEXT
+Customer email (normalized)
+amount
+NUMERIC
+Payment amount
+currency
+TEXT
+Currency (default USD)
+status
+TEXT
+PENDING / APPROVED / DECLINED
+apv
+TEXT
+PayWay approval code
+loan_id
+TEXT
+Linked loan ID (optional)
+user_id
+INT
+NexusFinance user ID
+created_at
+TIMESTAMPTZ
+Creation time
+paid_at
+TIMESTAMPTZ
+When the payment was approved
