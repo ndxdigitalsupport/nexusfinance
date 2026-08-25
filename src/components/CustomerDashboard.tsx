@@ -86,7 +86,7 @@ export default function CustomerDashboard({
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => onSetActiveMenu('khqr')}
-              className="px-6 py-3 text-[14px] font-bold rounded-xl transition-all duration-200 cursor-pointer select-none bg-white/10 border border-white/25 hover:bg-white/20"
+              className="px-6 py-3 text-[14px] font-bold rounded-xl transition-all duration-200 cursor-pointer select-none bg-white/10 border border-[var(--border-primary)] hover:bg-white/20"
               style={{ color: 'var(--text-primary)', backdropFilter: 'blur(8px)' }}
             >
               Repay

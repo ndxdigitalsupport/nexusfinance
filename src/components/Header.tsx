@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Menu, X, User, LogOut, Layers, Sun, Moon, DollarSign, Languages } from 'lucide-react';
+import { Search, Bell, Menu, X, User, LogOut, Layers, Sun, Moon, DollarSign } from 'lucide-react';
 import { PortalType } from '../types';
 import { API, apiFetch } from '../api';
 import { useCurrency } from '../context/CurrencyContext';
@@ -145,7 +145,6 @@ export default function Header({
             aria-label="Toggle language"
             className="group flex items-center gap-2 px-3 py-1.5 text-[12px] font-bold rounded-xl transition-all duration-300 border border-[var(--border-primary)] bg-[var(--surface-card)] hover:border-[var(--text-tertiary)] hover:shadow-lg hover:shadow-black/5 hover:-translate-y-0.5 cursor-pointer"
           >
-            <Languages className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors duration-200" />
             <div className="flex items-center gap-1">
               <span className={language === 'en' ? 'text-[var(--accent)] font-extrabold' : 'text-[var(--text-tertiary)]'}>EN</span>
               <span className="text-[var(--border-primary)]">|</span>
