@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { X, Sparkles, User, Mail, DollarSign, Briefcase, Calendar, FileText, CheckCircle2, ArrowRight, ArrowLeft, Clock, ChevronDown, Check } from 'lucide-react';
+import { X, Sparkles, User, Mail, DollarSign, Briefcase, Calendar, FileText, CheckCircle2, ArrowRight, ArrowLeft, Clock, ChevronDown, Check, Phone } from 'lucide-react';
 import { LoanApplication } from '../types';
 import { showToast } from './Toast';
 
@@ -68,6 +68,8 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const isPhoneOnly = !!userEmail?.includes('@nexus.local');
+  const displayPhone = isPhoneOnly ? (userEmail || '').replace('@nexus.local', '') : '';
 
   React.useEffect(() => {
     if (isOpen && (userName || userEmail)) {
@@ -169,7 +171,7 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
           </div>
         ) : (
           <div>
-            <div className="bg-gradient-to-br from-[#0F171C] to-slate-800 px-8 pt-8 pb-10 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#0F171C] to-slate-800 px-8 pt-8 pb-10 relative overflow-hidden rounded-t-3xl">
               <div className="absolute top-0 right-0 w-40 h-40 bg-[#5CF2D0]/5 rounded-full -translate-y-1/2 translate-x-1/2" />
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#5CF2D0]/5 rounded-full translate-y-1/2 -translate-x-1/2" />
               <div className="flex items-center gap-2.5 mb-1 relative z-10">
@@ -213,11 +215,18 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                     {formErrors.name && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.name}</p>}
                   </div>
                   <div>
-                    <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Email Address</label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Enter your email address" className={`${inputClass('email')} pl-10`} />
-                    </div>
+                    <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">{isPhoneOnly ? 'Phone Number' : 'Email Address'}</label>
+                    {isPhoneOnly ? (
+                      <div className="relative">
+                        <Phone className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input type="tel" value={displayPhone} readOnly className={`${inputClass('email')} pl-10 opacity-70 cursor-default`} />
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <Mail className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Enter your email address" className={`${inputClass('email')} pl-10`} />
+                      </div>
+                    )}
                     {formErrors.email && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.email}</p>}
                   </div>
                   <div className="pt-2 flex justify-end">
