@@ -15,7 +15,7 @@ export default function LoansLedgerSection({ applications, loanPage, setLoanPage
   const filtered = applications.filter(a => a.applicantEmail === (userEmail || ''));
   if (filtered.length === 0) return (
     <div className="animate-content-enter">
-      <Heading>Loans Ledger</Heading>
+        <Heading>My Loan</Heading>
       <EmptyState icon={Landmark} title="No loan applications yet" description="Apply for your first loan to get started with Nexus Finance." />
     </div>
   );
@@ -25,8 +25,8 @@ export default function LoansLedgerSection({ applications, loanPage, setLoanPage
   return (
     <div className="animate-content-enter">
       <div className="flex items-center justify-between mb-2">
-        <Heading>Loans Ledger</Heading>
-        <button onClick={() => downloadCSV(filtered, 'loans_ledger.csv')} className="flex items-center gap-1.5 text-[12px] font-bold text-[var(--text-secondary)] bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl px-3 py-2 hover:bg-[var(--surface-card)] transition-colors cursor-pointer">
+      <Heading>My Loan</Heading>
+        <button onClick={() => downloadCSV(filtered, 'my_loans.csv')} className="flex items-center gap-1.5 text-[12px] font-bold text-[var(--text-secondary)] bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl px-3 py-2 hover:bg-[var(--surface-card)] transition-colors cursor-pointer">
           <Download className="w-3.5 h-3.5" /> Export CSV
         </button>
       </div>
