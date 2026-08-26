@@ -324,7 +324,7 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                       </button>
                       {email.endsWith('@nexus.local') && (
                         <a
-                          href="https://t.me/nexusfinancefintech_bot"
+                          href="https://t.me/nexusfinancefintech_bot?start=changepassword"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[13px] font-bold px-6 py-3 rounded-xl border border-[var(--border-primary)] bg-[var(--surface-card)] hover:border-[var(--accent)] transition-all flex items-center gap-2 text-[var(--text-primary)]"
