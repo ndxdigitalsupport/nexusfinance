@@ -1,0 +1,92 @@
+NEXUSFINANCE
+Secure • Modern • Cutting-edge  |  Lending Platform for Cambodia
+NexusFinance — Telegram Bot Guide
+Digital Lending Platform for Cambodia
+EN
+Document Number
+NF-DOC-006
+Version
+1.0
+Date
+August 2026
+Prepared By
+NDX Digital Support
+Classification
+Internal & Confidential
+Telegram  •  Bot  •  Notifications  •  Admin Commands
+Table of Contents
+1.  Overview
+2.  Getting Started
+3.  User Commands
+4.  Admin Commands
+5.  Account Linking
+6.  Notifications & Reminders
+7.  Troubleshooting
+1. Overview
+The NexusFinance Telegram bot (@nexusfinancefintech_bot) provides real-time notifications, payment reminders, and admin tools directly inside Telegram.
+2. Getting Started
+Open Telegram and search for @nexusfinancefintech_bot
+Click 'Start' or send /start
+The bot will show available commands
+Use /link to connect your Telegram account to NexusFinance
+3. User Commands
+Command
+Description
+/start
+Welcome message and quick actions
+/help
+Show all available commands
+/link
+Link your Telegram account — emails a verification code
+/confirm <code>
+Complete linking with the code sent to your email
+/unlink
+Unlink your Telegram account
+/status
+View your linked account and loan status
+4. Admin Commands
+Command
+Description
+/stats
+View platform statistics (volume, customers, loans)
+/loans
+List recent loan applications with status
+/users
+List registered users
+/notifications
+View recent payment notifications
+/broadcast <message>
+Send a message to all linked users
+/send <user_id> <message>
+Send a message to a specific user
+/reminder-check
+Manually trigger payment reminder check
+Admin only
+Admin commands (/stats, /loans, /users, /broadcast, /send) are restricted to the configured admin Telegram ID.
+5. Account Linking
+5.1 Linking
+Send /link <your-email> to the bot
+A 6-digit verification code is sent to your registered email
+Send /confirm <code> to complete the link
+The code expires after 10 minutes — run /link again for a new one
+Once linked, you will receive payment notifications and reminders.
+5.2 Unlinking
+Send /unlink to disconnect your Telegram account from NexusFinance.
+5.3 Status Check
+Send /status to view your linked email and current loan status, including your monthly installment amount and next due date.
+6. Notifications & Reminders
+Payment confirmations — instant notification when a payment is received
+Daily reminders — scheduled at 9:00 AM Cambodia time (Asia/Phnom_Penh)
+Reminders are based on monthly installments (amortized at 5.4% APR), not the full loan amount
+New loan alerts — admin is notified when a new loan application is submitted
+7. Troubleshooting
+Problem
+Solution
+Bot not responding
+Send /start to re-initialize
+409 Conflict error
+Only one bot instance can run — check Render logs
+Not receiving notifications
+Use /link to connect your account first
+Admin commands not working
+Verify your Telegram ID matches TELEGRAM_ADMIN_ID

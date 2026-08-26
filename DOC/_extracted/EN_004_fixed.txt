@@ -1,0 +1,86 @@
+NEXUSFINANCE
+Secure • Modern • Cutting-edge  |  Lending Platform for Cambodia
+NexusFinance — User Manual — Admin & Officer
+Digital Lending Platform for Cambodia
+EN
+Document Number
+NF-DOC-004
+Version
+1.0
+Date
+August 2026
+Prepared By
+NDX Digital Support
+Classification
+Internal & Confidential
+Admin Guide  •  Loan Officer Guide  •  Operations Manual
+Table of Contents
+1.  Logging In
+2.  Super Admin Dashboard
+3.  User Management
+4.  Loan Review Workflow
+5.  System Configuration
+6.  Audit Logs
+7.  Telegram Bot Commands
+1. Logging In
+Navigate to https://nexusfinancefintech.vercel.app and enter your email and password. You will be redirected to the appropriate portal based on your role.
+Email
+Password
+Role
+admin@nexus.com
+password123
+Super Admin
+officer@nexus.com
+password123
+Loan Officer
+2. Super Admin Dashboard
+The dashboard provides an overview of the entire platform:
+Outstanding balance and total volume
+Active customers and loan count
+Recent transaction history
+Quick access to Apply Loan, Repay, Wallets, Support
+3. User Management
+Navigate to the Users section (Admin sidebar) to:
+View all registered users with search and pagination
+Change user roles (Customer, Loan Officer, Super Admin)
+Reset user passwords
+View user creation dates and last login
+4. Loan Review Workflow
+4.1 Viewing Applications
+The Loans Ledger shows all loan applications with status, amount, applicant, and dates.
+4.2 Reviewing an Application
+Click on any loan to open the detail modal
+Review applicant information and financial details
+Check the credit score and DTI ratio
+4.3 Taking Action
+Approve — sets status to 'approved' and notifies the customer
+Reject — sets status to 'rejected' with optional reason
+Hold — keeps the application in review status
+5. System Configuration
+Super Admins can adjust platform settings:
+Interest rates (monthly)
+Auto-underwrite threshold
+Platform name and branding
+Minimum and maximum loan amounts
+6. Audit Logs
+Navigate to History Logs to view the complete audit trail. Every action — logins, loan changes, profile updates, password changes — is recorded with timestamps and user details.
+7. Telegram Bot Commands
+The following commands are available to Super Admins via the Telegram bot:
+Command
+Description
+/stats
+View platform statistics
+/loans
+List recent loan applications
+/users
+List registered users
+/notifications
+View recent payment notifications
+/broadcast <message>
+Send a message to all linked users
+/send <user_id> <message>
+Send a message to a specific user
+/reminder-check
+Run payment reminder check now
+Tip
+Link your Telegram account first with /link, then confirm with /confirm <code> so the bot can send you notifications.

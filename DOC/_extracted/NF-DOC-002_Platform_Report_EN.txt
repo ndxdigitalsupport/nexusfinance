@@ -1,0 +1,144 @@
+NEXUSFINANCE
+Secure • Modern • Cutting-edge  |  Lending Platform for Cambodia
+NexusFinance — Platform Report
+Digital Lending Platform for Cambodia
+EN
+Document Number
+NF-DOC-002
+Version
+1.0
+Date
+August 2026
+Prepared By
+NDX Digital Support
+Classification
+Internal & Confidential
+Full Project Report  •  Features  •  Architecture  •  Integrations
+Table of Contents
+1.  Project Overview
+2.  Portal Features
+3.  Authentication & User Management
+4.  Payment Integration
+5.  Telegram Bot Features
+6.  Mobile Application
+7.  Hosting & Infrastructure
+1. Project Overview
+NexusFinance is a comprehensive fintech lending platform designed for microfinance institutions in Cambodia. The platform serves three user roles — Customers, Loan Officers, and Super Administrators — each with a dedicated portal tailored to their workflow.
+2. Portal Features
+2.1 Customer Portal
+Loan application with step-by-step form (personal info, financial details, loan terms)
+Outstanding balance tracking and wallet management
+KHQR payment integration (Bakong-compatible)
+Transaction history and repayment scheduling
+Profile management (name, email, phone, password)
+2.2 Loan Officer Portal
+Application review dashboard with priority filtering
+Credit score analysis and DTI ratio calculation
+Direct loan approval/rejection/hold workflow
+KYC task management
+2.3 Super Admin Portal
+Platform-wide analytics and volume tracking
+Interest rate and auto-underwrite configuration
+User management (roles, password resets)
+Full audit log with timestamped entries
+System configuration
+3. Authentication & User Management
+Feature
+Implementation
+Registration
+Email + password → Brevo OTP verification (10-min expiry)
+Login
+Email + password with bcrypt comparison, JWT issued — blocked until email is verified
+Email Verification
+New accounts cannot log in until the emailed OTP is verified
+Password Reset
+Brevo OTP → verify code → set new password
+Profile Update
+PATCH /api/auth/profile (name, email, phone)
+Password Change
+OTP verification required before password update
+Role System
+customer, loan-officer, super-admin with server-side enforcement
+4. Payment Integration
+4.1 KHQR (Bakong)
+KHQR is Cambodia's national QR payment standard based on EMVCo. NexusFinance generates KHQR codes for loan repayments and can verify payments via the Bakong API.
+Static and dynamic QR generation
+Payment verification via MD5 hash
+Deeplink generation for mobile banking apps
+4.2 ABA PayWay
+ABA Bank's PayWay API enables webhook-based payment confirmation.
+Sandbox mode currently active
+Webhook callback on payment completion
+Transaction status tracking
+Approved payments are persisted to the ledger (nexus_transactions) and trigger Telegram confirmation
+5. Telegram Bot Features
+Command
+Access
+Description
+/start
+All users
+Welcome message and quick actions
+/link
+All users
+Link Telegram account — emails a code to your NexusFinance profile
+/confirm <code>
+All users
+Complete linking with the emailed code
+/unlink
+All users
+Unlink Telegram account
+/status
+All users
+View linked account status
+/reminder-check
+Admin
+Run payment reminder check now
+/broadcast
+Admin
+Send message to all linked users
+/send
+Admin
+Send message to a specific user
+/stats
+Admin
+Platform statistics
+/loans
+Admin
+Recent loan applications
+/users
+Admin
+Registered users list
+/notifications
+Admin
+Recent payment notifications
+/help
+All users
+Show available commands
+6. Mobile Application
+The Android app is an Expo WebView shell that loads the live web application. This allows the platform to be distributed as an installable APK while keeping all logic on the web server.
+Expo SDK 57 with React Native WebView
+Full-screen immersive design matching the web app
+Offline retry screen with brand styling
+Custom app icon and splash screen
+7. Hosting & Infrastructure
+Component
+Service
+Details
+Frontend
+Vercel
+React SPA, auto-deploys from GitHub main branch
+Backend
+Render
+Node.js/Express, free tier with UptimeRobot keep-alive
+Database
+Supabase
+PostgreSQL with Row Level Security
+Email
+Brevo
+Transactional OTP emails, 300/day free tier
+Monitoring
+UptimeRobot
+5-minute health checks on /api/health
+Bot
+Telegram API
+node-telegram-bot-api with long polling
