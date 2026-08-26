@@ -334,9 +334,45 @@ if (bot) {
     const userId = msg.from?.id;
     const text = msg.text || '';
     
-    // Check if start command has a parameter (e.g. /start 12)
+    // Check if start command has a parameter (e.g. /start 12 or /start changepassword)
     const matchStart = text.match(/\/start\s+(\d+)/);
+    const matchStartStr = text.match(/\/start\s+(\w+)/);
     const startParam = matchStart ? matchStart[1] : null;
+    const startStr = matchStartStr ? matchStartStr[1] : null;
+
+    // Handle /start changepassword — redirect to /changepassword flow
+    if (startStr === 'changepassword') {
+      // Trigger the same logic as /changepassword
+      const user = await getLinkedUser(chatId);
+      if (!user) {
+        return bot.sendMessage(chatId,
+          '⚠️ Your Telegram is not linked to any NexusFinance account.\n\nUse `/link <email>` to connect first.',
+          { parse_mode: 'Markdown' }
+        );
+      }
+      const { data: fullUser } = await db
+        .from('nexus_users')
+        .select('phone')
+        .eq('id', user.id)
+        .single();
+      const phone = fullUser?.phone;
+      if (!phone) {
+        return bot.sendMessage(chatId, '❌ No phone number found on your account. Please update your profile on the website first.');
+      }
+      const { success, telegramSent, smsSent } = await createOtpForUserByPhone(phone);
+      if (!success) {
+        return bot.sendMessage(chatId, `❌ Failed to send OTP. ${!telegramSent ? 'Telegram failed. ' : ''}${!smsSent ? 'SMS failed.' : ''} Please try again.`);
+      }
+      pendingPasswordOtp.set(chatId, {
+        email: user.email,
+        phone: phone,
+        expiresAt: Date.now() + PASSWORD_OTP_TTL_MS,
+      });
+      return bot.sendMessage(chatId,
+        `🔐 *Password Change*\n\nA 6-digit OTP has been sent to your Telegram and SMS.\n\n*Reply with the code* here to verify your identity.\n\nCode expires in 10 minutes.`,
+        { parse_mode: 'Markdown' }
+      );
+    }
 
     if (startParam) {
       pendingLinkages.set(chatId, startParam);
