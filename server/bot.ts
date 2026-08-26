@@ -1,6 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { db } from './db.js';
 import { sendOtpEmail } from './brevo.js';
+import { createOtpForUserByPhone, verifyOtpForUserByPhone } from './otp.js';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
@@ -319,8 +320,12 @@ async function sendPaymentConfirmation(chatId: string, data: { loanId: string | 
 // ── Register commands (only if bot is active) ──────────────────
 
 if (bot) {
-  // Key: Telegram chatId, Value: database userId string
+  // Pending phone-sharing linkage (chatId → dbUserId string)
   const pendingLinkages = new Map<number, string>();
+
+  // Pending password change OTP codes (chatId → { email, phone, expiresAt })
+  const pendingPasswordOtp = new Map<number, { email: string; phone: string; expiresAt: number }>();
+  const PASSWORD_OTP_TTL_MS = 10 * 60 * 1000;
 
   // ── /start ────────────────────────────────────────────────────
 
@@ -410,6 +415,7 @@ Commands:
 
 Commands:
 /status — Check your loans & upcoming payments
+/changepassword — Change password via Telegram OTP
 /unlink — Disconnect your Telegram account
 /help — This message`,
         customerMenu()
@@ -494,6 +500,7 @@ Example: \`/link john@example.com\``,
       return bot.sendMessage(chatId,
 `*Commands:*
 /status — Check your loans & upcoming payments
+/changepassword — Change password via Telegram OTP
 /unlink — Disconnect your Telegram account
 /help — This message`,
         customerMenu()
@@ -643,6 +650,90 @@ You can also link automatically by sharing your phone number using the button be
     bot.sendMessage(chatId,
       `✅ *Account linked successfully!*\n\nWelcome, *${user.name}*! You'll now receive payment reminders and updates here.`,
       customerMenu()
+    );
+  });
+
+  // ── /changepassword ────────────────────────────────────────────
+
+  // Trigger password change via Telegram OTP
+  bot.onText(/\/changepassword/, async (msg) => {
+    const chatId = msg.chat.id;
+    const user = await getLinkedUser(chatId);
+
+    if (!user) {
+      return bot.sendMessage(chatId,
+        '⚠️ Your Telegram is not linked to any NexusFinance account.\n\nUse `/link <email>` to connect first.',
+        { parse_mode: 'Markdown' }
+      );
+    }
+
+    // Fetch phone from DB
+    const { data: fullUser } = await db
+      .from('nexus_users')
+      .select('phone')
+      .eq('id', user.id)
+      .single();
+
+    const phone = fullUser?.phone;
+    if (!phone) {
+      return bot.sendMessage(chatId, '❌ No phone number found on your account. Please update your profile on the website first.');
+    }
+
+    // Send OTP via Telegram (and SMS fallback)
+    const { success, telegramSent, smsSent } = await createOtpForUserByPhone(phone);
+
+    if (!success) {
+      return bot.sendMessage(chatId, `❌ Failed to send OTP. ${!telegramSent ? 'Telegram failed. ' : ''}${!smsSent ? 'SMS failed.' : ''} Please try again.`);
+    }
+
+    // Store the pending OTP verification
+    pendingPasswordOtp.set(chatId, {
+      email: user.email,
+      phone: phone,
+      expiresAt: Date.now() + PASSWORD_OTP_TTL_MS,
+    });
+
+    bot.sendMessage(chatId,
+      `🔐 *Password Change*\n\nA 6-digit OTP has been sent to your Telegram and SMS.\n\n*Reply with the code* here to verify your identity.\n\nCode expires in 10 minutes.`,
+      { parse_mode: 'Markdown' }
+    );
+  });
+
+  // ── Handle 6-digit OTP codes from Telegram ─────────────────────
+
+  bot.on('message', async (msg) => {
+    const chatId = msg.chat.id;
+    const text = msg.text || '';
+
+    // Ignore commands (messages starting with /)
+    if (text?.startsWith('/')) return;
+
+    // Check if it's a 6-digit code
+    const codeMatch = text.match(/^(\d{6})$/);
+    if (!codeMatch) return;
+
+    const pending = pendingPasswordOtp.get(chatId);
+    if (!pending) return; // No pending password OTP for this chat
+
+    // Check if code has expired
+    if (Date.now() > pending.expiresAt) {
+      pendingPasswordOtp.delete(chatId);
+      return bot.sendMessage(chatId, '❌ Code has expired. Request a new one with /changepassword.');
+    }
+
+    // Verify the OTP via API
+    const { success, error } = await verifyOtpForUserByPhone(pending.phone, codeMatch[1]);
+
+    if (!success) {
+      pendingPasswordOtp.delete(chatId);
+      return bot.sendMessage(chatId, `❌ ${error || 'Invalid code.'}`, { parse_mode: 'Markdown' });
+    }
+
+    // OTP verified successfully — now prompt for new password
+    pendingPasswordOtp.delete(chatId);
+    return bot.sendMessage(chatId,
+      `✅ *Identity Verified!*\n\nPlease type your new password (minimum 6 characters).\n\nUse the website to complete the password set, or type it here and I'll update it for you.`,
+      { parse_mode: 'Markdown' }
     );
   });
 
