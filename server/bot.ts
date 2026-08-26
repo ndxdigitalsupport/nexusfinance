@@ -323,8 +323,8 @@ if (bot) {
   // Pending phone-sharing linkage (chatId → dbUserId string)
   const pendingLinkages = new Map<number, string>();
 
-  // Pending password change OTP codes (chatId → { email, phone, expiresAt })
-  const pendingPasswordOtp = new Map<number, { email: string; phone: string; expiresAt: number }>();
+  // Pending password change OTP codes (chatId → { email, phone, expiresAt, verified })
+  const pendingPasswordOtp = new Map<number, { email: string; phone: string; expiresAt: number; verified: boolean }>();
   const PASSWORD_OTP_TTL_MS = 10 * 60 * 1000;
 
   // ── /start ────────────────────────────────────────────────────
@@ -367,6 +367,7 @@ if (bot) {
         email: user.email,
         phone: phone,
         expiresAt: Date.now() + PASSWORD_OTP_TTL_MS,
+        verified: false,
       });
       return bot.sendMessage(chatId,
         `🔐 *Password Change*\n\nA 6-digit OTP has been sent to your Telegram and SMS.\n\n*Reply with the code* here to verify your identity.\n\nCode expires in 10 minutes.`,
@@ -727,6 +728,7 @@ You can also link automatically by sharing your phone number using the button be
       email: user.email,
       phone: phone,
       expiresAt: Date.now() + PASSWORD_OTP_TTL_MS,
+      verified: false,
     });
 
     bot.sendMessage(chatId,
@@ -735,7 +737,7 @@ You can also link automatically by sharing your phone number using the button be
     );
   });
 
-  // ── Handle 6-digit OTP codes from Telegram ─────────────────────
+  // ── Handle OTP codes and new passwords from Telegram ───────────
 
   bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
@@ -744,12 +746,8 @@ You can also link automatically by sharing your phone number using the button be
     // Ignore commands (messages starting with /)
     if (text?.startsWith('/')) return;
 
-    // Check if it's a 6-digit code
-    const codeMatch = text.match(/^(\d{6})$/);
-    if (!codeMatch) return;
-
     const pending = pendingPasswordOtp.get(chatId);
-    if (!pending) return; // No pending password OTP for this chat
+    if (!pending) return;
 
     // Check if code has expired
     if (Date.now() > pending.expiresAt) {
@@ -757,18 +755,53 @@ You can also link automatically by sharing your phone number using the button be
       return bot.sendMessage(chatId, '❌ Code has expired. Request a new one with /changepassword.');
     }
 
-    // Verify the OTP via API
-    const { success, error } = await verifyOtpForUserByPhone(pending.phone, codeMatch[1]);
+    // If not yet verified, expect a 6-digit OTP code
+    if (!pending.verified) {
+      const codeMatch = text.match(/^(\d{6})$/);
+      if (!codeMatch) {
+        return bot.sendMessage(chatId, '⚠️ Please enter the 6-digit OTP code sent to you.');
+      }
 
-    if (!success) {
-      pendingPasswordOtp.delete(chatId);
-      return bot.sendMessage(chatId, `❌ ${error || 'Invalid code.'}`, { parse_mode: 'Markdown' });
+      const { success, error } = await verifyOtpForUserByPhone(pending.phone, codeMatch[1]);
+
+      if (!success) {
+        // DON'T delete — let user retry
+        return bot.sendMessage(chatId, `❌ ${error || 'Invalid code.'} Please try again.`, { parse_mode: 'Markdown' });
+      }
+
+      // OTP verified — mark as verified but keep the pending state
+      pending.verified = true;
+      return bot.sendMessage(chatId,
+        `✅ *Identity Verified!*\n\nPlease type your new password (minimum 6 characters).`,
+        { parse_mode: 'Markdown' }
+      );
     }
 
-    // OTP verified successfully — now prompt for new password
+    // If verified, expect a new password
+    const newPassword = text.trim();
+    if (newPassword.length < 6) {
+      return bot.sendMessage(chatId, '⚠️ Password must be at least 6 characters. Please try again.');
+    }
+
+    // Hash and update password in DB
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    const { error } = await db
+      .from('nexus_users')
+      .update({ password: hashedPassword })
+      .eq('email', pending.email);
+
+    // Clean up
     pendingPasswordOtp.delete(chatId);
+
+    if (error) {
+      console.error('Password update error:', error);
+      return bot.sendMessage(chatId, '❌ Failed to update password. Please try again.');
+    }
+
     return bot.sendMessage(chatId,
-      `✅ *Identity Verified!*\n\nPlease type your new password (minimum 6 characters).\n\nUse the website to complete the password set, or type it here and I'll update it for you.`,
+      `✅ *Password Updated Successfully!*\n\nYou can now log in to the website with your new password.`,
       { parse_mode: 'Markdown' }
     );
   });
