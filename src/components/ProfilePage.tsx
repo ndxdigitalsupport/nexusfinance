@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, Lock, Save, RefreshCw, CheckCircle2, Shield, UserCheck } from 'lucide-react';
+import { User, Mail, Phone, Lock, Save, RefreshCw, CheckCircle2, Shield, UserCheck, MessageCircle } from 'lucide-react';
 import { showToast } from './Toast';
 import { SkeletonCard } from './Skeleton';
 
@@ -312,7 +312,7 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                         : <>To modify your account password, we must first verify your email address (<strong>{email}</strong>). We will send a secure 6-digit one-time password (OTP) verification code.</>
                       }
                     </p>
-                    <div className="flex justify-start">
+                    <div className="flex justify-start gap-3 flex-wrap">
                       <button
                         type="button"
                         onClick={handleSendPasswordOtp}
@@ -322,6 +322,16 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                         {passwordLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Phone className="w-4 h-4" />}
                         {passwordLoading ? 'Sending Verification...' : email.endsWith('@nexus.local') ? 'Send OTP to Phone' : 'Send OTP to Email'}
                       </button>
+                      {email.endsWith('@nexus.local') && (
+                        <a
+                          href="https://t.me/nexusfinancefintech_bot"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[13px] font-bold px-6 py-3 rounded-xl border border-[var(--border-primary)] bg-[var(--surface-card)] hover:border-[var(--accent)] transition-all flex items-center gap-2 text-[var(--text-primary)]"
+                        >
+                          <MessageCircle className="w-4 h-4" /> Via Telegram
+                        </a>
+                      )}
                     </div>
                   </div>
                 ) : (
