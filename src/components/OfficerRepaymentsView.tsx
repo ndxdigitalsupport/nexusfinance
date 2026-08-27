@@ -139,17 +139,41 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
       l.nextPaymentDate || 'N/A',
       l.repaymentStatus || 'On Time'
     ]);
+
+    const excelHtml = `
+      \x3chtml xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"\x3e
+      \x3chead\x3e
+        \x3cmeta charset="utf-8" /\x3e
+        \x3cstyle\x3e
+          table { border-collapse: collapse; }
+          th { background-color: #0d9488; color: white; font-weight: bold; border: 1px solid #ddd; padding: 8px; font-family: sans-serif; font-size: 13px; }
+          td { border: 1px solid #ddd; padding: 8px; font-family: sans-serif; font-size: 12px; }
+        \x3c/style\x3e
+      \x3c/head\x3e
+      \x3cbody\x3e
+        \x3ctable\x3e
+          \x3cthead\x3e
+            \x3ctr\x3e
+              ${headers.map(h => `\x3cth\x3e${h}\x3c/th\x3e`).join('')}
+            \x3c/tr\x3e
+          \x3c/thead\x3e
+          \x3ctbody\x3e
+            ${rows.map(row => `
+              \x3ctr\x3e
+                ${row.map(val => `\x3ctd\x3e${val}\x3c/td\x3e`).join('')}
+              \x3c/tr\x3e
+            `).join('')}
+          \x3c/tbody\x3e
+        \x3c/table\x3e
+      \x3c/body\x3e
+      \x3c/html\x3e
+    `;
     
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([excelHtml], { type: 'application/vnd.ms-excel' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `NexusFinance_LoansReport_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute('download', `NexusFinance_LoansReport_${new Date().toISOString().slice(0,10)}.xls`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -327,11 +351,11 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
         
         {/* Table Headers */}
         <div className="hidden sm:grid grid-cols-12 bg-[var(--surface-secondary)] px-6 py-4 border-b border-[var(--border-primary)]">
-          <div className="col-span-4 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold">Customer / Reference</div>
+          <div className="col-span-3 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold">Customer / Reference</div>
           <div className="col-span-2 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold text-right">Repayment/Mo</div>
           <div className="col-span-3 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold text-center">Next Payment</div>
           <div className="col-span-1.5 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold text-center">Status</div>
-          <div className="col-span-1.5 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold text-right">Action</div>
+          <div className="col-span-2.5 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold text-right">Action</div>
         </div>
 
         {/* Rows */}
@@ -351,7 +375,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                 >
                   
                   {/* Customer / Reference */}
-                  <div className="col-span-4 flex items-center gap-3">
+                  <div className="col-span-3 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[var(--accent)]/10 to-[var(--accent)]/5 text-[var(--accent)] flex items-center justify-center text-[14px] font-extrabold shadow-sm shrink-0">
                       {loan.initials}
                     </div>
@@ -398,7 +422,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                   </div>
 
                    {/* Action Button */}
-                  <div className="col-span-1.5 flex flex-row gap-2 justify-start sm:justify-end items-center ml-13 sm:ml-0 w-full sm:w-auto">
+                  <div className="col-span-2.5 flex flex-row gap-2 justify-start sm:justify-end items-center ml-13 sm:ml-0 w-full sm:w-auto">
                     <button
                       onClick={() => setViewingScheduleLoan(loan)}
                       className="px-2.5 py-1.5 bg-[var(--surface-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] hover:bg-[var(--surface-card)] transition text-[12px] font-bold rounded-lg cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
