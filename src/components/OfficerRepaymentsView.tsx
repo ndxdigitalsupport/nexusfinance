@@ -666,12 +666,14 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                   visibility: hidden;
                   background: white !important;
                 }
-                /* Prevent layout wrapper page-cuts */
-                html, body, #root, .printable-scheduler-sheet {
+                /* Prevent layout wrapper page-cuts and clear height restrictions */
+                html, body, #root, .printable-scheduler-sheet, #print-schedule-modal, .printable-content-block {
                   height: auto !important;
                   min-height: auto !important;
                   max-height: none !important;
                   overflow: visible !important;
+                  display: block !important;
+                  position: relative !important;
                 }
                 /* Force two-column layout on the metadata card in print */
                 .printable-scheduler-sheet .grid {
@@ -682,10 +684,10 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                 /* Expose printable sheet and its contents cleanly */
                 .printable-scheduler-sheet {
                   visibility: visible;
-                  position: absolute;
-                  left: 0;
-                  top: 0;
-                  width: 100%;
+                  position: absolute !important;
+                  left: 0 !important;
+                  top: 0 !important;
+                  width: 100% !important;
                   box-shadow: none !important;
                   border: none !important;
                   background: white !important;
@@ -699,6 +701,11 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                 }
                 .no-print {
                   display: none !important;
+                }
+                /* Avoid breaking elements across pages */
+                tr {
+                  page-break-inside: avoid !important;
+                  break-inside: avoid !important;
                 }
               }
             `}} />
@@ -725,7 +732,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
               </div>
 
               {/* Printable Content Block */}
-              <div className="p-8 space-y-6 flex-1 overflow-y-auto">
+              <div className="p-8 space-y-6 flex-1 overflow-y-auto printable-content-block">
                 
                 {/* Print Title Block */}
                 <div className="text-center pb-4 border-b-2 border-dashed border-[var(--border-primary)]">
