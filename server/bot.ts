@@ -327,6 +327,10 @@ if (bot) {
   const pendingPasswordOtp = new Map<number, { email: string; phone: string; expiresAt: number; verified: boolean }>();
   const PASSWORD_OTP_TTL_MS = 10 * 60 * 1000;
 
+  // Pending phone change OTP codes (chatId → { userId: string, newPhone: string, expiresAt: number })
+  const pendingPhoneChangeOtp = new Map<number, { userId: string; newPhone: string; expiresAt: number }>();
+  const PHONE_CHANGE_OTP_TTL_MS = 10 * 60 * 1000;
+
   // ── /start ────────────────────────────────────────────────────
 
   bot.onText(/\/start/, async (msg) => {
@@ -339,6 +343,50 @@ if (bot) {
     const matchStartStr = text.match(/\/start\s+(\w+)/);
     const startParam = matchStart ? matchStart[1] : null;
     const startStr = matchStartStr ? matchStartStr[1] : null;
+
+    // Handle /start phonechange_{userId}_{phone}
+    const matchPhoneChange = text.match(/\/start\s+phonechange_(\d+)_(.+)/);
+    if (matchPhoneChange) {
+      const targetUserId = matchPhoneChange[1];
+      const newPhone = decodeURIComponent(matchPhoneChange[2]);
+
+      // Validate phone format
+      if (!/^\+\d{9,15}$/.test(newPhone)) {
+        return bot.sendMessage(chatId, '❌ Invalid phone number format. Expected + followed by 9-15 digits.');
+      }
+
+      // Check if this Telegram account is linked to the user
+      const user = await getLinkedUser(chatId);
+      if (!user || user.id.toString() !== targetUserId) {
+        return bot.sendMessage(chatId,
+          '⚠️ This Telegram account is not linked to the requested NexusFinance account.\n\nUse `/link <email>` to connect first.',
+          { parse_mode: 'Markdown' }
+        );
+      }
+
+      // Check if phone is already used by another account
+      const { data: existing } = await db.from('nexus_users').select('id').eq('phone', newPhone).neq('id', targetUserId).single();
+      if (existing) {
+        return bot.sendMessage(chatId, '❌ This phone number is already linked to another account. Please choose a different number.');
+      }
+
+      // Send OTP to new phone
+      const { success, telegramSent, smsSent } = await createOtpForUserByPhone(newPhone);
+      if (!success) {
+        return bot.sendMessage(chatId, `❌ Failed to send OTP. ${!telegramSent ? 'Telegram failed. ' : ''}${!smsSent ? 'SMS failed.' : ''} Please try again.`);
+      }
+
+      pendingPhoneChangeOtp.set(chatId, {
+        userId: targetUserId,
+        newPhone,
+        expiresAt: Date.now() + PHONE_CHANGE_OTP_TTL_MS,
+      });
+
+      return bot.sendMessage(chatId,
+        `📱 *Phone Number Change*\n\nA 6-digit OTP has been sent to the new number: ${newPhone}\n\n*Reply with the code* here to verify and update your phone number.\n\nCode expires in 10 minutes.`,
+        { parse_mode: 'Markdown' }
+      );
+    }
 
     // Handle /start changepassword — redirect to /changepassword flow
     if (startStr === 'changepassword') {
@@ -746,6 +794,48 @@ You can also link automatically by sharing your phone number using the button be
     // Ignore commands (messages starting with /)
     if (text?.startsWith('/')) return;
 
+    // Check for phone change OTP pending
+    const pendingPhone = pendingPhoneChangeOtp.get(chatId);
+    if (pendingPhone) {
+      // Check if code has expired
+      if (Date.now() > pendingPhone.expiresAt) {
+        pendingPhoneChangeOtp.delete(chatId);
+        return bot.sendMessage(chatId, '❌ Code has expired. Please start the phone change process again from the website.');
+      }
+
+      // Expect a 6-digit OTP code
+      const codeMatch = text.match(/^(\d{6})$/);
+      if (!codeMatch) {
+        return bot.sendMessage(chatId, '⚠️ Please enter the 6-digit OTP code sent to your new phone number.');
+      }
+
+      const { success, error } = await verifyOtpForUserByPhone(pendingPhone.newPhone, codeMatch[1]);
+
+      if (!success) {
+        // DON'T delete — let user retry
+        return bot.sendMessage(chatId, `❌ ${error || 'Invalid code.'} Please try again.`, { parse_mode: 'Markdown' });
+      }
+
+      // OTP verified — update phone in DB
+      const { error: updateError } = await db
+        .from('nexus_users')
+        .update({ phone: pendingPhone.newPhone })
+        .eq('id', pendingPhone.userId);
+
+      pendingPhoneChangeOtp.delete(chatId);
+
+      if (updateError) {
+        console.error('Phone update error:', updateError);
+        return bot.sendMessage(chatId, '❌ Failed to update phone number. Please try again.');
+      }
+
+      return bot.sendMessage(chatId,
+        `✅ *Phone Number Updated!*\n\nYour phone number has been changed to: ${pendingPhone.newPhone}\n\nYou can now use this number for OTP verification on the website.`,
+        { parse_mode: 'Markdown' }
+      );
+    }
+
+    // Check for password change OTP pending
     const pending = pendingPasswordOtp.get(chatId);
     if (!pending) return;
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, Lock, Save, RefreshCw, Shield, UserCheck, MessageCircle } from 'lucide-react';
+import { User, Mail, Phone, Lock, Save, RefreshCw, Shield, UserCheck, MessageCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { showToast } from './Toast';
 import { SkeletonCard } from './Skeleton';
 
@@ -16,8 +16,15 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [originalPhone, setOriginalPhone] = useState('');
   const [profileLoading, setProfileLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+
+  // Phone change verification state
+  const [showPhoneVerify, setShowPhoneVerify] = useState(false);
+  const [phoneChanging, setPhoneChanging] = useState(false);
+  const [phoneChangeDeepLink, setPhoneChangeDeepLink] = useState('');
+  const [phoneVerified, setPhoneVerified] = useState(false);
 
   useEffect(() => {
     apiFetch('/auth/me')
@@ -25,18 +32,62 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
         setName(data.name || '');
         setEmail(data.email || '');
         setPhone(data.phone || '');
+        setOriginalPhone(data.phone || '');
       })
       .catch(() => showToast('Failed to load profile', 'error'))
       .finally(() => setFetching(false));
   }, [token]);
 
+  // Poll for phone change completion
+  useEffect(() => {
+    if (!phoneChanging || phoneVerified) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const data = await apiFetch('/auth/phone-change-status');
+        if (data.phone && data.phone !== originalPhone) {
+          setPhone(data.phone);
+          setOriginalPhone(data.phone);
+          setPhoneVerified(true);
+          setPhoneChanging(false);
+          setShowPhoneVerify(false);
+          showToast('Phone number updated successfully!');
+          onProfileUpdate?.({ name, email, phone: data.phone });
+        }
+      } catch {
+        // Silently retry
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [phoneChanging, phoneVerified, originalPhone, name, email, onProfileUpdate]);
+
   const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // If phone changed, show verification prompt instead of saving
+    if (phone !== originalPhone) {
+      setPhoneChanging(true);
+      try {
+        const data = await apiFetch('/auth/phone-change-request', {
+          method: 'POST',
+          body: JSON.stringify({ newPhone: phone }),
+        });
+        setPhoneChangeDeepLink(data.deepLink);
+        setShowPhoneVerify(true);
+      } catch (err: any) {
+        setPhoneChanging(false);
+        showToast(err?.message || 'Failed to request phone change', 'error');
+      }
+      return;
+    }
+
+    // Save name/email only
     setProfileLoading(true);
     try {
       await apiFetch('/auth/profile', {
         method: 'PATCH',
-        body: JSON.stringify({ name, email, phone }),
+        body: JSON.stringify({ name, email }),
       });
       onProfileUpdate?.({ name, email, phone });
       showToast('Profile updated successfully');
@@ -197,14 +248,54 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                 </div>
 
                 <div className="flex justify-end pt-2 mt-6">
-                  <button
-                    type="submit"
-                    disabled={profileLoading}
-                    className="premium-btn-primary text-white text-[13px] font-bold px-6 py-3 rounded-xl cursor-pointer disabled:opacity-50 flex items-center gap-2 bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition-all"
-                  >
-                    {profileLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    {profileLoading ? 'Saving...' : 'Save Profile Changes'}
-                  </button>
+                  {showPhoneVerify ? (
+                    <div className="flex flex-col items-end gap-3 w-full">
+                      <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 w-full">
+                        <p className="text-[13px] text-amber-700 dark:text-amber-400 font-medium mb-3">
+                          A verification is required to change your phone number. Click the button below to verify via Telegram.
+                        </p>
+                        <div className="flex gap-2">
+                          <a
+                            href={phoneChangeDeepLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="premium-btn-primary text-white text-[13px] font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] transition-all"
+                          >
+                            <MessageCircle className="w-4 h-4" /> Verify via Telegram
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowPhoneVerify(false);
+                              setPhoneChanging(false);
+                              setPhone(originalPhone);
+                            }}
+                            className="text-[13px] font-medium px-4 py-2.5 rounded-xl border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] transition-all"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                      {phoneChanging && !phoneVerified && (
+                        <div className="flex items-center gap-2 text-[13px] text-[var(--text-secondary)]">
+                          <Loader2 className="w-4 h-4 animate-spin" /> Waiting for Telegram verification...
+                        </div>
+                      )}
+                    </div>
+                  ) : phoneVerified ? (
+                    <div className="flex items-center gap-2 text-[13px] text-emerald-600 font-medium">
+                      <CheckCircle2 className="w-4 h-4" /> Phone number updated!
+                    </div>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={profileLoading}
+                      className="premium-btn-primary text-white text-[13px] font-bold px-6 py-3 rounded-xl cursor-pointer disabled:opacity-50 flex items-center gap-2 bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition-all"
+                    >
+                      {profileLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      {profileLoading ? 'Saving...' : 'Save Profile Changes'}
+                    </button>
+                  )}
                 </div>
               </form>
             </div>

@@ -715,6 +715,52 @@ app.patch('/api/auth/profile', authMiddleware, async (req, res) => {
   res.json({ user: updated });
 });
 
+// ── PHONE CHANGE REQUEST ─────────────────────────────────
+
+app.post('/api/auth/phone-change-request', authMiddleware, async (req, res) => {
+  try {
+    const { newPhone } = req.body;
+    if (!newPhone) return res.status(400).json({ error: 'New phone number is required.' });
+
+    // Validate phone format
+    if (!/^\+\d{9,15}$/.test(newPhone)) {
+      return res.status(400).json({ error: 'Phone must start with + and be 9-15 digits (e.g. +85581968581).' });
+    }
+
+    // Get current user
+    const { data: user } = await db.from('nexus_users').select('id, phone').eq('id', req.user.id).single();
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    // Check if same phone
+    if (user.phone === newPhone) {
+      return res.status(400).json({ error: 'This is already your current phone number.' });
+    }
+
+    // Check if phone already belongs to another account
+    const { data: existing } = await db.from('nexus_users').select('id').eq('phone', newPhone).neq('id', req.user.id).single();
+    if (existing) {
+      return res.status(400).json({ error: 'This phone number is already linked to another account.' });
+    }
+
+    // Return deep link for Telegram bot (format: /start phonechange_{userId}_{phone})
+    const deepLink = `https://t.me/nexusfinancefintech_bot?start=phonechange_${user.id}_${encodeURIComponent(newPhone)}`;
+    res.json({ deepLink, newPhone });
+  } catch (e) {
+    console.error('Phone change request error:', e);
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
+app.get('/api/auth/phone-change-status', authMiddleware, async (req, res) => {
+  try {
+    const { data: user } = await db.from('nexus_users').select('phone').eq('id', req.user.id).single();
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    res.json({ phone: user.phone });
+  } catch {
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
 // ── FORGOT PASSWORD ──────────────────────────────────────
 
 app.post('/api/auth/forgot-password', authLimiter, async (req, res) => {
