@@ -485,7 +485,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <main className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center px-6 sm:px-12 max-w-7xl mx-auto w-full gap-8 lg:gap-16 py-4">
             
             {/* Form Left Row (Column 5) */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-start">
+            <div className="lg:col-span-7 flex justify-center lg:justify-end">
               <div className="bg-[var(--surface-card)]/80 backdrop-blur-xl rounded-3xl p-8 sm:p-10 w-full max-w-md shadow-2xl shadow-teal-900/5 border border-[var(--border-primary)]/60 animate-in fade-in slide-in-from-left duration-500">
                 
                 {/* Title block */}
@@ -638,7 +638,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
             </div>
 
             {/* Isometric 3D Illustration Right (Column 7) */}
-            <div className="lg:col-span-7 hidden lg:flex justify-center items-center h-full max-h-[600px] select-none pointer-events-none relative">
+            <div className="lg:col-span-5 hidden lg:flex justify-center items-center h-full max-h-[600px] select-none pointer-events-none relative">
               <svg
                 viewBox="0 0 800 600"
                 className="w-full max-w-[620px] h-auto drop-shadow-2xl animate-in zoom-in duration-700"
