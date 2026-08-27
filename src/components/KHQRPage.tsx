@@ -38,6 +38,10 @@ export default function KHQRPage() {
   const [currentTranId, setCurrentTranId] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'APPROVED' | null>(null);
 
+  const approvedTransactions = useMemo(() => {
+    return transactions.filter((tx: any) => tx.status === 'APPROVED');
+  }, [transactions]);
+
   useEffect(() => {
     if (!currentTranId || paymentStatus === 'APPROVED') return;
 
@@ -264,7 +268,7 @@ export default function KHQRPage() {
               <History className="w-4 h-4" /> Recent Payments
             </h3>
             <div className="space-y-2">
-              {transactions.length > 0 ? transactions.slice(0, 5).map((tx: any) => (
+              {approvedTransactions.length > 0 ? approvedTransactions.slice(0, 5).map((tx: any) => (
                 <div key={tx.tran_id || tx.tranId} className="flex items-center justify-between p-4 rounded-2xl border" style={{ backgroundColor: s('surface-card'), borderColor: s('border-primary') }}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{
