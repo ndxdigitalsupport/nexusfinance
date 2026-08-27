@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Phone, Lock, Save, RefreshCw, Shield, UserCheck, MessageCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, Lock, Save, RefreshCw, Shield, UserCheck, MessageCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { showToast } from './Toast';
 import { SkeletonCard } from './Skeleton';
 
@@ -19,6 +19,7 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
   const [originalPhone, setOriginalPhone] = useState('');
   const [profileLoading, setProfileLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [showEmail, setShowEmail] = useState(false);
 
   // Phone change verification state
   const [showPhoneVerify, setShowPhoneVerify] = useState(false);
@@ -27,14 +28,16 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
   const [phoneVerified, setPhoneVerified] = useState(false);
 
   useEffect(() => {
-    apiFetch('/auth/me')
-      .then((data) => {
-        setName(data.name || '');
-        setEmail(data.email || '');
-        setPhone(data.phone || '');
-        setOriginalPhone(data.phone || '');
-      })
-      .catch(() => showToast('Failed to load profile', 'error'))
+    Promise.all([
+      apiFetch('/auth/me'),
+      apiFetch('/config'),
+    ]).then(([meData, configData]) => {
+      setName(meData.name || '');
+      setEmail(meData.email || '');
+      setPhone(meData.phone || '');
+      setOriginalPhone(meData.phone || '');
+      setShowEmail(configData?.emailVerificationRequired !== false);
+    }).catch(() => showToast('Failed to load profile', 'error'))
       .finally(() => setFetching(false));
   }, [token]);
 
@@ -85,9 +88,11 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
     // Save name/email only
     setProfileLoading(true);
     try {
+      const body: any = { name };
+      if (showEmail) body.email = email;
       await apiFetch('/auth/profile', {
         method: 'PATCH',
-        body: JSON.stringify({ name, email }),
+        body: JSON.stringify(body),
       });
       onProfileUpdate?.({ name, email, phone });
       showToast('Profile updated successfully');
@@ -155,6 +160,18 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
 
             {/* Detail list items */}
             <div className="p-8 pt-0 relative border-t border-[var(--border-primary)]/50 mt-auto space-y-4 text-left">
+              {showEmail && (
+              <div className={`flex items-center gap-3 ${showEmail ? '' : 'pt-6'}`}>
+                  <div className="w-8 h-8 rounded-xl bg-[var(--surface-secondary)] flex items-center justify-center shrink-0 border border-[var(--border-secondary)]">
+                    <Mail className="w-4 h-4 text-[var(--text-secondary)]" />
+                  </div>
+                  <div className="overflow-hidden w-full">
+                    <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider leading-none">Email Address</span>
+                    <span className="text-[13px] text-[var(--text-primary)] font-medium block truncate font-mono mt-0.5" title={email}>{email}</span>
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center gap-3 pt-6">
                 <div className="w-8 h-8 rounded-xl bg-[var(--surface-secondary)] flex items-center justify-center shrink-0 border border-[var(--border-secondary)]">
                   <Phone className="w-4 h-4 text-[var(--text-secondary)]" />
@@ -203,6 +220,24 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                       />
                     </div>
                   </div>
+
+                  {showEmail && (
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Email Address</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                          <Mail className="w-4 h-4 text-[var(--text-tertiary)]" />
+                        </div>
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="Enter your email"
+                          className="premium-input w-full pl-10 pr-4 py-3 rounded-xl border border-[var(--border-primary)] focus:border-[var(--accent)] transition-all font-medium text-[13px] bg-[var(--surface-primary)]"
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Phone Contact</label>
