@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Search, 
   AlertTriangle, 
@@ -655,7 +656,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
           window.print();
         };
 
-        return (
+        return createPortal(
           <div className="fixed inset-0 bg-black/65 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto select-none no-print-backdrop">
             
             {/* Scoped print CSS injection */}
@@ -710,7 +711,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
               }
             `}} />
 
-            <div id="print-schedule-modal" className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 printable-scheduler-sheet flex flex-col my-8">
+            <div id="print-schedule-modal" className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 printable-scheduler-sheet flex flex-col my-8">
               
               {/* Modal Header */}
               <div className="px-8 py-5 border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/30 flex justify-between items-center no-print">
@@ -854,7 +855,8 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
               </div>
 
             </div>
-          </div>
+          </div>,
+          document.body
         );
       })()}
     </div>
