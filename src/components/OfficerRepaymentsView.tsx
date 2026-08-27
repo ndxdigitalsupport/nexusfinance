@@ -354,8 +354,8 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
           <div className="col-span-3 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold">Customer / Reference</div>
           <div className="col-span-2 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold text-right">Repayment/Mo</div>
           <div className="col-span-3 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold text-center">Next Payment</div>
-          <div className="col-span-1.5 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold text-center">Status</div>
-          <div className="col-span-2.5 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold text-right">Action</div>
+          <div className="col-span-1 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold text-center">Status</div>
+          <div className="col-span-3 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold text-right">Action</div>
         </div>
 
         {/* Rows */}
@@ -411,7 +411,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                   </div>
 
                   {/* Status chip */}
-                  <div className="col-span-1.5 text-left sm:text-center ml-13 sm:ml-0">
+                  <div className="col-span-1 text-left sm:text-center ml-13 sm:ml-0">
                     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
                       isOverdue 
                         ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' 
@@ -422,7 +422,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                   </div>
 
                    {/* Action Button */}
-                  <div className="col-span-2.5 flex flex-row gap-2 justify-start sm:justify-end items-center ml-13 sm:ml-0 w-full sm:w-auto">
+                  <div className="col-span-3 flex flex-row gap-2 justify-end items-center ml-13 sm:ml-0 w-full">
                     <button
                       onClick={() => setViewingScheduleLoan(loan)}
                       className="px-2.5 py-1.5 bg-[var(--surface-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] hover:bg-[var(--surface-card)] transition text-[12px] font-bold rounded-lg cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
