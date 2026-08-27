@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, Lock, Save, RefreshCw, CheckCircle2, Shield, UserCheck, MessageCircle } from 'lucide-react';
+import { User, Mail, Phone, Lock, Save, RefreshCw, Shield, UserCheck, MessageCircle } from 'lucide-react';
 import { showToast } from './Toast';
 import { SkeletonCard } from './Skeleton';
 
@@ -16,16 +16,8 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [profileLoading, setProfileLoading] = useState(false);
-  const [passwordLoading, setPasswordLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
-  // Password OTP states
-  const [passwordOtpSent, setPasswordOtpSent] = useState(false);
-  const [passwordOtpCode, setPasswordOtpCode] = useState('');
-  const [passwordOtpVerified, setPasswordOtpVerified] = useState(false);
-  const [passwordOtpTimer, setPasswordOtpTimer] = useState(0);
 
   useEffect(() => {
     apiFetch('/auth/me')
@@ -52,81 +44,6 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
       showToast('Could not connect to server.', 'error');
     } finally {
       setProfileLoading(false);
-    }
-  };
-
-  const handleSendPasswordOtp = async () => {
-    setPasswordLoading(true);
-    try {
-      const isPhoneOnly = email.endsWith('@nexus.local');
-      const endpoint = isPhoneOnly ? `${API}/auth/send-otp-phone` : `${API}/auth/send-otp`;
-      const body = isPhoneOnly ? { phone } : { email };
-      const res = await fetch(endpoint, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to send OTP.');
-      setPasswordOtpSent(true);
-      setPasswordOtpTimer(300);
-      const interval = setInterval(() => {
-        setPasswordOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
-      }, 1000);
-      showToast(isPhoneOnly ? 'OTP sent to your phone!' : 'OTP sent to your email!', 'success');
-    } catch (err: any) {
-      showToast(err?.message || 'Failed to send OTP.', 'error');
-    } finally {
-      setPasswordLoading(false);
-    }
-  };
-
-  const handleVerifyPasswordOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!passwordOtpCode || passwordOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
-    setPasswordLoading(true);
-    try {
-      const isPhoneOnly = email.endsWith('@nexus.local');
-      const endpoint = isPhoneOnly ? `${API}/auth/verify-otp-phone` : `${API}/auth/verify-otp`;
-      const body = isPhoneOnly
-        ? { phone, code: passwordOtpCode }
-        : { email, code: passwordOtpCode };
-      const res = await fetch(endpoint, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Invalid or expired code.');
-      setPasswordOtpVerified(true);
-      showToast('Verified! Set your new password.', 'success');
-    } catch (err: any) {
-      showToast(err?.message || 'Invalid or expired code.', 'error');
-    } finally {
-      setPasswordLoading(false);
-    }
-  };
-
-  const handlePasswordSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) return showToast('New passwords do not match', 'error');
-    if (!passwordOtpVerified) return showToast('Verify your email first via OTP', 'error');
-    setPasswordLoading(true);
-    try {
-      const res = await fetch(`${API}/auth/password`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ newPassword }),
-      });
-      if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to update password.'); }
-      showToast('Password updated successfully');
-      setNewPassword('');
-      setConfirmPassword('');
-      setPasswordOtpSent(false);
-      setPasswordOtpVerified(false);
-      setPasswordOtpCode('');
-    } catch (err: any) {
-      showToast(err?.message || 'Could not update password.', 'error');
-    } finally {
-      setPasswordLoading(false);
     }
   };
 
@@ -301,136 +218,21 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
           <Lock className="w-5 h-5 text-[var(--accent)]" /> Change Security Password
         </h3>
 
-            {!passwordOtpVerified ? (
-              <div className="p-6 rounded-2xl bg-[var(--surface-secondary)]/50 border border-[var(--border-primary)] space-y-4">
-                {!passwordOtpSent ? (
-                  /* Step 1: Send OTP UI */
-                  <div className="space-y-4">
-                    <p className="text-[13px] text-[var(--text-secondary)] font-medium leading-relaxed">
-                      {email.endsWith('@nexus.local')
-                        ? <>To modify your account password, we must first verify your phone number (<strong>{phone}</strong>). We will send a secure 6-digit one-time password (OTP) via Telegram and SMS.</>
-                        : <>To modify your account password, we must first verify your email address (<strong>{email}</strong>). We will send a secure 6-digit one-time password (OTP) verification code.</>
-                      }
-                    </p>
-                    <div className="flex justify-start gap-3 flex-wrap">
-                      <button
-                        type="button"
-                        onClick={handleSendPasswordOtp}
-                        disabled={passwordLoading}
-                        className="premium-btn-primary text-white text-[13px] font-bold px-6 py-3 rounded-xl cursor-pointer disabled:opacity-50 flex items-center gap-2 bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition-all"
-                      >
-                        {passwordLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Phone className="w-4 h-4" />}
-                        {passwordLoading ? 'Sending Verification...' : email.endsWith('@nexus.local') ? 'Send OTP to Phone' : 'Send OTP to Email'}
-                      </button>
-                      {email.endsWith('@nexus.local') && (
-                        <a
-                          href="https://t.me/nexusfinancefintech_bot?start=changepassword"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[13px] font-bold px-6 py-3 rounded-xl border border-[var(--border-primary)] bg-[var(--surface-card)] hover:border-[var(--accent)] transition-all flex items-center gap-2 text-[var(--text-primary)]"
-                        >
-                          <MessageCircle className="w-4 h-4" /> Via Telegram
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  /* Step 2: Enter OTP Code UI */
-                  <form onSubmit={handleVerifyPasswordOtp} className="space-y-5">
-                    <p className="text-[13px] text-[var(--text-secondary)] font-semibold text-center">
-                      {email.endsWith('@nexus.local')
-                        ? <>Verification code sent to <strong>{phone}</strong> via Telegram & SMS</>
-                        : <>Verification code sent to <strong>{email}</strong></>
-                      }
-                    </p>
-                    <div className="max-w-xs mx-auto">
-                      <input
-                        type="text"
-                        maxLength={6}
-                        value={passwordOtpCode}
-                        onChange={(e) => setPasswordOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        placeholder="000000"
-                        className="w-full text-center text-[26px] tracking-[10px] font-mono premium-input rounded-xl px-4 py-3 border border-[var(--border-primary)] bg-[var(--surface-primary)] focus:border-[var(--accent)] font-bold placeholder:tracking-normal placeholder:font-sans placeholder:text-gray-400 focus:ring-2 focus:ring-[var(--accent)]/10"
-                        required
-                      />
-                    </div>
-                    
-                    <button
-                      type="submit"
-                      disabled={passwordLoading || passwordOtpCode.length < 6}
-                      className="premium-btn-primary text-white text-[13px] font-bold px-6 py-3 rounded-xl cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 w-full max-w-xs mx-auto bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition-all"
-                    >
-                      {passwordLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                      {passwordLoading ? 'Verifying Code...' : 'Verify Code'}
-                    </button>
-                    
-                    <div className="flex justify-center items-center text-[12px] max-w-xs mx-auto pt-2">
-                      <button type="button" onClick={handleSendPasswordOtp} disabled={passwordOtpTimer > 0}
-                        className="text-[var(--text-secondary)] font-bold hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40"
-                      >
-                        Resend code {passwordOtpTimer > 0 && `(${Math.floor(passwordOtpTimer / 60)}:${String(passwordOtpTimer % 60).padStart(2, '0')})`}
-                      </button>
-                    </div>
-                  </form>
-                )}
+            <div className="p-6 rounded-2xl bg-[var(--surface-secondary)]/50 border border-[var(--border-primary)] space-y-4">
+              <p className="text-[13px] text-[var(--text-secondary)] font-medium leading-relaxed">
+                To modify your account password, you will be redirected to our Telegram bot where you can securely verify your identity and set a new password.
+              </p>
+              <div className="flex justify-start">
+                <a
+                  href="https://t.me/nexusfinancefintech_bot?start=changepassword"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="premium-btn-primary text-white text-[13px] font-bold px-6 py-3 rounded-xl flex items-center gap-2 bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition-all"
+                >
+                  <MessageCircle className="w-4 h-4" /> Change Password via Telegram
+                </a>
               </div>
-            ) : (
-              /* Step 3: Set New Password Form */
-              <form onSubmit={handlePasswordSave} className="space-y-6">
-                <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[13px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                  <CheckCircle2 className="w-4 h-4" /> Identity Verified successfully. You can now set your new password.
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">New Security Password</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                        <Lock className="w-4 h-4 text-[var(--text-tertiary)]" />
-                      </div>
-                      <input 
-                        type="password" 
-                        value={newPassword} 
-                        onChange={(e) => setNewPassword(e.target.value)} 
-                        placeholder="••••••••"
-                        className="premium-input w-full pl-10 pr-4 py-3 rounded-xl border border-[var(--border-primary)] focus:border-[var(--accent)] font-medium text-[13px] bg-[var(--surface-primary)]" 
-                        required 
-                        minLength={6} 
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Confirm Security Password</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                        <Lock className="w-4 h-4 text-[var(--text-tertiary)]" />
-                      </div>
-                      <input 
-                        type="password" 
-                        value={confirmPassword} 
-                        onChange={(e) => setConfirmPassword(e.target.value)} 
-                        placeholder="••••••••"
-                        className="premium-input w-full pl-10 pr-4 py-3 rounded-xl border border-[var(--border-primary)] focus:border-[var(--accent)] font-medium text-[13px] bg-[var(--surface-primary)]" 
-                        required 
-                        minLength={6} 
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-2">
-                  <button 
-                    type="submit" 
-                    disabled={passwordLoading} 
-                    className="premium-btn-primary text-white text-[13px] font-bold px-6 py-3 rounded-xl cursor-pointer disabled:opacity-50 flex items-center gap-2 bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition-all"
-                  >
-                    {passwordLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    {passwordLoading ? 'Updating Password...' : 'Save New Password'}
-                  </button>
-                </div>
-              </form>
-            )}
+            </div>
           </div>
         </div>
       );
