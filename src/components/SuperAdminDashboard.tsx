@@ -505,14 +505,15 @@ export default function SuperAdminDashboard({
                       <tr>
                         <th className="px-4 py-3">ID</th>
                         <th className="px-4 py-3">Name</th>
-                        <th className="px-4 py-3">Email</th>
+                        {config.emailVerificationRequired !== false && <th className="px-4 py-3">Email</th>}
                         <th className="px-4 py-3">Phone</th>
                       </tr>
                     )}
                     {selectedStat === 'outstanding' && (
                       <tr>
                         <th className="px-4 py-3">Customer</th>
-                        <th className="px-4 py-3">Email</th>
+                        {config.emailVerificationRequired !== false && <th className="px-4 py-3">Email</th>}
+                        <th className="px-4 py-3">Phone</th>
                         <th className="px-4 py-3 text-right">Outstanding Balance</th>
                       </tr>
                     )}
@@ -537,7 +538,7 @@ export default function SuperAdminDashboard({
                           <td className="px-4 py-3 font-mono text-[var(--text-tertiary)]">{tx.id}</td>
                           <td className="px-4 py-3">
                             <span className="font-bold block">{tx.userName}</span>
-                            <span className="text-[11px] text-[var(--text-tertiary)] block">{tx.userEmail}</span>
+                            <span className="text-[11px] text-[var(--text-tertiary)] block">{tx.userPhone || tx.userEmail}</span>
                           </td>
                           <td className="px-4 py-3 text-right font-extrabold font-mono text-emerald-600">
                             +{formatCurrency(Math.abs(tx.amount))}
@@ -549,13 +550,13 @@ export default function SuperAdminDashboard({
                     {selectedStat === 'customers' && (
                       (!stats.customerList || stats.customerList.length === 0) ? (
                         <tr>
-                          <td colSpan={4} className="px-4 py-8 text-center text-[var(--text-tertiary)]">No customers found.</td>
+                          <td colSpan={config.emailVerificationRequired !== false ? 4 : 3} className="px-4 py-8 text-center text-[var(--text-tertiary)]">No customers found.</td>
                         </tr>
                       ) : stats.customerList.map((c: any) => (
                         <tr key={c.id} className="hover:bg-[var(--surface-secondary)]/50 transition-colors">
                           <td className="px-4 py-3 font-mono text-[var(--text-tertiary)]">{c.id}</td>
                           <td className="px-4 py-3 font-bold">{c.name}</td>
-                          <td className="px-4 py-3 font-mono text-[var(--text-tertiary)]">{c.email}</td>
+                          {config.emailVerificationRequired !== false && <td className="px-4 py-3 font-mono text-[var(--text-tertiary)]">{c.email}</td>}
                           <td className="px-4 py-3 font-mono">{c.phone || '-'}</td>
                         </tr>
                       ))
@@ -564,12 +565,13 @@ export default function SuperAdminDashboard({
                     {selectedStat === 'outstanding' && (
                       (!stats.outstandingCustomers || stats.outstandingCustomers.length === 0) ? (
                         <tr>
-                          <td colSpan={3} className="px-4 py-8 text-center text-[var(--text-tertiary)]">No outstanding balances.</td>
+                          <td colSpan={config.emailVerificationRequired !== false ? 4 : 3} className="px-4 py-8 text-center text-[var(--text-tertiary)]">No outstanding balances.</td>
                         </tr>
                       ) : stats.outstandingCustomers.map((c: any, index: number) => (
                         <tr key={index} className="hover:bg-[var(--surface-secondary)]/50 transition-colors">
                           <td className="px-4 py-3 font-bold">{c.name}</td>
-                          <td className="px-4 py-3 font-mono text-[var(--text-tertiary)]">{c.email}</td>
+                          {config.emailVerificationRequired !== false && <td className="px-4 py-3 font-mono text-[var(--text-tertiary)]">{c.email}</td>}
+                          <td className="px-4 py-3 font-mono">{c.phone || '-'}</td>
                           <td className="px-4 py-3 text-right font-extrabold font-mono text-[var(--text-primary)]">
                             {formatCurrency(c.balance)}
                           </td>

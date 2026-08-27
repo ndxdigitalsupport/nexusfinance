@@ -1418,7 +1418,7 @@ app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'admin', 'supe
   // Fetch transactions and join with users to get name/email
   const { data: txs } = await db
     .from('nexus_transactions')
-    .select('id, title, date, amount, type, userId, nexus_users(name, email)')
+    .select('id, title, date, amount, type, userId, nexus_users(name, email, phone)')
     .order('id', { ascending: false });
 
   // Fetch all customers
@@ -1434,19 +1434,19 @@ app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'admin', 'supe
 
   // Process disbursements and repayments
   const volumeTransactions: any[] = [];
-  const customerBalances: Record<number, { name: string; email: string; balance: number }> = {};
+  const customerBalances: Record<number, { name: string; email: string; phone: string; balance: number }> = {};
 
   let totalDisbursed = 0;
   let totalRepaid = 0;
 
   for (const t of txs || []) {
     const amountVal = Math.abs(Number(t.amount));
-    const u = (t as any).nexus_users || { name: 'Unknown', email: '' };
+    const u = (t as any).nexus_users || { name: 'Unknown', email: '', phone: '' };
 
     if (t.type === 'Loan Disbursement' || t.type === 'Repayment') {
       // Dynamically initialize user balance if not already present
       if (!customerBalances[t.userId]) {
-        customerBalances[t.userId] = { name: u.name, email: u.email, balance: 0 };
+        customerBalances[t.userId] = { name: u.name, email: u.email, phone: u.phone || '', balance: 0 };
       }
 
       if (t.type === 'Loan Disbursement') {
@@ -1457,7 +1457,8 @@ app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'admin', 'supe
           amount: Number(t.amount),
           type: t.type,
           userName: u.name,
-          userEmail: u.email
+          userEmail: u.email,
+          userPhone: u.phone || ''
         });
         totalDisbursed += amountVal;
         customerBalances[t.userId].balance += amountVal;
@@ -1478,6 +1479,7 @@ app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'admin', 'supe
     .map(c => ({
       name: c.name,
       email: c.email,
+      phone: c.phone,
       balance: c.balance
     }));
 
