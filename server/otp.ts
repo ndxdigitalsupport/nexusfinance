@@ -108,7 +108,8 @@ export async function createOtpForUserByPhone(phone: string) {
   }
 
   try {
-    await withTimeout(sendSMS(phone, `Your NexusFinance verification code is: ${otp}. It expires in 10 minutes.`), 2500);
+    const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
+    await withTimeout(sendSMS(phone, `Your NexusFinance verification code is: ${otp}. It expires in 10 minutes.`, config), 2500);
     smsSent = true;
   } catch (err) {
     console.error('Failed to send SMS OTP:', err);

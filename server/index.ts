@@ -454,7 +454,8 @@ const sendOtpHandler = async (req: express.Request, res: express.Response) => {
     } else {
       // SMS channel (Twilio fallback/sandbox log)
       try {
-        await withTimeout(sendSMS(finalPhone, `Your NexusFinance verification code is: ${code}. It expires in 5 minutes.`), 2500);
+        const { data: smsConfig } = await db.from('nexus_config').select('*').eq('id', 1).single();
+        await withTimeout(sendSMS(finalPhone, `Your NexusFinance verification code is: ${code}. It expires in 5 minutes.`, smsConfig), 2500);
       } catch (smsErr) {
         console.error('Failed to send SMS OTP code:', smsErr);
       }
@@ -2200,7 +2201,8 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'ad
     (async () => {
       try {
         if (user.phone) {
-          await withTimeout(sendSMS(user.phone, plainText));
+          const { data: smsConfig } = await db.from('nexus_config').select('*').eq('id', 1).single();
+          await withTimeout(sendSMS(user.phone, plainText, smsConfig));
           sentSMS = true;
         }
       } catch (e) {
