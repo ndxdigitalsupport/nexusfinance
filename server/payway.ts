@@ -260,7 +260,7 @@ export async function generateDynamicQR(req: PayWayQRRequest, frontendUrl: strin
 
   const statusVal = data && typeof data.status === 'object' ? data.status?.code : data?.status;
   
-  if (!res.ok || statusVal !== 0) {
+  if (!res.ok || (statusVal !== 0 && statusVal !== '0')) {
     console.error('PayWay QR API error response:', data);
     const errMsg = (data && typeof data.status === 'object' ? data.status?.message : (data?.description || data?.message || data?.error))
       || `PayWay QR Generation error: ${res.statusText} (Status: ${JSON.stringify(data?.status)})`;
@@ -269,8 +269,8 @@ export async function generateDynamicQR(req: PayWayQRRequest, frontendUrl: strin
 
   return {
     success: true,
-    qrString: data.qr_string,
-    abapayDeeplink: data.abapay_deeplink,
+    qrString: data.qrString || data.qr_string,
+    abapayDeeplink: data.abapay_deeplink || data.abapayDeeplink,
     tranId
   };
 }
