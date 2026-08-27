@@ -392,7 +392,7 @@ export default function KHQRPage() {
                         rel="noreferrer"
                         className="w-full py-3.5 bg-[var(--accent)] text-[var(--text-inverse)] font-bold text-[13px] rounded-2xl cursor-pointer flex items-center justify-center gap-1.5 shadow hover:brightness-110 active:scale-98 transition-all animate-bounce"
                       >
-                        📱 Open in ABA Mobile
+                        Open in ABA Mobile
                       </a>
                     )}
                   </div>
