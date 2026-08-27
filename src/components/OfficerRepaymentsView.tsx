@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   AlertTriangle, 
@@ -34,6 +34,94 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
   // Custom Chase Message Modal State
   const [customizingLoan, setCustomizingLoan] = useState<LoanApplication | null>(null);
   const [customMessageText, setCustomMessageText] = useState('');
+
+  // Amortization Schedule States (Method A)
+  const [viewingScheduleLoan, setViewingScheduleLoan] = useState<LoanApplication | null>(null);
+  const [scheduleInstallments, setScheduleInstallments] = useState<any[]>([]);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+
+  useEffect(() => {
+    if (!viewingScheduleLoan) {
+      setScheduleInstallments([]);
+      return;
+    }
+    setScheduleLoading(true);
+    apiFetch(`/loans/${viewingScheduleLoan.id}/schedule`)
+      .then((data: any) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setScheduleInstallments(data);
+        } else {
+          // Fallback to local calculation if table is empty
+          const term = viewingScheduleLoan.durationMonths || 12;
+          const defaultMonthlyRepayment = (viewingScheduleLoan.amount / term) + (viewingScheduleLoan.amount * 0.015);
+          const monthlyPayment = viewingScheduleLoan.monthlyPayment || defaultMonthlyRepayment;
+          const interestPerMonth = Math.max(0, monthlyPayment - (viewingScheduleLoan.amount / term));
+          const principalPerMonth = Math.round((viewingScheduleLoan.amount / term) * 100) / 100;
+          
+          const rows = [];
+          let balance = viewingScheduleLoan.amount;
+          for (let i = 1; i <= term; i++) {
+            let currentPrincipal = principalPerMonth;
+            if (i === term) {
+              currentPrincipal = Math.round(balance * 100) / 100;
+            }
+            const currentPayment = currentPrincipal + interestPerMonth;
+            balance -= currentPrincipal;
+            if (balance < 0.01) balance = 0;
+            
+            const d = new Date(viewingScheduleLoan.date);
+            d.setMonth(d.getMonth() + i);
+
+            rows.push({
+              installment_no: i,
+              due_date: d.toISOString(),
+              interest_amount: interestPerMonth,
+              principal_amount: currentPrincipal,
+              total_payment: currentPayment,
+              remaining_balance: balance,
+              status: 'unpaid'
+            });
+          }
+          setScheduleInstallments(rows);
+        }
+        setScheduleLoading(false);
+      })
+      .catch(() => {
+        // Fallback to local on API error
+        const term = viewingScheduleLoan.durationMonths || 12;
+        const defaultMonthlyRepayment = (viewingScheduleLoan.amount / term) + (viewingScheduleLoan.amount * 0.015);
+        const monthlyPayment = viewingScheduleLoan.monthlyPayment || defaultMonthlyRepayment;
+        const interestPerMonth = Math.max(0, monthlyPayment - (viewingScheduleLoan.amount / term));
+        const principalPerMonth = Math.round((viewingScheduleLoan.amount / term) * 100) / 100;
+        
+        const rows = [];
+        let balance = viewingScheduleLoan.amount;
+        for (let i = 1; i <= term; i++) {
+          let currentPrincipal = principalPerMonth;
+          if (i === term) {
+            currentPrincipal = Math.round(balance * 100) / 100;
+          }
+          const currentPayment = currentPrincipal + interestPerMonth;
+          balance -= currentPrincipal;
+          if (balance < 0.01) balance = 0;
+          
+          const d = new Date(viewingScheduleLoan.date);
+          d.setMonth(d.getMonth() + i);
+
+          rows.push({
+            installment_no: i,
+            due_date: d.toISOString(),
+            interest_amount: interestPerMonth,
+            principal_amount: currentPrincipal,
+            total_payment: currentPayment,
+            remaining_balance: balance,
+            status: 'unpaid'
+          });
+        }
+        setScheduleInstallments(rows);
+        setScheduleLoading(false);
+      });
+  }, [viewingScheduleLoan]);
 
   const itemsPerPage = 5;
 
@@ -419,23 +507,31 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                   </div>
 
                    {/* Action Button */}
-                  <div className="col-span-3 flex flex-row justify-start sm:justify-center items-center ml-13 sm:ml-0 w-full">
-                    {isOverdue ? (
-                      <button
-                        onClick={() => openCustomChaseModal(loan)}
-                        disabled={chasingId === loan.id}
-                        className="premium-btn-primary py-1.5 px-3.5 rounded-lg flex items-center justify-center gap-1 text-[12px] font-bold text-white shadow-sm hover:brightness-105 active:scale-97 disabled:opacity-50 cursor-pointer"
-                        title="Send Chase Notice"
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        <span>{chasingId === loan.id ? 'Sending...' : 'Chase'}</span>
-                      </button>
-                    ) : (
-                      <span className="text-[12px] text-[var(--text-tertiary)] font-bold uppercase tracking-wider">
-                        On Track
-                      </span>
-                    )}
-                  </div>
+                   <div className="col-span-3 flex flex-row gap-2 justify-start sm:justify-center items-center ml-13 sm:ml-0 w-full">
+                     <button
+                       onClick={() => setViewingScheduleLoan(loan)}
+                       className="px-2.5 py-1.5 bg-[var(--surface-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] hover:bg-[var(--surface-card)] transition text-[12px] font-bold rounded-lg cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                       title="View Repayment Schedule"
+                     >
+                       <Printer className="w-3.5 h-3.5 text-[var(--accent)]" />
+                       <span className="sm:hidden lg:inline">Schedule</span>
+                     </button>
+                     {isOverdue ? (
+                       <button
+                         onClick={() => openCustomChaseModal(loan)}
+                         disabled={chasingId === loan.id}
+                         className="premium-btn-primary py-1.5 px-2.5 rounded-lg flex items-center justify-center gap-1 text-[12px] font-bold text-white shadow-sm hover:brightness-105 active:scale-97 disabled:opacity-50 cursor-pointer"
+                         title="Send Chase Notice"
+                       >
+                         <Send className="w-3.5 h-3.5" />
+                         <span>{chasingId === loan.id ? 'Sending...' : 'Chase'}</span>
+                       </button>
+                     ) : (
+                       <span className="text-[12px] text-[var(--text-tertiary)] font-bold uppercase tracking-wider hidden lg:inline">
+                         On Track
+                       </span>
+                     )}
+                   </div>
 
                 </div>
               );
@@ -545,6 +641,202 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
           </div>
         </div>
       )}
+
+      {/* Amortization Schedule View Modal (Method A) */}
+      {viewingScheduleLoan && (() => {
+        const loan = viewingScheduleLoan;
+        
+        const formatDateStr = (dateStr: string) => {
+          const d = new Date(dateStr);
+          return d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+        };
+
+        const printAmortizationSchedule = () => {
+          window.print();
+        };
+
+        return (
+          <div className="fixed inset-0 bg-black/65 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto select-none no-print-backdrop">
+            
+            {/* Scoped print CSS injection */}
+            <style dangerouslySetInnerHTML={{ __html: `
+              @media print {
+                /* Set print background to white and hide body wrapper */
+                body {
+                  visibility: hidden;
+                  background: white !important;
+                }
+                /* Expose printable sheet and its contents cleanly */
+                .printable-scheduler-sheet {
+                  visibility: visible;
+                  position: absolute;
+                  left: 0;
+                  top: 0;
+                  width: 100%;
+                  box-shadow: none !important;
+                  border: none !important;
+                  background: white !important;
+                  color: black !important;
+                  padding: 0 !important;
+                  margin: 0 !important;
+                }
+                .printable-scheduler-sheet * {
+                  visibility: visible;
+                  color: black !important; /* Force high-contrast black print graphics/texts */
+                }
+                .no-print {
+                  display: none !important;
+                }
+              }
+            `}} />
+
+            <div id="print-schedule-modal" className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 printable-scheduler-sheet flex flex-col my-8">
+              
+              {/* Modal Header */}
+              <div className="px-8 py-5 border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/30 flex justify-between items-center no-print">
+                <div>
+                  <h3 className="text-[17px] font-extrabold text-[var(--text-primary)] flex items-center gap-2">
+                    <Printer className="w-5 h-5 text-[var(--accent)]" />
+                    <span>Loan Amortization Schedule</span>
+                  </h3>
+                  <p className="text-[12px] text-[var(--text-secondary)] font-medium mt-1">
+                    Database pre-calculated installments tracker.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setViewingScheduleLoan(null)}
+                  className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] rounded-xl transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Printable Content Block */}
+              <div className="p-8 space-y-6 flex-1 overflow-y-auto">
+                
+                {/* Print Title Block */}
+                <div className="text-center pb-4 border-b-2 border-dashed border-[var(--border-primary)]">
+                  <h2 className="text-2xl font-black tracking-tight" style={{ color: '#0d9488' }}>NexusFinance</h2>
+                  <p className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest mt-1">Payment Schedule</p>
+                </div>
+
+                {/* Info Fields Grid (Figma style) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 p-5 rounded-2xl border border-[var(--border-primary)] bg-[var(--surface-secondary)]/20">
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Borrower Name: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.applicantName}</span>
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Application No: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.id}</span>
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Reference No: <span className="font-bold text-[var(--text-primary)] ml-1">REF-{loan.id.replace('#', '')}</span>
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Loan Amount: <span className="font-bold text-[var(--text-primary)] ml-1">${loan.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Term: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.durationMonths || 12} Months</span>
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Repayment Freq: <span className="font-bold text-[var(--text-primary)] ml-1">Monthly (30d)</span>
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Disbursed Date: <span className="font-bold text-[var(--text-primary)] ml-1">{formatDateStr(loan.date)}</span>
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Borrower Phone: <span className="font-bold text-[var(--text-primary)] ml-1">{(loan as any).applicantPhone || (loan as any).phone || loan.applicantEmail.split('@')[0]}</span>
+                  </div>
+                </div>
+
+                {scheduleLoading ? (
+                  <div className="py-12 text-center flex flex-col items-center justify-center gap-2">
+                    <div className="w-8 h-8 rounded-full border-4 border-t-[var(--accent)] border-[var(--border-primary)] animate-spin" />
+                    <p className="text-xs text-[var(--text-secondary)] font-bold">Querying ledger records...</p>
+                  </div>
+                ) : (
+                  /* Schedule Table */
+                  <div className="overflow-x-auto border border-[var(--border-primary)] rounded-2xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-[var(--surface-secondary)] text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-secondary)] border-b border-[var(--border-primary)]">
+                          <th className="px-5 py-3 text-center w-12">N*</th>
+                          <th className="px-5 py-3">Due Date</th>
+                          <th className="px-5 py-3 text-right">Interest</th>
+                          <th className="px-5 py-3 text-right">Principal</th>
+                          <th className="px-5 py-3 text-right">Payment</th>
+                          <th className="px-5 py-3 text-right">Balance</th>
+                          <th className="px-5 py-3 text-center no-print">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--border-secondary)] text-[13px] text-[var(--text-primary)]">
+                        {scheduleInstallments.map((row: any) => {
+                          const isPaid = row.status === 'paid' || row.status === 'Paid';
+                          const isOverdue = row.status === 'overdue' || row.status === 'Overdue';
+                          
+                          return (
+                            <tr key={row.installment_no} className="hover:bg-[var(--surface-secondary)]/10">
+                              <td className="px-5 py-3 text-center font-bold text-[var(--text-secondary)]">{row.installment_no}</td>
+                              <td className="px-5 py-3 font-semibold">{formatDateStr(row.due_date)}</td>
+                              <td className="px-5 py-3 text-right text-[var(--text-secondary)]">${Number(row.interest_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                              <td className="px-5 py-3 text-right">${Number(row.principal_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                              <td className="px-5 py-3 text-right font-bold text-[var(--accent)]">${Number(row.total_payment).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                              <td className="px-5 py-3 text-right font-semibold">${Number(row.remaining_balance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                              <td className="px-5 py-3 text-center no-print">
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                                  isPaid 
+                                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
+                                    : isOverdue 
+                                    ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                                    : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)] border border-[var(--border-primary)]'
+                                }`}>
+                                  {row.status}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* Signature Boxes Block (for printing) */}
+                <div className="hidden print:grid grid-cols-3 gap-12 pt-16 text-center text-xs font-bold text-gray-700">
+                  <div className="space-y-12">
+                    <div className="border-t border-gray-400 pt-2">Contractor Signature</div>
+                  </div>
+                  <div className="space-y-12">
+                    <div className="border-t border-gray-400 pt-2">Witness Signature</div>
+                  </div>
+                  <div className="space-y-12">
+                    <div className="border-t border-gray-400 pt-2">Borrower Signature</div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Modal Footer */}
+              <div className="px-8 py-4 border-t border-[var(--border-primary)] bg-[var(--surface-secondary)]/30 flex justify-end gap-3 no-print">
+                <button
+                  onClick={() => setViewingScheduleLoan(null)}
+                  className="py-2.5 px-4 text-[12.5px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  disabled={scheduleLoading || scheduleInstallments.length === 0}
+                  onClick={printAmortizationSchedule}
+                  className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[12.5px] font-bold shadow-md hover:brightness-105 active:scale-97 cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Print Schedule</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

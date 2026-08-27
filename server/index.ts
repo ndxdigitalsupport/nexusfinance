@@ -913,6 +913,25 @@ app.post('/api/sms/send', authMiddleware, async (req, res) => {
 
 // ── LOAN ROUTES ─────────────────────────────────────────────
 
+app.get('/api/loans/:id/schedule', authMiddleware, async (req, res) => {
+  try {
+    const { data: installments, error } = await db
+      .from('nexus_installments')
+      .select('*')
+      .eq('loan_id', req.params.id)
+      .order('installment_no', { ascending: true });
+      
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    
+    res.json(installments || []);
+  } catch (err: any) {
+    console.error('Fetch schedule error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
 app.get('/api/loans', authMiddleware, async (req, res) => {
   let query = db.from('nexus_loans').select('*');
   if (req.user.role === 'customer') {
@@ -1052,6 +1071,50 @@ app.patch('/api/loans/:id/approve', authMiddleware, requireRole('loan-officer', 
 
   await db.from('nexus_loans').update({ status: 'Approved', assignedTo: req.user.id }).eq('id', req.params.id);
   logAudit('loan-approved', `Loan ${loan.id} (${loan.type}) for ${loan.applicantName} approved`, req.user);
+
+  // Generate and insert pre-calculated database repayment installments (Method A)
+  try {
+    const term = loan.durationMonths || 12;
+    const defaultMonthlyRepayment = (loan.amount / term) + (loan.amount * 0.015);
+    const monthlyPayment = loan.monthlyPayment || defaultMonthlyRepayment;
+    const interestPerMonth = Math.round((loan.amount * 0.015) * 100) / 100;
+    const principalPerMonth = Math.round((loan.amount / term) * 100) / 100;
+    
+    const loanDate = new Date(loan.date || Date.now());
+    const installmentsToInsert = [];
+    let balance = loan.amount;
+    
+    for (let i = 1; i <= term; i++) {
+      let currentPrincipal = principalPerMonth;
+      if (i === term) {
+        currentPrincipal = Math.round(balance * 100) / 100;
+      }
+      const currentPayment = currentPrincipal + interestPerMonth;
+      balance -= currentPrincipal;
+      if (balance < 0.01) balance = 0;
+      
+      const dueDate = new Date(loanDate);
+      dueDate.setMonth(dueDate.getMonth() + i);
+      
+      installmentsToInsert.push({
+        loan_id: loan.id,
+        installment_no: i,
+        due_date: dueDate.toISOString(),
+        principal_amount: currentPrincipal,
+        interest_amount: interestPerMonth,
+        total_payment: currentPayment,
+        remaining_balance: balance,
+        status: 'unpaid'
+      });
+    }
+    
+    const { error: insErr } = await db.from('nexus_installments').insert(installmentsToInsert);
+    if (insErr) {
+      console.warn('Warning: Failed to insert installments into public.nexus_installments. Make sure the table was created.', insErr.message);
+    }
+  } catch (calcErr) {
+    console.error('Failed to calculate/insert installments:', calcErr);
+  }
 
   const { data: applicantUser } = await db.from('nexus_users').select('id, name, email').eq('email', loan.applicantEmail).single();
   if (applicantUser) {
@@ -1903,6 +1966,30 @@ async function recordPaidPayment(tranId: string, apv?: string) {
   await db.from('nexus_payway_transactions')
     .update({ status: 'APPROVED', apv: apv || stored.apv, paid_at: new Date().toISOString() })
     .eq('tran_id', tranId);
+
+  // Update public.nexus_installments tracking table for Method A
+  if (stored.loan_id) {
+    try {
+      const { data: unpaidInstallment } = await db
+        .from('nexus_installments')
+        .select('*')
+        .eq('loan_id', stored.loan_id)
+        .eq('status', 'unpaid')
+        .order('installment_no', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (unpaidInstallment) {
+        await db
+          .from('nexus_installments')
+          .update({ status: 'paid', paid_at: new Date().toISOString() })
+          .eq('id', unpaidInstallment.id);
+        console.log(`Repayment installment #${unpaidInstallment.installment_no} for loan ${stored.loan_id} marked as paid`);
+      }
+    } catch (instErr) {
+      console.error('Failed to update installment status:', instErr);
+    }
+  }
 
   const amount = Number(stored.amount) || 0;
 
