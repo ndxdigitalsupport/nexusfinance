@@ -1938,19 +1938,25 @@ async function recordPaidPayment(tranId: string, apv?: string) {
   console.log(`PayWay payment recorded: ${tranId} → APPROVED ($${amount})`);
 }
 
-app.post('/api/payway/generate-qr', async (req, res) => {
+app.post('/api/payway/generate-qr', authMiddleware, async (req, res) => {
   try {
-    const { amount, currency, email, loanId } = req.body;
+    const { amount, currency, loanId } = req.body;
     if (!amount || amount <= 0) {
       return res.status(400).json({ error: 'amount is required and must be > 0' });
     }
 
+    const email = req.user?.email || req.body.email || '';
+    const firstname = req.user?.name ? req.user.name.split(' ')[0] : 'Nexus';
+    const lastname = req.user?.name ? req.user.name.split(' ').slice(1).join(' ') : 'Customer';
+
     const frontendUrl = process.env.CORS_ORIGIN || 'https://nexusfinancefintech.vercel.app';
-    const result = payway.buildPurchaseRequest({
+    const result = await payway.generateDynamicQR({
       amount,
       currency: currency || 'USD',
-      email: email || '',
-      items: [{ name: `Loan Repayment - ${loanId || 'N/A'}`, quantity: 1, price: amount }],
+      email,
+      firstname,
+      lastname,
+      loanId: loanId || '',
     }, frontendUrl);
 
     const userEmail = email ? normalizeEmail(email) : null;

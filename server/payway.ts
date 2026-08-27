@@ -176,6 +176,99 @@ export function verifyWebhook(body: string, signature: string): boolean {
   }
 }
 
+export interface PayWayQRRequest {
+  amount: number;
+  currency?: 'USD' | 'KHR';
+  email?: string;
+  phone?: string;
+  firstname?: string;
+  lastname?: string;
+  loanId?: string;
+  returnParams?: string;
+}
+
+export interface PayWayQRResult {
+  success: boolean;
+  qrString: string;
+  abapayDeeplink: string;
+  tranId: string;
+}
+
+export async function generateDynamicQR(req: PayWayQRRequest, frontendUrl: string): Promise<PayWayQRResult> {
+  if (!MERCHANT_ID || !API_KEY) {
+    throw new Error('PayWay not configured: missing MERCHANT_ID or API_KEY');
+  }
+
+  const rt = reqTime();
+  const tranId = newTranId();
+  const amount = req.currency === 'KHR'
+    ? Math.round(req.amount).toString()
+    : req.amount.toFixed(2);
+  const currency = req.currency || 'USD';
+  const email = req.email || '';
+  const phone = req.phone || '';
+  const firstname = req.firstname || 'Nexus';
+  const lastname = req.lastname || 'Customer';
+  const returnParams = req.returnParams || '';
+  const callbackUrl = Buffer.from(`${frontendUrl}/api/payway/callback`).toString('base64');
+  const items = Buffer.from(JSON.stringify([{ name: `Loan Repayment - ${req.loanId || 'N/A'}`, quantity: 1, price: amount }])).toString('base64');
+
+  const fields: Record<string, string> = {
+    req_time: rt,
+    merchant_id: MERCHANT_ID,
+    tran_id: tranId,
+    amount,
+    items,
+    first_name: firstname,
+    last_name: lastname,
+    email,
+    phone,
+    purchase_type: 'purchase',
+    payment_option: 'abapay_khqr',
+    callback_url: callbackUrl,
+    return_deeplink: '',
+    currency,
+    custom_fields: '',
+    return_params: returnParams,
+    payout: '',
+    lifetime: '30',
+    qr_image_template: ''
+  };
+
+  const HASH_ORDER = [
+    'req_time', 'merchant_id', 'tran_id', 'amount', 'items', 'first_name', 'last_name',
+    'email', 'phone', 'purchase_type', 'payment_option', 'callback_url', 'return_deeplink',
+    'currency', 'custom_fields', 'return_params', 'payout', 'lifetime', 'qr_image_template'
+  ];
+
+  const b4hash = HASH_ORDER.map(k => fields[k] ?? '').join('');
+  const hash = hmacSha512(b4hash, API_KEY);
+
+  const payload = {
+    ...fields,
+    hash
+  };
+
+  const res = await fetch(`${PAYWAY_BASE_URL}/api/payment-gateway/v1/payments/generate-qr`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+  if (!res.ok || data.status !== 0) {
+    console.error('PayWay QR API error response:', data);
+    throw new Error(data.description || data.message || `PayWay QR Generation error: ${res.statusText}`);
+  }
+
+  return {
+    success: true,
+    qrString: data.qr_string,
+    abapayDeeplink: data.abapay_deeplink,
+    tranId
+  };
+}
+
 export function isConfigured(): boolean {
   return !!(MERCHANT_ID && API_KEY);
 }
