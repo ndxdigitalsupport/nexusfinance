@@ -9,7 +9,11 @@ import {
   DollarSign,
   ChevronLeft,
   ChevronRight,
-  ShieldAlert
+  ShieldAlert,
+  Download,
+  Printer,
+  FileText,
+  X
 } from 'lucide-react';
 import { LoanApplication } from '../types';
 import { apiFetch } from '../api';
@@ -30,6 +34,9 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
   // Custom Chase Message Modal State
   const [customizingLoan, setCustomizingLoan] = useState<LoanApplication | null>(null);
   const [customMessageText, setCustomMessageText] = useState('');
+
+  // Amortization Schedule Modal State
+  const [viewingScheduleLoan, setViewingScheduleLoan] = useState<LoanApplication | null>(null);
   
   const itemsPerPage = 5;
 
@@ -110,6 +117,109 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
     });
   };
 
+  const exportToExcel = () => {
+    const headers = [
+      'Loan Reference ID',
+      'Borrower Name',
+      'Email',
+      'Loan Amount',
+      'Type',
+      'Monthly Payment',
+      'Next Payment Date',
+      'Repayment Status'
+    ];
+    
+    const rows = filteredLoans.map(l => [
+      l.id,
+      l.applicantName,
+      l.applicantEmail,
+      l.amount,
+      l.type,
+      l.monthlyPayment || 0,
+      l.nextPaymentDate || 'N/A',
+      l.repaymentStatus || 'On Time'
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `NexusFinance_LoansReport_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportToPDF = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    const tableRows = filteredLoans.map(l => `
+      \x3ctr\x3e
+        \x3ctd style="border: 1px solid #ddd; padding: 8px;"\x3e${l.id}\x3c/td\x3e
+        \x3ctd style="border: 1px solid #ddd; padding: 8px;"\x3e${l.applicantName}\x3c/td\x3e
+        \x3ctd style="border: 1px solid #ddd; padding: 8px; font-weight: bold; text-align: right;"\x3e$${(l.amount || 0).toLocaleString()}\x3c/td\x3e
+        \x3ctd style="border: 1px solid #ddd; padding: 8px;"\x3e${l.type}\x3c/td\x3e
+        \x3ctd style="border: 1px solid #ddd; padding: 8px; text-align: right;"\x3e$${(l.monthlyPayment || 0).toLocaleString()}\x3c/td\x3e
+        \x3ctd style="border: 1px solid #ddd; padding: 8px;"\x3e${l.nextPaymentDate ? new Date(l.nextPaymentDate).toLocaleDateString() : 'N/A'}\x3c/td\x3e
+        \x3ctd style="border: 1px solid #ddd; padding: 8px; font-weight: bold; color: ${l.repaymentStatus === 'Overdue' ? '#ef4444' : '#10b981'};"\x3e${l.repaymentStatus || 'On Time'}\x3c/td\x3e
+      \x3c/tr\x3e
+    `).join('');
+    
+    printWindow.document.write(`
+      \x3chtml\x3e
+        \x3chead\x3e
+          \x3ctitle\x3eNexusFinance - Active Loans Report\x3c/title\x3e
+          \x3cstyle\x3e
+            body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; color: #333; }
+            h1 { color: #0d9488; margin-bottom: 5px; font-weight: 800; font-size: 24px; }
+            p { font-size: 13px; color: #666; margin-top: 0; font-weight: 500; }
+            table { width: 100%; border-collapse: collapse; margin-top: 25px; }
+            th { background-color: #f4f6f8; border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+            td { font-size: 13px; border: 1px solid #eee; padding: 10px; }
+            tr:nth-child(even) { background-color: #fafafa; }
+            .footer { margin-top: 40px; font-size: 10px; color: #aaa; text-align: center; border-top: 1px solid #eee; padding-top: 15px; }
+          \x3c/style\x3e
+        \x3c/head\x3e
+        \x3cbody\x3e
+          \x3ch1\x3eNexusFinance Active Loans Report\x3c/h1\x3e
+          \x3cp\x3eGenerated on ${new Date().toLocaleDateString()} | Active Repayment Checklist\x3c/p\x3e
+          \x3ctable\x3e
+            \x3cthead\x3e
+              \x3ctr\x3e
+                \x3cth\x3eReference ID\x3c/th\x3e
+                \x3cth\x3eBorrower\x3c/th\x3e
+                \x3cth style="text-align: right;"\x3eLoan Amount\x3c/th\x3e
+                \x3cth\x3eType\x3c/th\x3e
+                \x3cth style="text-align: right;"\x3eInstallment/Mo\x3c/th\x3e
+                \x3cth\x3eNext Due Date\x3c/th\x3e
+                \x3cth\x3eStatus\x3c/th\x3e
+              \x3c/tr\x3e
+            \x3c/thead\x3e
+            \x3ctbody\x3e
+              ${tableRows}
+            \x3c/tbody\x3e
+          \x3c/table\x3e
+          \x3cdiv class="footer"\x3e
+            NexusFinance System Report. Private & Confidential.
+          \x3c/div\x3e
+          \x3cscript\x3e
+            window.onload = function() {
+              window.print();
+              window.close();
+            }
+          \x3c/script\x3e
+        \x3c/body\x3e
+      \x3c/html\x3e
+    `);
+    printWindow.document.close();
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       
@@ -175,16 +285,40 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
           </button>
         </div>
 
-        {/* Local Search input */}
-        <div className="relative w-full md:w-80">
-          <Search className="w-4.5 h-4.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
-          <input
-            type="text"
-            placeholder="Search active accounts..."
-            value={searchTerm}
-            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-            className="w-full bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl py-2.5 pl-10 pr-4 text-[13px] leading-tight focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/10 transition shadow-sm placeholder:text-[var(--text-tertiary)]"
-          />
+        {/* Search & Export Group */}
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          {/* Local Search input */}
+          <div className="relative w-full md:w-64">
+            <Search className="w-4.5 h-4.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
+            <input
+              type="text"
+              placeholder="Search active accounts..."
+              value={searchTerm}
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+              className="w-full bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl py-2.5 pl-10 pr-4 text-[13px] leading-tight focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/10 transition shadow-sm placeholder:text-[var(--text-tertiary)]"
+            />
+          </div>
+
+          {/* Export Buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={exportToExcel}
+              className="px-3.5 py-2.5 bg-[var(--surface-card)] hover:bg-[var(--surface-secondary)] border border-[var(--border-primary)] text-[12.5px] font-bold text-[var(--text-primary)] rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+              title="Export Table to Excel"
+            >
+              <Download className="w-4 h-4 text-emerald-500" />
+              <span>Excel</span>
+            </button>
+
+            <button
+              onClick={exportToPDF}
+              className="px-3.5 py-2.5 bg-[var(--surface-card)] hover:bg-[var(--surface-secondary)] border border-[var(--border-primary)] text-[12.5px] font-bold text-[var(--text-primary)] rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+              title="Print Table / Save as PDF"
+            >
+              <FileText className="w-4 h-4 text-sky-500" />
+              <span>PDF</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -263,21 +397,26 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                     </span>
                   </div>
 
-                  {/* Action Button */}
-                  <div className="col-span-1.5 text-left sm:text-right ml-13 sm:ml-0 w-full sm:w-auto">
-                    {isOverdue ? (
+                   {/* Action Button */}
+                  <div className="col-span-1.5 flex flex-row gap-2 justify-start sm:justify-end items-center ml-13 sm:ml-0 w-full sm:w-auto">
+                    <button
+                      onClick={() => setViewingScheduleLoan(loan)}
+                      className="px-2.5 py-1.5 bg-[var(--surface-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] hover:bg-[var(--surface-card)] transition text-[12px] font-bold rounded-lg cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                      title="View Repayment Schedule"
+                    >
+                      <Printer className="w-3.5 h-3.5 text-[var(--accent)]" />
+                      <span className="sm:hidden lg:inline">Schedule</span>
+                    </button>
+                    {isOverdue && (
                       <button
                         onClick={() => openCustomChaseModal(loan)}
                         disabled={chasingId === loan.id}
-                        className="premium-btn-primary py-2 px-4 rounded-lg flex items-center justify-center gap-1.5 text-[12px] font-bold text-white shadow-sm hover:brightness-105 active:scale-97 disabled:opacity-50 cursor-pointer w-full sm:w-auto"
+                        className="premium-btn-primary py-1.5 px-2.5 rounded-lg flex items-center justify-center gap-1 text-[12px] font-bold text-white shadow-sm hover:brightness-105 active:scale-97 disabled:opacity-50 cursor-pointer"
+                        title="Send Chase Notice"
                       >
-                        <Send className="w-3.5 h-3.5" />
-                        {chasingId === loan.id ? 'Sending...' : 'Chase'}
+                        <Send className="w-3 h-3" />
+                        <span>Chase</span>
                       </button>
-                    ) : (
-                      <span className="text-[12px] text-[var(--text-tertiary)] font-bold uppercase tracking-wider pr-3">
-                        On Track
-                      </span>
                     )}
                   </div>
 
@@ -386,10 +525,205 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                 Send Reminder
               </button>
             </div>
-
           </div>
         </div>
       )}
+
+      {/* Amortization Schedule View Modal */}
+      {viewingScheduleLoan && (() => {
+        const loan = viewingScheduleLoan;
+        const term = loan.durationMonths || 12;
+        const interestRate = 1.5; // Flat 1.5% monthly
+        const interestPerMonth = loan.amount * (interestRate / 100);
+        const principalPerMonth = Math.round((loan.amount / term) * 100) / 100;
+        
+        const getDueDateStr = (startDateStr: string, monthsToAdd: number) => {
+          const d = new Date(startDateStr);
+          d.setMonth(d.getMonth() + monthsToAdd);
+          return d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+        };
+
+        const scheduleRows = [];
+        let balance = loan.amount;
+        for (let i = 1; i <= term; i++) {
+          let currentPrincipal = principalPerMonth;
+          if (i === term) {
+            currentPrincipal = Math.round(balance * 100) / 100;
+          }
+          const currentPayment = currentPrincipal + interestPerMonth;
+          balance -= currentPrincipal;
+          if (balance < 0.01) balance = 0;
+
+          scheduleRows.push({
+            num: i,
+            dueDate: getDueDateStr(loan.date, i),
+            interest: interestPerMonth,
+            principal: currentPrincipal,
+            payment: currentPayment,
+            balance: balance
+          });
+        }
+
+        const printAmortizationSchedule = () => {
+          window.print();
+        };
+
+        return (
+          <div className="fixed inset-0 bg-black/65 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto select-none no-print-backdrop">
+            
+            {/* Scoped print CSS injection */}
+            <style dangerouslySetInnerHTML={{ __html: `
+              @media print {
+                /* Hide everything in the body except the printable scheduler */
+                body * {
+                  visibility: hidden;
+                }
+                .printable-scheduler-sheet, .printable-scheduler-sheet * {
+                  visibility: visible;
+                }
+                .printable-scheduler-sheet {
+                  position: absolute;
+                  left: 0;
+                  top: 0;
+                  width: 100%;
+                  box-shadow: none !important;
+                  border: none !important;
+                  background: white !important;
+                  color: black !important;
+                  padding: 0 !important;
+                  margin: 0 !important;
+                }
+                .no-print {
+                  display: none !important;
+                }
+              }
+            `}} />
+
+            <div id="print-schedule-modal" className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 printable-scheduler-sheet flex flex-col my-8">
+              
+              {/* Modal Header */}
+              <div className="px-8 py-5 border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/30 flex justify-between items-center no-print">
+                <div>
+                  <h3 className="text-[17px] font-extrabold text-[var(--text-primary)] flex items-center gap-2">
+                    <Printer className="w-5 h-5 text-[var(--accent)]" />
+                    <span>Loan Amortization Schedule</span>
+                  </h3>
+                  <p className="text-[12px] text-[var(--text-secondary)] font-medium mt-1">
+                    Calculate monthly splits and preview formal print templates.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setViewingScheduleLoan(null)}
+                  className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] rounded-xl transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Printable Content Block */}
+              <div className="p-8 space-y-6 flex-1 overflow-y-auto">
+                
+                {/* Print Title Block */}
+                <div className="text-center pb-4 border-b-2 border-dashed border-[var(--border-primary)]">
+                  <h2 className="text-2xl font-black tracking-tight" style={{ color: '#0d9488' }}>NexusFinance</h2>
+                  <p className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest mt-1">Payment Schedule</p>
+                </div>
+
+                {/* Info Fields Grid (Figma style) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 p-5 rounded-2xl border border-[var(--border-primary)] bg-[var(--surface-secondary)]/20">
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Borrower Name: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.applicantName}</span>
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Application No: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.id}</span>
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Reference No: <span className="font-bold text-[var(--text-primary)] ml-1">REF-{loan.id.replace('#', '')}</span>
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Loan Amount: <span className="font-bold text-[var(--text-primary)] ml-1">${loan.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Term: <span className="font-bold text-[var(--text-primary)] ml-1">{term} Months</span>
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Repayment Freq: <span className="font-bold text-[var(--text-primary)] ml-1">Monthly (30d)</span>
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Interest Rate: <span className="font-bold text-[var(--text-primary)] ml-1">{interestRate}% Flat</span>
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Disbursed Date: <span className="font-bold text-[var(--text-primary)] ml-1">{formatDate(loan.date)}</span>
+                  </div>
+                  <div className="text-xs font-medium text-[var(--text-secondary)]">
+                    Borrower Phone: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.applicantEmail.split('@')[0]}</span>
+                  </div>
+                </div>
+
+                {/* Schedule Table */}
+                <div className="overflow-x-auto border border-[var(--border-primary)] rounded-2xl">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-[var(--surface-secondary)] text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-secondary)] border-b border-[var(--border-primary)]">
+                        <th className="px-5 py-3 text-center w-12">N*</th>
+                        <th className="px-5 py-3">Due Date</th>
+                        <th className="px-5 py-3 text-right">Interest</th>
+                        <th className="px-5 py-3 text-right">Principal</th>
+                        <th className="px-5 py-3 text-right">Payment</th>
+                        <th className="px-5 py-3 text-right">Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--border-secondary)] text-[13px] text-[var(--text-primary)]">
+                      {scheduleRows.map((row) => (
+                        <tr key={row.num} className="hover:bg-[var(--surface-secondary)]/10">
+                          <td className="px-5 py-3 text-center font-bold text-[var(--text-secondary)]">{row.num}</td>
+                          <td className="px-5 py-3 font-semibold">{row.dueDate}</td>
+                          <td className="px-5 py-3 text-right text-[var(--text-secondary)]">${row.interest.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                          <td className="px-5 py-3 text-right">${row.principal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                          <td className="px-5 py-3 text-right font-bold text-[var(--accent)]">${row.payment.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                          <td className="px-5 py-3 text-right font-semibold">${row.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Signature Boxes Block (for printing) */}
+                <div className="hidden print:grid grid-cols-3 gap-12 pt-16 text-center text-xs font-bold text-gray-700">
+                  <div className="space-y-12">
+                    <div className="border-t border-gray-400 pt-2">Contractor Signature</div>
+                  </div>
+                  <div className="space-y-12">
+                    <div className="border-t border-gray-400 pt-2">Witness Signature</div>
+                  </div>
+                  <div className="space-y-12">
+                    <div className="border-t border-gray-400 pt-2">Borrower Signature</div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Modal Footer */}
+              <div className="px-8 py-4 border-t border-[var(--border-primary)] bg-[var(--surface-secondary)]/30 flex justify-end gap-3 no-print">
+                <button
+                  onClick={() => setViewingScheduleLoan(null)}
+                  className="py-2.5 px-4 text-[12.5px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={printAmortizationSchedule}
+                  className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[12.5px] font-bold shadow-md hover:brightness-105 active:scale-97 cursor-pointer flex items-center gap-1.5"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Print Schedule</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
   );
