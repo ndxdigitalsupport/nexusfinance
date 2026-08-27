@@ -190,6 +190,7 @@ export interface PayWayQRRequest {
 export interface PayWayQRResult {
   success: boolean;
   qrString: string;
+  qrImage?: string;
   abapayDeeplink: string;
   tranId: string;
 }
@@ -270,6 +271,7 @@ export async function generateDynamicQR(req: PayWayQRRequest, frontendUrl: strin
   return {
     success: true,
     qrString: data.qrString || data.qr_string,
+    qrImage: data.qrImage || data.qr_image,
     abapayDeeplink: data.abapay_deeplink || data.abapayDeeplink,
     tranId
   };

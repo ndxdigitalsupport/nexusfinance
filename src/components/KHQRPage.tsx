@@ -33,6 +33,7 @@ export default function KHQRPage() {
 
   // KHQR and Deep Link verification states
   const [qrCode, setQrCode] = useState<string | null>(null);
+  const [qrImage, setQrImage] = useState<string | null>(null);
   const [deeplink, setDeeplink] = useState<string | null>(null);
   const [currentTranId, setCurrentTranId] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'APPROVED' | null>(null);
@@ -54,6 +55,7 @@ export default function KHQRPage() {
           // Reset states and refresh history after 3 seconds
           setTimeout(() => {
             setQrCode(null);
+            setQrImage(null);
             setDeeplink(null);
             setCurrentTranId(null);
             setPaymentStatus(null);
@@ -122,6 +124,7 @@ export default function KHQRPage() {
       if (!data.qrString) throw new Error(data.error || 'Failed to generate dynamic QR');
 
       setQrCode(data.qrString);
+      setQrImage(data.qrImage);
       setDeeplink(data.abapayDeeplink);
       setCurrentTranId(data.tranId);
     } catch (e: any) {
@@ -314,17 +317,13 @@ export default function KHQRPage() {
                 {/* Dashed Line */}
                 <div className="w-full border-t border-dashed border-gray-200 px-4 my-2" />
 
-                {/* QR Code with red center logo */}
-                <div className="p-3 relative bg-white my-2">
+                {/* QR Code Canvas Frame */}
+                <div className="p-3 bg-white my-2 flex items-center justify-center">
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrCode)}`}
+                    src={qrImage || `https://api.qrserver.com/v1/create-qr-code/?size=180x180&ecc=H&data=${encodeURIComponent(qrCode)}`}
                     alt="KHQR Code"
                     className="w-44 h-44 select-none"
                   />
-                  {/* Central Red Circular Logo representing the center icon */}
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[#E11F26] border-2 border-white flex items-center justify-center shadow-md">
-                    <span className="text-[6px] font-black text-white leading-none">KHQR</span>
-                  </div>
                 </div>
 
                 {/* Footer text of the ticket */}
