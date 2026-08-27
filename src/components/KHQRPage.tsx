@@ -106,35 +106,54 @@ export default function KHQRPage() {
     return parseFloat(customAmount) || 0;
   }, [paymentMode, customAmount, loanData]);
 
-  const handlePay = async () => {
+  useEffect(() => {
     const amount = getAmount;
-    if (!amount || amount <= 0) return;
+    if (!amount || amount <= 0) {
+      setQrCode(null);
+      setQrImage(null);
+      setDeeplink(null);
+      setCurrentTranId(null);
+      setPaymentStatus(null);
+      return;
+    }
+
     setLoading(true);
     setPaymentStatus('PENDING');
-    try {
-      const data = await apiFetch('/payway/generate-qr', {
-        method: 'POST',
-        body: JSON.stringify({
-          amount,
-          currency: 'USD',
-          loanId: loanData?.loanId || '',
-        }),
-      });
 
-      if (!data.qrString) throw new Error(data.error || 'Failed to generate dynamic QR');
+    const triggerGeneration = async () => {
+      try {
+        const data = await apiFetch('/payway/generate-qr', {
+          method: 'POST',
+          body: JSON.stringify({
+            amount,
+            currency: 'USD',
+            loanId: loanData?.loanId || '',
+          }),
+        });
 
-      setQrCode(data.qrString);
-      setQrImage(data.qrImage);
-      setDeeplink(data.abapayDeeplink);
-      setCurrentTranId(data.tranId);
-    } catch (e: any) {
-      console.error('PayWay QR generation error:', e);
-      setPaymentStatus(null);
-      alert(e.message || 'Failed to generate QR code. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (!data.qrString) throw new Error(data.error || 'Failed to generate dynamic QR');
+
+        setQrCode(data.qrString);
+        setQrImage(data.qrImage);
+        setDeeplink(data.abapayDeeplink);
+        setCurrentTranId(data.tranId);
+      } catch (e: any) {
+        console.error('Auto QR generation error:', e);
+        setPaymentStatus(null);
+        setQrCode(null);
+        setQrImage(null);
+        setDeeplink(null);
+        setCurrentTranId(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const delay = paymentMode === 'custom' ? 800 : 0;
+    const timer = setTimeout(triggerGeneration, delay);
+
+    return () => clearTimeout(timer);
+  }, [getAmount, loanData, paymentMode]);
 
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
@@ -286,138 +305,106 @@ export default function KHQRPage() {
         </div>
 
         <div className="lg:col-span-5">
-          {qrCode ? (
-            /* Inline KHQR Card Frame styled exactly like ABA checkout */
-            <div className="rounded-3xl border overflow-hidden sticky top-6 shadow-xl relative animate-in zoom-in duration-200 p-8 flex flex-col items-center" style={{ borderColor: s('border-primary'), backgroundColor: s('surface-card') }}>
-              
-              {/* ABA PAY Logo on Top */}
-              <div className="mb-6 flex items-center gap-1 select-none">
-                <span className="text-[20px] font-black tracking-tighter" style={{ color: '#005A9C' }}>ABA′ </span>
-                <span className="text-[20px] font-black tracking-tighter" style={{ color: '#00A1E4' }}>PAY</span>
+          {/* Inline KHQR Card Frame styled exactly like ABA checkout */}
+          <div className="rounded-3xl border overflow-hidden sticky top-6 shadow-xl relative p-8 flex flex-col items-center min-h-[500px]" style={{ borderColor: s('border-primary'), backgroundColor: s('surface-card') }}>
+            
+            {/* ABA PAY Logo on Top */}
+            <div className="mb-6 flex items-center gap-1 select-none">
+              <span className="text-[20px] font-black tracking-tighter" style={{ color: '#005A9C' }}>ABA′ </span>
+              <span className="text-[20px] font-black tracking-tighter" style={{ color: '#00A1E4' }}>PAY</span>
+            </div>
+
+            {loading && !qrImage ? (
+              /* Premium Loading Shimmer State */
+              <div className="flex-1 flex flex-col items-center justify-center space-y-4 my-auto animate-pulse">
+                <div className="w-48 h-48 rounded-2xl bg-[var(--surface-secondary)] border border-[var(--border-secondary)] flex items-center justify-center">
+                  <QrCode className="w-12 h-12 text-[var(--text-tertiary)] animate-spin" />
+                </div>
+                <p className="text-xs font-semibold text-[var(--text-secondary)]">Generating KHQR code...</p>
               </div>
-
-              {/* The White Ticket Box (Figma Style) */}
-              <div className="w-full max-w-[280px] bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden flex flex-col items-center pb-6">
-                
-                {/* Red KHQR Header */}
-                <div className="w-full bg-[#E11F26] py-3 text-center text-white font-extrabold text-[12px] tracking-widest">
-                  KHQR
-                </div>
-
-                {/* Merchant Name */}
-                <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mt-4">
-                  ndxdigitalsupport
-                </p>
-
-                {/* Price tag */}
-                <div className="text-3xl font-black text-gray-800 mt-1 mb-3">
-                  ${getAmount.toFixed(2)} <span className="text-[12px] font-bold text-gray-400">USD</span>
-                </div>
-
-                {/* Dashed Line */}
-                <div className="w-full border-t border-dashed border-gray-200 px-4 my-2" />
-
-                {/* QR Code Canvas Frame */}
-                <div className="p-3 bg-white my-2 flex items-center justify-center">
-                  <img
-                    src={qrImage || `https://api.qrserver.com/v1/create-qr-code/?size=180x180&ecc=H&data=${encodeURIComponent(qrCode)}`}
-                    alt="KHQR Code"
-                    className="w-44 h-44 select-none"
-                  />
-                </div>
-
-                {/* Footer text of the ticket */}
-                <p className="text-[9.5px] font-medium text-gray-500 max-w-[200px] text-center mt-3 leading-relaxed">
-                  Scan with ABA Mobile or any KHQR supported banking app
-                </p>
+            ) : !qrImage && getAmount <= 0 ? (
+              /* No Amount Selected State */
+              <div className="flex-1 flex flex-col items-center justify-center space-y-2 my-auto text-center p-6">
+                <p className="text-sm font-bold text-[var(--text-secondary)]">Enter a Payment Amount</p>
+                <p className="text-xs text-[var(--text-tertiary)]">Please select or enter an amount on the left to generate the payment QR code.</p>
               </div>
-
-              {paymentStatus === 'APPROVED' ? (
-                <div className="w-full py-4 mt-6 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex flex-col items-center justify-center animate-in fade-in duration-300">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-400 mb-1.5 animate-bounce" />
-                  <span className="text-sm font-bold text-emerald-400">Payment Successful!</span>
-                </div>
-              ) : (
-                <div className="w-full space-y-3 mt-6">
-                  <div className="flex items-center justify-center gap-2 text-xs font-semibold text-[var(--text-secondary)] animate-pulse">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-ping" />
-                    <span>Waiting for payment verification...</span>
+            ) : (
+              /* The White Ticket Box (Figma Style) */
+              <>
+                <div className="w-full max-w-[280px] bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden flex flex-col items-center pb-6 animate-in zoom-in duration-200">
+                  
+                  {/* Red KHQR Header */}
+                  <div className="w-full bg-[#E11F26] py-3 text-center text-white font-extrabold text-[12px] tracking-widest">
+                    KHQR
                   </div>
 
-                  {deeplink && (
-                    <a
-                      href={deeplink}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="w-full py-3.5 bg-[var(--accent)] text-[var(--text-inverse)] font-bold text-[13px] rounded-2xl cursor-pointer flex items-center justify-center gap-1.5 shadow hover:brightness-110 active:scale-98 transition-all animate-bounce"
-                    >
-                      📱 Open in ABA Mobile
-                    </a>
-                  )}
+                  {/* Merchant Name */}
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mt-4">
+                    ndxdigitalsupport
+                  </p>
 
-                  <button
-                    onClick={() => {
-                      setQrCode(null);
-                      setDeeplink(null);
-                      setCurrentTranId(null);
-                      setPaymentStatus(null);
-                    }}
-                    className="w-full py-3 border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-primary)] font-bold text-[12px] rounded-2xl cursor-pointer transition-all"
-                  >
-                    Cancel Payment
-                  </button>
-                </div>
-              )}
+                  {/* Price tag */}
+                  <div className="text-3xl font-black text-gray-800 mt-1 mb-3">
+                    ${getAmount.toFixed(2)} <span className="text-[12px] font-bold text-gray-400">USD</span>
+                  </div>
 
-              <div className="w-full border-t border-[var(--border-secondary)] pt-4 mt-6 flex items-center justify-between text-[11px] font-medium" style={{ color: s('text-tertiary') }}>
-                <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'var(--success-text)' }} /> Secure via ABA PayWay</span>
-                <span className="uppercase tracking-wider">Dynamic KHQR</span>
-              </div>
-            </div>
-          ) : (
-            /* Hosted Checkout Mode Panel */
-            <div className="rounded-3xl border overflow-hidden sticky top-6 shadow-xl" style={{ borderColor: s('border-primary'), backgroundColor: s('surface-card') }}>
-              <div className="p-8 flex flex-col items-center justify-center text-center">
-                <div className="mb-6">
-                  <h2 className="text-lg font-black" style={{ color: s('text-primary') }}>Pay with ABA PayWay</h2>
-                  <p className="text-sm font-medium mt-1" style={{ color: s('text-secondary') }}>
-                    Generate a dynamic KHQR code to pay instantly
+                  {/* Dashed Line */}
+                  <div className="w-full border-t border-dashed border-gray-200 px-4 my-2" />
+
+                  {/* QR Code Canvas Frame */}
+                  <div className="p-3 bg-white my-2 flex items-center justify-center relative min-h-[176px] min-w-[176px]">
+                    {loading && (
+                      <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                        <QrCode className="w-8 h-8 text-[var(--accent)] animate-spin" />
+                      </div>
+                    )}
+                    {qrImage && (
+                      <img
+                        src={qrImage}
+                        alt="KHQR Code"
+                        className="w-44 h-44 select-none"
+                      />
+                    )}
+                  </div>
+
+                  {/* Footer text of the ticket */}
+                  <p className="text-[9.5px] font-medium text-gray-500 max-w-[200px] text-center mt-3 leading-relaxed">
+                    Scan with ABA Mobile or any KHQR supported banking app
                   </p>
                 </div>
 
-                <div className="w-full mb-6 p-4 rounded-2xl" style={{ backgroundColor: s('surface-secondary') }}>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-medium" style={{ color: s('text-secondary') }}>Payment Amount</span>
-                    <span className="text-2xl font-black" style={{ color: s('text-primary') }}>${getAmount.toLocaleString()}</span>
+                {paymentStatus === 'APPROVED' ? (
+                  <div className="w-full py-4 mt-6 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex flex-col items-center justify-center animate-in fade-in duration-300">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-400 mb-1.5 animate-bounce" />
+                    <span className="text-sm font-bold text-emerald-400">Payment Successful!</span>
                   </div>
-                  <div className="flex justify-between items-center mt-1.5">
-                    <span className="text-xs font-medium" style={{ color: s('text-secondary') }}>Loan</span>
-                    <span className="text-sm font-bold" style={{ color: s('text-primary') }}>{loanData?.loanId || '—'}</span>
+                ) : (
+                  <div className="w-full space-y-3 mt-6">
+                    <div className="flex items-center justify-center gap-2 text-xs font-semibold text-[var(--text-secondary)] animate-pulse">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-ping" />
+                      <span>Waiting for payment verification...</span>
+                    </div>
+
+                    {deeplink && (
+                      <a
+                        href={deeplink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-full py-3.5 bg-[var(--accent)] text-[var(--text-inverse)] font-bold text-[13px] rounded-2xl cursor-pointer flex items-center justify-center gap-1.5 shadow hover:brightness-110 active:scale-98 transition-all animate-bounce"
+                      >
+                        📱 Open in ABA Mobile
+                      </a>
+                    )}
                   </div>
-                </div>
+                )}
+              </>
+            )}
 
-                <div className="w-full space-y-3">
-                  <button onClick={handlePay}
-                    disabled={loading || getAmount <= 0}
-                    className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-sm font-bold transition-all duration-200 cursor-pointer disabled:opacity-50 hover:opacity-90 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                    style={{ backgroundColor: s('accent'), color: s('text-inverse') }}
-                  >
-                    <QrCode className="w-5 h-5" />
-                    {loading ? 'Generating KHQR...' : 'Pay Now'}
-                  </button>
-
-                  <p className="text-xs text-center" style={{ color: s('text-tertiary') }}>
-                    Supported: KHQR, ABA PAY, Cards, WeChat, Alipay
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-4 border-t flex items-center justify-between text-xs font-medium" style={{ borderColor: s('border-secondary'), backgroundColor: s('surface-secondary'), color: s('text-tertiary') }}>
-                <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'var(--success-text)' }} /> Secure via ABA PayWay</span>
-                <span className="uppercase tracking-wider">Dynamic KHQR</span>
-              </div>
+            <div className="w-full border-t border-[var(--border-secondary)] pt-4 mt-auto flex items-center justify-between text-[11px] font-medium" style={{ color: s('text-tertiary') }}>
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'var(--success-text)' }} /> Secure via ABA PayWay</span>
+              <span className="uppercase tracking-wider">Dynamic KHQR</span>
             </div>
-          )}
+          </div>
         </div>
 
       </div>
