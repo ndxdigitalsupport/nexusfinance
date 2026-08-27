@@ -638,10 +638,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
             </div>
 
             {/* Isometric 3D Illustration Right (Column 7) */}
-            <div className="lg:col-span-5 hidden lg:flex justify-center items-center h-full max-h-[600px] select-none pointer-events-none relative order-1 lg:order-1">
+            <div className="lg:col-span-5 hidden lg:flex justify-center items-center h-full max-h-[800px] select-none pointer-events-none relative order-1 lg:order-1">
               <svg
                 viewBox="0 0 800 600"
-                className="w-full max-w-[620px] h-auto drop-shadow-2xl animate-in zoom-in duration-700"
+                className="w-full max-w-[750px] h-auto drop-shadow-2xl animate-in zoom-in duration-700"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
