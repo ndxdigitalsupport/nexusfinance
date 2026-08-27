@@ -557,8 +557,12 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
       {viewingScheduleLoan && (() => {
         const loan = viewingScheduleLoan;
         const term = loan.durationMonths || 12;
-        const interestRate = 1.5; // Flat 1.5% monthly
-        const interestPerMonth = loan.amount * (interestRate / 100);
+        
+        // Calculate interest rate and payment details dynamically from monthly payment
+        const defaultMonthlyRepayment = (loan.amount / term) + (loan.amount * 0.015);
+        const monthlyPayment = loan.monthlyPayment || defaultMonthlyRepayment;
+        const interestPerMonth = Math.max(0, monthlyPayment - (loan.amount / term));
+        const interestRate = loan.amount > 0 ? Math.round(((interestPerMonth / loan.amount) * 100) * 100) / 100 : 1.5;
         const principalPerMonth = Math.round((loan.amount / term) * 100) / 100;
         
         const getDueDateStr = (startDateStr: string, monthsToAdd: number) => {
@@ -598,14 +602,14 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
             {/* Scoped print CSS injection */}
             <style dangerouslySetInnerHTML={{ __html: `
               @media print {
-                /* Hide everything in the body except the printable scheduler */
-                body * {
+                /* Set print background to white and hide body wrapper */
+                body {
                   visibility: hidden;
+                  background: white !important;
                 }
-                .printable-scheduler-sheet, .printable-scheduler-sheet * {
-                  visibility: visible;
-                }
+                /* Expose printable sheet and its contents cleanly */
                 .printable-scheduler-sheet {
+                  visibility: visible;
                   position: absolute;
                   left: 0;
                   top: 0;
@@ -616,6 +620,10 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                   color: black !important;
                   padding: 0 !important;
                   margin: 0 !important;
+                }
+                .printable-scheduler-sheet * {
+                  visibility: visible;
+                  color: black !important; /* Force high-contrast black print graphics/texts */
                 }
                 .no-print {
                   display: none !important;
