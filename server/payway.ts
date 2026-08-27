@@ -256,9 +256,15 @@ export async function generateDynamicQR(req: PayWayQRRequest, frontendUrl: strin
   });
 
   const data = await res.json();
-  if (!res.ok || data.status !== 0) {
+  console.log('PayWay generate-qr API raw response:', data);
+
+  const statusVal = data && typeof data.status === 'object' ? data.status?.code : data?.status;
+  
+  if (!res.ok || statusVal !== 0) {
     console.error('PayWay QR API error response:', data);
-    throw new Error(data.description || data.message || `PayWay QR Generation error: ${res.statusText}`);
+    const errMsg = (data && typeof data.status === 'object' ? data.status?.message : (data?.description || data?.message || data?.error))
+      || `PayWay QR Generation error: ${res.statusText} (Status: ${JSON.stringify(data?.status)})`;
+    throw new Error(errMsg);
   }
 
   return {
