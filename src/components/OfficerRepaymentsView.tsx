@@ -46,7 +46,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
       return;
     }
     setScheduleLoading(true);
-    apiFetch(`/loans/${viewingScheduleLoan.id}/schedule`)
+    apiFetch(`/loans/${encodeURIComponent(viewingScheduleLoan.id)}/schedule`)
       .then((data: any) => {
         if (Array.isArray(data) && data.length > 0) {
           setScheduleInstallments(data);
