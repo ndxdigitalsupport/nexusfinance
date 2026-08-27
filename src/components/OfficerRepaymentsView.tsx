@@ -666,6 +666,19 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                   visibility: hidden;
                   background: white !important;
                 }
+                /* Prevent layout wrapper page-cuts */
+                html, body, #root, .printable-scheduler-sheet {
+                  height: auto !important;
+                  min-height: auto !important;
+                  max-height: none !important;
+                  overflow: visible !important;
+                }
+                /* Force two-column layout on the metadata card in print */
+                .printable-scheduler-sheet .grid {
+                  display: grid !important;
+                  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                  gap: 12px 24px !important;
+                }
                 /* Expose printable sheet and its contents cleanly */
                 .printable-scheduler-sheet {
                   visibility: visible;
@@ -777,10 +790,10 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                             <tr key={row.installment_no} className="hover:bg-[var(--surface-secondary)]/10">
                               <td className="px-5 py-3 text-center font-bold text-[var(--text-secondary)]">{row.installment_no}</td>
                               <td className="px-5 py-3 font-semibold">{formatDateStr(row.due_date)}</td>
-                              <td className="px-5 py-3 text-right text-[var(--text-secondary)]">${Number(row.interest_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                              <td className="px-5 py-3 text-right">${Number(row.principal_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                              <td className="px-5 py-3 text-right font-bold text-[var(--accent)]">${Number(row.total_payment).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                              <td className="px-5 py-3 text-right font-semibold">${Number(row.remaining_balance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                              <td className="px-5 py-3 text-right text-[var(--text-secondary)]">${Number(row.interest_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                              <td className="px-5 py-3 text-right">${Number(row.principal_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                              <td className="px-5 py-3 text-right font-bold text-emerald-600 dark:text-emerald-400">${Number(row.total_payment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                              <td className="px-5 py-3 text-right font-semibold">${Number(row.remaining_balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                               <td className="px-5 py-3 text-center no-print">
                                 <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
                                   isPaid 
