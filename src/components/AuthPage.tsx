@@ -541,10 +541,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 <form onSubmit={handleLoginSubmit} className="space-y-4">
                   <div>
                     <input
-                      type={emailVerificationRequired ? "email" : "text"}
+                      type="text"
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
-                      placeholder={emailVerificationRequired ? "Email" : "Phone Number"}
+                      placeholder={emailVerificationRequired ? "Email or Phone Number" : "Phone Number"}
                       className="w-full rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-medium transition-all"
                       required
                     />
