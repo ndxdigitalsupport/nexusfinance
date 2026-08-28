@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { LoanApplication } from '../types';
+import { Printer, X } from 'lucide-react';
 
 interface KhmerContractPrintProps {
   application: LoanApplication | null;
+  onClose: () => void;
 }
 
 // Convert digit characters to Khmer numbers
@@ -33,11 +35,6 @@ export function numberToKhmerWords(num: number): string {
       const rem = n % 100;
       return khmerDigits[hundred] + 'រយ' + (rem > 0 ? helper(rem) : '');
     }
-    if (n < 1000) {
-      const hundred = Math.floor(n / 100);
-      const rem = n % 100;
-      return khmerDigits[hundred] + 'រយ' + (rem > 0 ? helper(rem) : '');
-    }
     if (n < 10000) {
       const thousand = Math.floor(n / 1000);
       const rem = n % 1000;
@@ -61,26 +58,108 @@ export function numberToKhmerWords(num: number): string {
   return helper(Math.floor(num));
 }
 
-export default function KhmerContractPrint({ application }: KhmerContractPrintProps) {
+export default function KhmerContractPrint({ application, onClose }: KhmerContractPrintProps) {
   if (!application) return null;
-
-  // Estimation values
-  const interestRate = 12; // Standard rate
-  const monthlyRepaymentEst = Math.round(application.amount / application.durationMonths * 1.05);
-
-  const amountInWords = numberToKhmerWords(application.amount);
-  const durationInWords = numberToKhmerWords(application.durationMonths);
-  const interestInWords = numberToKhmerWords(interestRate);
 
   // Formatted date values
   const today = new Date();
-  const khmerYear = toKhmerDigits(today.getFullYear());
-  const khmerMonth = toKhmerDigits(today.getMonth() + 1);
-  const khmerDay = toKhmerDigits(today.getDate());
+  const phoneVal = application.applicantEmail?.includes('@nexus.local') 
+    ? application.applicantEmail.split('@')[0] 
+    : '092XXXXXX';
+
+  // ── INLINE EDITABLE STATES ──
+  // Lender (Party A)
+  const [lenderName, setLenderName] = useState('ស៊ិញ យឹកឃួយ ab');
+  const [lenderBirthDay, setLenderBirthDay] = useState('០៣');
+  const [lenderBirthMonth, setLenderBirthMonth] = useState('ឧសភា');
+  const [lenderBirthYear, setLenderBirthYear] = useState('១៩៨២');
+  const [lenderIdCard, setLenderIdCard] = useState('១៩០៦១៥៨០០(០១)');
+  const [lenderIssueDay, setLenderIssueDay] = useState('២៣');
+  const [lenderIssueMonth, setLenderIssueMonth] = useState('វិច្ឆិកា');
+  const [lenderIssueYear, setLenderIssueYear] = useState('២០២៣');
+  const [lenderVillage, setLenderVillage] = useState('កណ្តាលខាងលិច');
+  const [lenderCommune, setLenderCommune] = useState('ស្រះជីក');
+  const [lenderDistrict, setLenderDistrict] = useState('ភ្នំស្រុក');
+  const [lenderProvince, setLenderProvince] = useState('បន្ទាយមានជ័យ');
+
+  // Borrower (Party B)
+  const [borrowerName, setBorrowerName] = useState(application.applicantName);
+  const [borrowerGender, setBorrowerGender] = useState('ស្រី');
+  const [borrowerBirthDate, setBorrowerBirthDate] = useState('27/12/1990');
+  const [borrowerNationality, setBorrowerNationality] = useState('ខ្មែរ');
+  const [borrowerIdCard, setBorrowerIdCard] = useState('190488923(01)');
+  const [borrowerIssueDay, setBorrowerIssueDay] = useState('');
+  const [borrowerIssueMonth, setBorrowerIssueMonth] = useState('');
+  const [borrowerIssueYear, setBorrowerIssueYear] = useState('');
+  const [borrowerHouseNo, setBorrowerHouseNo] = useState('');
+  const [borrowerCommune, setBorrowerCommune] = useState('ប៉ោយចារ');
+  const [borrowerDistrict, setBorrowerDistrict] = useState('ភ្នំស្រុក');
+  const [borrowerProvince, setBorrowerProvince] = useState('បន្ទាយមានជ័យ');
+  const [borrowerPhone, setBorrowerPhone] = useState(phoneVal);
+
+  // Guarantor 1
+  const [g1Name, setG1Name] = useState('');
+  const [g1Gender, setG1Gender] = useState('ប្រុស');
+  const [g1BirthDay, setG1BirthDay] = useState('0');
+  const [g1BirthMonth, setG1BirthMonth] = useState('0');
+  const [g1BirthYear, setG1BirthYear] = useState('0');
+  const [g1IdCard, setG1IdCard] = useState('');
+  const [g1IssueDay, setG1IssueDay] = useState('');
+  const [g1IssueMonth, setG1IssueMonth] = useState('');
+  const [g1IssueYear, setG1IssueYear] = useState('');
+  const [g1HouseNo, setG1HouseNo] = useState('');
+  const [g1Commune, setG1Commune] = useState('');
+  const [g1District, setG1District] = useState('');
+  const [g1Province, setG1Province] = useState('');
+
+  // Guarantor 2
+  const [g2Name, setG2Name] = useState('');
+  const [g2Gender, setG2Gender] = useState('ប្រុស');
+  const [g2BirthDay, setG2BirthDay] = useState('0');
+  const [g2BirthMonth, setG2BirthMonth] = useState('0');
+  const [g2BirthYear, setG2BirthYear] = useState('0');
+  const [g2IdCard, setG2IdCard] = useState('');
+  const [g2IssueDay, setG2IssueDay] = useState('');
+  const [g2IssueMonth, setG2IssueMonth] = useState('');
+  const [g2IssueYear, setG2IssueYear] = useState('');
+  const [g2HouseNo, setG2HouseNo] = useState('');
+  const [g2Commune, setG2Commune] = useState('');
+  const [g2District, setG2District] = useState('');
+  const [g2Province, setG2Province] = useState('');
+  const [guarantorsPhone, setGuarantorsPhone] = useState('');
+
+  // Collaterals (1.1)
+  const [collateral1Type, setCollateral1Type] = useState(application.applicantName);
+  const [collateral1No, setCollateral1No] = useState('Dream026');
+  const [collateral1Owner, setCollateral1Owner] = useState(application.applicantName);
+  const [collateral2Type, setCollateral2Type] = useState('');
+  const [collateral2No, setCollateral2No] = useState('');
+  const [collateral2Owner, setCollateral2Owner] = useState('');
+
+  // Loan Amount / Interest (1.2 - 1.7)
+  const [loanAmountDigits, setLoanAmountDigits] = useState(`${application.amount} BAHT`);
+  const [loanAmountWords, setLoanAmountWords] = useState(`${numberToKhmerWords(application.amount)} BAHT`);
+  const [interestRateVal, setInterestRateVal] = useState('1.5%');
+  const [interestPeriod, setInterestPeriod] = useState('monthly'); // daily, weekly, monthly, other
+  const [loanDuration, setLoanDuration] = useState(`${application.durationMonths} ខែ`);
+  const [adminFeeDigits, setAdminFeeDigits] = useState('0 BAHT');
+  const [repaymentMethod, setRepaymentMethod] = useState('office'); // office, agent, other
+  const [insuranceCoverage, setInsuranceCoverage] = useState('no'); // yes, no
+
+  // Contract Signature Date
+  const [sigDay, setSigDay] = useState(String(today.getDate()));
+  const [sigMonth, setSigMonth] = useState(today.toLocaleString('en-US', { month: 'short' }));
+  const [sigYear, setSigYear] = useState(String(today.getFullYear()));
+
+  const triggerPrint = () => {
+    window.print();
+  };
 
   return (
-    <div className="hidden print:block printable-contract-container font-khmer p-12 text-[14px] leading-relaxed text-black bg-white min-h-screen">
-      <style>{`
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex flex-col z-50 overflow-y-auto no-print">
+      
+      {/* Dynamic Scoped Print CSS */}
+      <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700;900&family=Moul&display=swap');
         
         .font-khmer {
@@ -89,111 +168,418 @@ export default function KhmerContractPrint({ application }: KhmerContractPrintPr
         .font-khmer-moul {
           font-family: 'Moul', 'Khmer OS Muol Light', sans-serif;
         }
-        
+
+        .inline-contract-input {
+          border: none;
+          border-bottom: 1px dashed #94a3b8;
+          background: transparent;
+          text-align: center;
+          font-weight: bold;
+          color: #1e293b;
+          padding: 0 4px;
+          outline: none;
+          transition: all 0.2s;
+        }
+        .inline-contract-input:focus {
+          border-bottom-color: #0d9488;
+          background-color: rgba(13, 148, 136, 0.05);
+        }
+
         @media print {
-          body {
-            background: white !important;
-            color: black !important;
+          /* Completely hide modal screen layouts */
+          body * {
+            visibility: hidden;
+          }
+          .printable-contract-container, .printable-contract-container * {
+            visibility: visible;
           }
           .printable-contract-container {
-            display: block !important;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100% !important;
+            min-height: auto !important;
             padding: 0 !important;
             margin: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            background: white !important;
+            color: black !important;
+            display: block !important;
+          }
+          .inline-contract-input {
+            border-bottom: none !important;
+            color: black !important;
+            font-weight: bold !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: transparent !important;
+            pointer-events: none;
+            width: auto !important;
+            display: inline-block !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .no-print {
+            display: none !important;
           }
         }
-      `}</style>
+      `}} />
 
-      {/* State Header Section */}
-      <div className="text-center space-y-2 mb-8">
-        <h1 className="font-khmer-moul text-[16px] tracking-wider uppercase">ព្រះរាជាណាចក្រកម្ពុជា</h1>
-        <h2 className="font-khmer-moul text-[14px] tracking-wide">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
-        <div className="w-24 h-[1px] bg-black mx-auto mt-2"></div>
+      {/* Editor Modal Header */}
+      <div className="sticky top-0 bg-slate-900 border-b border-slate-800 px-8 py-4 flex justify-between items-center z-50 no-print">
+        <div>
+          <h3 className="text-white text-[16px] font-bold font-sans">
+            ✍️ Edit and Customize Khmer Loan Agreement
+          </h3>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Fill in the blanks below directly inside the contract template, then click print.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={triggerPrint}
+            className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-[12.5px] font-bold shadow-md hover:brightness-105 active:scale-97 cursor-pointer flex items-center gap-1.5"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Print Contract</span>
+          </button>
+          <button
+            onClick={onClose}
+            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
-      {/* Title */}
-      <div className="text-center my-6">
-        <h3 className="font-khmer-moul text-[18px] underline">កិច្ចសន្យាខ្ចីប្រាក់</h3>
-        <p className="text-[12px] text-slate-700 mt-1">លេខកិច្ចសន្យា៖ {toKhmerDigits(application.id.replace('#', ''))}</p>
-      </div>
-
-      {/* Date */}
-      <div className="text-right mb-6">
-        <p>ធ្វើនៅ រាជធានីភ្នំពេញ, ថ្ងៃទី {khmerDay} ខែ {khmerMonth} ឆ្នាំ {khmerYear}</p>
-      </div>
-
-      {/* Parties */}
-      <div className="space-y-4 mb-6">
-        <p className="font-bold underline text-[15px]">ភាគីកិច្ចសន្យា៖</p>
+      {/* Contract Template Paper Wrapper */}
+      <div className="flex-1 flex justify-center py-8 px-4 bg-slate-800/40">
         
-        {/* Lender */}
-        <div className="pl-4">
-          <p><strong>ភាគី ក (អ្នកអោយខ្ចី)៖</strong> គ្រឹះស្ថានហិរញ្ញវត្ថុ <strong>ណិកសឺស ហ្វាយណាន់ (NexusFinance)</strong></p>
-          <p className="text-slate-700">អាសយដ្ឋាន៖ វិថីព្រះនរោត្តម, សង្កាត់វត្តភ្នំ, ខណ្ឌដូនពេញ, រាជធានីភ្នំពេញ។</p>
-        </div>
+        {/* Printable Contract Body */}
+        <div className="printable-contract-container w-full max-w-[800px] bg-white rounded-2xl shadow-xl border border-slate-200 p-12 text-[13.5px] leading-[28px] text-slate-800 font-khmer no-print-backdrop">
+          
+          {/* Kingdom Header */}
+          <div className="text-center space-y-1.5 mb-6">
+            <h1 className="font-khmer-moul text-[15px] tracking-wider">ព្រះរាជាណាចក្រកម្ពុជា</h1>
+            <h2 className="font-khmer-moul text-[13.5px]">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
+            <div className="w-20 h-[1.5px] bg-slate-900 mx-auto mt-2"></div>
+            <h3 className="font-khmer-moul text-[16px] pt-4 underline">កិច្ចសន្យាខ្ចីប្រាក់</h3>
+          </div>
 
-        {/* Borrower */}
-        <div className="pl-4">
-          <p><strong>ភាគី ខ (អ្នកខ្ចី)៖</strong> លោក/លោកស្រី <strong>{application.applicantName}</strong></p>
-          <p className="text-slate-700">អ៊ីមែល៖ {application.applicantEmail} | លេខទូរស័ព្ទ៖ {toKhmerDigits(application.applicantEmail?.includes('@nexus.local') ? application.applicantEmail.split('@')[0] : '០៩២XXXXXX')}</p>
-        </div>
-      </div>
+          {/* Parties Definition Section */}
+          <div className="space-y-4">
+            
+            {/* Party A - Lender */}
+            <p>
+              <strong>ម្ចាស់បំណុល៖</strong> លោកស្រី 
+              <input type="text" value={lenderName} onChange={e => setLenderName(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
+              កើតថ្ងៃទី 
+              <input type="text" value={lenderBirthDay} onChange={e => setLenderBirthDay(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+              ខែ 
+              <input type="text" value={lenderBirthMonth} onChange={e => setLenderBirthMonth(e.target.value)} className="inline-contract-input" style={{ width: '70px' }} />
+              ឆ្នាំ 
+              <input type="text" value={lenderBirthYear} onChange={e => setLenderBirthYear(e.target.value)} className="inline-contract-input" style={{ width: '60px' }} />
+              កាន់អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរលេខ 
+              <input type="text" value={lenderIdCard} onChange={e => setLenderIdCard(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
+              ចុះថ្ងៃទី 
+              <input type="text" value={lenderIssueDay} onChange={e => setLenderIssueDay(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+              ខែ 
+              <input type="text" value={lenderIssueMonth} onChange={e => setLenderIssueMonth(e.target.value)} className="inline-contract-input" style={{ width: '75px' }} />
+              ឆ្នាំ 
+              <input type="text" value={lenderIssueYear} onChange={e => setLenderIssueYear(e.target.value)} className="inline-contract-input" style={{ width: '60px' }} />
+              មានអាសយដ្ឋានបច្ចុប្បន្ននៅភូមិ 
+              <input type="text" value={lenderVillage} onChange={e => setLenderVillage(e.target.value)} className="inline-contract-input" style={{ width: '110px' }} />
+              ឃុំ/សង្កាត់ 
+              <input type="text" value={lenderCommune} onChange={e => setLenderCommune(e.target.value)} className="inline-contract-input" style={{ width: '100px' }} />
+              ស្រុក/ខណ្ឌ 
+              <input type="text" value={lenderDistrict} onChange={e => setLenderDistrict(e.target.value)} className="inline-contract-input" style={{ width: '100px' }} />
+              ខេត្ត/រាជធានី 
+              <input type="text" value={lenderProvince} onChange={e => setLenderProvince(e.target.value)} className="inline-contract-input" style={{ width: '120px' }} />
+              តទៅនេះហៅថា ភាគី "ក"។
+            </p>
 
-      {/* Clauses */}
-      <div className="space-y-6">
-        <p>ភាគីទាំងពីរបានព្រមព្រៀងគ្នាខ្ចី និងប្រគល់ប្រាក់ក្រោមលក្ខខណ្ឌច្បាប់ដូចខាងក្រោម៖</p>
+            <div className="text-center font-bold text-[12px] my-2">ដោយ និងរវាង</div>
 
-        {/* Clause 1 */}
-        <div className="space-y-2">
-          <p className="font-bold">ប្រការ ១. ទំហំទឹកប្រាក់ខ្ចី និងគោលបំណង</p>
-          <p className="pl-4 leading-relaxed">
-            ភាគី ក យល់ព្រមផ្តល់ប្រាក់កម្ចីទៅអោយ ភាគី ខ ក្នុងទំហំទឹកប្រាក់ចំនួន <strong>${toKhmerDigits(application.amount.toLocaleString())} ដុល្លារអាមេរិក</strong> 
-            (ជាអក្សរ៖ <strong>{amountInWords} ដុល្លារអាមេរិកគត់</strong>) ដើម្បីប្រើប្រាស់ក្នុងគោលបំណង <strong>"{application.purpose}"</strong>។
-          </p>
-        </div>
+            {/* Party B - Borrower */}
+            <p>
+              <strong>កូនបំណុល៖</strong> ឈ្មោះ 
+              <input type="text" value={borrowerName} onChange={e => setBorrowerName(e.target.value)} className="inline-contract-input" style={{ width: '120px' }} />
+              ភេទ 
+              <input type="text" value={borrowerGender} onChange={e => setBorrowerGender(e.target.value)} className="inline-contract-input" style={{ width: '45px' }} />
+              កើតថ្ងៃទី 
+              <input type="text" value={borrowerBirthDate} onChange={e => setBorrowerBirthDate(e.target.value)} className="inline-contract-input" style={{ width: '100px' }} />
+              សញ្ជាតិ 
+              <input type="text" value={borrowerNationality} onChange={e => setBorrowerNationality(e.target.value)} className="inline-contract-input" style={{ width: '60px' }} />
+              កាន់អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរលេខ 
+              <input type="text" value={borrowerIdCard} onChange={e => setBorrowerIdCard(e.target.value)} className="inline-contract-input" style={{ width: '135px' }} />
+              ចុះថ្ងៃទី 
+              <input type="text" value={borrowerIssueDay} onChange={e => setBorrowerIssueDay(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+              ខែ 
+              <input type="text" value={borrowerIssueMonth} onChange={e => setBorrowerIssueMonth(e.target.value)} className="inline-contract-input" style={{ width: '70px' }} />
+              ឆ្នាំ 
+              <input type="text" value={borrowerIssueYear} onChange={e => setBorrowerIssueYear(e.target.value)} className="inline-contract-input" style={{ width: '60px' }} />
+              មានអាសយដ្ឋានបច្ចុប្បន្ននៅផ្ទះលេខ 
+              <input type="text" value={borrowerHouseNo} onChange={e => setBorrowerHouseNo(e.target.value)} className="inline-contract-input" style={{ width: '50px' }} />
+              ឃុំ/សង្កាត់ 
+              <input type="text" value={borrowerCommune} onChange={e => setBorrowerCommune(e.target.value)} className="inline-contract-input" style={{ width: '100px' }} />
+              ស្រុក/ខណ្ឌ 
+              <input type="text" value={borrowerDistrict} onChange={e => setBorrowerDistrict(e.target.value)} className="inline-contract-input" style={{ width: '100px' }} />
+              ខេត្ត/រាជធានី 
+              <input type="text" value={borrowerProvince} onChange={e => setBorrowerProvince(e.target.value)} className="inline-contract-input" style={{ width: '120px' }} />
+              តទៅនេះហៅថា ភាគី "ខ"។ លេខទំនាក់ទំនង៖ 
+              <input type="text" value={borrowerPhone} onChange={e => setBorrowerPhone(e.target.value)} className="inline-contract-input" style={{ width: '110px' }} />
+            </p>
 
-        {/* Clause 2 */}
-        <div className="space-y-2">
-          <p className="font-bold">ប្រការ ២. រយៈពេលកម្ចី និងអត្រាការប្រាក់</p>
-          <p className="pl-4 leading-relaxed">
-            រយៈពេលនៃកិច្ចសន្យាកម្ចីនេះមានចំនួន <strong>{toKhmerDigits(application.durationMonths)} ខែ</strong> (ជាអក្សរ៖ <strong>{durationInWords}ខែ</strong>) 
-            គិតចាប់ពីថ្ងៃចុះហត្ថលេខានេះតទៅ។ អត្រាការប្រាក់ប្រចាំឆ្នាំត្រូវបានកំណត់ស្មើនឹង <strong>{toKhmerDigits(interestRate)}%</strong> (ជាអក្សរ៖ <strong>{interestInWords}ភាគរយ</strong>) ក្នុងមួយឆ្នាំ។
-          </p>
-        </div>
+            {/* Guarantors */}
+            <p>
+              <strong>ភាគីធានាបំណុល៖</strong> ឈ្មោះ 
+              <input type="text" value={g1Name} onChange={e => setG1Name(e.target.value)} className="inline-contract-input" style={{ width: '110px' }} />
+              ភេទ 
+              <input type="text" value={g1Gender} onChange={e => setG1Gender(e.target.value)} className="inline-contract-input" style={{ width: '50px' }} />
+              កើតថ្ងៃទី 
+              <input type="text" value={g1BirthDay} onChange={e => setG1BirthDay(e.target.value)} className="inline-contract-input" style={{ width: '30px' }} />
+              ខែ 
+              <input type="text" value={g1BirthMonth} onChange={e => setG1BirthMonth(e.target.value)} className="inline-contract-input" style={{ width: '30px' }} />
+              ឆ្នាំ 
+              <input type="text" value={g1BirthYear} onChange={e => setG1BirthYear(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+              កាន់អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរលេខ 
+              <input type="text" value={g1IdCard} onChange={e => setG1IdCard(e.target.value)} className="inline-contract-input" style={{ width: '120px' }} />
+              ចុះថ្ងៃទី 
+              <input type="text" value={g1IssueDay} onChange={e => setG1IssueDay(e.target.value)} className="inline-contract-input" style={{ width: '35px' }} />
+              ខែ 
+              <input type="text" value={g1IssueMonth} onChange={e => setG1IssueMonth(e.target.value)} className="inline-contract-input" style={{ width: '35px' }} />
+              ឆ្នាំ 
+              <input type="text" value={g1IssueYear} onChange={e => setG1IssueYear(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+              មានអាសយដ្ឋានបច្ចុប្បន្ននៅផ្ទះលេខ 
+              <input type="text" value={g1HouseNo} onChange={e => setG1HouseNo(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+              ឃុំ/សង្កាត់ 
+              <input type="text" value={g1Commune} onChange={e => setG1Commune(e.target.value)} className="inline-contract-input" style={{ width: '85px' }} />
+              ស្រុក/ខណ្ឌ 
+              <input type="text" value={g1District} onChange={e => setG1District(e.target.value)} className="inline-contract-input" style={{ width: '85px' }} />
+              ខេត្ត/រាជធានី 
+              <input type="text" value={g1Province} onChange={e => setG1Province(e.target.value)} className="inline-contract-input" style={{ width: '100px' }} />
+              
+              និង ឈ្មោះ 
+              <input type="text" value={g2Name} onChange={e => setG2Name(e.target.value)} className="inline-contract-input" style={{ width: '110px' }} />
+              ភេទ 
+              <input type="text" value={g2Gender} onChange={e => setG2Gender(e.target.value)} className="inline-contract-input" style={{ width: '50px' }} />
+              កើតថ្ងៃទី 
+              <input type="text" value={g2BirthDay} onChange={e => setG2BirthDay(e.target.value)} className="inline-contract-input" style={{ width: '30px' }} />
+              ខែ 
+              <input type="text" value={g2BirthMonth} onChange={e => setG2BirthMonth(e.target.value)} className="inline-contract-input" style={{ width: '30px' }} />
+              ឆ្នាំ 
+              <input type="text" value={g2BirthYear} onChange={e => setG2BirthYear(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+              កាន់អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរលេខ 
+              <input type="text" value={g2IdCard} onChange={e => setG2IdCard(e.target.value)} className="inline-contract-input" style={{ width: '120px' }} />
+              ចុះថ្ងៃទី 
+              <input type="text" value={g2IssueDay} onChange={e => setG2IssueDay(e.target.value)} className="inline-contract-input" style={{ width: '35px' }} />
+              ខែ 
+              <input type="text" value={g2IssueMonth} onChange={e => setG2IssueMonth(e.target.value)} className="inline-contract-input" style={{ width: '35px' }} />
+              ឆ្នាំ 
+              <input type="text" value={g2IssueYear} onChange={e => setG2IssueYear(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+              មានអាសយដ្ឋានបច្ចុប្បន្ននៅផ្ទះលេខ 
+              <input type="text" value={g2HouseNo} onChange={e => setG2HouseNo(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+              ឃុំ/សង្កាត់ 
+              <input type="text" value={g2Commune} onChange={e => setG2Commune(e.target.value)} className="inline-contract-input" style={{ width: '85px' }} />
+              ស្រុក/ខណ្ឌ 
+              <input type="text" value={g2District} onChange={e => setG2District(e.target.value)} className="inline-contract-input" style={{ width: '85px' }} />
+              ខេត្ត/រាជធានី 
+              <input type="text" value={g2Province} onChange={e => setG2Province(e.target.value)} className="inline-contract-input" style={{ width: '100px' }} />
+              ។ លេខទំនាក់ទំនង៖ 
+              <input type="text" value={guarantorsPhone} onChange={e => setGuarantorsPhone(e.target.value)} className="inline-contract-input" style={{ width: '110px' }} />
+            </p>
 
-        {/* Clause 3 */}
-        <div className="space-y-2">
-          <p className="font-bold">ប្រការ ៣. ការបង់សង និងកាតព្វកិច្ច</p>
-          <p className="pl-4 leading-relaxed">
-            ភាគី ខ ត្រូវមានកាតព្វកិច្ចបង់សងទាំងប្រាក់ដើម និងការប្រាក់ប្រចាំខែទៅកាន់ ភាគី ក ក្នុងទំហំប្រាក់ប្រហាក់ប្រហែលចំនួន <strong>${toKhmerDigits(monthlyRepaymentEst.toLocaleString())} ដុល្លារអាមេរិក</strong> ក្នុងមួយខែ។ ការយឺតយ៉ាវក្នុងការបង់សងនឹងត្រូវរងការផាកពិន័យទៅតាមលក្ខខណ្ឌផ្ទៃក្នុងរបស់គ្រឹះស្ថាន។
-          </p>
-        </div>
+            <p>ភាគី “ក” និង “ខ” បានព្រមព្រៀងគ្នាលើកិច្ចសន្យាខ្ចីចងការប្រាក់ ដោយអនុវត្តរាល់ប្រការដូចមានចែងខាងក្រោម៖</p>
 
-        {/* Clause 4 */}
-        <div className="space-y-2">
-          <p className="font-bold">ប្រការ ៤. ការដោះស្រាយវិវាទ</p>
-          <p className="pl-4 leading-relaxed">
-            រាល់វិវាទទាំងឡាយដែលកើតឡើងពីការអនុវត្តកិច្ចសន្យានេះ ភាគីទាំងពីរនឹងធ្វើការដោះស្រាយដោយសន្តិវិធី និងការសម្របសម្រួល។ ក្នុងករណីមិនអាចដោះស្រាយបាន វិវាទនោះនឹងត្រូវបញ្ជូនទៅតុលាការមានសមត្ថកិច្ចនៃព្រះរាជាណាចក្រកម្ពុជា។
-          </p>
-        </div>
-      </div>
+            {/* Article 1 */}
+            <div className="space-y-1.5 pt-2">
+              <p className="font-bold underline text-[14px]">ប្រការ១៖ អំពីលក្ខខណ្ឌ នៃការផ្តល់នូវប្រាក់កម្ចី</p>
+              <p>
+                ផ្អែកលើមូលដ្ឋាន នៃពាក្យស្នើសុំខ្ចីចងការ សេចក្តីណែនាំពីគោលការណ៍ និងលក្ខខណ្ឌនៃការខ្ចីចងការភាគី “ក” យល់ព្រមឲ្យភាគី “ខ” ខ្ចី ចងការហើយភាគី “ខ” ក៏យល់ព្រមទទួល និងសន្យាសងមកភាគី “ក” វិញជាដាច់ខាតនូវប្រាក់ខ្ចីចងការនេះតាមចំនួន និងរាល់លក្ខខណ្ឌដូចបានព្រមព្រៀងគ្នាដូចតទៅ៖
+              </p>
+              
+              {/* Clause 1.1 Collaterals */}
+              <div className="pl-4">
+                <p><strong>១.១ ក្រោមការដាក់បញ្ចាំដើម្បីធានាបំណុលទាំងដើម និងការប្រាក់</strong></p>
+                <div className="pl-4 space-y-1.5">
+                  <p>
+                    ประเภทអចលន ឬចលនវត្ថុ៖ 
+                    <input type="text" value={collateral1Type} onChange={e => setCollateral1Type(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
+                    លេខ 
+                    <input type="text" value={collateral1No} onChange={e => setCollateral1No(e.target.value)} className="inline-contract-input" style={{ width: '120px' }} />
+                    កម្មសិទ្ធិរបស់ឈ្មោះ 
+                    <input type="text" value={collateral1Owner} onChange={e => setCollateral1Owner(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
+                    យល់ព្រមដាក់បញ្ចាំដោយស្ម័គ្រចិត្ត។
+                  </p>
+                  <p>
+                    ប្រភេទអចលន ឬចលនវត្ថុ៖ 
+                    <input type="text" value={collateral2Type} onChange={e => setCollateral2Type(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
+                    លេខ 
+                    <input type="text" value={collateral2No} onChange={e => setCollateral2No(e.target.value)} className="inline-contract-input" style={{ width: '120px' }} />
+                    កម្មសិទ្ធិរបស់ឈ្មោះ 
+                    <input type="text" value={collateral2Owner} onChange={e => setCollateral2Owner(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
+                    យល់ព្រមដាក់បញ្ចាំដោយស្ម័គ្រចិត្ត។
+                  </p>
+                </div>
+              </div>
 
-      <div className="my-8 text-[13px] text-slate-800 italic">
-        <p>សន្យានេះត្រូវបានធ្វើឡើងជាពីរច្បាប់ ភាគីនីមួយៗរក្សាទុកមួយច្បាប់ និងមានតម្លៃគតិយុត្តិស្មើគ្នា ចាប់ពីថ្ងៃចុះហត្ថលេខានេះតទៅ។</p>
-      </div>
+              {/* Clause 1.2 Amount */}
+              <div className="pl-4">
+                <p>
+                  <strong>១.២ ប្រាក់ខ្ចីចងការភាគី “ខ” បានទទួលចំនួនជាលេខ៖</strong>
+                  <input type="text" value={loanAmountDigits} onChange={e => setLoanAmountDigits(e.target.value)} className="inline-contract-input" style={{ width: '150px' }} />
+                  ជាអក្សរ៖
+                  <input type="text" value={loanAmountWords} onChange={e => setLoanAmountWords(e.target.value)} className="inline-contract-input" style={{ width: '250px' }} />
+                </p>
+              </div>
 
-      {/* Signature Grid */}
-      <div className="mt-16 grid grid-cols-3 gap-6 text-center text-[13px]">
-        <div>
-          <p className="font-bold">ភាគី ក (អ្នកអោយខ្ចី)</p>
-          <p className="text-slate-500 mt-12">(ហត្ថលេខា និងត្រា)</p>
-        </div>
-        <div>
-          <p className="font-bold">ភាគី ខ (អ្នកខ្ចី)</p>
-          <p className="text-slate-500 mt-12">(ស្នាមមេដៃ ឬហត្ថលេខា)</p>
-        </div>
-        <div>
-          <p className="font-bold">សាក្សី/អ្នកធានា</p>
-          <p className="text-slate-500 mt-12">(ស្នាមមេដៃ ឬហត្ថលេខា)</p>
+              {/* Clause 1.3 Interest */}
+              <div className="pl-4">
+                <p className="flex items-center gap-1.5 flex-wrap">
+                  <strong>១.៣ អត្រាការប្រាក់៖</strong>
+                  <input type="text" value={interestRateVal} onChange={e => setInterestRateVal(e.target.value)} className="inline-contract-input" style={{ width: '70px' }} />
+                  
+                  <label className="inline-flex items-center gap-1 cursor-pointer">
+                    <input type="radio" checked={interestPeriod === 'daily'} onChange={() => setInterestPeriod('daily')} className="accent-teal-600 no-print" />
+                    <span>ប្រចាំថ្ងៃ</span>
+                  </label>
+                  <label className="inline-flex items-center gap-1 cursor-pointer">
+                    <input type="radio" checked={interestPeriod === 'weekly'} onChange={() => setInterestPeriod('weekly')} className="accent-teal-600 no-print" />
+                    <span>ប្រចាំសប្ដាហ៍</span>
+                  </label>
+                  <label className="inline-flex items-center gap-1 cursor-pointer">
+                    <input type="radio" checked={interestPeriod === 'monthly'} onChange={() => setInterestPeriod('monthly')} className="accent-teal-600 no-print" />
+                    <span>ប្រចាំខែ</span>
+                  </label>
+                  <label className="inline-flex items-center gap-1 cursor-pointer">
+                    <input type="radio" checked={interestPeriod === 'other'} onChange={() => setInterestPeriod('other')} className="accent-teal-600 no-print" />
+                    <span>ផ្សេងៗ</span>
+                  </label>
+                </p>
+              </div>
+
+              {/* Clause 1.4 Duration */}
+              <div className="pl-4">
+                <p>
+                  <strong>១.៤ រយៈពេលខ្ចីប្រាក់៖</strong>
+                  <input type="text" value={loanDuration} onChange={e => setLoanDuration(e.target.value)} className="inline-contract-input" style={{ width: '90px' }} />
+                  គិតចាប់ពីថ្ងៃទទួលនេះតទៅ។
+                </p>
+              </div>
+
+              {/* Clause 1.5 Admin Fee */}
+              <div className="pl-4">
+                <p>
+                  <strong>១.៥ កម្រៃសេវារដ្ឋបាលដែលត្រូវបង់ពេលទទួលប្រាក់ដំបូង៖</strong>
+                  <input type="text" value={adminFeeDigits} onChange={e => setAdminFeeDigits(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
+                </p>
+              </div>
+
+              {/* Clause 1.6 Repayment Mode */}
+              <div className="pl-4">
+                <p className="flex items-center gap-1.5 flex-wrap">
+                  <strong>១.៦ របៀបសងប្រាក់អនុវត្តតាមតារាងកាលវិភាគសងប្រាក់ដោយបង់ផ្ទាល់នៅ៖</strong>
+                  <label className="inline-flex items-center gap-1 cursor-pointer">
+                    <input type="radio" checked={repaymentMethod === 'office'} onChange={() => setRepaymentMethod('office')} className="accent-teal-600 no-print" />
+                    <span>ការិយាល័យ</span>
+                  </label>
+                  <label className="inline-flex items-center gap-1 cursor-pointer">
+                    <input type="radio" checked={repaymentMethod === 'agent'} onChange={() => setRepaymentMethod('agent')} className="accent-teal-600 no-print" />
+                    <span>តាមរយៈភ្នាក់ងារឥណទាន</span>
+                  </label>
+                  <label className="inline-flex items-center gap-1 cursor-pointer">
+                    <input type="radio" checked={repaymentMethod === 'other'} onChange={() => setRepaymentMethod('other')} className="accent-teal-600 no-print" />
+                    <span>ផ្សេងៗ</span>
+                  </label>
+                </p>
+              </div>
+
+              {/* Clause 1.7 Insurance */}
+              <div className="pl-4">
+                <p className="flex items-center gap-1.5 flex-wrap">
+                  <strong>១.៧ កំរ៉ៃសេវាធានារ៉ាប់រងចំនួន ដើម្បី៖</strong>
+                  <label className="inline-flex items-center gap-1 cursor-pointer">
+                    <input type="radio" checked={insuranceCoverage === 'yes'} onChange={() => setInsuranceCoverage('yes')} className="accent-teal-600 no-print" />
+                    <span>ទទួលបាន</span>
+                  </label>
+                  <span>/</span>
+                  <label className="inline-flex items-center gap-1 cursor-pointer">
+                    <input type="radio" checked={insuranceCoverage === 'no'} onChange={() => setInsuranceCoverage('no')} className="accent-teal-600 no-print" />
+                    <span>មិនទទួលបាន</span>
+                  </label>
+                  <span>នូវ អត្ថប្រយោជន៍ក្នុងការធានាប្រាក់កម្ចី ១០០% នៅពេលដែលភាគី “ខ” ទទួលមរណៈភាព ឬពិការភាព(បាត់បង់លទ្ធភាពធ្វើការងារ)។</span>
+                </p>
+              </div>
+
+              {/* Clause 1.8 Env Policy */}
+              <div className="pl-4">
+                <p>
+                  <strong>១.៨</strong> ភាគី “ខ” សន្យាថានឹងមិនប្រើប្រាស់ឥណទានដែលទទួលបានពីភាគី “ក” ធ្វើឲ្យប៉ះពាល់ដល់បរិស្ថានសង្គម និងសកម្មភាព ទាំងឡាយណាណាដែលហាមឃាត់ដោយច្បាប់របស់ព្រះរាជាណាចក្រកម្ពុជាឡើយ ។
+                </p>
+              </div>
+            </div>
+
+            <p className="italic text-[12.5px] text-slate-600">តារាងកាលវិភាគសងប្រាក់នឹងប័ណ្ណផ្តល់ប្រាក់កម្ចីជាឧបសម្ព័ន្ធនៃកិច្ចសន្យានេះ។</p>
+
+            {/* Article 2 */}
+            <div className="space-y-1.5 pt-2">
+              <p className="font-bold underline text-[14px]">ប្រការ២៖ អំពីសេចក្តីណែនាំជាគោលការណ៍រួម</p>
+              <p>
+                ក្នុងករណីដែលភាគី “ខ” មិនបានអនុវត្តតាមការសន្យាសងប្រាក់ដើម និងការប្រាក់ដូចមានចែងក្នុងបញ្ញត្តិ ១.១ ១.២ ១.៣ ១.៤ ១.៥ ១.៦ នៃប្រការ ១ ខាងលើទេភាគី “ខ” យល់ព្រមឲ្យភាគី “ក” អនុវត្តវិធានការរបស់ម្ចាស់បំណុលមានដូចតទៅ៖
+              </p>
+              
+              <div className="pl-4 space-y-1.5">
+                <p>
+                  <strong>២.១</strong> ប្រសិនបើភាគី “ខ” មិនបានបំពេញកាតព្វកិច្ចសងប្រាក់ទាន់ពេលវេលាកំណត់ក្នុងតារាងសងប្រាក់ទេភាគី “ខ” សុខចិត្តបង់ប្រាក់ពិន័យ ចំនួន ២,០០០ រៀល ក្នុងមួយថ្ងៃ បន្ថែមលើទឹកប្រាក់ត្រូវបង់ប្រចាំថ្ងៃដោយចំនួនថ្ងៃនៃការពិន័យត្រូវបានគិតតាមថ្ងៃធ្វើការរបស់ម្ចាស់បំណុល ។ នាកំឡុងពេលនៃការយឺតយ៉ាវនេះ ភាគី “ក” មានសិទ្ធិគ្រប់គ្រាន់ក្នុងការចុះសាកសួរព័ត៌មានអំពីមូលហេតុដែលបណ្តាលឲ្យមានការយឺតយ៉ាវដើម្បីរកដំណោះស្រាយនៅគ្រប់ទីកន្លែងដែលភាគី “ខ” មានវត្តមាន ។
+                </p>
+                <p>
+                  <strong>២.២</strong> ភាគី “ក” និងភាគី “ខ” សន្យាគោរពយ៉ាងម៉ឺងម៉ាត់តាមរាល់ប្រការ និងបញ្ញត្តិនានានៃកិច្ចសន្យាខាងលើ។ ក្នុងករណីមានការអនុវត្តផ្ទុយ ឬដោយរំលោភលើលក្ខខណ្ឌណាមួយ នៃកិច្ចសន្យានេះភាគីដែលល្មើស ឬបំពានកិច្ចសន្យានឹងត្រូវទទួលខុសត្រូវចំពោះវិធានការច្បាប់ជាធរមាន។ រាល់សាហ៊ុយទាក់ទងក្នុងការដោះស្រាយទំនាស់ ឬវិវាទជាបន្ទុករបស់ភាគីដែលរំលោភបំពានលើកិច្ចសន្យានេះ។
+                </p>
+                <p>
+                  <strong>២.៣</strong> ភាគីអ្នកធានា និងអ្នករួមធានាត្រូវជាប់កាតព្វកិច្ចដោយសាមគ្គីភាពជាមួយ និងកូនបំណុល ឬសហកូនបំណុល។ កិច្ចសន្យានេះត្រូវបានធ្វើឡើងដោយមានការព្រមព្រៀងពិតប្រាកដ និងដោយសេរីគ្មានការបង្ខិតបង្ខំពីភាគីណាមួយឡើយ ហើយមានប្រសិទ្ធិភាពអនុវត្តចាប់ពីថ្ងៃចុះហត្ថលេខា និងផ្តិតមេដៃនេះតទៅ។
+                </p>
+              </div>
+            </div>
+
+            {/* Document Copies */}
+            <p className="pt-2">
+              កិច្ចសន្យានេះត្រូវធ្វើឡើងចំនួន ០២ ច្បាប់(០១ច្បាប់ដើម និង០១ច្បាប់ថតចម្លង) ដើម្បីតម្កល់ទុកនៅ៖ 
+              ភាគី “ក” ០១ច្បាប់ដើម និង ភាគី “ខ” ០១ច្បាប់ថតចំលង។
+            </p>
+          </div>
+
+          {/* Signature Grid */}
+          <div className="mt-12 pt-6 border-t border-slate-200">
+            <div className="flex justify-between items-center text-[12.5px] font-bold">
+              <span>ស្នាមមេដៃស្ដាំ ភាគីខ្ចីចងការប្រាក់ ភាគី “ខ”</span>
+              <span>
+                ថ្ងៃទី 
+                <input type="text" value={sigDay} onChange={e => setSigDay(e.target.value)} className="inline-contract-input" style={{ width: '35px' }} />
+                ខែ 
+                <input type="text" value={sigMonth} onChange={e => setSigMonth(e.target.value)} className="inline-contract-input" style={{ width: '50px' }} />
+                ឆ្នាំ 
+                <input type="text" value={sigYear} onChange={e => setSigYear(e.target.value)} className="inline-contract-input" style={{ width: '55px' }} />
+              </span>
+              <span>ហត្ថលេខាម្ចាស់បំណុល</span>
+            </div>
+
+            <div className="grid grid-cols-4 gap-4 mt-20 text-center text-[11.5px] font-bold text-slate-500">
+              <div>
+                <div className="border-t border-slate-300 pt-2.5">សាក្សី</div>
+              </div>
+              <div>
+                <div className="border-t border-slate-300 pt-2.5">កូនបំណុល ឬអ្នកខ្ចី</div>
+              </div>
+              <div>
+                <div className="border-t border-slate-300 pt-2.5">សហកូនបំណុល/អ្នករួមខ្ចី</div>
+              </div>
+              <div>
+                <div className="border-t border-slate-300 pt-2.5">អ្នកធានា/រួមធានា</div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

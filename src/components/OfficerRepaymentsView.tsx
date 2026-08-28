@@ -660,10 +660,6 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
 
         const handlePrintKhmerContract = () => {
           setIsPrintingContract(true);
-          setTimeout(() => {
-            window.print();
-            setIsPrintingContract(false);
-          }, 300);
         };
 
         // Split installments into chunks of up to 12 rows per page for clean, repeatable print templates
@@ -993,7 +989,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
               </div>
 
             </div>
-            {isPrintingContract && <KhmerContractPrint application={loan} />}
+            {isPrintingContract && <KhmerContractPrint application={loan} onClose={() => setIsPrintingContract(false)} />}
           </div>,
           document.body
         );
