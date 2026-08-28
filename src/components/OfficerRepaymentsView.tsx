@@ -690,6 +690,10 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                   padding: 0 !important;
                   z-index: auto !important;
                 }
+                .printable-content-block {
+                  padding: 0 !important;
+                  margin: 0 !important;
+                }
                 /* Force two-column layout only on metadata info grid card in print */
                 .printable-scheduler-sheet .printable-metadata-grid {
                   display: grid !important;
