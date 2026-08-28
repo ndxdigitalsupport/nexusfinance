@@ -63,22 +63,24 @@ export default function ApplicationDetailsModal({
       <div className="bg-[var(--surface-card)] w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden border border-[var(--border-primary)] my-8 relative animate-modal-enter">
         
         {/* Header toolbar */}
-        <div className="bg-[var(--sidebar-bg)] text-white px-6 py-5 flex justify-between items-center">
+        <div className="px-6 py-5 flex justify-between items-center border-b border-[var(--border-primary)]"
+          style={{ backgroundColor: 'var(--surface-secondary)' }}
+        >
           <div className="flex items-center gap-3">
-            <div className="premium-badge text-[12px] font-sans font-bold px-3 py-1 uppercase tracking-wider rounded-md border"
+            <div className="premium-badge text-[11px] font-sans font-extrabold px-3 py-1 uppercase tracking-wider rounded-md border"
               style={{
-                backgroundColor: application.urgency === 'Urgent' ? 'var(--error-bg)' : 'var(--info-bg)',
-                color: application.urgency === 'Urgent' ? 'var(--error-text)' : 'var(--info-text)',
-                borderColor: application.urgency === 'Urgent' ? 'var(--error-bg)' : 'var(--info-bg)',
+                backgroundColor: application.urgency === 'Urgent' ? '#fee2e2' : '#e2e8f0',
+                color: application.urgency === 'Urgent' ? '#b91c1c' : '#0f172a',
+                borderColor: application.urgency === 'Urgent' ? '#fca5a5' : '#cbd5e1',
               }}
             >
               {application.urgency}
             </div>
-            <h3 className="text-[18px] font-sans font-bold leading-tight">Details for {application.id}</h3>
+            <h3 className="text-[18px] font-sans font-extrabold leading-tight text-[var(--text-primary)]">Details for {application.id}</h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+            className="p-1.5 rounded-xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-primary)] transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
