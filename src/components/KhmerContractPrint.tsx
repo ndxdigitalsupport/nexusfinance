@@ -455,52 +455,52 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
               {/* Guarantors */}
               <p>
                 <strong>ភាគីធានាបំណុល៖</strong> ឈ្មោះ 
-                <input type="text" value={g1Name} onChange={e => setG1Name(e.target.value)} className="inline-contract-input" style={{ width: '110px' }} />
+                <input type="text" value={g1Name} onChange={e => setG1Name(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1Name, 110) }} />
                 ភេទ 
-                <input type="text" value={g1Gender} onChange={e => setG1Gender(e.target.value)} className="inline-contract-input" style={{ width: '50px' }} />
+                <input type="text" value={g1Gender} onChange={e => setG1Gender(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1Gender, 30) }} />
                 អាយុ 
-                <input type="text" value={g1Age} onChange={e => setG1Age(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+                <input type="text" value={g1Age} onChange={e => setG1Age(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1Age, 25) }} />
                 ឆ្នាំ កាន់អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរលេខ 
-                <input type="text" value={g1IdCard} onChange={e => setG1IdCard(e.target.value)} className="inline-contract-input" style={{ width: '120px' }} />
+                <input type="text" value={g1IdCard} onChange={e => setG1IdCard(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1IdCard, 110) }} />
                 ចុះថ្ងៃទី 
-                <input type="text" value={g1IssueDay} onChange={e => setG1IssueDay(e.target.value)} className="inline-contract-input" style={{ width: '35px' }} />
+                <input type="text" value={g1IssueDay} onChange={e => setG1IssueDay(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1IssueDay, 20) }} />
                 ខែ 
-                <input type="text" value={g1IssueMonth} onChange={e => setG1IssueMonth(e.target.value)} className="inline-contract-input" style={{ width: '35px' }} />
+                <input type="text" value={g1IssueMonth} onChange={e => setG1IssueMonth(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1IssueMonth, 40) }} />
                 ឆ្នាំ 
-                <input type="text" value={g1IssueYear} onChange={e => setG1IssueYear(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+                <input type="text" value={g1IssueYear} onChange={e => setG1IssueYear(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1IssueYear, 35) }} />
                 មានអាសយដ្ឋានបច្ចុប្បន្ននៅផ្ទះលេខ 
-                <input type="text" value={g1HouseNo} onChange={e => setG1HouseNo(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+                <input type="text" value={g1HouseNo} onChange={e => setG1HouseNo(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1HouseNo, 30) }} />
                 ឃុំ/សង្កាត់ 
-                <input type="text" value={g1Commune} onChange={e => setG1Commune(e.target.value)} className="inline-contract-input" style={{ width: '85px' }} />
+                <input type="text" value={g1Commune} onChange={e => setG1Commune(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1Commune, 85) }} />
                 ស្រុក/ខណ្ឌ 
-                <input type="text" value={g1District} onChange={e => setG1District(e.target.value)} className="inline-contract-input" style={{ width: '85px' }} />
+                <input type="text" value={g1District} onChange={e => setG1District(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1District, 85) }} />
                 ខេត្ត/រាជធានី 
-                <input type="text" value={g1Province} onChange={e => setG1Province(e.target.value)} className="inline-contract-input" style={{ width: '100px' }} />
+                <input type="text" value={g1Province} onChange={e => setG1Province(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1Province, 100) }} />
                 
                 និង ឈ្មោះ 
-                <input type="text" value={g2Name} onChange={e => setG2Name(e.target.value)} className="inline-contract-input" style={{ width: '110px' }} />
+                <input type="text" value={g2Name} onChange={e => setG2Name(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2Name, 110) }} />
                 ភេទ 
-                <input type="text" value={g2Gender} onChange={e => setG2Gender(e.target.value)} className="inline-contract-input" style={{ width: '50px' }} />
+                <input type="text" value={g2Gender} onChange={e => setG2Gender(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2Gender, 30) }} />
                 អាយុ 
-                <input type="text" value={g2Age} onChange={e => setG2Age(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+                <input type="text" value={g2Age} onChange={e => setG2Age(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2Age, 25) }} />
                 ឆ្នាំ កាន់អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរលេខ 
-                <input type="text" value={g2IdCard} onChange={e => setG2IdCard(e.target.value)} className="inline-contract-input" style={{ width: '120px' }} />
+                <input type="text" value={g2IdCard} onChange={e => setG2IdCard(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2IdCard, 110) }} />
                 ចុះថ្ងៃទី 
-                <input type="text" value={g2IssueDay} onChange={e => setG2IssueDay(e.target.value)} className="inline-contract-input" style={{ width: '35px' }} />
+                <input type="text" value={g2IssueDay} onChange={e => setG2IssueDay(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2IssueDay, 20) }} />
                 ខែ 
-                <input type="text" value={g2IssueMonth} onChange={e => setG2IssueMonth(e.target.value)} className="inline-contract-input" style={{ width: '35px' }} />
+                <input type="text" value={g2IssueMonth} onChange={e => setG2IssueMonth(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2IssueMonth, 40) }} />
                 ឆ្នាំ 
-                <input type="text" value={g2IssueYear} onChange={e => setG2IssueYear(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+                <input type="text" value={g2IssueYear} onChange={e => setG2IssueYear(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2IssueYear, 35) }} />
                 មានអាសយដ្ឋានបច្ចុប្បន្ននៅផ្ទះលេខ 
-                <input type="text" value={g2HouseNo} onChange={e => setG2HouseNo(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+                <input type="text" value={g2HouseNo} onChange={e => setG2HouseNo(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2HouseNo, 30) }} />
                 ឃុំ/សង្កាត់ 
-                <input type="text" value={g2Commune} onChange={e => setG2Commune(e.target.value)} className="inline-contract-input" style={{ width: '85px' }} />
+                <input type="text" value={g2Commune} onChange={e => setG2Commune(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2Commune, 85) }} />
                 ស្រុក/ខណ្ឌ 
-                <input type="text" value={g2District} onChange={e => setG2District(e.target.value)} className="inline-contract-input" style={{ width: '85px' }} />
+                <input type="text" value={g2District} onChange={e => setG2District(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2District, 85) }} />
                 ខេត្ត/រាជធានី 
-                <input type="text" value={g2Province} onChange={e => setG2Province(e.target.value)} className="inline-contract-input" style={{ width: '100px' }} />
+                <input type="text" value={g2Province} onChange={e => setG2Province(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2Province, 100) }} />
                 ។ លេខទំនាក់ទំនង៖ 
-                <input type="text" value={guarantorsPhone} onChange={e => setGuarantorsPhone(e.target.value)} className="inline-contract-input" style={{ width: '110px' }} />
+                <input type="text" value={guarantorsPhone} onChange={e => setGuarantorsPhone(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(guarantorsPhone, 100) }} />
               </p>
 
               <p>ភាគី “ក” និង “ខ” បានព្រមព្រៀងគ្នាលើកិច្ចសន្យាខ្ចីចងការប្រាក់ ដោយអនុវត្តរាល់ប្រការដូចមានចែងខាងក្រោម៖</p>
@@ -778,50 +778,50 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
                 ខ្ញុំបាទ/នាងខ្ញុំឈ្មោះ 
                 <input type="text" value={g1Name} onChange={e => setG1Name(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
                 ភេទ 
-                <input type="text" value={g1Gender} onChange={e => setG1Gender(e.target.value)} className="inline-contract-input" style={{ width: '50px' }} />
+                <input type="text" value={g1Gender} onChange={e => setG1Gender(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1Gender, 30) }} />
                 អាយុ 
-                <input type="text" value={g1Age} onChange={e => setG1Age(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+                <input type="text" value={g1Age} onChange={e => setG1Age(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1Age, 25) }} />
                 ឆ្នាំ កាន់អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរលេខ 
-                <input type="text" value={g1IdCard} onChange={e => setG1IdCard(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
+                <input type="text" value={g1IdCard} onChange={e => setG1IdCard(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1IdCard, 110) }} />
                 ចុះថ្ងៃទី 
-                <input type="text" value={g1IssueDay} onChange={e => setG1IssueDay(e.target.value)} className="inline-contract-input" style={{ width: '35px' }} />
+                <input type="text" value={g1IssueDay} onChange={e => setG1IssueDay(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1IssueDay, 20) }} />
                 នៃ 
-                <input type="text" value={g1IssueMonth} onChange={e => setG1IssueMonth(e.target.value)} className="inline-contract-input" style={{ width: '70px' }} />
+                <input type="text" value={g1IssueMonth} onChange={e => setG1IssueMonth(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1IssueMonth, 40) }} />
                 ឆ្នាំ 
-                <input type="text" value={g1IssueYear} onChange={e => setG1IssueYear(e.target.value)} className="inline-contract-input" style={{ width: '50px' }} />
+                <input type="text" value={g1IssueYear} onChange={e => setG1IssueYear(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1IssueYear, 35) }} />
                 មានអាសយដ្ឋានបច្ចុប្បន្ននៅផ្ទះលេខ 
-                <input type="text" value={g1HouseNo} onChange={e => setG1HouseNo(e.target.value)} className="inline-contract-input" style={{ width: '50px' }} />
+                <input type="text" value={g1HouseNo} onChange={e => setG1HouseNo(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1HouseNo, 30) }} />
                 ឃុំ/សង្កាត់ 
-                <input type="text" value={g1Commune} onChange={e => setG1Commune(e.target.value)} className="inline-contract-input" style={{ width: '90px' }} />
+                <input type="text" value={g1Commune} onChange={e => setG1Commune(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1Commune, 90) }} />
                 ស្រុក/ខណ្ឌ 
-                <input type="text" value={g1District} onChange={e => setG1District(e.target.value)} className="inline-contract-input" style={{ width: '90px' }} />
+                <input type="text" value={g1District} onChange={e => setG1District(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1District, 90) }} />
                 ខេត្ត/ក្រុង 
-                <input type="text" value={g1Province} onChange={e => setG1Province(e.target.value)} className="inline-contract-input" style={{ width: '110px' }} />
+                <input type="text" value={g1Province} onChange={e => setG1Province(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g1Province, 110) }} />
                 ។ លេខទំនាក់ទំនង៖ 
-                <input type="text" value={guarantorsPhone} onChange={e => setGuarantorsPhone(e.target.value)} className="inline-contract-input" style={{ width: '110px' }} />
+                <input type="text" value={guarantorsPhone} onChange={e => setGuarantorsPhone(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(guarantorsPhone, 100) }} />
 
                 និងឈ្មោះ 
-                <input type="text" value={g2Name} onChange={e => setG2Name(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
+                <input type="text" value={g2Name} onChange={e => setG2Name(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2Name, 110) }} />
                 ភេទ 
-                <input type="text" value={g2Gender} onChange={e => setG2Gender(e.target.value)} className="inline-contract-input" style={{ width: '50px' }} />
+                <input type="text" value={g2Gender} onChange={e => setG2Gender(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2Gender, 30) }} />
                 អាយុ 
-                <input type="text" value={g2Age} onChange={e => setG2Age(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
+                <input type="text" value={g2Age} onChange={e => setG2Age(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2Age, 25) }} />
                 ឆ្នាំ កាន់អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរលេខ 
-                <input type="text" value={g2IdCard} onChange={e => setG2IdCard(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
+                <input type="text" value={g2IdCard} onChange={e => setG2IdCard(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2IdCard, 110) }} />
                 ចុះថ្ងៃទី 
-                <input type="text" value={g2IssueDay} onChange={e => setG2IssueDay(e.target.value)} className="inline-contract-input" style={{ width: '35px' }} />
+                <input type="text" value={g2IssueDay} onChange={e => setG2IssueDay(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2IssueDay, 20) }} />
                 នៃ 
-                <input type="text" value={g2IssueMonth} onChange={e => setG2IssueMonth(e.target.value)} className="inline-contract-input" style={{ width: '70px' }} />
+                <input type="text" value={g2IssueMonth} onChange={e => setG2IssueMonth(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2IssueMonth, 40) }} />
                 ឆ្នាំ 
-                <input type="text" value={g2IssueYear} onChange={e => setG2IssueYear(e.target.value)} className="inline-contract-input" style={{ width: '50px' }} />
+                <input type="text" value={g2IssueYear} onChange={e => setG2IssueYear(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2IssueYear, 35) }} />
                 មានអាសយដ្ឋានបច្ចុប្បន្ននៅផ្ទះលេខ 
-                <input type="text" value={g2HouseNo} onChange={e => setG2HouseNo(e.target.value)} className="inline-contract-input" style={{ width: '50px' }} />
+                <input type="text" value={g2HouseNo} onChange={e => setG2HouseNo(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2HouseNo, 30) }} />
                 ឃុំ/សង្កាត់ 
-                <input type="text" value={g2Commune} onChange={e => setG2Commune(e.target.value)} className="inline-contract-input" style={{ width: '90px' }} />
+                <input type="text" value={g2Commune} onChange={e => setG2Commune(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2Commune, 90) }} />
                 ស្រុក/ខណ្ឌ 
-                <input type="text" value={g2District} onChange={e => setG2District(e.target.value)} className="inline-contract-input" style={{ width: '90px' }} />
+                <input type="text" value={g2District} onChange={e => setG2District(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2District, 90) }} />
                 ខេត្ត/ក្រុង 
-                <input type="text" value={g2Province} onChange={e => setG2Province(e.target.value)} className="inline-contract-input" style={{ width: '110px' }} />
+                <input type="text" value={g2Province} onChange={e => setG2Province(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(g2Province, 110) }} />
                 ។
               </p>
             </div>
@@ -992,11 +992,11 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
               <div className="space-y-1">
                 <span>
                   ថ្ងៃទី 
-                  <input type="text" value={sigDay} onChange={e => setSigDay(e.target.value)} className="inline-contract-input" style={{ width: '35px' }} />
+                  <input type="text" value={sigDay} onChange={e => setSigDay(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(sigDay, 20) }} />
                   ខែ 
-                  <input type="text" value={sigMonth} onChange={e => setSigMonth(e.target.value)} className="inline-contract-input" style={{ width: '50px' }} />
+                  <input type="text" value={sigMonth} onChange={e => setSigMonth(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(sigMonth, 40) }} />
                   ឆ្នាំ 
-                  <input type="text" value={sigYear} onChange={e => setSigYear(e.target.value)} className="inline-contract-input" style={{ width: '55px' }} />
+                  <input type="text" value={sigYear} onChange={e => setSigYear(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(sigYear, 35) }} />
                 </span>
               </div>
               <div className="space-y-1 text-right">
