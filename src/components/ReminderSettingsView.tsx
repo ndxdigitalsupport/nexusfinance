@@ -129,7 +129,7 @@ export default function ReminderSettingsView() {
   const fetchLogs = async () => {
     setLoadingLogs(true);
     try {
-      const data = await apiFetch('/reminder-settings/logs');
+      const data = await apiFetch('/reminder-logs');
       setLogs(data || []);
     } catch {
       showToast('Failed to load reminder execution logs', 'error');
