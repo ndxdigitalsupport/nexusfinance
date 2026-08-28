@@ -320,7 +320,6 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
             margin: 0 !important;
             background: transparent !important;
             pointer-events: none;
-            width: auto !important;
             display: inline-block !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
