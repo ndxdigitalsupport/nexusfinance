@@ -280,6 +280,14 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
             background: white !important;
             color: black !important;
             display: block !important;
+            font-size: 11.5px !important;
+            line-height: 20px !important;
+          }
+          .printable-contract-container > * + * {
+            margin-top: 12px !important;
+          }
+          .contract-print-page > * + * {
+            margin-top: 6px !important;
           }
           .contract-print-page {
             page-break-after: always !important;
@@ -495,8 +503,8 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
                 {/* Clause 1.1 Collaterals */}
                 <div className="pl-4">
                   <p><strong>១.១ ក្រោមការដាក់បញ្ចាំដើម្បីធានាបំណុលទាំងដើម និងការប្រាក់</strong></p>
-                  <div className="pl-4 space-y-1.5">
-                    <p>
+                  <ul className="list-disc pl-5 space-y-1.5">
+                    <li>
                       ប្រភេទអចលន ឬចលនវត្ថុ៖ 
                       <input type="text" value={collateral1Type} onChange={e => setCollateral1Type(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
                       លេខ 
@@ -504,8 +512,8 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
                       កម្មសិទ្ធិរបស់ឈ្មោះ 
                       <input type="text" value={collateral1Owner} onChange={e => setCollateral1Owner(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
                       យល់ព្រមដាក់បញ្ចាំដោយស្ម័គ្រចិត្ត។
-                    </p>
-                    <p>
+                    </li>
+                    <li>
                       ប្រភេទអចលន ឬចលនវត្ថុ៖ 
                       <input type="text" value={collateral2Type} onChange={e => setCollateral2Type(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
                       លេខ 
@@ -513,8 +521,8 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
                       កម្មសិទ្ធិរបស់ឈ្មោះ 
                       <input type="text" value={collateral2Owner} onChange={e => setCollateral2Owner(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
                       យល់ព្រមដាក់បញ្ចាំដោយស្ម័គ្រចិត្ត។
-                    </p>
-                  </div>
+                    </li>
+                  </ul>
                 </div>
 
                 {/* Clause 1.2 Amount */}
