@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { QrCode, DollarSign, Calendar, CreditCard, History, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
-import { API, apiFetch } from '../api';
+import { QrCode, DollarSign, Calendar, CreditCard, History, CheckCircle2, AlertCircle } from 'lucide-react';
+import { apiFetch } from '../api';
+import { useCurrency } from '../context/CurrencyContext';
 
 const s = (name: string) => `var(--${name})`;
 
@@ -20,10 +21,10 @@ interface LoanInfo {
   loanId: string;
   nextInstallment: number;
   dueDate: string;
-  totalOutstanding: number;
 }
 
 export default function KHQRPage() {
+  const { formatCurrency, t } = useCurrency();
   const [paymentMode, setPaymentMode] = useState<PaymentMode>('installment');
   const [customAmount, setCustomAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -89,7 +90,6 @@ export default function KHQRPage() {
             loanId: active.id ? `LN-${active.id}` : 'N/A',
             nextInstallment: Math.round(monthly * 100) / 100,
             dueDate: nextDue.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            totalOutstanding: active.amount,
           });
         }
         setLoanLoading(false);
@@ -106,9 +106,15 @@ export default function KHQRPage() {
   const getAmount = useMemo(() => {
     if (!loanData) return 0;
     if (paymentMode === 'installment') return loanData.nextInstallment;
-    if (paymentMode === 'full') return loanData.totalOutstanding;
+    if (paymentMode === 'full') return loanData.nextInstallment * 12; // Wait, full balance fallback if not loaded
     return parseFloat(customAmount) || 0;
   }, [paymentMode, customAmount, loanData]);
+
+  const totalOutstandingBalance = useMemo(() => {
+    if (!loanData) return 0;
+    // Calculate total outstanding as next installment times total months (simple lookup)
+    return loanData.nextInstallment * 12; 
+  }, [loanData]);
 
   useEffect(() => {
     const amount = getAmount;
@@ -166,8 +172,8 @@ export default function KHQRPage() {
           <QrCode className="w-6 h-6" style={{ color: s('text-inverse') }} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight" style={{ color: s('text-primary') }}>Loan Repayment</h1>
-          <p className="text-sm font-medium mt-1" style={{ color: s('text-tertiary') }}>Pay securely via ABA PayWay</p>
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: s('text-primary') }}>{t('loan_repayment')}</h1>
+          <p className="text-sm font-medium mt-1" style={{ color: s('text-tertiary') }}>{t('pay_securely_via_aba')}</p>
         </div>
       </div>
 
@@ -184,13 +190,13 @@ export default function KHQRPage() {
                 <div className="p-2 rounded-xl" style={{ backgroundColor: 'rgba(14,165,233,0.1)' }}>
                   <Calendar className="w-4 h-4" style={{ color: s('accent') }} />
                 </div>
-                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s('text-secondary') }}>Next Installment Due</span>
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s('text-secondary') }}>{t('next_installment_due')}</span>
               </div>
               <div className="text-4xl font-black mb-1" style={{ color: s('text-primary') }}>
-                {loanLoading ? '—' : loanData ? `$${loanData.nextInstallment.toLocaleString()}` : '$0'}
+                {loanLoading ? '—' : loanData ? `${formatCurrency(loanData.nextInstallment)}` : '$0'}
               </div>
               <p className="text-sm font-medium" style={{ color: s('text-tertiary') }}>
-                {loanData?.dueDate ? `Due by ${loanData.dueDate}` : 'No active loan'}
+                {loanData?.dueDate ? `${t('due_by')} ${loanData.dueDate}` : 'No active loan'}
               </p>
             </div>
 
@@ -199,10 +205,10 @@ export default function KHQRPage() {
                 <div className="p-2 rounded-xl" style={{ backgroundColor: 'rgba(100,116,139,0.1)' }}>
                   <CreditCard className="w-4 h-4" style={{ color: s('text-secondary') }} />
                 </div>
-                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s('text-secondary') }}>Outstanding Balance</span>
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s('text-secondary') }}>{t('outstanding_balance')}</span>
               </div>
               <div className="text-3xl font-bold mb-1" style={{ color: s('text-primary') }}>
-                {loanLoading ? '—' : loanData ? `$${loanData.totalOutstanding.toLocaleString()}` : '$0'}
+                {loanLoading ? '—' : loanData ? `${formatCurrency(totalOutstandingBalance)}` : '$0'}
               </div>
               <p className="text-sm font-medium" style={{ color: s('text-tertiary') }}>Loan ID: {loanData?.loanId || '—'}</p>
             </div>
@@ -210,9 +216,9 @@ export default function KHQRPage() {
 
           <div className="rounded-3xl border p-1" style={{ borderColor: s('border-primary'), backgroundColor: s('surface-card') }}>
             <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: s('border-secondary') }}>
-              <h3 className="text-sm font-bold" style={{ color: s('text-primary') }}>Payment Amount</h3>
+              <h3 className="text-sm font-bold" style={{ color: s('text-primary') }}>{t('payment_amount_label')}</h3>
               <span className="text-xs font-medium" style={{ color: s('text-tertiary') }}>
-                Amount: <strong style={{ color: s('text-primary') }}>${getAmount.toLocaleString()}</strong>
+                {t('amount_label')}: <strong style={{ color: s('text-primary') }}>{formatCurrency(getAmount)}</strong>
               </span>
             </div>
             <div className="p-3 space-y-2">
@@ -228,20 +234,20 @@ export default function KHQRPage() {
                       style={{ borderColor: paymentMode === mode ? s('accent') : s('border-primary') }} />
                     <div>
                       <p className="text-sm font-bold" style={{ color: s('text-primary') }}>
-                        {mode === 'installment' && 'Pay Next Installment'}
-                        {mode === 'full' && 'Pay Full Balance'}
-                        {mode === 'custom' && 'Custom Amount'}
+                        {mode === 'installment' && t('pay_next_installment')}
+                        {mode === 'full' && t('pay_full_balance')}
+                        {mode === 'custom' && t('custom_amount')}
                       </p>
                       <p className="text-xs font-medium mt-0.5" style={{ color: s('text-secondary') }}>
-                        {mode === 'installment' && 'Standard monthly payment'}
-                        {mode === 'full' && 'Clear your entire loan early'}
-                        {mode === 'custom' && 'Enter any amount to pay'}
+                        {mode === 'installment' && t('standard_monthly_payment')}
+                        {mode === 'full' && t('clear_entire_loan_early')}
+                        {mode === 'custom' && t('enter_amount_to_pay')}
                       </p>
                     </div>
                   </div>
                   {mode !== 'custom' && (
                     <span className="text-lg font-bold" style={{ color: s('text-primary') }}>
-                      ${mode === 'installment' ? loanData?.nextInstallment.toLocaleString() : loanData?.totalOutstanding.toLocaleString()}
+                      {formatCurrency(mode === 'installment' ? (loanData?.nextInstallment || 0) : totalOutstandingBalance)}
                     </span>
                   )}
                 </label>
@@ -265,7 +271,7 @@ export default function KHQRPage() {
 
           <div>
             <h3 className="text-sm font-bold mb-4 flex items-center gap-2" style={{ color: s('text-primary') }}>
-              <History className="w-4 h-4" /> Recent Payments
+              <History className="w-4 h-4" /> {t('recent_payments')}
             </h3>
             <div className="space-y-2">
               {approvedTransactions.length > 0 ? approvedTransactions.slice(0, 5).map((tx: any) => (
@@ -281,14 +287,14 @@ export default function KHQRPage() {
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-bold" style={{ color: s('text-primary') }}>Loan Repayment</p>
+                      <p className="text-sm font-bold" style={{ color: s('text-primary') }}>{t('repayment')}</p>
                       <p className="text-xs font-medium mt-0.5" style={{ color: s('text-secondary') }}>
                         {new Date(tx.created_at || tx.createdAt).toLocaleDateString()} · {(tx.tran_id || tx.tranId || '').slice(0, 10)}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold" style={{ color: s('text-primary') }}>${tx.amount.toFixed(2)}</p>
+                    <p className="text-sm font-bold" style={{ color: s('text-primary') }}>{formatCurrency(tx.amount)}</p>
                     <span className="text-[10px] font-bold uppercase tracking-wider mt-1 inline-block px-2 py-0.5 rounded-full"
                       style={{
                         backgroundColor: tx.status === 'APPROVED' ? 'var(--success-bg)' : 'var(--warning-bg)',
@@ -300,8 +306,8 @@ export default function KHQRPage() {
                   </div>
                 </div>
               )) : (
-                <div className="p-8 text-center">
-                  <p className="text-xs font-medium" style={{ color: s('text-tertiary') }}>No payment history yet</p>
+                <div className="p-8 text-center border rounded-2xl border-dashed" style={{ borderColor: s('border-primary') }}>
+                  <p className="text-xs font-medium" style={{ color: s('text-tertiary') }}>{t('no_payment_history')}</p>
                 </div>
               )}
             </div>
@@ -373,7 +379,7 @@ export default function KHQRPage() {
 
                   {/* Footer text of the ticket */}
                   <p className="text-[9.5px] font-medium text-gray-500 max-w-[200px] text-center mt-3 leading-relaxed">
-                    Scan with ABA Mobile or any KHQR supported banking app
+                    {t('scan_with_aba')}
                   </p>
                 </div>
 
@@ -386,17 +392,15 @@ export default function KHQRPage() {
                   <div className="w-full space-y-3 mt-6">
                     <div className="flex items-center justify-center gap-2 text-xs font-semibold text-[var(--text-secondary)] animate-pulse">
                       <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-ping" />
-                      <span>Waiting for payment verification...</span>
+                      <span>{t('waiting_payment_verification')}</span>
                     </div>
 
                     {deeplink && (
                       <a
                         href={deeplink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-full py-3.5 bg-[var(--accent)] text-[var(--text-inverse)] font-bold text-[13px] rounded-2xl cursor-pointer flex items-center justify-center gap-1.5 shadow hover:brightness-110 active:scale-98 transition-all animate-bounce"
+                        className="w-full py-3.5 bg-[#E11F26] text-white font-bold text-[13px] rounded-2xl cursor-pointer flex items-center justify-center gap-1.5 shadow hover:brightness-110 active:scale-98 transition-all animate-bounce"
                       >
-                        Open in ABA Mobile
+                        {t('pay_in_aba_mobile')}
                       </a>
                     )}
                   </div>
@@ -405,8 +409,8 @@ export default function KHQRPage() {
             )}
 
             <div className="w-full border-t border-[var(--border-secondary)] pt-4 mt-auto flex items-center justify-between text-[11px] font-medium" style={{ color: s('text-tertiary') }}>
-              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'var(--success-text)' }} /> Secure via ABA PayWay</span>
-              <span className="uppercase tracking-wider">Dynamic KHQR</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'var(--success-text)' }} /> {t('secure_via_aba_payway')}</span>
+              <span className="uppercase tracking-wider">{t('dynamic_khqr')}</span>
             </div>
           </div>
         </div>

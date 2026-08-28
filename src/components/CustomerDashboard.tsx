@@ -32,7 +32,7 @@ export default function CustomerDashboard({
   onInstantApprovedFastCash,
   applications
 }: CustomerDashboardProps) {
-  const { formatCurrency, t } = useCurrency();
+  const { formatCurrency, t, isKhmer } = useCurrency();
 
   const nextDueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   const daysUntilDue = Math.ceil((nextDueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
@@ -64,13 +64,26 @@ export default function CustomerDashboard({
     progressPercent = Math.min(100, Math.round((totalRepaid / activeLoan.amount) * 100));
   }
 
+  // Format dynamic dates cleanly
+  const formatDateLocale = (d: Date) => {
+    return d.toLocaleDateString(isKhmer ? 'km-KH' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const getTxTitle = (title: string) => {
+    const key = title.toLowerCase().replace(/\s+/g, '_');
+    const val = t(key);
+    return val === key ? title : val;
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       
       {/* HUD Header */}
       <div className="select-none">
-        <h2 className="text-[32px] md:text-[36px] font-sans font-extrabold text-[var(--text-primary)] tracking-tight">Welcome, {userName.split(' ')[0]}</h2>
-        <p className="text-[14.5px] text-[var(--text-secondary)] font-medium mt-0.5">Access your balances, active requests and more.</p>
+        <h2 className="text-[32px] md:text-[36px] font-sans font-extrabold text-[var(--text-primary)] tracking-tight">
+          {t('welcome')}, {userName.split(' ')[0]}
+        </h2>
+        <p className="text-[14.5px] text-[var(--text-secondary)] font-medium mt-0.5">{t('access_balances')}</p>
       </div>
 
       {/* Main Balance Card */}
@@ -83,7 +96,7 @@ export default function CustomerDashboard({
           <div className="space-y-4">
             <div>
               <div className="flex items-center gap-1.5 mb-1" style={{ color: 'var(--text-primary)' }}>
-                <span className="text-[11px] font-bold uppercase tracking-widest leading-none" style={{ color: 'var(--text-tertiary)' }}>Balance</span>
+                <span className="text-[11px] font-bold uppercase tracking-widest leading-none" style={{ color: 'var(--text-tertiary)' }}>{t('balance_label')}</span>
                 <span title="Current sum total of approved credit lines minus repayments" className="cursor-help inline-flex">
                   <Info className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
                 </span>
@@ -99,12 +112,12 @@ export default function CustomerDashboard({
             <div className="flex items-center gap-4 text-[13px] select-none">
               <div className="flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
                 <Calendar className="w-4 h-4" />
-                <span className="font-medium">Due {nextDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                <span className="font-medium">{t('due')} {formatDateLocale(nextDueDate)}</span>
               </div>
               <div className="w-px h-4 bg-white/20" />
               <div className="flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
                 <Timer className="w-4 h-4" />
-                <span className="font-medium">{daysUntilDue} days left</span>
+                <span className="font-medium">{daysUntilDue} {t('days_left')}</span>
               </div>
             </div>
           </div>
@@ -115,13 +128,13 @@ export default function CustomerDashboard({
               className="px-6 py-3 text-[14px] font-bold rounded-xl transition-all duration-200 cursor-pointer select-none bg-white/10 border border-[var(--border-primary)] hover:bg-white/20"
               style={{ color: 'var(--text-primary)', backdropFilter: 'blur(8px)' }}
             >
-              Repay
+              {t('repay')}
             </button>
             <button
               onClick={onApplyLoanClick}
               className="premium-btn-primary px-6 py-3 text-[14px] select-none"
             >
-              Apply Loan
+              {t('apply_loan')}
             </button>
           </div>
         </div>
@@ -158,13 +171,13 @@ export default function CustomerDashboard({
         <div className="flex justify-between items-center pb-3 border-b border-[var(--border-primary)] mb-4">
           <div className="flex items-center gap-2">
             <Clock className="w-4.5 h-4.5 text-[var(--text-secondary)]" />
-            <h3 className="text-[15px] font-bold text-[var(--text-primary)] uppercase tracking-wider">Recent History</h3>
+            <h3 className="text-[15px] font-bold text-[var(--text-primary)] uppercase tracking-wider">{t('recent_history')}</h3>
           </div>
           <button
             onClick={() => onSetActiveMenu('loans')}
             className="text-[var(--text-secondary)] font-bold hover:underline text-[12px] cursor-pointer"
           >
-            View All
+            {t('view_all')}
           </button>
         </div>
 
@@ -184,7 +197,7 @@ export default function CustomerDashboard({
                       {isPositive ? <ArrowDownLeft className="w-4.5 h-4.5" /> : <ArrowUpRight className="w-4.5 h-4.5" />}
                     </div>
                     <div>
-                      <span className="text-[14px] font-extrabold text-[var(--text-primary)] block">{tx.title}</span>
+                      <span className="text-[14px] font-extrabold text-[var(--text-primary)] block">{getTxTitle(tx.title)}</span>
                       <span className="text-[11px] text-[var(--text-tertiary)] block mt-0.5">{tx.date}</span>
                     </div>
                   </div>
