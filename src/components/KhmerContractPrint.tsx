@@ -156,7 +156,7 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex flex-col z-50 overflow-y-auto no-print">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex flex-col z-50 overflow-y-auto khmer-contract-editor-modal">
       
       {/* Dynamic Scoped Print CSS */}
       <style dangerouslySetInnerHTML={{ __html: `
@@ -186,6 +186,15 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
         }
 
         @media print {
+          .khmer-contract-editor-modal {
+            background: transparent !important;
+            padding: 0 !important;
+            position: relative !important;
+            overflow: visible !important;
+            height: auto !important;
+            min-height: auto !important;
+            display: block !important;
+          }
           .printable-contract-container {
             position: absolute;
             left: 0;
