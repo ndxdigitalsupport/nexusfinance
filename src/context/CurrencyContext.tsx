@@ -124,6 +124,10 @@ const translations: Record<string, { en: string; kh: string }> = {
   'total_repayments_collected': { en: 'Total Repayments Collected', kh: 'ប្រាក់សងសរុបប្រមូលបាន' },
   'total_interest_earned': { en: 'Total Interest Earned', kh: 'ការប្រាក់សរុបទទួលបាន' },
   'settled_status': { en: 'Settled Status', kh: 'ស្ថានភាពទូទាត់រួច' },
+  'no_outstanding_loans': { en: 'No outstanding loans match your filters.', kh: 'គ្មានឥណទានសមតុល្យជំពាក់ណាត្រូវនឹងតម្រងរបស់អ្នកឡើយ។' },
+  'no_repayment_logs': { en: 'No repayment logs match your filters.', kh: 'គ្មានកំណត់ត្រាប្រតិបត្តិការសងប្រាក់ណាត្រូវនឹងតម្រងរបស់អ្នកឡើយ។' },
+  'no_overdue_accounts': { en: 'No overdue accounts match your filters.', kh: 'គ្មានគណនីយឺតយ៉ាវណាត្រូវនឹងតម្រងរបស់អ្នកឡើយ។' },
+  'no_settled_loans': { en: 'No settled/paid-off loans match your filters.', kh: 'គ្មានឥណទានរួចរាល់ណាត្រូវនឹងតម្រងរបស់អ្នកឡើយ។' },
 
   // Amortization Schedule modal labels
   'loan_amortization_schedule': { en: 'Loan Amortization Schedule', kh: 'កាលវិភាគបង់រំលស់ឥណទាន' },

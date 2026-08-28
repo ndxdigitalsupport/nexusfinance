@@ -396,7 +396,7 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
               <tbody className="divide-y divide-slate-800 text-[13px]" style={{ color: 'var(--text-primary)' }}>
                 {reportsData.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-12 text-slate-500">No outstanding loans match your filters.</td>
+                    <td colSpan={7} className="text-center py-12 text-slate-500">{t('no_outstanding_loans')}</td>
                   </tr>
                 ) : (
                   reportsData.map((row: any) => (
@@ -433,7 +433,7 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
               <tbody className="divide-y divide-slate-800 text-[13px]" style={{ color: 'var(--text-primary)' }}>
                 {reportsData.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-12 text-slate-500">No repayment logs match your filters.</td>
+                    <td colSpan={5} className="text-center py-12 text-slate-500">{t('no_repayment_logs')}</td>
                   </tr>
                 ) : (
                   reportsData.map((row: any) => (
@@ -467,7 +467,7 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
               <tbody className="divide-y divide-slate-800 text-[13px]" style={{ color: 'var(--text-primary)' }}>
                 {reportsData.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-12 text-slate-500">No overdue accounts match your filters.</td>
+                    <td colSpan={7} className="text-center py-12 text-slate-500">{t('no_overdue_accounts')}</td>
                   </tr>
                 ) : (
                   reportsData.map((row: any) => (
@@ -506,7 +506,7 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
               <tbody className="divide-y divide-slate-800 text-[13px]" style={{ color: 'var(--text-primary)' }}>
                 {reportsData.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-12 text-slate-500">No settled/paid-off loans match your filters.</td>
+                    <td colSpan={7} className="text-center py-12 text-slate-500">{t('no_settled_loans')}</td>
                   </tr>
                 ) : (
                   reportsData.map((row: any) => (
