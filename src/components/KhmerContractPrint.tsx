@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { LoanApplication } from '../types';
 import { Printer, X } from 'lucide-react';
 
@@ -155,7 +156,7 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
     window.print();
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex flex-col z-50 overflow-y-auto khmer-contract-editor-modal">
       
       {/* Dynamic Scoped Print CSS */}
@@ -585,5 +586,5 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
         </div>
       </div>
     </div>
-  );
+  , document.body);
 }
