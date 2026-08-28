@@ -74,8 +74,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [registerOtpCode, setRegisterOtpCode] = useState('');
   const [registerOtpTimer, setRegisterOtpTimer] = useState(0);
 
-  // Telegram verification states
-  const [verifyMethod, setVerifyMethod] = useState<'email' | 'telegram'>('email');
+  // Telegram/SMS verification states
+  const [verifyMethod, setVerifyMethod] = useState<'email' | 'telegram' | 'sms'>('email');
   const [registeredUserId, setRegisteredUserId] = useState<number | null>(null);
   const [telegramLinked, setTelegramLinked] = useState<boolean | null>(null);
   const [tgOtpSent, setTgOtpSent] = useState(false);
@@ -174,14 +174,41 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     }
   };
 
+  // Helper to send SMS OTP code during registration
+  const sendRegisterSmsOtp = async (phoneVal: string) => {
+    try {
+      const res = await fetch(`${API}/auth/send-otp-phone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phoneVal }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to send SMS OTP.');
+      setRegisterOtpTimer(300);
+      const interval = setInterval(() => {
+        setRegisterOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
+      }, 1000);
+      showToast('OTP code sent to your phone via SMS!', 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to send SMS OTP.', 'error');
+    }
+  };
+
   // Register handler — creates user then sends OTP
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (registerPassword !== registerConfirmPassword) return showToast('Passwords do not match', 'error');
+    if (!emailVerificationRequired && !registerPhone) {
+      return showToast('Phone number is required.', 'error');
+    }
     setRegisterLoading(true);
     try {
-      const targetEmail = emailVerificationRequired ? registerEmail : '';
-      const targetPhone = emailVerificationRequired ? registerPhone : '';
+      // If email is disabled, generate a placeholder phone-based email to register
+      const targetEmail = emailVerificationRequired 
+        ? registerEmail 
+        : `${registerPhone.replace(/\D/g, '')}@nexus.local`;
+      const targetPhone = registerPhone;
+      
       const registerRes = await fetch(`${API}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -210,8 +237,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           setRegisteredUserId(registerData.user.id);
         }
         setRegisterOtpSent(true);
-        setVerifyMethod('telegram');
-        showToast('Account created! Please link your Telegram to continue.', 'success');
+        setVerifyMethod('sms'); // Default to SMS OTP verification
+        await sendRegisterSmsOtp(targetPhone);
       }
     } catch (err: any) {
       showToast(err?.message || 'Registration failed.', 'error');
@@ -225,15 +252,27 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     if (!registerOtpCode || registerOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
     setRegisterLoading(true);
     try {
-      const res = await fetch(`${API}/auth/verify-otp`, {
+      const isSms = verifyMethod === 'sms';
+      const endpoint = isSms ? `${API}/auth/verify-otp-phone` : `${API}/auth/verify-otp`;
+      
+      // If email verification is disabled, registerEmail was mapped to the target phone email
+      const targetUserEmail = emailVerificationRequired 
+        ? registerEmail 
+        : `${registerPhone.replace(/\D/g, '')}@nexus.local`;
+
+      const body = isSms
+        ? { phone: registerPhone, code: registerOtpCode }
+        : { email: targetUserEmail, code: registerOtpCode };
+
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: registerEmail, code: registerOtpCode }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Wrong code. Try again.');
       setView('login');
-      showToast('Account created! Login with your email and password.', 'success');
+      showToast('Account created! Login with your phone/email and password.', 'success');
     } catch (err: any) {
       showToast(err?.message || 'Wrong code. Try again.', 'error');
       setRegisterOtpCode('');
@@ -241,13 +280,25 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       setRegisterLoading(false);
     }
   };
+
   const handleResendRegisterOtp = async () => {
     setRegisterLoading(true);
     try {
-      const res = await fetch(`${API}/auth/send-otp`, {
+      const isSms = verifyMethod === 'sms';
+      const endpoint = isSms ? `${API}/auth/send-otp-phone` : `${API}/auth/send-otp`;
+      
+      const targetUserEmail = emailVerificationRequired 
+        ? registerEmail 
+        : `${registerPhone.replace(/\D/g, '')}@nexus.local`;
+
+      const body = isSms
+        ? { phone: registerPhone }
+        : { email: targetUserEmail };
+
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: registerEmail }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to resend OTP.');
@@ -260,10 +311,12 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     }
   };
 
-  const handleTabChange = (method: 'email' | 'telegram') => {
+  const handleTabChange = (method: 'email' | 'telegram' | 'sms') => {
     setVerifyMethod(method);
     if (method === 'telegram') {
       checkTelegramLink(true);
+    } else if (method === 'sms') {
+      sendRegisterSmsOtp(registerPhone);
     }
   };
 
@@ -909,26 +962,24 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   </div>
 
                   {/* Field: Phone Number */}
-                  {emailVerificationRequired && (
-                    <div className="space-y-1.5">
-                      <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
-                        Phone Number
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
-                          <Phone className="w-4.5 h-4.5" />
-                        </div>
-                        <input
-                          type="tel"
-                          value={registerPhone}
-                          onChange={(e) => setRegisterPhone(e.target.value)}
-                          placeholder="Enter your phone number"
-                          className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
-                          required
-                        />
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
+                      Phone Number
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
+                        <Phone className="w-4.5 h-4.5" />
                       </div>
+                      <input
+                        type="tel"
+                        value={registerPhone}
+                        onChange={(e) => setRegisterPhone(e.target.value)}
+                        placeholder="Enter your phone number"
+                        className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
+                        required
+                      />
                     </div>
-                  )}
+                  </div>
 
                   {/* Button Action */}
                   <div className="pt-2">
@@ -948,8 +999,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               ) : (
                 <div className="space-y-6">
                   {/* Tab Headers */}
-                  {emailVerificationRequired && (
-                    <div className="flex border-b border-[var(--border-primary)]/50 pb-2">
+                  <div className="flex border-b border-[var(--border-primary)]/50 pb-2">
+                    {emailVerificationRequired ? (
                       <button
                         type="button"
                         onClick={() => handleTabChange('email')}
@@ -961,26 +1012,41 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       >
                         📧 Email Verification
                       </button>
+                    ) : (
                       <button
                         type="button"
-                        onClick={() => handleTabChange('telegram')}
+                        onClick={() => handleTabChange('sms')}
                         className={`flex-1 text-center pb-2.5 text-[14px] font-bold transition-all cursor-pointer border-b-2 ${
-                          verifyMethod === 'telegram'
+                          verifyMethod === 'sms'
                             ? 'border-[var(--accent)] text-[var(--accent)]'
                             : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                         }`}
                       >
-                        📱 Telegram Verification
+                        💬 SMS Verification
                       </button>
-                    </div>
-                  )}
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleTabChange('telegram')}
+                      className={`flex-1 text-center pb-2.5 text-[14px] font-bold transition-all cursor-pointer border-b-2 ${
+                        verifyMethod === 'telegram'
+                          ? 'border-[var(--accent)] text-[var(--accent)]'
+                          : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      }`}
+                    >
+                      📱 Telegram Verification
+                    </button>
+                  </div>
 
-                  {verifyMethod === 'email' ? (
-                    /* Email OTP Form */
+                  {verifyMethod === 'email' || verifyMethod === 'sms' ? (
+                    /* Email / SMS OTP Form */
                     <form onSubmit={handleVerifyRegisterOtp} className="space-y-6">
                       <div className="text-center">
                         <p className="text-[13px] text-[var(--text-secondary)] font-medium">
-                          Enter the code sent to <strong className="text-[var(--text-primary)]">{registerEmail}</strong>
+                          Enter the code sent to{" "}
+                          <strong className="text-[var(--text-primary)]">
+                            {verifyMethod === 'sms' ? registerPhone : registerEmail}
+                          </strong>
                         </p>
                       </div>
                       <div>
@@ -1014,7 +1080,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         <button type="button" onClick={() => { setRegisterOtpSent(false); setRegisterOtpCode(''); setView('register'); }}
                           className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
                         >
-                          Use different email
+                          {verifyMethod === 'sms' ? 'Use different phone' : 'Use different email'}
                         </button>
                       </div>
                     </form>
