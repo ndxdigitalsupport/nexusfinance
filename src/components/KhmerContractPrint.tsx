@@ -137,12 +137,12 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
   const [collateral2Owner, setCollateral2Owner] = useState('');
 
   // Loan Amount / Interest (1.2 - 1.7)
-  const [loanAmountDigits, setLoanAmountDigits] = useState(`${application.amount} BAHT`);
-  const [loanAmountWords, setLoanAmountWords] = useState(`${numberToKhmerWords(application.amount)} BAHT`);
+  const [loanAmountDigits, setLoanAmountDigits] = useState(`$${application.amount}`);
+  const [loanAmountWords, setLoanAmountWords] = useState(`${numberToKhmerWords(application.amount)} ដុល្លារ`);
   const [interestRateVal, setInterestRateVal] = useState('1.5%');
   const [interestPeriod, setInterestPeriod] = useState('monthly'); // daily, weekly, monthly, other
   const [loanDuration, setLoanDuration] = useState(`${application.durationMonths} ខែ`);
-  const [adminFeeDigits, setAdminFeeDigits] = useState('0 BAHT');
+  const [adminFeeDigits, setAdminFeeDigits] = useState('$0');
   const [repaymentMethod, setRepaymentMethod] = useState('office'); // office, agent, other
   const [insuranceCoverage, setInsuranceCoverage] = useState('no'); // yes, no
 
@@ -272,7 +272,7 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
             
             {/* Party A - Lender */}
             <p>
-              <strong>ម្ចាស់បំណុល៖</strong> លោកស្រី 
+              <strong>ម្ចាស់បំណុល៖</strong> ឈ្មោះ 
               <input type="text" value={lenderName} onChange={e => setLenderName(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
               កើតថ្ងៃទី 
               <input type="text" value={lenderBirthDay} onChange={e => setLenderBirthDay(e.target.value)} className="inline-contract-input" style={{ width: '40px' }} />
