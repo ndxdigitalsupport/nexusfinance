@@ -309,51 +309,51 @@ export default function SuperAdminDashboard({
         {/* Form panel configuring parameters */}
         <form onSubmit={handleSave} className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 sm:p-8 space-y-6">
           <h3 className="text-[18px] font-sans font-bold text-[var(--text-primary)] border-b pb-2 flex items-center gap-2">
-            <Settings2 className="w-5 h-5 text-[var(--text-primary)]" /> System Parameters Adjustments
+            <Settings2 className="w-5 h-5 text-[var(--text-primary)]" /> {t('system_parameters_adjustments')}
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">Annual Interest Rate (APR %)</label>
-              <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">The default yearly interest rate applied to all new loan packages.</p>
+              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">{t('annual_interest_rate')}</label>
+              <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">{t('annual_interest_rate_desc')}</p>
               <input
                 type="number"
                 step="0.05"
                 value={editingConfig.baseInterestRate}
                 onChange={(e) => setEditingConfig((p) => ({ ...p, baseInterestRate: parseFloat(e.target.value) || 0 }))}
-                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all text-[var(--text-primary)]"
               />
             </div>
 
             <div>
-              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">Auto-Approval Limit (USD)</label>
-              <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">Maximum loan amount that can be auto-approved instantly without officer review.</p>
+              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">{t('auto_approval_limit')}</label>
+              <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">{t('auto_approval_limit_desc')}</p>
               <input
                 type="number"
                 step="500"
                 value={editingConfig.autoApproveLimit}
                 onChange={(e) => setEditingConfig((p) => ({ ...p, autoApproveLimit: parseFloat(e.target.value) || 0 }))}
-                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all text-[var(--text-primary)]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">Maximum Loan Limit (USD)</label>
-              <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">The absolute maximum amount a single customer can borrow in total.</p>
+              <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">{t('maximum_loan_limit')}</label>
+              <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">{t('maximum_loan_limit_desc')}</p>
               <input
                 type="number"
                 step="50000"
                 value={editingConfig.maxLoanAmount}
                 onChange={(e) => setEditingConfig((p) => ({ ...p, maxLoanAmount: parseFloat(e.target.value) || 0 }))}
-                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all text-[var(--text-primary)]"
               />
             </div>
 
              <div>
-               <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">Require Email Verification & Alerts</label>
-               <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">Enforces email verification checks on login/registration and enables SMTP/Brevo dispatches.</p>
+               <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1">{t('require_email_verification')}</label>
+               <p className="text-[11px] text-[var(--text-secondary)] mb-2 leading-tight">{t('require_email_verification_desc')}</p>
                <div className="flex items-center gap-2.5 mt-3.5 select-none">
                  <input
                    type="checkbox"
@@ -362,30 +362,30 @@ export default function SuperAdminDashboard({
                    onChange={(e) => setEditingConfig((p) => ({ ...p, emailVerificationRequired: e.target.checked }))}
                    className="w-5 h-5 text-[var(--accent)] focus:ring-[var(--accent)] border-[var(--border-primary)] rounded"
                  />
-                 <label htmlFor="emailVerificationToggle" className="text-[13.5px] font-semibold text-[var(--text-primary)]">Active & Enabled</label>
+                 <label htmlFor="emailVerificationToggle" className="text-[13.5px] font-semibold text-[var(--text-primary)]">{t('active_enabled')}</label>
                </div>
              </div>
           </div>
 
           <div className="border-t border-[var(--border-primary)] pt-5 space-y-4">
             <h4 className="text-[14px] font-extrabold text-[var(--text-primary)] flex items-center gap-1.5">
-              🤖 Telegram Bot Admin Controls
+              🤖 {t('telegram_bot_admin_controls')}
             </h4>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Telegram Admin Chat ID</label>
+                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">{t('telegram_admin_chat_id')}</label>
                 <input
                   type="text"
                   value={editingConfig.telegram_admin_id || ''}
                   onChange={(e) => setEditingConfig((p) => ({ ...p, telegram_admin_id: e.target.value }))}
                   placeholder="e.g. 182736452"
-                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all text-[var(--text-primary)]"
                 />
               </div>
 
               <div>
-                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Reminder Summary Reports</label>
+                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">{t('reminder_summary_reports')}</label>
                 <div className="flex items-center gap-2.5 mt-3 select-none">
                   <input
                     type="checkbox"
@@ -394,7 +394,7 @@ export default function SuperAdminDashboard({
                     onChange={(e) => setEditingConfig((p) => ({ ...p, enable_admin_reports: e.target.checked }))}
                     className="w-5 h-5 text-[var(--accent)] focus:ring-[var(--accent)] border-[var(--border-primary)] rounded"
                   />
-                  <label htmlFor="adminReportsToggle" className="text-[13.5px] font-semibold text-[var(--text-primary)]">Send Sweep Reports to Admin</label>
+                  <label htmlFor="adminReportsToggle" className="text-[13.5px] font-semibold text-[var(--text-primary)]">{t('send_sweep_reports')}</label>
                 </div>
               </div>
             </div>
@@ -402,28 +402,28 @@ export default function SuperAdminDashboard({
 
           <div className="border-t border-[var(--border-primary)] pt-5 space-y-4">
             <h4 className="text-[14px] font-extrabold text-[var(--text-primary)] flex items-center gap-1.5">
-              💬 Brevo SMS Gateway Configuration
+              💬 {t('brevo_sms_gateway')}
             </h4>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Brevo API Key</label>
+                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">{t('brevo_api_key')}</label>
                 <input
                   type="password"
                   value={editingConfig.brevo_api_key || ''}
                   onChange={(e) => setEditingConfig((p) => ({ ...p, brevo_api_key: e.target.value }))}
                   placeholder="xkeysib-..."
-                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
+                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)] bg-[var(--surface-secondary)]"
                 />
               </div>
               <div>
-                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Brevo Sender Name</label>
+                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">{t('brevo_sender_name')}</label>
                 <input
                   type="text"
                   value={editingConfig.brevo_sender_name || ''}
                   onChange={(e) => setEditingConfig((p) => ({ ...p, brevo_sender_name: e.target.value }))}
                   placeholder="e.g. NexusFinance (max 11 chars)"
-                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
+                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)] bg-[var(--surface-secondary)]"
                 />
               </div>
             </div>
@@ -433,7 +433,7 @@ export default function SuperAdminDashboard({
             <div>
               {savedMessage && (
                 <span className="font-bold text-[13px] flex items-center gap-1 animate-pulse" style={{color: 'var(--success-text)'}}>
-                  <ShieldCheck className="w-4 h-4" /> Parameters saved successfully!
+                  <ShieldCheck className="w-4 h-4" /> {t('parameters_saved')}
                 </span>
               )}
             </div>
@@ -442,7 +442,7 @@ export default function SuperAdminDashboard({
               type="submit"
               className="px-6 py-3 premium-btn-primary text-white rounded-lg text-[13.5px] font-bold cursor-pointer"
             >
-              Apply System Parameters
+              {t('apply_system_parameters')}
             </button>
           </div>
         </form>

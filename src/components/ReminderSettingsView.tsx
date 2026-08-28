@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, Trash2, Edit, Save, Bell, RefreshCw, X, Eye, HelpCircle, Clock } from 'lucide-react';
+import { PlusCircle, Trash2, Edit, Bell, RefreshCw, HelpCircle, Clock } from 'lucide-react';
 import { apiFetch } from '../api';
 import { showToast } from './Toast';
 import Modal from './Modal';
 import { SkeletonTable } from './Skeleton';
 import Pagination from './Pagination';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface ReminderSetting {
   id: number;
@@ -30,6 +31,7 @@ interface ReminderLog {
 }
 
 export default function ReminderSettingsView() {
+  const { t } = useCurrency();
   const [settings, setSettings] = useState<ReminderSetting[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -98,41 +100,41 @@ export default function ReminderSettingsView() {
   };
 
   const handleSaveReminderTime = async (newVal: string) => {
-    setReminderTime(newVal);
     setSavingTime(true);
+    setReminderTime(newVal);
     try {
       await apiFetch('/config', {
-        method: 'PATCH',
-        body: JSON.stringify({ reminder_time: newVal })
+        method: 'POST',
+        body: JSON.stringify({ reminder_time: newVal }),
       });
-      showToast('Daily trigger time updated successfully');
-    } catch {
-      showToast('Failed to update trigger time', 'error');
+      showToast('Daily reminder sweep time updated', 'success');
+    } catch (e: any) {
+      showToast(e.message || 'Failed to update sweep time', 'error');
     } finally {
       setSavingTime(false);
-    }
-  };
-
-  const fetchLogs = async () => {
-    setLoadingLogs(true);
-    try {
-      const data = await apiFetch('/reminder-logs');
-      setLogs(data);
-    } catch {
-      showToast('Failed to load reminder history logs', 'error');
-    } finally {
-      setLoadingLogs(false);
     }
   };
 
   const fetchSettings = async () => {
     try {
       const data = await apiFetch('/reminder-settings');
-      setSettings(data);
+      setSettings(data || []);
     } catch {
       showToast('Failed to load reminder settings', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchLogs = async () => {
+    setLoadingLogs(true);
+    try {
+      const data = await apiFetch('/reminder-settings/logs');
+      setLogs(data || []);
+    } catch {
+      showToast('Failed to load reminder execution logs', 'error');
+    } finally {
+      setLoadingLogs(false);
     }
   };
 
@@ -145,64 +147,79 @@ export default function ReminderSettingsView() {
   const openCreateModal = () => {
     setEditingId(null);
     setName('');
-    setDaysBefore(3);
-    setMessageTemplate(`🔔 Upcoming Installment Payment
-
-Dear {customer_name}, this is a reminder for your upcoming loan installment.
-
-📊 LOAN DETAILS
-━━━━━━━━━━━━━━━━━━
-🆔 Loan ID: #{loan_id}
-💰 Amount Due: {amount}
-📅 Due Date: {due_date}
-⏳ Time Left: {days_remaining} days
-
-Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient funds to avoid any late payment penalties.`);
+    setDaysBefore(1);
+    setMessageTemplate('Dear {customer_name}, this is a friendly reminder that your payment of {amount} for Loan #{loan_id} is due on {due_date}. ({days_remaining} days remaining). Thank you!');
     setChannel('both');
     setIsActive(true);
     setShowModal(true);
   };
 
-  const openEditModal = (setting: ReminderSetting) => {
-    setEditingId(setting.id);
-    setName(setting.name);
-    setDaysBefore(setting.days_before);
-    setMessageTemplate(setting.message_template);
-    setChannel(setting.channel);
-    setIsActive(setting.is_active);
+  const openEditModal = (s: ReminderSetting) => {
+    setEditingId(s.id);
+    setName(s.name);
+    setDaysBefore(s.days_before);
+    setMessageTemplate(s.message_template);
+    setChannel(s.channel);
+    setIsActive(s.is_active);
     setShowModal(true);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('Are you sure you want to delete this reminder rule?')) return;
+    try {
+      await apiFetch(`/reminder-settings/${id}`, { method: 'DELETE' });
+      showToast('Reminder rule deleted successfully');
+      fetchSettings();
+    } catch (e: any) {
+      showToast(e.message || 'Failed to delete reminder setting', 'error');
+    }
+  };
+
+  const toggleSettingActive = async (s: ReminderSetting) => {
+    const newVal = !s.is_active;
+    setSettings(prev => prev.map(item => item.id === s.id ? { ...item, is_active: newVal } : item));
+    try {
+      await apiFetch(`/reminder-settings/${s.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          name: s.name,
+          days_before: s.days_before,
+          message_template: s.message_template,
+          channel: s.channel,
+          is_active: newVal
+        })
+      });
+      showToast(`Reminder rule ${newVal ? 'activated' : 'disabled'}`, 'success');
+      fetchSettings();
+    } catch (e: any) {
+      showToast(e.message || 'Failed to toggle active status', 'error');
+      fetchSettings();
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !messageTemplate.trim()) {
-      return showToast('Name and template are required', 'error');
-    }
+    if (!name.trim()) return showToast('Rule name is required', 'error');
+    if (!messageTemplate.trim()) return showToast('Message template is required', 'error');
+
     setSubmitting(true);
     try {
-      const body = {
-        name,
-        days_before: Number(daysBefore),
-        message_template: messageTemplate,
-        channel,
-        is_active: isActive,
-      };
-
+      const payload = { name, days_before: daysBefore, message_template: messageTemplate, channel, is_active: isActive };
       if (editingId) {
         await apiFetch(`/reminder-settings/${editingId}`, {
-          method: 'PATCH',
-          body: JSON.stringify(body),
+          method: 'PUT',
+          body: JSON.stringify(payload)
         });
         showToast('Reminder rule updated successfully');
       } else {
         await apiFetch('/reminder-settings', {
           method: 'POST',
-          body: JSON.stringify(body),
+          body: JSON.stringify(payload)
         });
         showToast('Reminder rule created successfully');
       }
       setShowModal(false);
-      await fetchSettings();
+      fetchSettings();
     } catch (e: any) {
       showToast(e.message || 'Failed to save reminder rule', 'error');
     } finally {
@@ -210,33 +227,8 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this reminder rule?')) return;
-    try {
-      await apiFetch(`/reminder-settings/${id}`, { method: 'DELETE' });
-      showToast('Reminder rule deleted');
-      await fetchSettings();
-    } catch (e: any) {
-      showToast(e.message || 'Failed to delete reminder rule', 'error');
-    }
-  };
-
-  const toggleSettingActive = async (setting: ReminderSetting) => {
-    try {
-      await apiFetch(`/reminder-settings/${setting.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ is_active: !setting.is_active }),
-      });
-      showToast(`${setting.name} has been ${!setting.is_active ? 'enabled' : 'disabled'}`);
-      await fetchSettings();
-    } catch (e: any) {
-      showToast(e.message || 'Failed to update rule status', 'error');
-    }
-  };
-
-  // Preview renderer helper
   const renderPreview = (template: string) => {
-    const days = Number(daysBefore) || 0;
+    const days = daysBefore;
     const today = new Date();
     const mockDueDate = new Date();
     mockDueDate.setDate(today.getDate() + days);
@@ -282,12 +274,18 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
   const totalLogsPages = Math.ceil(logs.length / logsPerPage) || 1;
   const paginatedLogs = logs.slice((logsPage - 1) * logsPerPage, logsPage * logsPerPage);
 
+  const getChannelText = (ch: string) => {
+    if (ch === 'telegram') return t('telegram_only');
+    if (ch === 'in_app') return t('in_app_only');
+    return t('telegram_in_app');
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-[28px] font-extrabold text-[var(--text-primary)]">Custom Reminders</h2>
-          <p className="text-[13.5px] text-[var(--text-secondary)]">Configure scheduled push alerts and notifications for active loans.</p>
+          <h2 className="text-[28px] font-extrabold text-[var(--text-primary)]">{t('custom_reminders')}</h2>
+          <p className="text-[13.5px] text-[var(--text-secondary)]">{t('custom_reminders_desc')}</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -301,7 +299,7 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
             onClick={openCreateModal}
             className="flex items-center gap-2 bg-[var(--accent)] hover:brightness-105 text-[#0F171C] text-[13.5px] font-bold px-4.5 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-[var(--accent)]/10 cursor-pointer"
           >
-            <PlusCircle className="w-4.5 h-4.5" /> Create Reminder Rule
+            <PlusCircle className="w-4.5 h-4.5" /> {t('create_reminder_rule')}
           </button>
         </div>
       </div>
@@ -310,20 +308,20 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
         <div className="flex items-center gap-2.5">
           <Clock className="w-5 h-5 text-[var(--accent)]" />
           <div>
-            <h4 className="text-[13.5px] font-bold text-[var(--text-primary)]">Automated Sweep Schedule</h4>
-            <p className="text-[12px] text-[var(--text-secondary)]">Daily reminder scans will run automatically at your configured time.</p>
+            <h4 className="text-[13.5px] font-bold text-[var(--text-primary)]">{t('automated_sweep_schedule')}</h4>
+            <p className="text-[12px] text-[var(--text-secondary)]">{t('sweep_schedule_desc')}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <label className="text-[13px] font-bold text-[var(--text-primary)]">Trigger Time:</label>
+          <label className="text-[13px] font-bold text-[var(--text-primary)]">{t('trigger_time_label')}</label>
           <input
             type="time"
             value={reminderTime}
             onChange={(e) => handleSaveReminderTime(e.target.value)}
             disabled={savingTime}
-            className="bg-[var(--surface-secondary)] border border-[var(--border-primary)] px-3 py-1.5 rounded-lg text-[13.5px] font-mono focus:outline-none focus:border-[var(--accent)] transition-all cursor-pointer"
+            className="bg-[var(--surface-secondary)] border border-[var(--border-primary)] px-3 py-1.5 rounded-lg text-[13.5px] font-mono focus:outline-none focus:border-[var(--accent)] transition-all cursor-pointer text-[var(--text-primary)]"
           />
-          {savingTime && <span className="text-[12px] text-[var(--text-secondary)] animate-pulse">Saving...</span>}
+          {savingTime && <span className="text-[12px] text-[var(--text-secondary)] animate-pulse">{t('saving')}</span>}
         </div>
       </div>
 
@@ -332,18 +330,18 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
           <table className="w-full text-[13.5px] text-left border-collapse">
             <thead>
               <tr className="border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/50 select-none">
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">Rule Name</th>
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-center">Days Relative to Due</th>
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">Delivery Channels</th>
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-center">Active Status</th>
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-right">Actions</th>
+                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">{t('rule_name_header')}</th>
+                <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-center">{t('days_relative_to_due')}</th>
+                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">{t('delivery_channels')}</th>
+                <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-center">{t('active_status_header')}</th>
+                <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-right">{t('actions_header')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border-primary)]">
               {paginatedSettings.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-[var(--text-tertiary)] bg-[var(--surface-card)]">
-                    No reminder rules configured yet. Click "Create Reminder Rule" to get started.
+                    {t('no_reminder_rules')}
                   </td>
                 </tr>
               ) : (
@@ -356,32 +354,26 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
                     <td className="px-6 py-4.5 text-center font-mono text-[12.5px] font-bold">
                       {setting.days_before > 0 ? (
                         <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                          +{setting.days_before} days
+                          +{setting.days_before} {t('days_label')}
                         </span>
                       ) : setting.days_before === 0 ? (
                         <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                          Due Date
+                          {t('due_date')}
                         </span>
                       ) : (
                         <span className="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-500 border border-rose-500/20">
-                          {Math.abs(setting.days_before)} days overdue
+                          {Math.abs(setting.days_before)} {t('days_overdue_label')}
                         </span>
                       )}
                     </td>
                     <td className="px-6 py-4.5">
-                      {setting.channel === 'telegram' ? (
-                        <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-[#0088cc]/10 text-[#0088cc] border border-[#0088cc]/20">
-                          Telegram Only
-                        </span>
-                      ) : setting.channel === 'in_app' ? (
-                        <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                          In-App Only
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20">
-                          Telegram & In-App
-                        </span>
-                      )}
+                      <span className={`px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider border ${
+                        setting.channel === 'telegram' ? 'bg-[#0088cc]/10 text-[#0088cc] border-[#0088cc]/20' :
+                        setting.channel === 'in_app' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                        'bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/20'
+                      }`}>
+                        {getChannelText(setting.channel)}
+                      </span>
                     </td>
                     <td className="px-6 py-4.5 text-center">
                       <button
@@ -389,7 +381,7 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
                         className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold cursor-pointer transition ${setting.is_active ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-[var(--surface-secondary)] text-[var(--text-tertiary)] border border-[var(--border-primary)]'}`}
                       >
                         <span className={`w-2 h-2 rounded-full ${setting.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}`}></span>
-                        {setting.is_active ? 'Active' : 'Disabled'}
+                        {setting.is_active ? t('active_status') : t('disabled_status')}
                       </button>
                     </td>
                     <td className="px-6 py-4.5 text-right space-x-2">
@@ -425,17 +417,17 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
         <div className="flex items-center justify-between border-b border-[var(--border-primary)] pb-4">
           <div>
             <h3 className="text-[18px] font-sans font-bold text-[var(--text-primary)] flex items-center gap-2">
-              <Bell className="w-5 h-5 text-[var(--accent)]" /> Sent Reminders History
+              <Bell className="w-5 h-5 text-[var(--accent)]" /> {t('sent_reminders_history') || 'Sent Reminders History'}
             </h3>
             <p className="text-[13px] text-[var(--text-secondary)]">Live log of automated relative payment notifications dispatched to customers.</p>
           </div>
           <button
             onClick={fetchLogs}
             disabled={loadingLogs}
-            className="p-2 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] transition cursor-pointer"
+            className="p-2 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] transition cursor-pointer bg-[var(--surface-secondary)]"
             title="Refresh logs"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loadingLogs ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 text-[var(--text-secondary)] ${loadingLogs ? 'animate-spin' : ''}`} />
           </button>
         </div>
 
@@ -443,11 +435,11 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
           <table className="w-full text-[13.5px] text-left border-collapse">
             <thead>
               <tr className="border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/50 select-none">
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">Timestamp</th>
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">Customer</th>
+                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">{t('time_header')}</th>
+                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">{t('customer_role')}</th>
                 <th className="px-6 py-4 font-bold text-[var(--text-primary)]">Loan ID</th>
                 <th className="px-6 py-4 font-bold text-[var(--text-primary)]">Rule Match</th>
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-center">Channel</th>
+                <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-center">{t('delivery_channels')}</th>
                 <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-center">Status</th>
               </tr>
             </thead>
@@ -521,7 +513,7 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
           <div className="flex justify-between items-start border-b border-[var(--border-primary)] pb-4">
             <div>
               <h3 className="text-[22px] font-extrabold text-[var(--text-primary)]">
-                {editingId ? 'Edit Reminder Rule' : 'Create Reminder Rule'}
+                {editingId ? t('edit_reminder_rule') : t('create_reminder_rule')}
               </h3>
               <p className="text-[13px] text-[var(--text-secondary)] mt-0.5">Customize trigger conditions and notification templates dynamically.</p>
             </div>
@@ -531,24 +523,24 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
             {/* Left Column: Inputs */}
             <div className="md:col-span-7 space-y-4">
               <div>
-                <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5">Rule Name</label>
+                <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5">{t('rule_name_header')}</label>
                 <input
                   value={name}
                   onChange={e => setName(e.target.value)}
                   placeholder="e.g. 3 Days Payment Warning"
-                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] focus:outline-none focus:border-[var(--accent)]"
+                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5">Trigger (Days before due)</label>
+                  <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5">{t('trigger_days_before')}</label>
                   <input
                     type="number"
                     value={daysBefore}
                     onChange={e => setDaysBefore(Number(e.target.value))}
                     placeholder="e.g. 3, 0 or -1"
-                    className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)]"
+                    className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
                   />
                   <span className="text-[10.5px] text-[var(--text-tertiary)] block mt-1">
                     0 for due date, negative numbers for overdue.
@@ -556,14 +548,14 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
                 </div>
 
                 <div className="relative" ref={selectRef}>
-                  <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5 select-none">Delivery Channel</label>
+                  <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5 select-none">{t('delivery_channels')}</label>
                   <button
                     type="button"
                     onClick={() => setIsSelectOpen(!isSelectOpen)}
                     className="w-full flex items-center justify-between bg-[var(--surface-secondary)] border border-[var(--border-primary)] hover:border-[var(--accent)] p-3 rounded-xl text-[14px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition cursor-pointer select-none"
                   >
                     <span>
-                      {channel === 'both' ? 'Telegram & In-App' : channel === 'telegram' ? 'Telegram Only' : 'In-App Notification Only'}
+                      {getChannelText(channel)}
                     </span>
                     <svg className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-200 ${isSelectOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                   </button>
@@ -571,9 +563,9 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
                   {isSelectOpen && (
                     <div className="absolute left-0 w-full mt-1.5 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl shadow-xl z-50 overflow-hidden backdrop-blur-md animate-in fade-in duration-100 slide-in-from-top-2">
                       {[
-                        { value: 'both', label: 'Telegram & In-App' },
-                        { value: 'telegram', label: 'Telegram Only' },
-                        { value: 'in_app', label: 'In-App Notification Only' }
+                        { value: 'both', label: t('telegram_in_app') },
+                        { value: 'telegram', label: t('telegram_only') },
+                        { value: 'in_app', label: t('in_app_only') }
                       ].map(opt => (
                         <button
                           key={opt.value}
@@ -597,9 +589,9 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
 
               <div>
                 <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5 flex justify-between">
-                  <span>Message Template</span>
+                  <span>{t('message_template_label')}</span>
                   <span className="text-[10.5px] text-[var(--accent)] flex items-center gap-0.5 cursor-help" title="Placeholders list: {loan_id}, {amount}, {due_date}, {days_remaining}, {days_overdue}, {customer_name}">
-                    <HelpCircle className="w-3.5 h-3.5" /> Template Variables Helper
+                    <HelpCircle className="w-3.5 h-3.5" /> {t('template_vars_helper')}
                   </span>
                 </label>
                 <textarea
@@ -608,13 +600,13 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
                   onChange={e => setMessageTemplate(e.target.value)}
                   rows={5}
                   placeholder="Compose template here..."
-                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[13.5px] font-mono focus:outline-none focus:border-[var(--accent)]"
+                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[13.5px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
                 />
               </div>
 
               {/* Clickable Variable badged list */}
               <div>
-                <span className="block text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-wider mb-2 select-none">Click to Insert Variables</span>
+                <span className="block text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-wider mb-2 select-none">{t('click_insert_vars')}</span>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { token: '{loan_id}', desc: 'Loan ID' },
@@ -646,7 +638,7 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
                   className="w-4.5 h-4.5 text-[var(--accent)] focus:ring-[var(--accent)] border-[var(--border-primary)] rounded cursor-pointer"
                 />
                 <label htmlFor="is_active" className="text-[13px] font-bold text-[var(--text-primary)] cursor-pointer">
-                  Enable this reminder rule immediately
+                  {t('enable_rule_immediately')}
                 </label>
               </div>
             </div>
@@ -702,8 +694,6 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
                             🚀 Open NexusFinance
                           </span>
                         </div>
-
-                        {/* Removed timestamp & status ticks */}
                       </div>
                     </div>
                   </div>
@@ -738,7 +728,7 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
             <button
               type="button"
               onClick={() => setShowModal(false)}
-              className="px-5 py-2.5 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] font-bold text-[13.5px] cursor-pointer"
+              className="px-5 py-2.5 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] font-bold text-[13.5px] cursor-pointer bg-[var(--surface-secondary)]"
             >
               Cancel
             </button>
@@ -747,7 +737,7 @@ Thank you for choosing Nexus Finance. Please ensure your wallet has sufficient f
               disabled={submitting}
               className="px-5 py-2.5 rounded-lg bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] font-bold text-[13.5px] cursor-pointer disabled:opacity-50"
             >
-              {submitting ? 'Saving...' : 'Save Rule'}
+              {submitting ? t('saving') : t('save_selection')}
             </button>
           </div>
         </form>

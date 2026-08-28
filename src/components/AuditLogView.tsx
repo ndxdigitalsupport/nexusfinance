@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { ClipboardList, Clock, User, Shield, Info, FileText, Calendar, Mail } from 'lucide-react';
+import { ClipboardList, Clock, Shield, Info, Calendar, Mail } from 'lucide-react';
 import Pagination from './Pagination';
 import { showToast } from './Toast';
 import Modal from './Modal';
-
 import { apiFetch } from '../api';
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function AuditLogView() {
+  const { t } = useCurrency();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -26,13 +27,22 @@ export default function AuditLogView() {
 
   const actionLabel = (action: string) => {
     const map: Record<string, string> = {
-      'loan-approved': 'Loan Approved', 'loan-rejected': 'Loan Rejected', 'loan-held': 'Loan Held',
-      'role-changed': 'Role Changed', 'config-updated': 'Config Updated',
-      'reminder-setting-created': 'Reminder Created', 'reminder-setting-updated': 'Reminder Updated',
-      'reminder-setting-deleted': 'Reminder Deleted', 'broadcast-sent': 'Broadcast Sent',
-      'webhook-registered': 'Webhook Registered', 'password-reset-link': 'Reset Link Sent',
-      'document-uploaded': 'Document Uploaded', 'payment-approved': 'Payment Approved',
-      'otp-sent': 'OTP Sent', 'otp-verified': 'OTP Verified', 'login': 'User Login'
+      'loan-approved': t('loan_approved'), 
+      'loan-rejected': t('loan_rejected'), 
+      'loan-held': t('loan_held'),
+      'role-changed': t('role_changed'), 
+      'config-updated': t('config_updated'),
+      'reminder-setting-created': t('reminder_created'), 
+      'reminder-setting-updated': t('reminder_updated'),
+      'reminder-setting-deleted': t('reminder_deleted'), 
+      'broadcast-sent': t('broadcast_sent'),
+      'webhook-registered': t('webhook_registered'), 
+      'password-reset-link': t('reset_link_sent'),
+      'document-uploaded': t('document_uploaded'), 
+      'payment-approved': t('payment_approved'),
+      'otp-sent': t('otp_sent'), 
+      'otp-verified': t('otp_verified'), 
+      'login': t('user_login')
     };
     return map[action] || action;
   };
@@ -52,8 +62,8 @@ export default function AuditLogView() {
     <div className="animate-in fade-in duration-200">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-[28px] font-extrabold text-[var(--text-primary)]">Audit Log</h2>
-          <p className="text-[13px] text-[var(--text-secondary)] mt-1">Real-time ledger audit trail of platform events, configuration changes, and actions.</p>
+          <h2 className="text-[28px] font-extrabold text-[var(--text-primary)]">{t('audit_log')}</h2>
+          <p className="text-[13px] text-[var(--text-secondary)] mt-1">{t('audit_log_desc')}</p>
         </div>
       </div>
 
@@ -69,10 +79,10 @@ export default function AuditLogView() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-[var(--surface-secondary)] text-[11px] uppercase tracking-wider text-[var(--text-secondary)] font-bold border-b border-[var(--border-primary)]">
-                  <th className="px-6 py-4">Action</th>
-                  <th className="px-6 py-4">Details</th>
-                  <th className="px-6 py-4">By</th>
-                  <th className="px-6 py-4">Time</th>
+                  <th className="px-6 py-4">{t('action_header')}</th>
+                  <th className="px-6 py-4">{t('details_header')}</th>
+                  <th className="px-6 py-4">{t('by_header')}</th>
+                  <th className="px-6 py-4">{t('time_header')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border-secondary)]">
@@ -170,7 +180,7 @@ export default function AuditLogView() {
             <div className="flex justify-end pt-2 border-t border-[var(--border-primary)]">
               <button
                 onClick={() => setSelectedLog(null)}
-                className="px-4 py-2 text-[13px] font-bold bg-[var(--surface-secondary)] text-[var(--text-primary)] rounded-xl border border-[var(--border-primary)] hover:bg-[var(--surface-tertiary)] transition-colors cursor-pointer"
+                className="px-4 py-2 text-[13px] font-bold bg-[var(--surface-secondary)] text-[var(--text-primary)] rounded-xl border border-[var(--border-primary)] hover:bg-[var(--surface-tertiary)] transition-colors cursor-pointer bg-[var(--surface-secondary)]"
               >
                 Close Details
               </button>
@@ -391,7 +401,7 @@ function parseAuditExplanation(log: any) {
   // Fallback for normal text details
   return (
     <div className="p-4 rounded-2xl bg-[var(--surface-secondary)] border border-[var(--border-primary)] flex items-start gap-2.5">
-      <FileText className="w-5 h-5 text-[var(--accent)] shrink-0 mt-0.5" />
+      <ClipboardList className="w-5 h-5 text-[var(--accent)] shrink-0 mt-0.5" />
       <p className="text-[13.5px] text-[var(--text-primary)] font-bold leading-relaxed">{details}</p>
     </div>
   );

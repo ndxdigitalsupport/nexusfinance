@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Send, Megaphone, Users, RefreshCw, Eye, MessageSquare, AlertTriangle, User, Search, Check, X } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Send, Megaphone, Users, RefreshCw, MessageSquare, AlertTriangle, Search, Check, X } from 'lucide-react';
 import { apiFetch } from '../api';
 import { showToast } from './Toast';
 import Modal from './Modal';
 import { SkeletonTable } from './Skeleton';
 import Pagination from './Pagination';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface BroadcastRecord {
   id: number;
@@ -21,6 +22,7 @@ interface BroadcastRecord {
 }
 
 export default function BroadcastView() {
+  const { t } = useCurrency();
   const [broadcasts, setBroadcasts] = useState<BroadcastRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -111,21 +113,19 @@ export default function BroadcastView() {
     }
   };
 
-  const formatTarget = (t: string) => {
-    if (t === 'all') return 'All Users';
-    if (t === 'linked') return 'Telegram Linked';
-    if (t.startsWith('role:')) {
-      const role = t.split(':')[1];
-      return `${role.charAt(0).toUpperCase() + role.slice(1)}s`;
-    }
-    if (t.startsWith('user:')) {
-      const uid = Number(t.split(':')[1]);
+  const formatTarget = (tVal: string) => {
+    if (tVal === 'all') return t('all_registered_users');
+    if (tVal === 'linked') return t('telegram_linked_users');
+    if (tVal === 'role:customer') return t('customers_only');
+    if (tVal === 'role:loan-officer') return t('loan_officers_only');
+    if (tVal.startsWith('user:')) {
+      const uid = Number(tVal.split(':')[1]);
       const found = users.find(x => x.id === uid);
       return found ? `${found.name} (${found.email})` : `User ID: ${uid}`;
     }
-    if (t.startsWith('users:')) {
-      const uids = t.split(':')[1].split(',').map(id => Number(id.trim())).filter(id => !isNaN(id) && id > 0);
-      if (uids.length === 0) return 'Selected Customer';
+    if (tVal.startsWith('users:')) {
+      const uids = tVal.split(':')[1].split(',').map(id => Number(id.trim())).filter(id => !isNaN(id) && id > 0);
+      if (uids.length === 0) return t('selected_customer');
       const selectedNames = uids.map(uid => {
         const found = users.find(x => x.id === uid);
         return found ? found.name : `ID: ${uid}`;
@@ -133,15 +133,15 @@ export default function BroadcastView() {
       if (selectedNames.length <= 2) return selectedNames.join(', ');
       return `${uids.length} Customers Selected`;
     }
-    return t;
+    return tVal;
   };
 
-  const getSelectedUserIds = (t: string): number[] => {
-    if (t.startsWith('user:')) {
-      return [Number(t.split(':')[1])];
+  const getSelectedUserIds = (tVal: string): number[] => {
+    if (tVal.startsWith('user:')) {
+      return [Number(tVal.split(':')[1])];
     }
-    if (t.startsWith('users:')) {
-      return t.split(':')[1].split(',').map(Number).filter(id => !isNaN(id) && id > 0);
+    if (tVal.startsWith('users:')) {
+      return tVal.split(':')[1].split(',').map(Number).filter(id => !isNaN(id) && id > 0);
     }
     return [];
   };
@@ -213,11 +213,17 @@ export default function BroadcastView() {
   const totalPages = Math.ceil(broadcasts.length / itemsPerPage) || 1;
   const paginatedBroadcasts = broadcasts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  const getChannelLabel = (ch: string) => {
+    if (ch === 'both') return t('telegram_in_app_alerts');
+    if (ch === 'telegram') return t('telegram_direct_only');
+    return t('in_app_feed_only');
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       <div>
-        <h2 className="text-[28px] font-extrabold text-[var(--text-primary)]">Broadcast Desk</h2>
-        <p className="text-[13.5px] text-[var(--text-secondary)]">Send real-time alerts and bulk messages to platform users.</p>
+        <h2 className="text-[28px] font-extrabold text-[var(--text-primary)]">{t('broadcast_desk')}</h2>
+        <p className="text-[13.5px] text-[var(--text-secondary)]">{t('broadcast_desk_desc')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -225,25 +231,19 @@ export default function BroadcastView() {
         {/* Compose Form */}
         <form onSubmit={handleSendClick} className="lg:col-span-5 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 space-y-5">
           <h3 className="text-[18px] font-sans font-bold text-[var(--text-primary)] border-b pb-2 flex items-center gap-2 select-none">
-            <Megaphone className="w-5 h-5 text-[var(--text-primary)]" /> Compose Broadcast
+            <Megaphone className="w-5 h-5 text-[var(--text-primary)]" /> {t('compose_broadcast')}
           </h3>
 
           <div className="space-y-4">
             <div className="relative" ref={targetSelectRef}>
-              <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5 select-none">Target Audience</label>
+              <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5 select-none">{t('target_audience')}</label>
               <button
                 type="button"
                 onClick={() => setTargetSelectOpen(!targetSelectOpen)}
                 className="w-full flex items-center justify-between bg-[var(--surface-secondary)] border border-[var(--border-primary)] hover:border-[var(--accent)] p-3 rounded-xl text-[14px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition cursor-pointer select-none"
               >
                 <span>
-                  {target === 'all' ? 'All Registered Users' :
-                   target === 'linked' ? 'Telegram Linked Users Only' :
-                   target === 'role:customer' ? 'Customers Only' :
-                   target === 'role:loan-officer' ? 'Loan Officers Only' :
-                   (target.startsWith('user:') || target.startsWith('users:')) ? (() => {
-                     return formatTarget(target);
-                   })() : 'Select Target Audience'}
+                  {formatTarget(target)}
                 </span>
                 <svg className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-200 ${targetSelectOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
               </button>
@@ -251,11 +251,11 @@ export default function BroadcastView() {
               {targetSelectOpen && (
                 <div className="absolute left-0 w-full mt-1.5 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl shadow-xl z-50 overflow-hidden backdrop-blur-md animate-in fade-in duration-100 slide-in-from-top-2">
                   {[
-                    { value: 'all', label: 'All Registered Users' },
-                    { value: 'linked', label: 'Telegram Linked Users Only' },
-                    { value: 'role:customer', label: 'Customers Only' },
-                    { value: 'role:loan-officer', label: 'Loan Officers Only' },
-                    { value: 'individual', label: 'Selected Customer...' }
+                    { value: 'all', label: t('all_registered_users') },
+                    { value: 'linked', label: t('telegram_linked_users') },
+                    { value: 'role:customer', label: t('customers_only') },
+                    { value: 'role:loan-officer', label: t('loan_officers_only') },
+                    { value: 'individual', label: t('selected_customer') }
                   ].map(opt => (
                     <button
                       key={opt.value}
@@ -304,15 +304,14 @@ export default function BroadcastView() {
             )}
 
             <div className="relative" ref={channelSelectRef}>
-              <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5 select-none">Alert Channel</label>
+              <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5 select-none">{t('alert_channel')}</label>
               <button
                 type="button"
                 onClick={() => setChannelSelectOpen(!channelSelectOpen)}
                 className="w-full flex items-center justify-between bg-[var(--surface-secondary)] border border-[var(--border-primary)] hover:border-[var(--accent)] p-3 rounded-xl text-[14px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition cursor-pointer select-none"
               >
                 <span>
-                  {channel === 'both' ? 'Telegram & In-App Alerts' :
-                   channel === 'telegram' ? 'Telegram Direct Messages Only' : 'In-App Notification Feed Only'}
+                  {getChannelLabel(channel)}
                 </span>
                 <svg className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-200 ${channelSelectOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
               </button>
@@ -320,9 +319,9 @@ export default function BroadcastView() {
               {channelSelectOpen && (
                 <div className="absolute left-0 w-full mt-1.5 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl shadow-xl z-50 overflow-hidden backdrop-blur-md animate-in fade-in duration-100 slide-in-from-top-2">
                   {[
-                    { value: 'both', label: 'Telegram & In-App Alerts' },
-                    { value: 'telegram', label: 'Telegram Direct Messages Only' },
-                    { value: 'in_app', label: 'In-App Notification Feed Only' }
+                    { value: 'both', label: t('telegram_in_app_alerts') },
+                    { value: 'telegram', label: t('telegram_direct_only') },
+                    { value: 'in_app', label: t('in_app_feed_only') }
                   ].map(opt => (
                     <button
                       key={opt.value}
@@ -344,20 +343,20 @@ export default function BroadcastView() {
             </div>
 
             <div>
-              <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1">Message Body</label>
+              <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1">{t('message_body')}</label>
               <textarea
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 rows={6}
-                placeholder="Type your message here... (Markdown supported for Telegram)"
-                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[13.5px] font-mono focus:outline-none focus:border-[var(--accent)]"
+                placeholder={t('type_message_here')}
+                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[13.5px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
               />
             </div>
 
             {/* Character warning helper */}
             <div className="flex justify-between items-center text-[11px] text-[var(--text-tertiary)]">
-              <span>{message.length} characters</span>
-              <span>Use standard markdown formatting for links and bolding</span>
+              <span>{message.length} {t('characters_label')}</span>
+              <span>{t('markdown_tip')}</span>
             </div>
           </div>
 
@@ -365,7 +364,7 @@ export default function BroadcastView() {
             type="submit"
             className="w-full py-3 premium-btn-primary rounded-lg text-[13.5px] font-bold flex items-center justify-center gap-2 cursor-pointer transition select-none"
           >
-            <Send className="w-4 h-4" /> Dispatch Broadcast Alert
+            <Send className="w-4 h-4" /> {t('send_broadcast_btn')}
           </button>
         </form>
 
@@ -373,7 +372,7 @@ export default function BroadcastView() {
         <div className="lg:col-span-7 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b pb-2 select-none">
             <h3 className="text-[16px] font-extrabold text-[var(--text-primary)] flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-[var(--text-primary)]" /> Broadcast Logs & History
+              <MessageSquare className="w-5 h-5 text-[var(--text-primary)]" /> {t('broadcast_logs_history')}
             </h3>
             <button
               onClick={fetchBroadcasts}
@@ -386,7 +385,7 @@ export default function BroadcastView() {
 
           <div className="divide-y divide-[var(--border-primary)] space-y-1 text-[13.5px] max-h-[460px] overflow-y-auto pr-1">
             {broadcasts.length === 0 ? (
-              <p className="text-[var(--text-tertiary)] text-[13px] py-8 text-center bg-[var(--surface-secondary)]/10 rounded-xl">No broadcast history found.</p>
+              <p className="text-[var(--text-tertiary)] text-[13px] py-8 text-center bg-[var(--surface-secondary)]/10 rounded-xl">{t('no_broadcast_history')}</p>
             ) : (
               paginatedBroadcasts.map((b) => (
                 <div key={b.id} className="py-4 space-y-2">
@@ -436,9 +435,9 @@ export default function BroadcastView() {
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-[18px] font-extrabold text-[var(--text-primary)]">Confirm Broadcast Dispatch</h3>
+              <h3 className="text-[18px] font-extrabold text-[var(--text-primary)]">{t('confirm_broadcast_dispatch')}</h3>
               <p className="text-[13.5px] text-[var(--text-secondary)] mt-1">
-                You are about to broadcast this alert to all users matching the selection criteria. This operation cannot be undone.
+                {t('confirm_broadcast_desc')}
               </p>
             </div>
           </div>
@@ -463,7 +462,7 @@ export default function BroadcastView() {
           <div className="flex justify-end gap-3 pt-3">
             <button
               onClick={() => setShowConfirm(false)}
-              className="px-4 py-2 border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] font-bold text-[13.5px] rounded-lg cursor-pointer"
+              className="px-4 py-2 border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] font-bold text-[13.5px] rounded-lg cursor-pointer bg-[var(--surface-secondary)]"
             >
               Cancel
             </button>
@@ -472,7 +471,7 @@ export default function BroadcastView() {
               disabled={sending}
               className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[13.5px] rounded-lg cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
             >
-              {sending ? 'Sending...' : 'Confirm & Dispatch'}
+              {sending ? 'Sending...' : t('confirm_dispatch')}
             </button>
           </div>
         </div>
@@ -484,9 +483,9 @@ export default function BroadcastView() {
           <div className="flex justify-between items-start">
             <div className="space-y-1">
               <h3 className="text-[19px] font-extrabold text-[var(--text-primary)] flex items-center gap-2">
-                <Users className="w-5 h-5 text-[var(--accent)]" /> Select Customers
+                <Users className="w-5 h-5 text-[var(--accent)]" /> {t('select_customers')}
               </h3>
-              <p className="text-[12.5px] text-[var(--text-secondary)]">Search and select one or more customers to receive the broadcast alert.</p>
+              <p className="text-[12.5px] text-[var(--text-secondary)]">{t('select_customers_desc')}</p>
             </div>
           </div>
 
@@ -499,7 +498,7 @@ export default function BroadcastView() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, email, or phone number..."
+              placeholder={t('search_users_placeholder')}
               className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] focus:border-[var(--accent)] pl-10 pr-10 py-3 rounded-xl text-[13.5px] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15 transition-all font-sans"
             />
             {searchQuery && (
@@ -520,7 +519,7 @@ export default function BroadcastView() {
               onClick={handleSelectAllFiltered}
               className="text-[var(--accent)] hover:text-[var(--accent)]/80 font-bold cursor-pointer transition"
             >
-              {filteredUsers.length > 0 && filteredUsers.every(u => tempSelectedUserIds.includes(u.id)) ? 'Deselect All Search Results' : 'Select All Search Results'}
+              {filteredUsers.length > 0 && filteredUsers.every(u => tempSelectedUserIds.includes(u.id)) ? t('deselect_all') : t('select_all_results')}
             </button>
             <span className="font-semibold text-[var(--text-primary)]">
               {tempSelectedUserIds.length} customer(s) selected
@@ -583,7 +582,7 @@ export default function BroadcastView() {
             <button
               type="button"
               onClick={() => setShowCustomerModal(false)}
-              className="px-5 py-2.5 border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] font-bold text-[13.5px] rounded-xl cursor-pointer transition"
+              className="px-5 py-2.5 border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] font-bold text-[13.5px] rounded-xl cursor-pointer transition bg-[var(--surface-secondary)]"
             >
               Cancel
             </button>
@@ -592,7 +591,7 @@ export default function BroadcastView() {
               onClick={handleSaveCustomerSelection}
               className="px-6 py-2.5 premium-btn-primary text-white font-bold text-[13.5px] rounded-xl cursor-pointer hover:shadow-lg transition"
             >
-              Save Selection
+              {t('save_selection')}
             </button>
           </div>
         </div>
