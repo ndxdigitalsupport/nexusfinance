@@ -186,13 +186,6 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
         }
 
         @media print {
-          /* Completely hide modal screen layouts */
-          body * {
-            visibility: hidden;
-          }
-          .printable-contract-container, .printable-contract-container * {
-            visibility: visible;
-          }
           .printable-contract-container {
             position: absolute;
             left: 0;

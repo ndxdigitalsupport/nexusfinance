@@ -746,8 +746,8 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                   page-break-inside: avoid !important;
                   break-inside: avoid !important;
                 }
-                /* Dynamic toggles: hide schedule print pages if printing contract */
-                .is-printing-contract-active .schedule-print-only-block {
+                /* Dynamic toggles: hide schedule modal entirely if printing contract */
+                #print-schedule-modal.is-printing-contract-active {
                   display: none !important;
                 }
                 /* Dynamic toggles: hide contract print pages if printing schedule */
