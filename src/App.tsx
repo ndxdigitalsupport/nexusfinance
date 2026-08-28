@@ -37,6 +37,7 @@ const SupportView = lazy(() => import('./components/SupportView'));
 const UsersView = lazy(() => import('./components/UsersView'));
 const OfficerRepaymentsView = lazy(() => import('./components/OfficerRepaymentsView'));
 const ReminderSettingsView = lazy(() => import('./components/ReminderSettingsView'));
+const ReportsView = lazy(() => import('./components/ReportsView'));
 const BroadcastView = lazy(() => import('./components/BroadcastView'));
 const TgSharePhone = lazy(() => import('./components/TgSharePhone'));
 
@@ -570,6 +571,8 @@ export default function App() {
               <LoanManagement applications={applications} onRefresh={refetchAll} />
             ) : activeMenu === 'repayments' ? (
               <OfficerRepaymentsView loans={applications} onRefresh={refetchAll} />
+            ) : activeMenu.startsWith('report_') ? (
+              <ReportsView activeReport={activeMenu} loans={applications} transactions={transactions} />
             ) : null
           )}
 

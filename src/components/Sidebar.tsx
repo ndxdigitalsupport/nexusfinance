@@ -1,4 +1,5 @@
-import { PlusCircle, LayoutDashboard, Landmark, CheckSquare, Settings, Users, HelpCircle, LogOut, User, ChevronRight, ClipboardList, QrCode, Bell, Megaphone } from 'lucide-react';
+import React, { useState } from 'react';
+import { PlusCircle, LayoutDashboard, Landmark, CheckSquare, Settings, Users, HelpCircle, LogOut, User, ChevronRight, ChevronDown, ClipboardList, QrCode, Bell, Megaphone, BarChart3, Receipt, Heart } from 'lucide-react';
 import { PortalType } from '../types';
 import Logo from './Logo';
 import { useCurrency } from '../context/CurrencyContext';
@@ -15,6 +16,10 @@ const s = (name: string) => `var(--${name})`;
 
 export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onApplyForLoan, onLogout }: SidebarProps) {
   const { t } = useCurrency();
+  const [reportsOpen, setReportsOpen] = useState(true);
+  const [expensesOpen, setExpensesOpen] = useState(false);
+  const [loansOpen, setLoansOpen] = useState(true);
+  const [peopleOpen, setPeopleOpen] = useState(false);
 
   const menuItems = currentPortal === 'loan-officer'
     ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'repayments', label: 'Repayments Checklist', icon: ClipboardList }]
@@ -94,6 +99,133 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
             </button>
           );
         })}
+
+        {currentPortal === 'loan-officer' && (
+          <div className="mt-4 pt-2 border-t border-[var(--sidebar-border)] space-y-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest px-3 pb-1"
+              style={{ color: s('sidebar-text-muted') }}
+            >Reports</p>
+            
+            {/* Main Reports Collapsible Button */}
+            <button onClick={() => setReportsOpen(!reportsOpen)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer group hover:bg-[var(--sidebar-active-bg)] hover:text-[var(--sidebar-text-hover)] text-[var(--sidebar-text)]"
+            >
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--sidebar-icon-bg)] text-[var(--sidebar-icon-text)] group-hover:bg-[var(--sidebar-icon-active-bg)] group-hover:text-[var(--sidebar-icon-active-text)]">
+                <BarChart3 className="w-4 h-4" />
+              </div>
+              <span className="flex-1 text-left">Reports Menu</span>
+              {reportsOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+            </button>
+
+            {/* Reports Content */}
+            {reportsOpen && (
+              <div className="pl-3 space-y-1 mt-1 border-l-2 border-[var(--sidebar-border)] ml-7">
+                
+                {/* 1. Expenses Group */}
+                <div>
+                  <button onClick={() => setExpensesOpen(!expensesOpen)}
+                    className="w-full flex items-center gap-2 py-1.5 px-2 rounded-lg text-[12.5px] font-medium text-[var(--sidebar-text)] hover:bg-[var(--sidebar-active-bg)]"
+                  >
+                    <Receipt className="w-3.5 h-3.5 text-yellow-500" />
+                    <span className="flex-1 text-left">Expenses</span>
+                    {expensesOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                  </button>
+                  {expensesOpen && (
+                    <div className="pl-4 space-y-1 mt-0.5">
+                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
+                        Expenses Report
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Loans Group */}
+                <div>
+                  <button onClick={() => setLoansOpen(!loansOpen)}
+                    className="w-full flex items-center gap-2 py-1.5 px-2 rounded-lg text-[12.5px] font-medium text-[var(--sidebar-text)] hover:bg-[var(--sidebar-active-bg)]"
+                  >
+                    <Landmark className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="flex-1 text-left">Loans</span>
+                    {loansOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                  </button>
+                  {loansOpen && (
+                    <div className="pl-4 space-y-1 mt-0.5 animate-fade-in">
+                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
+                        Loans Report
+                      </button>
+                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
+                        Loan Disbursement Report
+                      </button>
+                      
+                      {/* Active Reports */}
+                      <button onClick={() => setActiveMenu('report_outstanding')}
+                        className={`w-full flex items-center gap-1.5 text-left py-1 px-2 rounded text-[11.5px] font-semibold transition cursor-pointer ${activeMenu === 'report_outstanding' ? 'bg-[var(--sidebar-active-bg)] text-teal-400' : 'text-[var(--sidebar-text)] hover:text-teal-400'}`}
+                      >
+                        <Heart className="w-3 h-3 text-red-500 fill-red-500" />
+                        <span>Loan Outstanding Report</span>
+                      </button>
+
+                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
+                        Loan Collection Budget Report
+                      </button>
+
+                      <button onClick={() => setActiveMenu('report_payments')}
+                        className={`w-full flex items-center gap-1.5 text-left py-1 px-2 rounded text-[11.5px] font-semibold transition cursor-pointer ${activeMenu === 'report_payments' ? 'bg-[var(--sidebar-active-bg)] text-teal-400' : 'text-[var(--sidebar-text)] hover:text-teal-400'}`}
+                      >
+                        <Heart className="w-3 h-3 text-red-500 fill-red-500" />
+                        <span>Payments Report</span>
+                      </button>
+
+                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
+                        admin fee report
+                      </button>
+
+                      <button onClick={() => setActiveMenu('report_late')}
+                        className={`w-full flex items-center gap-1.5 text-left py-1 px-2 rounded text-[11.5px] font-semibold transition cursor-pointer ${activeMenu === 'report_late' ? 'bg-[var(--sidebar-active-bg)] text-teal-400' : 'text-[var(--sidebar-text)] hover:text-teal-400'}`}
+                      >
+                        <Heart className="w-3 h-3 text-red-500 fill-red-500" />
+                        <span>Loan Late Report</span>
+                      </button>
+
+                      <button onClick={() => setActiveMenu('report_paid_off')}
+                        className={`w-full flex items-center gap-1.5 text-left py-1 px-2 rounded text-[11.5px] font-semibold transition cursor-pointer ${activeMenu === 'report_paid_off' ? 'bg-[var(--sidebar-active-bg)] text-teal-400' : 'text-[var(--sidebar-text)] hover:text-teal-400'}`}
+                      >
+                        <Heart className="w-3 h-3 text-red-500 fill-red-500" />
+                        <span>Paid Off Report</span>
+                      </button>
+
+                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
+                        Loan Collectable Report
+                      </button>
+                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
+                        Print History Report
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. People Group */}
+                <div>
+                  <button onClick={() => setPeopleOpen(!peopleOpen)}
+                    className="w-full flex items-center gap-2 py-1.5 px-2 rounded-lg text-[12.5px] font-medium text-[var(--sidebar-text)] hover:bg-[var(--sidebar-active-bg)]"
+                  >
+                    <Users className="w-3.5 h-3.5 text-teal-500" />
+                    <span className="flex-1 text-left">People Report</span>
+                    {peopleOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                  </button>
+                  {peopleOpen && (
+                    <div className="pl-4 space-y-1 mt-0.5">
+                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
+                        Borrowers Report
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="px-3 py-3 border-t space-y-0.5 transition-colors duration-200"
