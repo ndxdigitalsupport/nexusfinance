@@ -249,6 +249,10 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
           padding: 0 4px !important;
           outline: none !important;
           transition: all 0.2s;
+          font-family: inherit !important;
+          font-size: inherit !important;
+          line-height: inherit !important;
+          height: auto !important;
         }
         .inline-contract-input:focus {
           border-bottom-color: #0d9488 !important;
@@ -283,6 +287,10 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
             font-size: 11.5px !important;
             line-height: 20px !important;
           }
+          .printable-contract-container p {
+            margin: 0 0 6px 0 !important;
+            padding: 0 !important;
+          }
           .printable-contract-container > * + * {
             margin-top: 12px !important;
           }
@@ -316,6 +324,10 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
             display: inline-block !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+            font-family: inherit !important;
+            font-size: inherit !important;
+            line-height: inherit !important;
+            height: auto !important;
           }
           .no-print {
             display: none !important;
