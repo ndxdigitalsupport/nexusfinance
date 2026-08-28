@@ -1,10 +1,11 @@
-// Support & Contact Portal View - Compact Height Redesign
 import React, { useState } from 'react';
 import { apiFetch } from '../api';
 import { showToast } from './Toast';
 import { Phone, Mail, Clock, MapPin, Send, Globe, MessageCircle, User, MessageSquare } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function SupportView() {
+  const { t } = useCurrency();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
@@ -30,10 +31,10 @@ export default function SupportView() {
         <div className="absolute top-0 right-0 w-60 h-60 bg-[var(--accent)]/5 rounded-full blur-3xl" />
         <div className="space-y-1 relative z-10">
           <h2 className="text-[22px] md:text-[24px] font-sans font-extrabold text-[var(--text-primary)] tracking-tight">
-            Support & Customer Care
+            {t('support_and_customer_care')}
           </h2>
           <p className="text-[13px] text-[var(--text-secondary)] font-medium max-w-xl leading-relaxed">
-            Get in touch with our support desk or send a message directly to our team.
+            {t('support_desc')}
           </p>
         </div>
       </div>
@@ -47,7 +48,7 @@ export default function SupportView() {
           <div className="space-y-4 relative z-10">
             <div>
               <h3 className="text-[16px] font-sans font-extrabold text-[var(--text-primary)] flex items-center gap-2">
-                📍 Get in Touch
+                📍 {t('get_in_touch')}
               </h3>
             </div>
 
@@ -57,7 +58,7 @@ export default function SupportView() {
                   <Phone className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Phone Number</span>
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">{t('phone_number')}</span>
                   <span className="text-[13.5px] font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent)] transition-colors">+855 81 968 581</span>
                 </div>
               </a>
@@ -67,7 +68,7 @@ export default function SupportView() {
                   <MessageCircle className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Telegram Support</span>
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">{t('telegram_support')}</span>
                   <span className="text-[13.5px] font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent)] transition-colors">@Nexusfinance_Support</span>
                 </div>
               </a>
@@ -77,7 +78,7 @@ export default function SupportView() {
                   <Mail className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Email Support</span>
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">{t('email_support')}</span>
                   <span className="text-[13.5px] font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent)] transition-colors">support@nexusfinance.asia</span>
                 </div>
               </a>
@@ -87,7 +88,7 @@ export default function SupportView() {
                   <Globe className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Official Website</span>
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">{t('official_website')}</span>
                   <span className="text-[13.5px] font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent)] transition-colors">www.nexusfinance.asia</span>
                 </div>
               </a>
@@ -97,7 +98,7 @@ export default function SupportView() {
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Corporate Address</span>
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">{t('corporate_address')}</span>
                   <span className="text-[13px] font-bold text-[var(--text-primary)] leading-normal block">OCIC, Phnom Penh, Cambodia</span>
                 </div>
               </div>
@@ -107,7 +108,7 @@ export default function SupportView() {
                   <Clock className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Business Hours</span>
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">{t('business_hours')}</span>
                   <span className="text-[13px] font-bold text-[var(--text-primary)]">Mon–Fri, 8:00 AM – 5:00 PM ICT</span>
                 </div>
               </div>
@@ -121,15 +122,15 @@ export default function SupportView() {
           <div className="space-y-4">
             <div>
               <h3 className="text-[16px] font-sans font-extrabold text-[var(--text-primary)] flex items-center gap-2">
-                ✉️ Send a Message
+                ✉️ {t('send_a_message')}
               </h3>
-              <p className="text-[11.5px] text-[var(--text-secondary)] mt-0.5">Leave us a message, and our helpdesk will respond to you within 24 hours.</p>
+              <p className="text-[11.5px] text-[var(--text-secondary)] mt-0.5">{t('send_message_desc')}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-secondary)]">Your Name</label>
+                  <label className="block text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-secondary)]">{t('your_name')}</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-tertiary)]">
                       <User className="w-3.5 h-3.5" />
@@ -138,7 +139,7 @@ export default function SupportView() {
                       type="text" 
                       value={name} 
                       onChange={e => setName(e.target.value)} 
-                      placeholder="Enter your name" 
+                      placeholder={t('enter_your_name')} 
                       required 
                       className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl pl-10 pr-4 py-2.5 text-[13px] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all font-sans font-semibold" 
                     />
@@ -146,7 +147,7 @@ export default function SupportView() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-secondary)]">Your Email Address</label>
+                  <label className="block text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-secondary)]">{t('your_email_address')}</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-tertiary)]">
                       <Mail className="w-3.5 h-3.5" />
@@ -155,7 +156,7 @@ export default function SupportView() {
                       type="email" 
                       value={email} 
                       onChange={e => setEmail(e.target.value)} 
-                      placeholder="Enter your email" 
+                      placeholder={t('enter_your_email')} 
                       required 
                       className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl pl-10 pr-4 py-2.5 text-[13px] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all font-sans font-semibold" 
                     />
@@ -164,7 +165,7 @@ export default function SupportView() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-secondary)]">Message Details</label>
+                <label className="block text-[10px] uppercase tracking-wider font-extrabold text-[var(--text-secondary)]">{t('message_details')}</label>
                 <div className="relative">
                   <div className="absolute top-3 left-3.5 pointer-events-none text-[var(--text-tertiary)]">
                     <MessageSquare className="w-3.5 h-3.5" />
@@ -172,7 +173,7 @@ export default function SupportView() {
                   <textarea 
                     value={message} 
                     onChange={e => setMessage(e.target.value)} 
-                    placeholder="Enter your message" 
+                    placeholder={t('enter_your_message')} 
                     rows={3} 
                     required 
                     className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl pl-10 pr-4 py-2.5 text-[13px] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all resize-none font-sans font-semibold" 
@@ -185,7 +186,7 @@ export default function SupportView() {
                   type="submit" 
                   className="px-6 py-3 premium-btn-primary text-white rounded-xl text-[13px] font-bold cursor-pointer flex items-center gap-2 hover:shadow-lg hover:brightness-105 active:scale-98 transition duration-200"
                 >
-                  <Send className="w-3.5 h-3.5" /> {sent ? 'Message Sent!' : 'Send Message'}
+                  <Send className="w-3.5 h-3.5" /> {sent ? t('message_sent') : t('send_message_btn')}
                 </button>
               </div>
             </form>

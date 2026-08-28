@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, Lock, Save, RefreshCw, Shield, UserCheck, MessageCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { showToast } from './Toast';
 import { SkeletonCard } from './Skeleton';
-
 import { apiFetch } from '../api';
-import { API } from '../api';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface ProfilePageProps {
   token: string;
@@ -13,6 +12,7 @@ interface ProfilePageProps {
 }
 
 export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePageProps) {
+  const { t } = useCurrency();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -117,11 +117,18 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
 
   const userInitials = name ? name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'U';
 
+  const getRoleLabel = (role: string) => {
+    if (role === 'super-admin') return t('root_administrator');
+    if (role === 'admin') return t('administrator');
+    if (role === 'loan-officer') return t('operations_officer');
+    return t('verified_client');
+  };
+
   return (
     <div className="animate-in fade-in duration-300 max-w-6xl mx-auto space-y-8">
       <div>
-        <h2 className="text-[28px] font-extrabold text-[var(--text-primary)]">Profile Settings</h2>
-        <p className="text-[13px] text-[var(--text-secondary)] mt-1">Manage your identity, settings, credentials, and verification channels.</p>
+        <h2 className="text-[28px] font-extrabold text-[var(--text-primary)]">{t('profile_settings')}</h2>
+        <p className="text-[13px] text-[var(--text-secondary)] mt-1">{t('profile_settings_desc')}</p>
       </div>
 
       {/* Row 1: Profile Card (1/3) & Personal Information (2/3) - Equal Heights */}
@@ -153,7 +160,7 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                   {user?.role || 'customer'}
                 </span>
                 <span className="premium-badge px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 flex items-center gap-1">
-                  <UserCheck className="w-3 h-3" /> Active
+                  <UserCheck className="w-3 h-3" /> {t('active_status')}
                 </span>
               </div>
             </div>
@@ -161,12 +168,12 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
             {/* Detail list items */}
             <div className="p-8 pt-0 relative border-t border-[var(--border-primary)]/50 mt-auto space-y-4 text-left">
               {showEmail && (
-              <div className={`flex items-center gap-3 ${showEmail ? '' : 'pt-6'}`}>
+                <div className={`flex items-center gap-3 ${showEmail ? '' : 'pt-6'}`}>
                   <div className="w-8 h-8 rounded-xl bg-[var(--surface-secondary)] flex items-center justify-center shrink-0 border border-[var(--border-secondary)]">
                     <Mail className="w-4 h-4 text-[var(--text-secondary)]" />
                   </div>
                   <div className="overflow-hidden w-full">
-                    <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider leading-none">Email Address</span>
+                    <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider leading-none">{t('your_email_address')}</span>
                     <span className="text-[13px] text-[var(--text-primary)] font-medium block truncate font-mono mt-0.5" title={email}>{email}</span>
                   </div>
                 </div>
@@ -177,8 +184,8 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                   <Phone className="w-4 h-4 text-[var(--text-secondary)]" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider leading-none">Phone Contact</span>
-                  <span className="text-[13px] text-[var(--text-primary)] font-medium block mt-0.5 font-mono">{phone || 'No phone set'}</span>
+                  <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider leading-none">{t('phone_contact')}</span>
+                  <span className="text-[13px] text-[var(--text-primary)] font-medium block mt-0.5 font-mono">{phone || t('no_phone_set')}</span>
                 </div>
               </div>
 
@@ -187,8 +194,8 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                   <Shield className="w-4 h-4 text-[var(--text-secondary)]" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider leading-none">Access Clearance</span>
-                  <span className="text-[13px] text-[var(--text-primary)] font-medium block mt-0.5 capitalize">{user?.role === 'super-admin' ? 'Root Administrator' : user?.role === 'admin' ? 'Administrator' : user?.role === 'loan-officer' ? 'Operations Officer' : 'Verified Client'}</span>
+                  <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider leading-none">{t('access_clearance')}</span>
+                  <span className="text-[13px] text-[var(--text-primary)] font-medium block mt-0.5 capitalize">{getRoleLabel(user?.role || 'customer')}</span>
                 </div>
               </div>
             </div>
@@ -200,13 +207,13 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
           <div className="premium-card rounded-3xl p-8 border border-[var(--border-primary)] shadow-sm hover:shadow-md transition-shadow h-full flex flex-col justify-between">
             <div>
               <h3 className="text-[16px] font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2.5">
-                <User className="w-5 h-5 text-[var(--accent)]" /> Personal Information
+                <User className="w-5 h-5 text-[var(--accent)]" /> {t('personal_information')}
               </h3>
               
               <form onSubmit={handleProfileSave} className="space-y-6">
                 <div className="grid grid-cols-1 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Full Name</label>
+                    <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">{t('full_name')}</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
                         <User className="w-4 h-4 text-[var(--text-tertiary)]" />
@@ -215,7 +222,7 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="Enter your name"
+                        placeholder={t('enter_your_name')}
                         className="premium-input w-full pl-10 pr-4 py-3 rounded-xl border border-[var(--border-primary)] focus:border-[var(--accent)] transition-all font-medium text-[13px] bg-[var(--surface-primary)]"
                       />
                     </div>
@@ -223,7 +230,7 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
 
                   {showEmail && (
                     <div className="space-y-2">
-                      <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Email Address</label>
+                      <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">{t('your_email_address')}</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
                           <Mail className="w-4 h-4 text-[var(--text-tertiary)]" />
@@ -232,7 +239,7 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Enter your email"
+                          placeholder={t('enter_your_email')}
                           className="premium-input w-full pl-10 pr-4 py-3 rounded-xl border border-[var(--border-primary)] focus:border-[var(--accent)] transition-all font-medium text-[13px] bg-[var(--surface-primary)]"
                         />
                       </div>
@@ -240,7 +247,7 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                   )}
 
                   <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Phone Contact</label>
+                    <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">{t('phone_contact')}</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
                         <Phone className="w-4 h-4 text-[var(--text-tertiary)]" />
@@ -302,7 +309,7 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
                       className="premium-btn-primary text-white text-[13px] font-bold px-6 py-3 rounded-xl cursor-pointer disabled:opacity-50 flex items-center gap-2 bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition-all"
                     >
                       {profileLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                      {profileLoading ? 'Saving...' : 'Save Profile Changes'}
+                      {profileLoading ? t('saving') : t('save_profile_changes')}
                     </button>
                   )}
                 </div>
@@ -315,25 +322,25 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
       {/* Row 2: Change Security Password Panel (Full Width) */}
       <div className="premium-card rounded-3xl p-8 border border-[var(--border-primary)] shadow-sm hover:shadow-md transition-shadow">
         <h3 className="text-[16px] font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2.5">
-          <Lock className="w-5 h-5 text-[var(--accent)]" /> Change Security Password
+          <Lock className="w-5 h-5 text-[var(--accent)]" /> {t('change_security_password')}
         </h3>
 
-            <div className="p-6 rounded-2xl bg-[var(--surface-secondary)]/50 border border-[var(--border-primary)] space-y-4">
-              <p className="text-[13px] text-[var(--text-secondary)] font-medium leading-relaxed">
-                To modify your account password, you will be redirected to our Telegram bot where you can securely verify your identity and set a new password.
-              </p>
-              <div className="flex justify-start">
-                <a
-                  href="https://t.me/nexusfinancefintech_bot?start=changepassword"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="premium-btn-primary text-white text-[13px] font-bold px-6 py-3 rounded-xl flex items-center gap-2 bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition-all"
-                >
-                  <MessageCircle className="w-4 h-4" /> Change Password via Telegram
-                </a>
-              </div>
-            </div>
+        <div className="p-6 rounded-2xl bg-[var(--surface-secondary)]/50 border border-[var(--border-primary)] space-y-4">
+          <p className="text-[13px] text-[var(--text-secondary)] font-medium leading-relaxed">
+            {t('change_password_desc')}
+          </p>
+          <div className="flex justify-start">
+            <a
+              href="https://t.me/nexusfinancefintech_bot?start=changepassword"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="premium-btn-primary text-white text-[13px] font-bold px-6 py-3 rounded-xl flex items-center gap-2 bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition-all"
+            >
+              <MessageCircle className="w-4 h-4" /> {t('change_password_via_telegram')}
+            </a>
           </div>
         </div>
-      );
-    }
+      </div>
+    </div>
+  );
+}

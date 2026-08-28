@@ -15,7 +15,7 @@ interface CurrencyContextType {
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
-const translations: Record<string, { en: string; kh: string }> = {
+export const translations: Record<string, { en: string; kh: string }> = {
   // Sidebar & Navigation
   'dashboard': { en: 'Dashboard', kh: 'ផ្ទាំងគ្រប់គ្រង' },
   'users': { en: 'Users', kh: 'អ្នកប្រើប្រាស់' },
@@ -204,6 +204,46 @@ const translations: Record<string, { en: string; kh: string }> = {
   'waiting_payment_verification': { en: 'Waiting for payment verification...', kh: 'កំពុងរង់ចាំការផ្ទៀងផ្ទាត់ការទូទាត់...' },
   'secure_via_aba_payway': { en: 'Secure via ABA PayWay', kh: 'សុវត្ថិភាពតាមរយៈ ABA PayWay' },
   'dynamic_khqr': { en: 'Dynamic KHQR', kh: 'KHQR ថាមវន្ត' },
+
+  // Profile Page
+  'profile_settings': { en: 'Profile Settings', kh: 'ការកំណត់ប្រវត្តិរូប' },
+  'profile_settings_desc': { en: 'Manage your identity, settings, credentials, and verification channels.', kh: 'គ្រប់គ្រងអត្តសញ្ញាណ ការកំណត់ ព័ត៌មានសម្ងាត់ និងបណ្តាញផ្ទៀងផ្ទាត់របស់អ្នក។' },
+  'personal_information': { en: 'Personal Information', kh: 'ព័ត៌មានផ្ទាល់ខ្លួន' },
+  'full_name': { en: 'Full Name', kh: 'ឈ្មោះ​ពេញ' },
+  'phone_contact': { en: 'Phone Contact', kh: 'លេខទូរស័ព្ទទំនាក់ទំនង' },
+  'access_clearance': { en: 'Access Clearance', kh: 'កម្រិតសិទ្ធិដំណើរការ' },
+  'save_profile_changes': { en: 'Save Profile Changes', kh: 'រក្សាទុកការផ្លាស់ប្តូរ' },
+  'saving': { en: 'Saving...', kh: 'កំពុងរក្សាទុក...' },
+  'change_security_password': { en: 'Change Security Password', kh: 'ផ្លាស់ប្តូរលេខសម្ងាត់សុវត្ថិភាព' },
+  'change_password_desc': { en: 'To modify your account password, you will be redirected to our Telegram bot where you can securely verify your identity and set a new password.', kh: 'ដើម្បីកែប្រែលេខសម្ងាត់គណនីរបស់អ្នក លោកអ្នកនឹងត្រូវបានបញ្ជូនទៅកាន់ Telegram bot របស់យើង ដែលលោកអ្នកអាចផ្ទៀងផ្ទាត់អត្តសញ្ញាណ និងកំណត់លេខសម្ងាត់ថ្មីដោយសុវត្ថិភាព។' },
+  'change_password_via_telegram': { en: 'Change Password via Telegram', kh: 'ផ្លាស់ប្តូរលេខសម្ងាត់តាម Telegram' },
+  'verified_client': { en: 'Verified Client', kh: 'អតិថិជនបានផ្ទៀងផ្ទាត់' },
+  'active_status': { en: 'Active', kh: 'សកម្ម' },
+  'no_phone_set': { en: 'No phone set', kh: 'មិនទាន់កំណត់លេខទូរស័ព្ទ' },
+  'root_administrator': { en: 'Root Administrator', kh: 'អភិបាលជាន់ខ្ពស់' },
+  'administrator': { en: 'Administrator', kh: 'អភិបាលកិច្ច' },
+  'operations_officer': { en: 'Operations Officer', kh: 'មន្ត្រីប្រតិបត្តិការ' },
+
+  // Support Page
+  'support_and_customer_care': { en: 'Support & Customer Care', kh: 'ការគាំទ្រ និងថែទាំអតិថិជន' },
+  'support_desc': { en: 'Get in touch with our support desk or send a message directly to our team.', kh: 'ទាក់ទងមកកាន់ផ្នែកគាំទ្ររបស់យើង ឬផ្ញើសារផ្ទាល់ទៅកាន់ក្រុមការងាររបស់យើង។' },
+  'get_in_touch': { en: 'Get in Touch', kh: 'ទាក់ទងមកយើង' },
+  'phone_number': { en: 'Phone Number', kh: 'លេខទូរស័ព្ទ' },
+  'telegram_support': { en: 'Telegram Support', kh: 'តេឡេក្រាមគាំទ្រ' },
+  'email_support': { en: 'Email Support', kh: 'អ៊ីមែលគាំទ្រ' },
+  'official_website': { en: 'Official Website', kh: 'គេហទំព័រផ្លូវការ' },
+  'corporate_address': { en: 'Corporate Address', kh: 'អាសយដ្ឋានក្រុមហ៊ុន' },
+  'business_hours': { en: 'Business Hours', kh: 'ម៉ោងធ្វើការ' },
+  'send_a_message': { en: 'Send a Message', kh: 'ផ្ញើសារ' },
+  'send_message_desc': { en: 'Leave us a message, and our helpdesk will respond to you within 24 hours.', kh: 'ផ្ញើសារមកកាន់យើង ហើយភ្នាក់ងាររបស់យើងនឹងឆ្លើយតបទៅលោកអ្នកវិញក្នុងរយៈពេល២៤ម៉ោង។' },
+  'your_name': { en: 'Your Name', kh: 'ឈ្មោះរបស់អ្នក' },
+  'your_email_address': { en: 'Your Email Address', kh: 'អាសយដ្ឋានអ៊ីមែលរបស់អ្នក' },
+  'message_details': { en: 'Message Details', kh: 'ព័ត៌មានលម្អិតនៃសារ' },
+  'enter_your_name': { en: 'Enter your name', kh: 'បញ្ចូលឈ្មោះរបស់អ្នក' } ,
+  'enter_your_email': { en: 'Enter your email', kh: 'បញ្ចូលអ៊ីមែលរបស់អ្នក' },
+  'enter_your_message': { en: 'Enter your message', kh: 'បញ្ចូលសាររបស់អ្នក' },
+  'send_message_btn': { en: 'Send Message', kh: 'ផ្ញើសារ' },
+  'message_sent': { en: 'Message Sent!', kh: 'សារត្រូវបានផ្ញើ!' },
 };
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {

@@ -61,7 +61,7 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
         <div className="px-4 pt-4 pb-3">
           <button onClick={onApplyForLoan} id="sidebar-apply-loan-btn"
             className="w-full bg-gradient-to-r from-[#5CF2D0] to-[#41ddbc] hover:brightness-105 text-[#0F171C] font-bold text-[14px] py-3 rounded-xl transition-all duration-200 shadow-lg shadow-[#5CF2D0]/20 flex items-center justify-center gap-2 cursor-pointer">
-            <PlusCircle className="w-4.5 h-4.5" /> Apply for Loan
+            <PlusCircle className="w-4.5 h-4.5" /> {t('apply_loan')}
           </button>
         </div>
       )}

@@ -18,7 +18,7 @@ import { LoanApplication, Task, Transaction, PlatformConfig, PlatformStats, Port
 import { DEFAULT_CONFIG, DEFAULT_STATS } from './data';
 import { API, apiFetch } from './api';
 import { downloadCSV } from './utils';
-import { CurrencyProvider } from './context/CurrencyContext';
+import { CurrencyProvider, translations } from './context/CurrencyContext';
 
 const CustomerDashboard = lazy(() => import('./components/CustomerDashboard'));
 const LoanOfficerDashboard = lazy(() => import('./components/LoanOfficerDashboard'));
@@ -84,8 +84,24 @@ function PaymentResult() {
     </div>
   );
 }
-
 export default function App() {
+  const [language, setLanguageState] = useState(() => localStorage.getItem('nexus_language') || 'en');
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'nexus_language' && e.newValue) {
+        setLanguageState(e.newValue);
+      }
+    };
+    window.addEventListener('storage', handleStorage as any);
+    return () => window.removeEventListener('storage', handleStorage as any);
+  }, []);
+
+  const t = (key: string) => {
+    const entry = translations[key];
+    if (!entry) return key;
+    return language === 'kh' ? entry.kh : entry.en;
+  };
+
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('nexus_token'));
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => localStorage.getItem('nexus_token') !== null);
   const [currentPortal, setCurrentPortal] = useState<PortalType>(() => {
@@ -440,19 +456,19 @@ export default function App() {
                     onClick={() => { setIsApplyOpen(true); setMobileMenuOpen(false); }}
                     className="w-full premium-btn-primary font-bold text-[14px] py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <PlusCircle className="w-4.5 h-4.5" /> Apply for Loan
+                    <PlusCircle className="w-4.5 h-4.5" /> {t('apply_loan')}
                   </button>
                 </div>
               )}
 
               <div className="px-3 py-3 space-y-0.5">
-                <p className="text-[10px] font-bold uppercase tracking-widest px-3 pb-2 pt-1" style={{ color: 'var(--sidebar-text-muted)' }}>Menu</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest px-3 pb-2 pt-1" style={{ color: 'var(--sidebar-text-muted)' }}>{t('menu')}</p>
                 {(() => {
                   const items = currentPortal === 'loan-officer'
-                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'repayments', label: 'Repayments Checklist', icon: ClipboardList }]
+                    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'repayments', label: t('repayments_checklist'), icon: ClipboardList }]
                     : currentPortal === 'super-admin'
-                    ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'users', label: 'Users', icon: Users }, { id: 'reminders', label: 'Reminders', icon: Bell }, { id: 'broadcast', label: 'Broadcast', icon: Megaphone }, { id: 'audit', label: 'Audit Log', icon: ClipboardList }, { id: 'settings', label: 'Settings', icon: Settings }]
-                    : [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'loans', label: 'Loans', icon: Landmark }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }];
+                    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]
+                    : [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'loans', label: t('loans'), icon: Landmark }, { id: 'khqr', label: t('khqr_payment'), icon: QrCode }];
                   return items.map((item) => {
                     const Icon = item.icon;
                     const isActive = activeMenu === item.id;
@@ -475,7 +491,7 @@ export default function App() {
                 })()}
               </div>
               <div className="px-3 py-3 border-t space-y-0.5" style={{ borderColor: 'var(--sidebar-border)' }}>
-                <p className="text-[10px] font-bold uppercase tracking-widest px-3 pb-1" style={{ color: 'var(--sidebar-text-muted)' }}>Account</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest px-3 pb-1" style={{ color: 'var(--sidebar-text-muted)' }}>{t('account')}</p>
                 <button
                   onClick={() => { setActiveMenu('profile'); setMobileMenuOpen(false); }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer group hover:bg-[var(--sidebar-active-bg)]"
@@ -486,7 +502,7 @@ export default function App() {
                   >
                     <User className="w-4 h-4" />
                   </div>
-                  Profile
+                  {t('profile')}
                 </button>
                 <button
                   onClick={() => { setActiveMenu('support'); setMobileMenuOpen(false); }}
@@ -498,7 +514,7 @@ export default function App() {
                   >
                     <HelpCircle className="w-4 h-4" />
                   </div>
-                  Support
+                  {t('support')}
                 </button>
                 <button
                   onClick={handleLogout}
