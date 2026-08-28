@@ -8,7 +8,7 @@ import {
   Timer,
   TrendingUp,
 } from 'lucide-react';
-import { Transaction } from '../types';
+import { Transaction, LoanApplication } from '../types';
 import { useCurrency } from '../context/CurrencyContext';
 
 interface CustomerDashboardProps {
@@ -19,6 +19,7 @@ interface CustomerDashboardProps {
   onApplyLoanClick: () => void;
   onSetActiveMenu: (menu: string) => void;
   onInstantApprovedFastCash: (amount: number) => void;
+  applications: LoanApplication[];
 }
 
 export default function CustomerDashboard({
@@ -28,15 +29,36 @@ export default function CustomerDashboard({
   transactions,
   onApplyLoanClick,
   onSetActiveMenu,
-  onInstantApprovedFastCash
+  onInstantApprovedFastCash,
+  applications
 }: CustomerDashboardProps) {
-  const { formatCurrency } = useCurrency();
+  const { formatCurrency, t } = useCurrency();
 
   const nextDueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   const daysUntilDue = Math.ceil((nextDueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  const loanTermMonths = 24;
-  const currentMonth = 1;
-  const progressPercent = Math.round((currentMonth / loanTermMonths) * 100);
+
+  // Dynamic active loan resolver
+  const activeLoan = applications.find(
+    (app) => 
+      ['Approved', 'Approved', 'disbursed'].includes(app.status) && 
+      app.repaymentStatus !== 'Paid'
+  );
+
+  let loanTermMonths = 24;
+  let currentMonth = 1;
+  let progressPercent = 4;
+
+  if (activeLoan) {
+    loanTermMonths = activeLoan.durationMonths || 12;
+    
+    // Calculate months passed since disbursement date
+    const startDate = new Date(activeLoan.date);
+    const currentDate = new Date();
+    const monthsPassed = (currentDate.getFullYear() - startDate.getFullYear()) * 12 + (currentDate.getMonth() - startDate.getMonth());
+    
+    currentMonth = Math.max(1, Math.min(monthsPassed + 1, loanTermMonths));
+    progressPercent = Math.round((currentMonth / loanTermMonths) * 100);
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -107,9 +129,11 @@ export default function CustomerDashboard({
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4.5 h-4.5 text-[var(--accent)]" />
-              <span className="text-[14px] font-bold text-[var(--text-primary)]">Loan Progress</span>
+              <span className="text-[14px] font-bold text-[var(--text-primary)]">{t('loan_progress')}</span>
             </div>
-            <span className="text-[12px] font-bold text-[var(--text-secondary)]">Month {currentMonth} of {loanTermMonths}</span>
+            <span className="text-[12px] font-bold text-[var(--text-secondary)]">
+              {t('month')} {currentMonth} {t('of')} {loanTermMonths}
+            </span>
           </div>
           <div className="w-full h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--surface-secondary)' }}>
             <div
@@ -118,9 +142,9 @@ export default function CustomerDashboard({
             />
           </div>
           <div className="flex justify-between mt-2 text-[11px] font-bold text-[var(--text-tertiary)]">
-            <span>Started</span>
-            <span>{progressPercent}% complete</span>
-            <span>Completed</span>
+            <span>{t('started')}</span>
+            <span>{progressPercent}% {t('complete')}</span>
+            <span>{t('completed')}</span>
           </div>
         </div>
       )}

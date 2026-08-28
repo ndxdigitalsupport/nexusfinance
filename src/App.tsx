@@ -588,6 +588,7 @@ export default function App() {
                 onApplyLoanClick={() => setIsApplyOpen(true)}
                 onSetActiveMenu={handleSetActiveMenu}
                 onInstantApprovedFastCash={handleInstantApprovedFastCash}
+                applications={applications}
               />
             ) : activeMenu === 'loans' ? (
               <LoansLedgerSection applications={applications} loanPage={loanPage} setLoanPage={setLoanPage} userEmail={portalUser?.email} transactions={transactions} txPage={txPage} setTxPage={setTxPage} />

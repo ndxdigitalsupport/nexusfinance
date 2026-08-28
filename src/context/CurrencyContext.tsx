@@ -155,6 +155,12 @@ const translations: Record<string, { en: string; kh: string }> = {
   'paid': { en: 'Paid', kh: 'បានបង់រួច' },
   'overdue': { en: 'Overdue', kh: 'ហួសកំណត់' },
   'clear': { en: 'Clear', kh: 'គ្មាន' },
+  'loan_progress': { en: 'Loan Progress', kh: 'វឌ្ឍនភាពឥណទាន' },
+  'started': { en: 'Started', kh: 'បានចាប់ផ្តើម' },
+  'completed': { en: 'Completed', kh: 'បានបញ្ចប់' },
+  'complete': { en: 'complete', kh: 'បានសម្រេច' },
+  'month': { en: 'Month', kh: 'ខែទី' },
+  'of': { en: 'of', kh: 'នៃ' },
 };
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
