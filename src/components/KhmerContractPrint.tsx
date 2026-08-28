@@ -260,10 +260,6 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
         }
 
         @media print {
-          @page {
-            size: A4;
-            margin: 1.5cm 2cm;
-          }
           .print-radio-indicator {
             display: inline-block !important;
             margin-right: 4px !important;
