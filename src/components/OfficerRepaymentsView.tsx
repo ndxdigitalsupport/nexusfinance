@@ -750,10 +750,18 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                   page-break-inside: avoid !important;
                   break-inside: avoid !important;
                 }
+                /* Dynamic toggles: hide schedule print pages if printing contract */
+                .is-printing-contract-active .schedule-print-only-block {
+                  display: none !important;
+                }
+                /* Dynamic toggles: hide contract print pages if printing schedule */
+                #print-schedule-modal:not(.is-printing-contract-active) ~ .printable-contract-container {
+                  display: none !important;
+                }
               }
             `}} />
 
-            <div id="print-schedule-modal" className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 printable-scheduler-sheet flex flex-col my-8">
+            <div id="print-schedule-modal" className={`bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 printable-scheduler-sheet flex flex-col my-8 ${isPrintingContract ? 'is-printing-contract-active' : ''}`}>
               
               {/* Modal Header */}
               <div className="px-8 py-5 border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/30 flex justify-between items-center no-print">
@@ -867,7 +875,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                 </div>
 
                 {/* ── PRINT ONLY PAGINATED CONTAINER ── */}
-                <div className="hidden print:block space-y-8">
+                <div className="hidden print:block space-y-8 schedule-print-only-block">
                   {printChunks.map((chunk, chunkIdx) => {
                     const isLastPage = chunkIdx === printChunks.length - 1;
                     
