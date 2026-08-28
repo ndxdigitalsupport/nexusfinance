@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { LoanApplication } from '../types';
 import { apiFetch } from '../api';
+import KhmerContractPrint from './KhmerContractPrint';
 
 interface OfficerRepaymentsViewProps {
   loans: LoanApplication[];
@@ -40,6 +41,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
   const [viewingScheduleLoan, setViewingScheduleLoan] = useState<LoanApplication | null>(null);
   const [scheduleInstallments, setScheduleInstallments] = useState<any[]>([]);
   const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [isPrintingContract, setIsPrintingContract] = useState(false);
 
   useEffect(() => {
     if (!viewingScheduleLoan) {
@@ -656,6 +658,14 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
           window.print();
         };
 
+        const handlePrintKhmerContract = () => {
+          setIsPrintingContract(true);
+          setTimeout(() => {
+            window.print();
+            setIsPrintingContract(false);
+          }, 300);
+        };
+
         // Split installments into chunks of up to 12 rows per page for clean, repeatable print templates
         const printChunks: any[][] = [];
         for (let i = 0; i < scheduleInstallments.length; i += 12) {
@@ -957,6 +967,14 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                   Close
                 </button>
                 <button
+                  type="button"
+                  onClick={handlePrintKhmerContract}
+                  className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-[12.5px] font-bold shadow-md hover:brightness-105 active:scale-97 cursor-pointer flex items-center gap-1.5"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Print Khmer Contract</span>
+                </button>
+                <button
                   disabled={scheduleLoading || scheduleInstallments.length === 0}
                   onClick={printAmortizationSchedule}
                   className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[12.5px] font-bold shadow-md hover:brightness-105 active:scale-97 cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
@@ -967,6 +985,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
               </div>
 
             </div>
+            {isPrintingContract && <KhmerContractPrint application={loan} />}
           </div>,
           document.body
         );

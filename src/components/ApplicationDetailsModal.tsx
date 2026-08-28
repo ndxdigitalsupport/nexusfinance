@@ -59,8 +59,7 @@ export default function ApplicationDetailsModal({
   };
 
   return (
-    <>
-      <div role="dialog" aria-modal="true" aria-label="Application details" className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto font-sans animate-in fade-in duration-150">
+    <div role="dialog" aria-modal="true" aria-label="Application details" className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto font-sans animate-in fade-in duration-150">
       <div className="bg-[var(--surface-card)] w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden border border-[var(--border-primary)] my-8 relative animate-modal-enter">
         
         {/* Header toolbar */}
@@ -190,16 +189,6 @@ export default function ApplicationDetailsModal({
             </div>
             
             <div className="flex gap-2">
-              {application.status === 'Approved' && (
-                <button
-                  type="button"
-                  onClick={handlePrintContract}
-                  className="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[13px] font-bold rounded-lg transition active:scale-95 flex items-center gap-1 cursor-pointer"
-                >
-                  📄 Print Khmer Contract
-                </button>
-              )}
-
               <button
                 disabled={submittingAction !== null}
                 onClick={() => handleActionClick('hold')}
@@ -234,8 +223,6 @@ export default function ApplicationDetailsModal({
           </div>
         </div>
       </div>
-      </div>
-      {isPrinting && createPortal(<KhmerContractPrint application={application} />, document.body)}
-    </>
+    </div>
   );
 }
