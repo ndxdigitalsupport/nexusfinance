@@ -517,7 +517,7 @@ export default function App() {
           </>
         )}
 
-        <main className="p-4 md:p-8 w-full max-w-7xl mx-auto animate-content-enter flex-1 flex flex-col justify-center">
+        <main className="p-4 md:p-8 w-full max-w-7xl mx-auto animate-content-enter flex-1 flex flex-col justify-start">
           {!isInitialLoaded ? (
             <div className="flex-1 flex items-center justify-center min-h-[50vh] p-4 select-none animate-in fade-in duration-300">
               <style>{`
