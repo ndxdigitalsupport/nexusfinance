@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlusCircle, LayoutDashboard, Landmark, CheckSquare, Settings, Users, HelpCircle, LogOut, User, ChevronRight, ChevronDown, ClipboardList, QrCode, Bell, Megaphone, BarChart3, Receipt, Heart } from 'lucide-react';
+import { PlusCircle, LayoutDashboard, Landmark, CheckSquare, Settings, Users, HelpCircle, LogOut, User, ChevronRight, ChevronDown, ClipboardList, QrCode, Bell, Megaphone, BarChart3, Receipt, Heart, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
 import { PortalType } from '../types';
 import Logo from './Logo';
 import { useCurrency } from '../context/CurrencyContext';
@@ -119,108 +119,39 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
 
             {/* Reports Content */}
             {reportsOpen && (
-              <div className="pl-3 space-y-1 mt-1 border-l-2 border-[var(--sidebar-border)] ml-7">
+              <div className="pl-3 space-y-1.5 mt-1 border-l-2 border-[var(--sidebar-border)] ml-7">
                 
-                {/* 1. Expenses Group */}
-                <div>
-                  <button onClick={() => setExpensesOpen(!expensesOpen)}
-                    className="w-full flex items-center gap-2 py-1.5 px-2 rounded-lg text-[12.5px] font-medium text-[var(--sidebar-text)] hover:bg-[var(--sidebar-active-bg)]"
-                  >
-                    <Receipt className="w-3.5 h-3.5 text-yellow-500" />
-                    <span className="flex-1 text-left">Expenses</span>
-                    {expensesOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                  </button>
-                  {expensesOpen && (
-                    <div className="pl-4 space-y-1 mt-0.5">
-                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
-                        Expenses Report
-                      </button>
-                    </div>
-                  )}
-                </div>
+                {/* 1. Loan Outstanding Report */}
+                <button onClick={() => setActiveMenu('report_outstanding')}
+                  className={`w-full flex items-center gap-2.5 text-left py-2 px-2.5 rounded-xl text-[12.5px] font-semibold transition-all duration-150 cursor-pointer ${activeMenu === 'report_outstanding' ? 'bg-[var(--sidebar-active-bg)] text-teal-400 font-bold' : 'text-[var(--sidebar-text)] hover:bg-[var(--sidebar-active-bg)] hover:text-teal-400'}`}
+                >
+                  <TrendingUp className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Outstanding Report</span>
+                </button>
 
-                {/* 2. Loans Group */}
-                <div>
-                  <button onClick={() => setLoansOpen(!loansOpen)}
-                    className="w-full flex items-center gap-2 py-1.5 px-2 rounded-lg text-[12.5px] font-medium text-[var(--sidebar-text)] hover:bg-[var(--sidebar-active-bg)]"
-                  >
-                    <Landmark className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="flex-1 text-left">Loans</span>
-                    {loansOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                  </button>
-                  {loansOpen && (
-                    <div className="pl-4 space-y-1 mt-0.5 animate-fade-in">
-                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
-                        Loans Report
-                      </button>
-                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
-                        Loan Disbursement Report
-                      </button>
-                      
-                      {/* Active Reports */}
-                      <button onClick={() => setActiveMenu('report_outstanding')}
-                        className={`w-full flex items-center gap-1.5 text-left py-1 px-2 rounded text-[11.5px] font-semibold transition cursor-pointer ${activeMenu === 'report_outstanding' ? 'bg-[var(--sidebar-active-bg)] text-teal-400' : 'text-[var(--sidebar-text)] hover:text-teal-400'}`}
-                      >
-                        <Heart className="w-3 h-3 text-red-500 fill-red-500" />
-                        <span>Loan Outstanding Report</span>
-                      </button>
+                {/* 2. Payments Report */}
+                <button onClick={() => setActiveMenu('report_payments')}
+                  className={`w-full flex items-center gap-2.5 text-left py-2 px-2.5 rounded-xl text-[12.5px] font-semibold transition-all duration-150 cursor-pointer ${activeMenu === 'report_payments' ? 'bg-[var(--sidebar-active-bg)] text-teal-400 font-bold' : 'text-[var(--sidebar-text)] hover:bg-[var(--sidebar-active-bg)] hover:text-teal-400'}`}
+                >
+                  <Receipt className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Payments Report</span>
+                </button>
 
-                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
-                        Loan Collection Budget Report
-                      </button>
+                {/* 3. Loan Late Report */}
+                <button onClick={() => setActiveMenu('report_late')}
+                  className={`w-full flex items-center gap-2.5 text-left py-2 px-2.5 rounded-xl text-[12.5px] font-semibold transition-all duration-150 cursor-pointer ${activeMenu === 'report_late' ? 'bg-[var(--sidebar-active-bg)] text-teal-400 font-bold' : 'text-[var(--sidebar-text)] hover:bg-[var(--sidebar-active-bg)] hover:text-teal-400'}`}
+                >
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Loan Late Report</span>
+                </button>
 
-                      <button onClick={() => setActiveMenu('report_payments')}
-                        className={`w-full flex items-center gap-1.5 text-left py-1 px-2 rounded text-[11.5px] font-semibold transition cursor-pointer ${activeMenu === 'report_payments' ? 'bg-[var(--sidebar-active-bg)] text-teal-400' : 'text-[var(--sidebar-text)] hover:text-teal-400'}`}
-                      >
-                        <Heart className="w-3 h-3 text-red-500 fill-red-500" />
-                        <span>Payments Report</span>
-                      </button>
-
-                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
-                        admin fee report
-                      </button>
-
-                      <button onClick={() => setActiveMenu('report_late')}
-                        className={`w-full flex items-center gap-1.5 text-left py-1 px-2 rounded text-[11.5px] font-semibold transition cursor-pointer ${activeMenu === 'report_late' ? 'bg-[var(--sidebar-active-bg)] text-teal-400' : 'text-[var(--sidebar-text)] hover:text-teal-400'}`}
-                      >
-                        <Heart className="w-3 h-3 text-red-500 fill-red-500" />
-                        <span>Loan Late Report</span>
-                      </button>
-
-                      <button onClick={() => setActiveMenu('report_paid_off')}
-                        className={`w-full flex items-center gap-1.5 text-left py-1 px-2 rounded text-[11.5px] font-semibold transition cursor-pointer ${activeMenu === 'report_paid_off' ? 'bg-[var(--sidebar-active-bg)] text-teal-400' : 'text-[var(--sidebar-text)] hover:text-teal-400'}`}
-                      >
-                        <Heart className="w-3 h-3 text-red-500 fill-red-500" />
-                        <span>Paid Off Report</span>
-                      </button>
-
-                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
-                        Loan Collectable Report
-                      </button>
-                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
-                        Print History Report
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* 3. People Group */}
-                <div>
-                  <button onClick={() => setPeopleOpen(!peopleOpen)}
-                    className="w-full flex items-center gap-2 py-1.5 px-2 rounded-lg text-[12.5px] font-medium text-[var(--sidebar-text)] hover:bg-[var(--sidebar-active-bg)]"
-                  >
-                    <Users className="w-3.5 h-3.5 text-teal-500" />
-                    <span className="flex-1 text-left">People Report</span>
-                    {peopleOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                  </button>
-                  {peopleOpen && (
-                    <div className="pl-4 space-y-1 mt-0.5">
-                      <button disabled className="w-full text-left py-1 px-2 rounded text-[11.5px] text-[var(--sidebar-text-muted)] cursor-not-allowed opacity-60">
-                        Borrowers Report
-                      </button>
-                    </div>
-                  )}
-                </div>
+                {/* 4. Paid Off Report */}
+                <button onClick={() => setActiveMenu('report_paid_off')}
+                  className={`w-full flex items-center gap-2.5 text-left py-2 px-2.5 rounded-xl text-[12.5px] font-semibold transition-all duration-150 cursor-pointer ${activeMenu === 'report_paid_off' ? 'bg-[var(--sidebar-active-bg)] text-teal-400 font-bold' : 'text-[var(--sidebar-text)] hover:bg-[var(--sidebar-active-bg)] hover:text-teal-400'}`}
+                >
+                  <CheckCircle className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Paid Off Report</span>
+                </button>
 
               </div>
             )}

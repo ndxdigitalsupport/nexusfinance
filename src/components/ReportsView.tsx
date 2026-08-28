@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { LoanApplication, Transaction } from '../types';
-import { Download, Printer, Search, Calendar, Landmark, Receipt, Heart, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
+import { Download, Printer, Search, Calendar, Landmark, Receipt, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
 import { useCurrency } from '../context/CurrencyContext';
 
 interface ReportsViewProps {
@@ -16,6 +16,18 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
   const [searchTerm, setSearchTerm] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  // Human readable date formatter helper
+  const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return 'N/A';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return dateStr;
+    }
+  };
 
   // 1. Filtered Data Calculations
   const reportsData = useMemo(() => {
@@ -105,7 +117,7 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
         // Loans that are fully paid
         return loans
           .filter(loan => {
-            if (loan.status !== 'Approved' || loan.repaymentStatus === 'Paid') return true;
+            if (loan.status !== 'Approved' || loan.repaymentStatus !== 'Paid') return false;
 
             const matchesSearch = 
               loan.applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -228,7 +240,10 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
       `}} />
 
       {/* Header Banner */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden shadow-xl printable-report-wrapper">
+      <div 
+        className="border rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden shadow-xl printable-report-wrapper"
+        style={{ backgroundColor: 'var(--surface-card)', borderColor: 'var(--border-primary)' }}
+      >
         <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
         
         <div className="flex items-center gap-4">
@@ -236,15 +251,16 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
             <ReportIcon className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-xl font-black text-white">{reportInfo.title}</h2>
-            <p className="text-xs text-slate-400 mt-1 max-w-xl">{reportInfo.subtitle}</p>
+            <h2 className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>{reportInfo.title}</h2>
+            <p className="text-xs mt-1 max-w-xl" style={{ color: 'var(--text-secondary)' }}>{reportInfo.subtitle}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2.5 z-10 no-print">
           <button
             onClick={exportToCSV}
-            className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-[12.5px] font-bold transition flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2.5 bg-[var(--surface-secondary)] hover:brightness-110 text-[var(--text-primary)] border rounded-xl text-[12.5px] font-bold transition flex items-center gap-1.5 cursor-pointer"
+            style={{ borderColor: 'var(--border-primary)' }}
           >
             <Download className="w-4 h-4" />
             <span>Excel Export</span>
@@ -260,7 +276,10 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
       </div>
 
       {/* Filters Area */}
-      <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-3xl p-5 grid grid-cols-1 md:grid-cols-4 gap-4 no-print">
+      <div 
+        className="border rounded-3xl p-5 grid grid-cols-1 md:grid-cols-4 gap-4 no-print"
+        style={{ backgroundColor: 'var(--surface-card)', borderColor: 'var(--border-primary)' }}
+      >
         {/* Search */}
         <div className="relative md:col-span-2">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -269,7 +288,8 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by borrower, email, or reference..."
-            className="w-full bg-slate-900 border border-slate-800 focus:border-teal-500 rounded-xl pl-10 pr-4 py-2.5 text-[13px] text-slate-200 placeholder-slate-500 outline-none transition"
+            className="w-full border rounded-xl pl-10 pr-4 py-2.5 text-[13px] outline-none transition"
+            style={{ backgroundColor: 'var(--surface-primary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }}
           />
         </div>
 
@@ -280,7 +300,8 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 focus:border-teal-500 rounded-xl pl-10 pr-4 py-2.5 text-[13px] text-slate-200 outline-none transition"
+            className="w-full border rounded-xl pl-10 pr-4 py-2.5 text-[13px] outline-none transition"
+            style={{ backgroundColor: 'var(--surface-primary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }}
           />
         </div>
 
@@ -291,20 +312,24 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 focus:border-teal-500 rounded-xl pl-10 pr-4 py-2.5 text-[13px] text-slate-200 outline-none transition"
+            className="w-full border rounded-xl pl-10 pr-4 py-2.5 text-[13px] outline-none transition"
+            style={{ backgroundColor: 'var(--surface-primary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }}
           />
         </div>
       </div>
 
       {/* Report Tables Wrapper */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl printable-report-wrapper">
+      <div 
+        className="border rounded-3xl overflow-hidden shadow-xl printable-report-wrapper"
+        style={{ backgroundColor: 'var(--surface-card)', borderColor: 'var(--border-primary)' }}
+      >
         <div className="overflow-x-auto">
           
           {/* A. Outstanding Report Table */}
           {activeReport === 'report_outstanding' && (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-800/40 border-b border-slate-800 text-[11.5px] uppercase font-bold text-slate-400 tracking-wider">
+                <tr className="border-b text-[11.5px] uppercase font-bold tracking-wider" style={{ backgroundColor: 'var(--surface-secondary)', borderColor: 'var(--border-primary)', color: 'var(--text-secondary)' }}>
                   <th className="px-6 py-4">Loan ID</th>
                   <th className="px-6 py-4">Borrower</th>
                   <th className="px-6 py-4">Original Amount</th>
@@ -314,24 +339,24 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
                   <th className="px-6 py-4">Next Due Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-[13px] text-slate-300">
+              <tbody className="divide-y divide-slate-800 text-[13px]" style={{ color: 'var(--text-primary)' }}>
                 {reportsData.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="text-center py-12 text-slate-500">No outstanding loans match your filters.</td>
                   </tr>
                 ) : (
                   reportsData.map((row: any) => (
-                    <tr key={row.id} className="hover:bg-slate-800/20 transition">
+                    <tr key={row.id} className="hover:bg-slate-800/10 transition">
                       <td className="px-6 py-4 font-bold text-slate-400">{row.id}</td>
                       <td className="px-6 py-4">
-                        <div className="font-bold text-white">{row.applicantName}</div>
+                        <div className="font-bold text-[var(--text-primary)]">{row.applicantName}</div>
                         <div className="text-[11px] text-slate-500">{row.applicantEmail}</div>
                       </td>
                       <td className="px-6 py-4 font-semibold">{formatCurrency(row.amount)}</td>
                       <td className="px-6 py-4 text-slate-400">{formatCurrency(row.totalRepaid)}</td>
                       <td className="px-6 py-4 font-black text-indigo-400">{formatCurrency(row.outstanding)}</td>
                       <td className="px-6 py-4">{row.durationMonths} Months</td>
-                      <td className="px-6 py-4 text-[12px]">{row.nextPaymentDate || 'N/A'}</td>
+                      <td className="px-6 py-4 text-[12px]">{formatDate(row.nextPaymentDate)}</td>
                     </tr>
                   ))
                 )}
@@ -343,7 +368,7 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
           {activeReport === 'report_payments' && (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-800/40 border-b border-slate-800 text-[11.5px] uppercase font-bold text-slate-400 tracking-wider">
+                <tr className="border-b text-[11.5px] uppercase font-bold tracking-wider" style={{ backgroundColor: 'var(--surface-secondary)', borderColor: 'var(--border-primary)', color: 'var(--text-secondary)' }}>
                   <th className="px-6 py-4">Transaction ID</th>
                   <th className="px-6 py-4">Repayment Description</th>
                   <th className="px-6 py-4 text-emerald-400">Amount Paid</th>
@@ -351,18 +376,18 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
                   <th className="px-6 py-4">Log Type</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-[13px] text-slate-300">
+              <tbody className="divide-y divide-slate-800 text-[13px]" style={{ color: 'var(--text-primary)' }}>
                 {reportsData.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="text-center py-12 text-slate-500">No repayment logs match your filters.</td>
                   </tr>
                 ) : (
                   reportsData.map((row: any) => (
-                    <tr key={row.id} className="hover:bg-slate-800/20 transition">
+                    <tr key={row.id} className="hover:bg-slate-800/10 transition">
                       <td className="px-6 py-4 font-mono font-bold text-slate-400 text-xs">{row.id}</td>
-                      <td className="px-6 py-4 font-bold text-white">{row.title}</td>
+                      <td className="px-6 py-4 font-bold text-[var(--text-primary)]">{row.title}</td>
                       <td className="px-6 py-4 font-black text-emerald-400">{formatCurrency(Math.abs(row.amount))}</td>
-                      <td className="px-6 py-4">{row.date}</td>
+                      <td className="px-6 py-4">{formatDate(row.date)}</td>
                       <td className="px-6 py-4 text-[11.5px] text-slate-500 font-semibold uppercase">{row.type}</td>
                     </tr>
                   ))
@@ -375,7 +400,7 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
           {activeReport === 'report_late' && (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-800/40 border-b border-slate-800 text-[11.5px] uppercase font-bold text-slate-400 tracking-wider">
+                <tr className="border-b text-[11.5px] uppercase font-bold tracking-wider" style={{ backgroundColor: 'var(--surface-secondary)', borderColor: 'var(--border-primary)', color: 'var(--text-secondary)' }}>
                   <th className="px-6 py-4">Loan ID</th>
                   <th className="px-6 py-4">Borrower Name</th>
                   <th className="px-6 py-4 text-center">Unpaid Installments</th>
@@ -385,24 +410,24 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
                   <th className="px-6 py-4">Next Payment Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-[13px] text-slate-300">
+              <tbody className="divide-y divide-slate-800 text-[13px]" style={{ color: 'var(--text-primary)' }}>
                 {reportsData.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="text-center py-12 text-slate-500">No overdue accounts match your filters.</td>
                   </tr>
                 ) : (
                   reportsData.map((row: any) => (
-                    <tr key={row.id} className="hover:bg-slate-800/20 transition">
+                    <tr key={row.id} className="hover:bg-slate-800/10 transition">
                       <td className="px-6 py-4 font-bold text-slate-400">{row.id}</td>
                       <td className="px-6 py-4">
-                        <div className="font-bold text-white">{row.applicantName}</div>
+                        <div className="font-bold text-[var(--text-primary)]">{row.applicantName}</div>
                         <div className="text-[11px] text-slate-500">{row.applicantEmail}</div>
                       </td>
                       <td className="px-6 py-4 text-center font-bold text-red-400">{row.overdueCount || 1}</td>
                       <td className="px-6 py-4 text-center text-amber-400 font-semibold">{row.overdueDays} Days Late</td>
                       <td className="px-6 py-4 font-bold text-amber-500">{row.penalty.toLocaleString()} KHR</td>
                       <td className="px-6 py-4 font-medium">1.5% Monthly</td>
-                      <td className="px-6 py-4 font-semibold text-[12px]">{row.nextPaymentDate || 'N/A'}</td>
+                      <td className="px-6 py-4 font-semibold text-[12px]">{formatDate(row.nextPaymentDate)}</td>
                     </tr>
                   ))
                 )}
@@ -414,7 +439,7 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
           {activeReport === 'report_paid_off' && (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-800/40 border-b border-slate-800 text-[11.5px] uppercase font-bold text-slate-400 tracking-wider">
+                <tr className="border-b text-[11.5px] uppercase font-bold tracking-wider" style={{ backgroundColor: 'var(--surface-secondary)', borderColor: 'var(--border-primary)', color: 'var(--text-secondary)' }}>
                   <th className="px-6 py-4">Loan ID</th>
                   <th className="px-6 py-4">Borrower</th>
                   <th className="px-6 py-4">Original Loan Amount</th>
@@ -424,17 +449,17 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
                   <th className="px-6 py-4">Settled Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-[13px] text-slate-300">
+              <tbody className="divide-y divide-slate-800 text-[13px]" style={{ color: 'var(--text-primary)' }}>
                 {reportsData.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="text-center py-12 text-slate-500">No settled/paid-off loans match your filters.</td>
                   </tr>
                 ) : (
                   reportsData.map((row: any) => (
-                    <tr key={row.id} className="hover:bg-slate-800/20 transition">
+                    <tr key={row.id} className="hover:bg-slate-800/10 transition">
                       <td className="px-6 py-4 font-bold text-slate-400">{row.id}</td>
                       <td className="px-6 py-4">
-                        <div className="font-bold text-white">{row.applicantName}</div>
+                        <div className="font-bold text-[var(--text-primary)]">{row.applicantName}</div>
                         <div className="text-[11px] text-slate-500">{row.applicantEmail}</div>
                       </td>
                       <td className="px-6 py-4 font-semibold">{formatCurrency(row.amount)}</td>
