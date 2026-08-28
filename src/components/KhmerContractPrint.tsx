@@ -72,6 +72,14 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
     return `${Math.max((val || '').length * 8.5 + 12, minWidth)}px`;
   };
 
+  const renderPrintRadio = (checked: boolean) => {
+    return (
+      <span className="print-radio-indicator">
+        {checked ? '☑' : '☐'}
+      </span>
+    );
+  };
+
   // ── INLINE EDITABLE STATES ──
   // Lender (Party A)
   const [lenderName, setLenderName] = useState('');
@@ -247,7 +255,18 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
           background-color: rgba(13, 148, 136, 0.05) !important;
         }
 
+        .print-radio-indicator {
+          display: none;
+        }
+
         @media print {
+          .print-radio-indicator {
+            display: inline-block !important;
+            margin-right: 4px !important;
+            font-family: Arial, sans-serif !important;
+            font-size: 14px !important;
+            color: black !important;
+          }
           .printable-contract-container {
             position: absolute;
             left: 0;
@@ -516,18 +535,22 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
                     
                     <label className="inline-flex items-center gap-1 cursor-pointer">
                       <input type="radio" checked={interestPeriod === 'daily'} onChange={() => setInterestPeriod('daily')} className="accent-teal-600 no-print" />
+                      {renderPrintRadio(interestPeriod === 'daily')}
                       <span>ប្រចាំថ្ងៃ</span>
                     </label>
                     <label className="inline-flex items-center gap-1 cursor-pointer">
                       <input type="radio" checked={interestPeriod === 'weekly'} onChange={() => setInterestPeriod('weekly')} className="accent-teal-600 no-print" />
+                      {renderPrintRadio(interestPeriod === 'weekly')}
                       <span>ប្រចាំសប្ដាហ៍</span>
                     </label>
                     <label className="inline-flex items-center gap-1 cursor-pointer">
                       <input type="radio" checked={interestPeriod === 'monthly'} onChange={() => setInterestPeriod('monthly')} className="accent-teal-600 no-print" />
+                      {renderPrintRadio(interestPeriod === 'monthly')}
                       <span>ប្រចាំខែ</span>
                     </label>
                     <label className="inline-flex items-center gap-1 cursor-pointer">
                       <input type="radio" checked={interestPeriod === 'other'} onChange={() => setInterestPeriod('other')} className="accent-teal-600 no-print" />
+                      {renderPrintRadio(interestPeriod === 'other')}
                       <span>ផ្សេងៗ</span>
                     </label>
                   </p>
@@ -556,14 +579,17 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
                     <strong>១.៦ របៀបសងប្រាក់អនុវត្តតាមតារាងកាលវិភាគសងប្រាក់ដោយបង់ផ្ទាល់នៅ៖</strong>
                     <label className="inline-flex items-center gap-1 cursor-pointer">
                       <input type="radio" checked={repaymentMethod === 'office'} onChange={() => setRepaymentMethod('office')} className="accent-teal-600 no-print" />
+                      {renderPrintRadio(repaymentMethod === 'office')}
                       <span>ការិយាល័យ</span>
                     </label>
                     <label className="inline-flex items-center gap-1 cursor-pointer">
                       <input type="radio" checked={repaymentMethod === 'agent'} onChange={() => setRepaymentMethod('agent')} className="accent-teal-600 no-print" />
+                      {renderPrintRadio(repaymentMethod === 'agent')}
                       <span>តាមរយៈភ្នាក់ងារឥណទាន</span>
                     </label>
                     <label className="inline-flex items-center gap-1 cursor-pointer">
                       <input type="radio" checked={repaymentMethod === 'other'} onChange={() => setRepaymentMethod('other')} className="accent-teal-600 no-print" />
+                      {renderPrintRadio(repaymentMethod === 'other')}
                       <span>ផ្សេងៗ</span>
                     </label>
                   </p>
@@ -575,11 +601,13 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
                     <strong>១.៧ កំរ៉ៃសេវាធានារ៉ាប់រងចំនួន ដើម្បី៖</strong>
                     <label className="inline-flex items-center gap-1 cursor-pointer">
                       <input type="radio" checked={insuranceCoverage === 'yes'} onChange={() => setInsuranceCoverage('yes')} className="accent-teal-600 no-print" />
+                      {renderPrintRadio(insuranceCoverage === 'yes')}
                       <span>ទទួលបាន</span>
                     </label>
                     <span>/</span>
                     <label className="inline-flex items-center gap-1 cursor-pointer">
                       <input type="radio" checked={insuranceCoverage === 'no'} onChange={() => setInsuranceCoverage('no')} className="accent-teal-600 no-print" />
+                      {renderPrintRadio(insuranceCoverage === 'no')}
                       <span>មិនទទួលបាន</span>
                     </label>
                     <span>នូវ អត្ថប្រយោជន៍ក្នុងការធានាប្រាក់កម្ចី {insuranceRate} នៅពេលដែលភាគី “ខ” ទទួលមរណៈភាព ឬពិការភាព(បាត់បង់លទ្ធភាពធ្វើការងារ)។</span>
