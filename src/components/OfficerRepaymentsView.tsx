@@ -668,13 +668,16 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
             {/* Scoped print CSS injection */}
             <style dangerouslySetInnerHTML={{ __html: `
               @media print {
-                /* Set print background to white and hide body wrapper */
+                /* Completely hide main application to remove blank starting pages */
+                #root {
+                  display: none !important;
+                }
                 body {
-                  visibility: hidden;
+                  visibility: visible !important;
                   background: white !important;
                 }
                 /* Prevent layout wrapper page-cuts and clear height restrictions */
-                html, body, #root, .printable-scheduler-sheet, #print-schedule-modal, .printable-content-block, .print-portal-wrapper {
+                html, body, .printable-scheduler-sheet, #print-schedule-modal, .printable-content-block, .print-portal-wrapper {
                   height: auto !important;
                   min-height: auto !important;
                   max-height: none !important;
@@ -687,10 +690,16 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                   padding: 0 !important;
                   z-index: auto !important;
                 }
-                /* Force two-column layout on the metadata card in print */
-                .printable-scheduler-sheet .grid {
+                /* Force two-column layout only on metadata info grid card in print */
+                .printable-scheduler-sheet .printable-metadata-grid {
                   display: grid !important;
                   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                  gap: 12px 24px !important;
+                }
+                /* Keep signature boxes in 3 columns side-by-side */
+                .printable-scheduler-sheet .print-signature-grid {
+                  display: grid !important;
+                  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
                   gap: 12px 24px !important;
                 }
                 /* Expose printable sheet and its contents cleanly */
@@ -763,7 +772,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                   </div>
 
                   {/* Info Fields Grid (Figma style) */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 p-5 rounded-2xl border border-[var(--border-primary)] bg-[var(--surface-secondary)]/20">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 p-5 rounded-2xl border border-[var(--border-primary)] bg-[var(--surface-secondary)]/20 printable-metadata-grid">
                     <div className="text-xs font-medium text-[var(--text-secondary)]">
                       Borrower Name: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.applicantName}</span>
                     </div>
@@ -858,7 +867,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                         </div>
 
                         {/* Metadata grid on every page */}
-                        <div className="grid grid-cols-2 gap-4 p-5 rounded-2xl border border-gray-200 bg-gray-50/50">
+                        <div className="grid grid-cols-2 gap-4 p-5 rounded-2xl border border border-gray-200 bg-gray-50/50 printable-metadata-grid">
                           <div className="text-xs font-semibold text-gray-600">
                             Borrower Name: <span className="font-bold text-gray-900 ml-1">{loan.applicantName}</span>
                           </div>
@@ -915,7 +924,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
 
                         {/* Signature Boxes at the bottom of the final printed page */}
                         {isLastPage && (
-                          <div className="grid grid-cols-3 gap-12 pt-12 text-center text-xs font-bold text-gray-700">
+                          <div className="grid grid-cols-3 gap-12 pt-12 text-center text-xs font-bold text-gray-700 print-signature-grid">
                             <div className="space-y-12">
                               <div className="border-t border-gray-400 pt-2">Contractor Signature</div>
                             </div>
