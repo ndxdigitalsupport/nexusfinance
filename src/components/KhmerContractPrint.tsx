@@ -68,6 +68,10 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
     ? application.applicantEmail.split('@')[0] 
     : '092XXXXXX';
 
+  const getInputWidth = (val: string, minWidth: number = 30) => {
+    return `${Math.max((val || '').length * 8.5 + 12, minWidth)}px`;
+  };
+
   // ── INLINE EDITABLE STATES ──
   // Lender (Party A)
   const [lenderName, setLenderName] = useState('');
@@ -228,29 +232,24 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
         }
 
         .inline-contract-input {
-          border: none;
-          border-bottom: 1px dashed #94a3b8;
-          background: transparent;
-          text-align: center;
-          font-weight: bold;
-          color: #1e293b;
-          padding: 0 4px;
-          outline: none;
+          display: inline-block !important;
+          width: auto;
+          border: none !important;
+          border-bottom: 1px dashed #94a3b8 !important;
+          background: transparent !important;
+          text-align: center !important;
+          font-weight: bold !important;
+          color: #1e293b !important;
+          padding: 0 4px !important;
+          outline: none !important;
           transition: all 0.2s;
         }
         .inline-contract-input:focus {
-          border-bottom-color: #0d9488;
-          background-color: rgba(13, 148, 136, 0.05);
+          border-bottom-color: #0d9488 !important;
+          background-color: rgba(13, 148, 136, 0.05) !important;
         }
 
         @media print {
-          /* Completely hide modal screen layouts */
-          body * {
-            visibility: hidden;
-          }
-          .printable-contract-container, .printable-contract-container * {
-            visibility: visible;
-          }
           .printable-contract-container {
             position: absolute;
             left: 0;
