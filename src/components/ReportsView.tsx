@@ -133,36 +133,89 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
     }
   }, [activeReport, loans, transactions, searchTerm, startDate, endDate]);
 
-  // Excel / CSV Export
-  const exportToCSV = () => {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    
+  // Excel (.xls) Export helper
+  const exportToExcel = () => {
+    let headers: string[] = [];
+    let rows: string[][] = [];
+
     if (activeReport === 'report_outstanding') {
-      csvContent += "Loan ID,Borrower Name,Email,Original Amount,Total Repaid,Outstanding Balance,Term,Status\n";
-      reportsData.forEach((row: any) => {
-        csvContent += `"${row.id}","${row.applicantName}","${row.applicantEmail}",$${row.amount},$${row.totalRepaid.toFixed(2)},$${row.outstanding.toFixed(2)},"${row.durationMonths} Months","${row.repaymentStatus}"\n`;
-      });
+      headers = ["Loan ID", "Borrower Name", "Email", "Original Amount", "Total Repaid", "Outstanding Balance", "Term", "Status"];
+      rows = reportsData.map((row: any) => [
+        row.id,
+        row.applicantName,
+        row.applicantEmail,
+        `$${row.amount.toFixed(2)}`,
+        `$${row.totalRepaid.toFixed(2)}`,
+        `$${row.outstanding.toFixed(2)}`,
+        `${row.durationMonths} Months`,
+        row.repaymentStatus || 'N/A'
+      ]);
     } else if (activeReport === 'report_payments') {
-      csvContent += "Transaction ID,Description,Amount,Date,Type\n";
-      reportsData.forEach((row: any) => {
-        csvContent += `"${row.id}","${row.title}",$${Math.abs(row.amount)},"${row.date}","${row.type}"\n`;
-      });
+      headers = ["Transaction ID", "Description", "Amount", "Date", "Type"];
+      rows = reportsData.map((row: any) => [
+        row.id,
+        row.title,
+        `$${Math.abs(row.amount).toFixed(2)}`,
+        formatDate(row.date),
+        row.type
+      ]);
     } else if (activeReport === 'report_late') {
-      csvContent += "Loan ID,Borrower Name,Overdue Installments,Estimated Overdue Days,Interest Rate,Next Payment Date,Penalty KHR\n";
-      reportsData.forEach((row: any) => {
-        csvContent += `"${row.id}","${row.applicantName}",${row.overdueCount || 1},${row.overdueDays},"${row.monthlyPayment ? '1.5%' : 'N/A'}","${row.nextPaymentDate || 'N/A'}",${row.penalty} KHR\n`;
-      });
+      headers = ["Loan ID", "Borrower Name", "Overdue Installments", "Estimated Overdue Days", "Interest Rate", "Next Payment Date", "Penalty KHR"];
+      rows = reportsData.map((row: any) => [
+        row.id,
+        row.applicantName,
+        (row.overdueCount || 1).toString(),
+        `${row.overdueDays} Days`,
+        "1.5%",
+        formatDate(row.nextPaymentDate),
+        `${row.penalty.toLocaleString()} KHR`
+      ]);
     } else if (activeReport === 'report_paid_off') {
-      csvContent += "Loan ID,Borrower Name,Email,Disbursement Amount,Duration Months,Term End Status\n";
-      reportsData.forEach((row: any) => {
-        csvContent += `"${row.id}","${row.applicantName}","${row.applicantEmail}",$${row.amount},"${row.durationMonths} Months","Paid Off"\n`;
-      });
+      headers = ["Loan ID", "Borrower Name", "Email", "Disbursement Amount", "Duration Months", "Term End Status"];
+      rows = reportsData.map((row: any) => [
+        row.id,
+        row.applicantName,
+        row.applicantEmail,
+        `$${row.amount.toFixed(2)}`,
+        `${row.durationMonths} Months`,
+        "Paid Off"
+      ]);
     }
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `NexusFinance_${activeReport}_${new Date().toISOString().slice(0, 10)}.csv`);
+    const excelHtml = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8" />
+        <style>
+          table { border-collapse: collapse; }
+          th { background-color: #0d9488; color: white; font-weight: bold; border: 1px solid #ddd; padding: 8px; font-family: sans-serif; font-size: 13px; }
+          td { border: 1px solid #ddd; padding: 8px; font-family: sans-serif; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <table>
+          <thead>
+            <tr>
+              ${headers.map(h => `<th>${h}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `
+              <tr>
+                ${row.map(val => `<td>${val}</td>`).join('')}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([excelHtml], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `NexusFinance_${activeReport}_${new Date().toISOString().slice(0, 10)}.xls`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -259,7 +312,7 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
 
         <div className="flex items-center gap-2.5 z-10 no-print">
           <button
-            onClick={exportToCSV}
+            onClick={exportToExcel}
             className="px-4 py-2.5 bg-[var(--surface-secondary)] hover:brightness-110 text-[var(--text-primary)] border rounded-xl text-[12.5px] font-bold transition flex items-center gap-1.5 cursor-pointer"
             style={{ borderColor: 'var(--border-primary)' }}
           >
