@@ -69,40 +69,40 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
 
   // ── INLINE EDITABLE STATES ──
   // Lender (Party A)
-  const [lenderName, setLenderName] = useState('ស៊ិញ យឹកឃួយ ab');
-  const [lenderBirthDay, setLenderBirthDay] = useState('០៣');
-  const [lenderBirthMonth, setLenderBirthMonth] = useState('ឧសភា');
-  const [lenderBirthYear, setLenderBirthYear] = useState('១៩៨២');
-  const [lenderIdCard, setLenderIdCard] = useState('១៩០៦១៥៨០០(០១)');
-  const [lenderIssueDay, setLenderIssueDay] = useState('២៣');
-  const [lenderIssueMonth, setLenderIssueMonth] = useState('វិច្ឆិកា');
-  const [lenderIssueYear, setLenderIssueYear] = useState('២០២៣');
-  const [lenderVillage, setLenderVillage] = useState('កណ្តាលខាងលិច');
-  const [lenderCommune, setLenderCommune] = useState('ស្រះជីក');
-  const [lenderDistrict, setLenderDistrict] = useState('ភ្នំស្រុក');
-  const [lenderProvince, setLenderProvince] = useState('បន្ទាយមានជ័យ');
+  const [lenderName, setLenderName] = useState('');
+  const [lenderBirthDay, setLenderBirthDay] = useState('');
+  const [lenderBirthMonth, setLenderBirthMonth] = useState('');
+  const [lenderBirthYear, setLenderBirthYear] = useState('');
+  const [lenderIdCard, setLenderIdCard] = useState('');
+  const [lenderIssueDay, setLenderIssueDay] = useState('');
+  const [lenderIssueMonth, setLenderIssueMonth] = useState('');
+  const [lenderIssueYear, setLenderIssueYear] = useState('');
+  const [lenderVillage, setLenderVillage] = useState('');
+  const [lenderCommune, setLenderCommune] = useState('');
+  const [lenderDistrict, setLenderDistrict] = useState('');
+  const [lenderProvince, setLenderProvince] = useState('');
 
   // Borrower (Party B)
   const [borrowerName, setBorrowerName] = useState(application.applicantName);
-  const [borrowerGender, setBorrowerGender] = useState('ស្រី');
-  const [borrowerBirthDate, setBorrowerBirthDate] = useState('27/12/1990');
-  const [borrowerNationality, setBorrowerNationality] = useState('ខ្មែរ');
-  const [borrowerIdCard, setBorrowerIdCard] = useState('190488923(01)');
+  const [borrowerGender, setBorrowerGender] = useState('');
+  const [borrowerBirthDate, setBorrowerBirthDate] = useState('');
+  const [borrowerNationality, setBorrowerNationality] = useState('');
+  const [borrowerIdCard, setBorrowerIdCard] = useState('');
   const [borrowerIssueDay, setBorrowerIssueDay] = useState('');
   const [borrowerIssueMonth, setBorrowerIssueMonth] = useState('');
   const [borrowerIssueYear, setBorrowerIssueYear] = useState('');
   const [borrowerHouseNo, setBorrowerHouseNo] = useState('');
-  const [borrowerCommune, setBorrowerCommune] = useState('ប៉ោយចារ');
-  const [borrowerDistrict, setBorrowerDistrict] = useState('ភ្នំស្រុក');
-  const [borrowerProvince, setBorrowerProvince] = useState('បន្ទាយមានជ័យ');
+  const [borrowerCommune, setBorrowerCommune] = useState('');
+  const [borrowerDistrict, setBorrowerDistrict] = useState('');
+  const [borrowerProvince, setBorrowerProvince] = useState('');
   const [borrowerPhone, setBorrowerPhone] = useState(phoneVal);
 
   // Guarantor 1
   const [g1Name, setG1Name] = useState('');
-  const [g1Gender, setG1Gender] = useState('ប្រុស');
-  const [g1BirthDay, setG1BirthDay] = useState('0');
-  const [g1BirthMonth, setG1BirthMonth] = useState('0');
-  const [g1BirthYear, setG1BirthYear] = useState('0');
+  const [g1Gender, setG1Gender] = useState('');
+  const [g1BirthDay, setG1BirthDay] = useState('');
+  const [g1BirthMonth, setG1BirthMonth] = useState('');
+  const [g1BirthYear, setG1BirthYear] = useState('');
   const [g1IdCard, setG1IdCard] = useState('');
   const [g1IssueDay, setG1IssueDay] = useState('');
   const [g1IssueMonth, setG1IssueMonth] = useState('');
@@ -114,10 +114,10 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
 
   // Guarantor 2
   const [g2Name, setG2Name] = useState('');
-  const [g2Gender, setG2Gender] = useState('ប្រុស');
-  const [g2BirthDay, setG2BirthDay] = useState('0');
-  const [g2BirthMonth, setG2BirthMonth] = useState('0');
-  const [g2BirthYear, setG2BirthYear] = useState('0');
+  const [g2Gender, setG2Gender] = useState('');
+  const [g2BirthDay, setG2BirthDay] = useState('');
+  const [g2BirthMonth, setG2BirthMonth] = useState('');
+  const [g2BirthYear, setG2BirthYear] = useState('');
   const [g2IdCard, setG2IdCard] = useState('');
   const [g2IssueDay, setG2IssueDay] = useState('');
   const [g2IssueMonth, setG2IssueMonth] = useState('');
@@ -129,9 +129,9 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
   const [guarantorsPhone, setGuarantorsPhone] = useState('');
 
   // Collaterals (1.1)
-  const [collateral1Type, setCollateral1Type] = useState(application.applicantName);
-  const [collateral1No, setCollateral1No] = useState('Dream026');
-  const [collateral1Owner, setCollateral1Owner] = useState(application.applicantName);
+  const [collateral1Type, setCollateral1Type] = useState('');
+  const [collateral1No, setCollateral1No] = useState('');
+  const [collateral1Owner, setCollateral1Owner] = useState('');
   const [collateral2Type, setCollateral2Type] = useState('');
   const [collateral2No, setCollateral2No] = useState('');
   const [collateral2Owner, setCollateral2Owner] = useState('');
@@ -404,7 +404,7 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
                 <p><strong>១.១ ក្រោមការដាក់បញ្ចាំដើម្បីធានាបំណុលទាំងដើម និងការប្រាក់</strong></p>
                 <div className="pl-4 space-y-1.5">
                   <p>
-                    ประเภทអចលន ឬចលនវត្ថុ៖ 
+                    ប្រភេទអចលន ឬចលនវត្ថុ៖ 
                     <input type="text" value={collateral1Type} onChange={e => setCollateral1Type(e.target.value)} className="inline-contract-input" style={{ width: '130px' }} />
                     លេខ 
                     <input type="text" value={collateral1No} onChange={e => setCollateral1No(e.target.value)} className="inline-contract-input" style={{ width: '120px' }} />
