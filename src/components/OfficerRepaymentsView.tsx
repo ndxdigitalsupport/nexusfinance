@@ -989,11 +989,17 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
               </div>
 
             </div>
-            {isPrintingContract && <KhmerContractPrint application={loan} onClose={() => setIsPrintingContract(false)} />}
           </div>,
           document.body
         );
       })()}
+
+      {isPrintingContract && viewingScheduleLoan && (
+        <KhmerContractPrint 
+          application={viewingScheduleLoan} 
+          onClose={() => setIsPrintingContract(false)} 
+        />
+      )}
     </div>
   );
 }
