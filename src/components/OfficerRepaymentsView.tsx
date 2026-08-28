@@ -656,6 +656,12 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
           window.print();
         };
 
+        // Split installments into chunks of up to 12 rows per page for clean, repeatable print templates
+        const printChunks: any[][] = [];
+        for (let i = 0; i < scheduleInstallments.length; i += 12) {
+          printChunks.push(scheduleInstallments.slice(i, i + 12));
+        }
+
         return createPortal(
           <div className="fixed inset-0 bg-black/65 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto select-none no-print-backdrop">
             
@@ -703,7 +709,17 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                 .no-print {
                   display: none !important;
                 }
-                /* Avoid breaking elements across pages */
+                .print-page {
+                  page-break-after: always !important;
+                  break-after: always !important;
+                  box-sizing: border-box !important;
+                  padding: 20px 0 !important;
+                }
+                .print-page:last-child {
+                  page-break-after: avoid !important;
+                  break-after: avoid !important;
+                }
+                /* Avoid breaking table rows across pages */
                 tr {
                   page-break-inside: avoid !important;
                   break-inside: avoid !important;
@@ -735,103 +751,183 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
               {/* Printable Content Block */}
               <div className="p-8 space-y-6 flex-1 overflow-y-auto printable-content-block">
                 
-                {/* Print Title Block */}
-                <div className="text-center pb-4 border-b-2 border-dashed border-[var(--border-primary)]">
-                  <h2 className="text-2xl font-black tracking-tight" style={{ color: '#0d9488' }}>NexusFinance</h2>
-                  <p className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest mt-1">Payment Schedule</p>
+                {/* ── SCREEN ONLY CONTAINER ── */}
+                <div className="space-y-6 no-print">
+                  {/* Print Title Block */}
+                  <div className="text-center pb-4 border-b-2 border-dashed border-[var(--border-primary)]">
+                    <h2 className="text-2xl font-black tracking-tight" style={{ color: '#0d9488' }}>NexusFinance</h2>
+                    <p className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest mt-1">Payment Schedule</p>
+                  </div>
+
+                  {/* Info Fields Grid (Figma style) */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 p-5 rounded-2xl border border-[var(--border-primary)] bg-[var(--surface-secondary)]/20">
+                    <div className="text-xs font-medium text-[var(--text-secondary)]">
+                      Borrower Name: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.applicantName}</span>
+                    </div>
+                    <div className="text-xs font-medium text-[var(--text-secondary)]">
+                      Application No: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.id}</span>
+                    </div>
+                    <div className="text-xs font-medium text-[var(--text-secondary)]">
+                      Reference No: <span className="font-bold text-[var(--text-primary)] ml-1">REF-{loan.id.replace('#', '')}</span>
+                    </div>
+                    <div className="text-xs font-medium text-[var(--text-secondary)]">
+                      Loan Amount: <span className="font-bold text-[var(--text-primary)] ml-1">${loan.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="text-xs font-medium text-[var(--text-secondary)]">
+                      Term: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.durationMonths || 12} Months</span>
+                    </div>
+                    <div className="text-xs font-medium text-[var(--text-secondary)]">
+                      Repayment Freq: <span className="font-bold text-[var(--text-primary)] ml-1">Monthly (30d)</span>
+                    </div>
+                    <div className="text-xs font-medium text-[var(--text-secondary)]">
+                      Disbursed Date: <span className="font-bold text-[var(--text-primary)] ml-1">{formatDateStr(loan.date)}</span>
+                    </div>
+                    <div className="text-xs font-medium text-[var(--text-secondary)]">
+                      Borrower Phone: <span className="font-bold text-[var(--text-primary)] ml-1">{(loan as any).applicantPhone || (loan as any).phone || loan.applicantEmail.split('@')[0]}</span>
+                    </div>
+                  </div>
+
+                  {scheduleLoading ? (
+                    <div className="py-12 text-center flex flex-col items-center justify-center gap-2">
+                      <div className="w-8 h-8 rounded-full border-4 border-t-[var(--accent)] border-[var(--border-primary)] animate-spin" />
+                      <p className="text-xs text-[var(--text-secondary)] font-bold">Querying ledger records...</p>
+                    </div>
+                  ) : (
+                    /* Schedule Table */
+                    <div className="overflow-x-auto border border-[var(--border-primary)] rounded-2xl">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-[var(--surface-secondary)] text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-secondary)] border-b border-[var(--border-primary)]">
+                            <th className="px-5 py-3 text-center w-12">N*</th>
+                            <th className="px-5 py-3">Due Date</th>
+                            <th className="px-5 py-3 text-right">Interest</th>
+                            <th className="px-5 py-3 text-right">Principal</th>
+                            <th className="px-5 py-3 text-right">Payment</th>
+                            <th className="px-5 py-3 text-right">Balance</th>
+                            <th className="px-5 py-3 text-center no-print">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[var(--border-secondary)] text-[13px] text-[var(--text-primary)]">
+                          {scheduleInstallments.map((row: any) => {
+                            const isPaid = row.status === 'paid' || row.status === 'Paid';
+                            const isOverdue = row.status === 'overdue' || row.status === 'Overdue';
+                            
+                            return (
+                              <tr key={row.installment_no} className="hover:bg-[var(--surface-secondary)]/10">
+                                <td className="px-5 py-3 text-center font-bold text-[var(--text-secondary)]">{row.installment_no}</td>
+                                <td className="px-5 py-3 font-semibold">{formatDateStr(row.due_date)}</td>
+                                <td className="px-5 py-3 text-right text-[var(--text-secondary)]">${Number(row.interest_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                <td className="px-5 py-3 text-right">${Number(row.principal_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                <td className="px-5 py-3 text-right font-bold text-emerald-600 dark:text-emerald-400">${Number(row.total_payment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                <td className="px-5 py-3 text-right font-semibold">${Number(row.remaining_balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                <td className="px-5 py-3 text-center no-print">
+                                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                                    isPaid 
+                                      ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
+                                      : isOverdue 
+                                      ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                                      : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)] border border-[var(--border-primary)]'
+                                  }`}>
+                                    {row.status}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
 
-                {/* Info Fields Grid (Figma style) */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 p-5 rounded-2xl border border-[var(--border-primary)] bg-[var(--surface-secondary)]/20">
-                  <div className="text-xs font-medium text-[var(--text-secondary)]">
-                    Borrower Name: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.applicantName}</span>
-                  </div>
-                  <div className="text-xs font-medium text-[var(--text-secondary)]">
-                    Application No: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.id}</span>
-                  </div>
-                  <div className="text-xs font-medium text-[var(--text-secondary)]">
-                    Reference No: <span className="font-bold text-[var(--text-primary)] ml-1">REF-{loan.id.replace('#', '')}</span>
-                  </div>
-                  <div className="text-xs font-medium text-[var(--text-secondary)]">
-                    Loan Amount: <span className="font-bold text-[var(--text-primary)] ml-1">${loan.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="text-xs font-medium text-[var(--text-secondary)]">
-                    Term: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.durationMonths || 12} Months</span>
-                  </div>
-                  <div className="text-xs font-medium text-[var(--text-secondary)]">
-                    Repayment Freq: <span className="font-bold text-[var(--text-primary)] ml-1">Monthly (30d)</span>
-                  </div>
-                  <div className="text-xs font-medium text-[var(--text-secondary)]">
-                    Disbursed Date: <span className="font-bold text-[var(--text-primary)] ml-1">{formatDateStr(loan.date)}</span>
-                  </div>
-                  <div className="text-xs font-medium text-[var(--text-secondary)]">
-                    Borrower Phone: <span className="font-bold text-[var(--text-primary)] ml-1">{(loan as any).applicantPhone || (loan as any).phone || loan.applicantEmail.split('@')[0]}</span>
-                  </div>
-                </div>
+                {/* ── PRINT ONLY PAGINATED CONTAINER ── */}
+                <div className="hidden print:block space-y-8">
+                  {printChunks.map((chunk, chunkIdx) => {
+                    const isLastPage = chunkIdx === printChunks.length - 1;
+                    
+                    return (
+                      <div key={chunkIdx} className="print-page space-y-6">
+                        
+                        {/* Title block on every page */}
+                        <div className="text-center pb-4 border-b-2 border-dashed border-gray-300">
+                          <h2 className="text-2xl font-black tracking-tight" style={{ color: '#0d9488' }}>NexusFinance</h2>
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mt-1">Payment Schedule (Page {chunkIdx + 1} of {printChunks.length})</p>
+                        </div>
 
-                {scheduleLoading ? (
-                  <div className="py-12 text-center flex flex-col items-center justify-center gap-2">
-                    <div className="w-8 h-8 rounded-full border-4 border-t-[var(--accent)] border-[var(--border-primary)] animate-spin" />
-                    <p className="text-xs text-[var(--text-secondary)] font-bold">Querying ledger records...</p>
-                  </div>
-                ) : (
-                  /* Schedule Table */
-                  <div className="overflow-x-auto border border-[var(--border-primary)] rounded-2xl">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-[var(--surface-secondary)] text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-secondary)] border-b border-[var(--border-primary)]">
-                          <th className="px-5 py-3 text-center w-12">N*</th>
-                          <th className="px-5 py-3">Due Date</th>
-                          <th className="px-5 py-3 text-right">Interest</th>
-                          <th className="px-5 py-3 text-right">Principal</th>
-                          <th className="px-5 py-3 text-right">Payment</th>
-                          <th className="px-5 py-3 text-right">Balance</th>
-                          <th className="px-5 py-3 text-center no-print">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[var(--border-secondary)] text-[13px] text-[var(--text-primary)]">
-                        {scheduleInstallments.map((row: any) => {
-                          const isPaid = row.status === 'paid' || row.status === 'Paid';
-                          const isOverdue = row.status === 'overdue' || row.status === 'Overdue';
-                          
-                          return (
-                            <tr key={row.installment_no} className="hover:bg-[var(--surface-secondary)]/10">
-                              <td className="px-5 py-3 text-center font-bold text-[var(--text-secondary)]">{row.installment_no}</td>
-                              <td className="px-5 py-3 font-semibold">{formatDateStr(row.due_date)}</td>
-                              <td className="px-5 py-3 text-right text-[var(--text-secondary)]">${Number(row.interest_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                              <td className="px-5 py-3 text-right">${Number(row.principal_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                              <td className="px-5 py-3 text-right font-bold text-emerald-600 dark:text-emerald-400">${Number(row.total_payment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                              <td className="px-5 py-3 text-right font-semibold">${Number(row.remaining_balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                              <td className="px-5 py-3 text-center no-print">
-                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
-                                  isPaid 
-                                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
-                                    : isOverdue 
-                                    ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                                    : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)] border border-[var(--border-primary)]'
-                                }`}>
-                                  {row.status}
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                        {/* Metadata grid on every page */}
+                        <div className="grid grid-cols-2 gap-4 p-5 rounded-2xl border border-gray-200 bg-gray-50/50">
+                          <div className="text-xs font-semibold text-gray-600">
+                            Borrower Name: <span className="font-bold text-gray-900 ml-1">{loan.applicantName}</span>
+                          </div>
+                          <div className="text-xs font-semibold text-gray-600">
+                            Application No: <span className="font-bold text-gray-900 ml-1">{loan.id}</span>
+                          </div>
+                          <div className="text-xs font-semibold text-gray-600">
+                            Reference No: <span className="font-bold text-gray-900 ml-1">REF-{loan.id.replace('#', '')}</span>
+                          </div>
+                          <div className="text-xs font-semibold text-gray-600">
+                            Loan Amount: <span className="font-bold text-gray-900 ml-1">${loan.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                          </div>
+                          <div className="text-xs font-semibold text-gray-600">
+                            Term: <span className="font-bold text-gray-900 ml-1">{loan.durationMonths || 12} Months</span>
+                          </div>
+                          <div className="text-xs font-semibold text-gray-600">
+                            Repayment Freq: <span className="font-bold text-gray-900 ml-1">Monthly (30d)</span>
+                          </div>
+                          <div className="text-xs font-semibold text-gray-600">
+                            Disbursed Date: <span className="font-bold text-gray-900 ml-1">{formatDateStr(loan.date)}</span>
+                          </div>
+                          <div className="text-xs font-semibold text-gray-600">
+                            Borrower Phone: <span className="font-bold text-gray-900 ml-1">{(loan as any).applicantPhone || (loan as any).phone || loan.applicantEmail.split('@')[0]}</span>
+                          </div>
+                        </div>
 
-                {/* Signature Boxes Block (for printing) */}
-                <div className="hidden print:grid grid-cols-3 gap-12 pt-16 text-center text-xs font-bold text-gray-700">
-                  <div className="space-y-12">
-                    <div className="border-t border-gray-400 pt-2">Contractor Signature</div>
-                  </div>
-                  <div className="space-y-12">
-                    <div className="border-t border-gray-400 pt-2">Witness Signature</div>
-                  </div>
-                  <div className="space-y-12">
-                    <div className="border-t border-gray-400 pt-2">Borrower Signature</div>
-                  </div>
+                        {/* Chunk schedule table */}
+                        <div className="overflow-x-auto border border-gray-300 rounded-2xl">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-gray-100 text-[11px] font-extrabold uppercase tracking-wider text-gray-500 border-b border-gray-300">
+                                <th className="px-5 py-3 text-center w-12">N*</th>
+                                <th className="px-5 py-3">Due Date</th>
+                                <th className="px-5 py-3 text-right">Interest</th>
+                                <th className="px-5 py-3 text-right">Principal</th>
+                                <th className="px-5 py-3 text-right">Payment</th>
+                                <th className="px-5 py-3 text-right">Balance</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200 text-[13px] text-gray-800">
+                              {chunk.map((row: any) => (
+                                <tr key={row.installment_no} className="hover:bg-gray-50">
+                                  <td className="px-5 py-3 text-center font-bold text-gray-500">{row.installment_no}</td>
+                                  <td className="px-5 py-3 font-semibold">{formatDateStr(row.due_date)}</td>
+                                  <td className="px-5 py-3 text-right text-gray-500">${Number(row.interest_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                  <td className="px-5 py-3 text-right">${Number(row.principal_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                  <td className="px-5 py-3 text-right font-bold text-emerald-600">${Number(row.total_payment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                  <td className="px-5 py-3 text-right font-semibold">${Number(row.remaining_balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Signature Boxes at the bottom of the final printed page */}
+                        {isLastPage && (
+                          <div className="grid grid-cols-3 gap-12 pt-12 text-center text-xs font-bold text-gray-700">
+                            <div className="space-y-12">
+                              <div className="border-t border-gray-400 pt-2">Contractor Signature</div>
+                            </div>
+                            <div className="space-y-12">
+                              <div className="border-t border-gray-400 pt-2">Witness Signature</div>
+                            </div>
+                            <div className="space-y-12">
+                              <div className="border-t border-gray-400 pt-2">Borrower Signature</div>
+                            </div>
+                          </div>
+                        )}
+
+                      </div>
+                    );
+                  })}
                 </div>
 
               </div>
