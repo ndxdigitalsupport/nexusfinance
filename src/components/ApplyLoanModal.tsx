@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { X, Sparkles, User, Mail, DollarSign, Briefcase, Calendar, FileText, CheckCircle2, ArrowRight, ArrowLeft, Clock, ChevronDown, Check, Phone } from 'lucide-react';
 import { LoanApplication } from '../types';
 import { showToast } from './Toast';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface ApplyLoanModalProps {
   isOpen: boolean;
@@ -10,15 +11,6 @@ interface ApplyLoanModalProps {
   userName?: string;
   userEmail?: string;
 }
-
-const LOAN_TYPES = ['SME Loan', 'Housing', 'Personal', 'Auto'] as const;
-const DURATIONS = [
-  { value: '12', label: '12 Months', sub: '1 year' },
-  { value: '24', label: '24 Months', sub: '2 years' },
-  { value: '36', label: '36 Months', sub: '3 years' },
-  { value: '60', label: '60 Months', sub: '5 years' },
-  { value: '180', label: '180 Months', sub: '15 years' },
-];
 
 function CustomSelect({ value, options, onChange, icon: Icon, className }: {
   value: string; options: { value: string; label: string; sub?: string }[];
@@ -61,6 +53,7 @@ function CustomSelect({ value, options, onChange, icon: Icon, className }: {
 }
 
 export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, userEmail }: ApplyLoanModalProps) {
+  const { t, formatCurrency } = useCurrency();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '', email: '', amount: '', type: 'SME Loan', purpose: '', monthlyIncome: '', durationMonths: '24',
@@ -85,6 +78,21 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
     const payment = (amt * rate * Math.pow(1 + rate, months)) / (Math.pow(1 + rate, months) - 1);
     return { monthly: payment, total: payment * months };
   }, [formData.amount, formData.durationMonths]);
+
+  const LOAN_TYPES = useMemo(() => [
+    { value: 'SME Loan', label: t('SME Loan') === 'SME Loan' ? 'SME Loan' : t('SME Loan') },
+    { value: 'Housing', label: t('Housing') === 'Housing' ? 'Housing' : t('Housing') },
+    { value: 'Personal', label: t('Personal') === 'Personal' ? 'Personal' : t('Personal') },
+    { value: 'Auto', label: t('Auto') === 'Auto' ? 'Auto' : t('Auto') }
+  ], [t]);
+
+  const DURATIONS = useMemo(() => [
+    { value: '12', label: `12 ${t('months_label')}`, sub: `1 ${t('year_label')}` },
+    { value: '24', label: `24 ${t('months_label')}`, sub: `2 ${t('years_label')}` },
+    { value: '36', label: `36 ${t('months_label')}`, sub: `3 ${t('years_label')}` },
+    { value: '60', label: `60 ${t('months_label')}`, sub: `5 ${t('years_label')}` },
+    { value: '180', label: `180 ${t('months_label')}`, sub: `15 ${t('years_label')}` },
+  ], [t]);
 
   if (!isOpen) return null;
 
@@ -144,8 +152,8 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
     `w-full bg-[var(--surface-secondary)] border rounded-xl px-4 py-3 text-[14px] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] transition-all duration-200 focus:bg-[var(--surface-card)] focus:border-[#5CF2D0] focus:ring-2 focus:ring-[#5CF2D0]/20 ${formErrors[field] ? 'border-red-400 bg-red-50' : 'border-[var(--border-primary)] hover:border-[var(--text-tertiary)]'}`;
 
   const steps = [
-    { num: 1, label: 'Personal Info', icon: User },
-    { num: 2, label: 'Loan Details', icon: Briefcase },
+    { num: 1, label: t('personal_info'), icon: User },
+    { num: 2, label: t('loan_details'), icon: Briefcase },
   ];
 
   return (
@@ -160,13 +168,13 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center mb-6 shadow-inner">
               <CheckCircle2 className="w-14 h-14 text-emerald-500" />
             </div>
-            <h3 className="text-[26px] font-extrabold text-[var(--text-primary)] mb-2">Application Submitted!</h3>
+            <h3 className="text-[26px] font-extrabold text-[var(--text-primary)] mb-2">{t('application_submitted')}</h3>
             <p className="text-[15px] text-[var(--text-secondary)] max-w-sm mx-auto mb-2 leading-relaxed">
-              Your <span className="font-bold text-[var(--text-primary)]">${parseFloat(formData.amount).toLocaleString()} {formData.type}</span> application has been filed.
+              {t('application_submitted_desc')}
             </p>
-            <p className="text-[13px] text-[var(--text-tertiary)] mb-8">Underwriters will perform verification shortly.</p>
+            <p className="text-[13px] text-[var(--text-tertiary)] mb-8">{t('underwriters_verification')}</p>
             <button onClick={handleReset} className="px-10 py-3 bg-gradient-to-r from-[#0F171C] to-slate-800 text-white font-bold text-[14px] rounded-xl hover:brightness-110 transition-all shadow-lg shadow-black/10 cursor-pointer">
-              Back to Portal
+              {t('back_to_portal')}
             </button>
           </div>
         ) : (
@@ -179,8 +187,8 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                   <Sparkles className="w-5 h-5 text-[#5CF2D0]" />
                 </div>
                 <div>
-                  <h3 className="text-[20px] font-extrabold text-white">Apply for Loan</h3>
-                  <p className="text-[13px] text-white/60">Complete the application in two steps</p>
+                  <h3 className="text-[20px] font-extrabold text-white">{t('apply_loan')}</h3>
+                  <p className="text-[13px] text-white/60">{t('apply_loan_desc')}</p>
                 </div>
               </div>
             </div>
@@ -188,7 +196,6 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
             <div className="px-8 -mt-5 relative z-10">
               <div className="bg-[var(--surface-card)] rounded-xl shadow-lg border border-[var(--border-primary)] p-1.5 flex">
                 {steps.map(s => {
-                  const Icon = s.icon;
                   const active = step === s.num;
                   const done = step > s.num;
                   return (
@@ -207,15 +214,15 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
               {step === 1 ? (
                 <div className="space-y-4 animate-content-enter" key="step1">
                   <div>
-                    <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Full Name</label>
+                    <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">{t('full_name')}</label>
                     <div className="relative">
                       <User className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="Enter your full name" className={`${inputClass('name')} pl-10`} />
+                      <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder={t('enter_full_name')} className={`${inputClass('name')} pl-10`} />
                     </div>
                     {formErrors.name && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.name}</p>}
                   </div>
                   <div>
-                    <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">{isPhoneOnly ? 'Phone Number' : 'Email Address'}</label>
+                    <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">{isPhoneOnly ? t('phone_number') : t('your_email_address')}</label>
                     {isPhoneOnly ? (
                       <div className="relative">
                         <Phone className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -224,14 +231,14 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                     ) : (
                       <div className="relative">
                         <Mail className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                        <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Enter your email address" className={`${inputClass('email')} pl-10`} />
+                        <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder={t('enter_your_email')} className={`${inputClass('email')} pl-10`} />
                       </div>
                     )}
                     {formErrors.email && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.email}</p>}
                   </div>
                   <div className="pt-2 flex justify-end">
                     <button type="button" onClick={handleNext} className="px-7 py-3 bg-gradient-to-r from-[#0F171C] to-slate-800 text-white text-[14px] font-bold rounded-xl hover:brightness-110 transition-all shadow-lg shadow-black/10 flex items-center gap-2 cursor-pointer">
-                      Next Step <ArrowRight className="w-4 h-4" />
+                      {t('next_step')} <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -239,10 +246,10 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                 <div className="space-y-4 animate-content-enter" key="step2">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Loan Amount</label>
+                      <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">{t('loan_amount')}</label>
                       <div className="relative">
                         <DollarSign className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                        <input type="number" name="amount" value={formData.amount} onChange={handleInputChange} placeholder="Enter loan amount" className={`${inputClass('amount')} pl-10`} />
+                        <input type="number" name="amount" value={formData.amount} onChange={handleInputChange} placeholder={t('enter_loan_amount')} className={`${inputClass('amount')} pl-10`} />
                       </div>
                       <div className="flex gap-1.5 mt-2">
                         {[5000, 10000, 25000, 50000].map(v => (
@@ -255,10 +262,10 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                       {formErrors.amount && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.amount}</p>}
                     </div>
                     <div>
-                      <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Monthly Income</label>
+                      <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">{t('monthly_income')}</label>
                       <div className="relative">
                         <DollarSign className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                        <input type="number" name="monthlyIncome" value={formData.monthlyIncome} onChange={handleInputChange} placeholder="Enter monthly income" className={`${inputClass('monthlyIncome')} pl-10`} />
+                        <input type="number" name="monthlyIncome" value={formData.monthlyIncome} onChange={handleInputChange} placeholder={t('enter_monthly_income')} className={`${inputClass('monthlyIncome')} pl-10`} />
                       </div>
                       {formErrors.monthlyIncome && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.monthlyIncome}</p>}
                     </div>
@@ -266,20 +273,20 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Loan Category</label>
-                      <CustomSelect value={formData.type} options={LOAN_TYPES.map(t => ({ value: t, label: t }))} onChange={v => setFormData(prev => ({ ...prev, type: v }))} icon={Briefcase} />
+                      <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">{t('loan_category')}</label>
+                      <CustomSelect value={formData.type} options={LOAN_TYPES} onChange={v => setFormData(prev => ({ ...prev, type: v }))} icon={Briefcase} />
                     </div>
                     <div>
-                      <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Duration</label>
+                      <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">{t('duration')}</label>
                       <CustomSelect value={formData.durationMonths} options={DURATIONS} onChange={v => setFormData(prev => ({ ...prev, durationMonths: v }))} icon={Calendar} />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Loan Purpose</label>
+                    <label className="block text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">{t('loan_purpose')}</label>
                     <div className="relative">
                       <FileText className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-3.5" />
-                      <textarea name="purpose" rows={3} value={formData.purpose} onChange={handleInputChange} placeholder="Describe the purpose of this loan..." className={`${inputClass('purpose')} pl-10 resize-none`} />
+                      <textarea name="purpose" rows={3} value={formData.purpose} onChange={handleInputChange} placeholder={t('describe_loan_purpose')} className={`${inputClass('purpose')} pl-10 resize-none`} />
                     </div>
                     {formErrors.purpose && <p className="text-red-500 text-[12px] mt-1 font-semibold flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full" />{formErrors.purpose}</p>}
                   </div>
@@ -288,25 +295,25 @@ export default function ApplyLoanModal({ isOpen, onClose, onSubmit, userName, us
                     <div className="bg-gradient-to-r from-[#f0fdfa] to-white border border-[#5CF2D0]/20 rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Clock className="w-4 h-4 text-[#0d9488]" />
-                        <p className="text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Estimated Payment</p>
+                        <p className="text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t('estimated_payment')}</p>
                       </div>
                       <div className="flex items-baseline gap-3">
-                        <span className="text-[24px] font-extrabold text-[var(--text-primary)]">${Math.round(estimatedPayment.monthly).toLocaleString()}</span>
-                        <span className="text-[13px] text-[var(--text-secondary)]">/month for {formData.durationMonths} months</span>
+                        <span className="text-[24px] font-extrabold text-[var(--text-primary)]">{formatCurrency(estimatedPayment.monthly)}</span>
+                        <span className="text-[13px] text-[var(--text-secondary)]">/{t('month')} {t('of').toLowerCase()} {formData.durationMonths} {t('months_label').toLowerCase()}</span>
                       </div>
-                      <p className="text-[12px] text-[var(--text-tertiary)] mt-0.5">Total repayment: ${Math.round(estimatedPayment.total).toLocaleString()} · APR 5.4%</p>
+                      <p className="text-[12px] text-[var(--text-tertiary)] mt-0.5">{t('total_repayment')}: {formatCurrency(estimatedPayment.total)} · APR 5.4%</p>
                     </div>
                   )}
 
                   <div className="pt-2 flex justify-between">
                     <button type="button" onClick={handlePrev} className="px-6 py-3 border border-[var(--border-primary)] text-[var(--text-secondary)] text-[14px] font-bold rounded-xl hover:bg-[var(--surface-secondary)] hover:border-[var(--text-tertiary)] transition-all flex items-center gap-2 cursor-pointer">
-                      <ArrowLeft className="w-4 h-4" /> Back
+                      <ArrowLeft className="w-4 h-4" /> {t('back')}
                     </button>
                     <button type="submit" disabled={isSubmitting} className="px-7 py-3 bg-gradient-to-r from-[#0F171C] to-slate-800 text-white text-[14px] font-bold rounded-xl hover:brightness-110 transition-all shadow-lg shadow-black/10 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
                       {isSubmitting ? (
-                        <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processing...</>
+                        <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('processing')}</>
                       ) : (
-                        'Submit Application'
+                        t('submit_application')
                       )}
                     </button>
                   </div>

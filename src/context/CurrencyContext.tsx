@@ -244,6 +244,32 @@ export const translations: Record<string, { en: string; kh: string }> = {
   'enter_your_message': { en: 'Enter your message', kh: 'បញ្ចូលសាររបស់អ្នក' },
   'send_message_btn': { en: 'Send Message', kh: 'ផ្ញើសារ' },
   'message_sent': { en: 'Message Sent!', kh: 'សារត្រូវបានផ្ញើ!' },
+
+  // Apply Loan Modal
+  'apply_loan_desc': { en: 'Complete the application in two steps', kh: 'បំពេញពាក្យសុំក្នុងពីរជំហាន' },
+  'personal_info': { en: 'Personal Info', kh: 'ព័ត៌មានផ្ទាល់ខ្លួន' },
+  'loan_details': { en: 'Loan Details', kh: 'ព័ត៌មានលម្អិតឥណទាន' },
+  'next_step': { en: 'Next Step', kh: 'ជំហានបន្ទាប់' },
+  'monthly_income': { en: 'Monthly Income', kh: 'ប្រាក់ចំណូលប្រចាំខែ' },
+  'loan_category': { en: 'Loan Category', kh: 'ប្រភេទឥណទាន' },
+  'duration': { en: 'Duration', kh: 'រយៈពេលកម្ចី' },
+  'loan_purpose': { en: 'Loan Purpose', kh: 'គោលបំណងកម្ចី' },
+  'enter_loan_amount': { en: 'Enter loan amount', kh: 'បញ្ចូលចំនួនប្រាក់កម្ចី' },
+  'enter_monthly_income': { en: 'Enter monthly income', kh: 'បញ្ចូលប្រាក់ចំណូលប្រចាំខែ' },
+  'describe_loan_purpose': { en: 'Describe the purpose of this loan...', kh: 'រៀបរាប់ពីគោលបំណងនៃកម្ចីនេះ...' },
+  'back': { en: 'Back', kh: 'ត្រឡប់ក្រោយ' },
+  'submit_application': { en: 'Submit Application', kh: 'ដាក់ពាក្យស្នើសុំ' },
+  'enter_full_name': { en: 'Enter your full name', kh: 'បញ្ចូលឈ្មោះពេញរបស់អ្នក' },
+  'processing': { en: 'Processing...', kh: 'កំពុងដំណើរការ...' },
+  'estimated_payment': { en: 'Estimated Payment', kh: 'ការទូទាត់ប៉ាន់ស្មាន' },
+  'total_repayment': { en: 'Total repayment', kh: 'ការសងប្រាក់សរុប' },
+  'application_submitted': { en: 'Application Submitted!', kh: 'ពាក្យស្នើសុំត្រូវបានដាក់រួចរាល់!' },
+  'application_submitted_desc': { en: 'Your application has been filed.', kh: 'ពាក្យស្នើសុំរបស់អ្នកត្រូវបានដាក់រួចរាល់។' },
+  'underwriters_verification': { en: 'Underwriters will perform verification shortly.', kh: 'ភ្នាក់ងាររបស់យើងខ្ញុំនឹងផ្ទៀងផ្ទាត់ក្នុងពេលឆាប់ៗនេះ។' },
+  'back_to_portal': { en: 'Back to Portal', kh: 'ត្រឡប់ទៅផ្ទាំងដើម' },
+  'months_label': { en: 'Months', kh: 'ខែ' },
+  'year_label': { en: 'year', kh: 'ឆ្នាំ' },
+  'years_label': { en: 'years', kh: 'ឆ្នាំ' },
 };
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
