@@ -46,7 +46,7 @@ export default function CustomerDashboard({
 
   let loanTermMonths = 24;
   let currentMonth = 1;
-  let progressPercent = 4;
+  let progressPercent = 0;
 
   if (activeLoan) {
     loanTermMonths = activeLoan.durationMonths || 12;
@@ -57,7 +57,11 @@ export default function CustomerDashboard({
     const monthsPassed = (currentDate.getFullYear() - startDate.getFullYear()) * 12 + (currentDate.getMonth() - startDate.getMonth());
     
     currentMonth = Math.max(1, Math.min(monthsPassed + 1, loanTermMonths));
-    progressPercent = Math.round((currentMonth / loanTermMonths) * 100);
+    
+    // Compute progress based on actual repayments paid
+    const repayments = transactions.filter(t => t.type === 'Repayment');
+    const totalRepaid = Math.abs(repayments.reduce((sum, r) => sum + r.amount, 0));
+    progressPercent = Math.min(100, Math.round((totalRepaid / activeLoan.amount) * 100));
   }
 
   return (
