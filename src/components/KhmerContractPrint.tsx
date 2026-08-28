@@ -222,8 +222,6 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
       
       {/* Dynamic Scoped Print CSS */}
       <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700;900&family=Moul&display=swap');
-        
         .font-khmer {
           font-family: 'Hanuman', 'Khmer OS Battambang', serif;
         }
