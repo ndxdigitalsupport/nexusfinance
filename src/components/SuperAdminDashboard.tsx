@@ -402,38 +402,28 @@ export default function SuperAdminDashboard({
 
           <div className="border-t border-[var(--border-primary)] pt-5 space-y-4">
             <h4 className="text-[14px] font-extrabold text-[var(--text-primary)] flex items-center gap-1.5">
-              💬 Twilio SMS Gateway Configuration
+              💬 Brevo SMS Gateway Configuration
             </h4>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Twilio Account SID</label>
-                <input
-                  type="text"
-                  value={editingConfig.twilio_account_sid || ''}
-                  onChange={(e) => setEditingConfig((p) => ({ ...p, twilio_account_sid: e.target.value }))}
-                  placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxx"
-                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)]"
-                />
-              </div>
-              <div>
-                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Twilio Auth Token</label>
+                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Brevo API Key</label>
                 <input
                   type="password"
-                  value={editingConfig.twilio_auth_token || ''}
-                  onChange={(e) => setEditingConfig((p) => ({ ...p, twilio_auth_token: e.target.value }))}
-                  placeholder="••••••••••••••••"
-                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)]"
+                  value={editingConfig.brevo_api_key || ''}
+                  onChange={(e) => setEditingConfig((p) => ({ ...p, brevo_api_key: e.target.value }))}
+                  placeholder="xkeysib-..."
+                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
                 />
               </div>
               <div>
-                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Twilio Phone Number (From)</label>
+                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Brevo Sender Name</label>
                 <input
                   type="text"
-                  value={editingConfig.twilio_phone_number || ''}
-                  onChange={(e) => setEditingConfig((p) => ({ ...p, twilio_phone_number: e.target.value }))}
-                  placeholder="e.g. +1234567890"
-                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)]"
+                  value={editingConfig.brevo_sender_name || ''}
+                  onChange={(e) => setEditingConfig((p) => ({ ...p, brevo_sender_name: e.target.value }))}
+                  placeholder="e.g. NexusFinance (max 11 chars)"
+                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
                 />
               </div>
             </div>

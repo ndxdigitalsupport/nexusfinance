@@ -54,6 +54,8 @@ export interface PlatformConfig {
   twilio_account_sid?: string;
   twilio_auth_token?: string;
   twilio_phone_number?: string;
+  brevo_api_key?: string;
+  brevo_sender_name?: string;
   vonage_api_key?: string;
   vonage_api_secret?: string;
   vonage_from_number?: string;
