@@ -396,19 +396,19 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
                 <strong>ម្ចាស់បំណុល៖</strong> ឈ្មោះ 
                 <input type="text" value={lenderName} onChange={e => setLenderName(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(lenderName, 120) }} />
                 កើតថ្ងៃទី 
-                <input type="text" value={lenderBirthDay} onChange={e => setLenderBirthDay(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(lenderBirthDay, 30) }} />
+                <input type="text" value={lenderBirthDay} onChange={e => setLenderBirthDay(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(lenderBirthDay, 20) }} />
                 ខែ 
-                <input type="text" value={lenderBirthMonth} onChange={e => setLenderBirthMonth(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(lenderBirthMonth, 60) }} />
+                <input type="text" value={lenderBirthMonth} onChange={e => setLenderBirthMonth(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(lenderBirthMonth, 30) }} />
                 ឆ្នាំ 
-                <input type="text" value={lenderBirthYear} onChange={e => setLenderBirthYear(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(lenderBirthYear, 50) }} />
+                <input type="text" value={lenderBirthYear} onChange={e => setLenderBirthYear(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(lenderBirthYear, 35) }} />
                 កាន់អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរលេខ 
                 <input type="text" value={lenderIdCard} onChange={e => setLenderIdCard(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(lenderIdCard, 110) }} />
                 ចុះថ្ងៃទី 
-                <input type="text" value={lenderIssueDay} onChange={e => setLenderIssueDay(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(lenderIssueDay, 30) }} />
+                <input type="text" value={lenderIssueDay} onChange={e => setLenderIssueDay(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(lenderIssueDay, 20) }} />
                 ខែ 
-                <input type="text" value={lenderIssueMonth} onChange={e => setLenderIssueMonth(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(lenderIssueMonth, 60) }} />
+                <input type="text" value={lenderIssueMonth} onChange={e => setLenderIssueMonth(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(lenderIssueMonth, 30) }} />
                 ឆ្នាំ 
-                <input type="text" value={lenderIssueYear} onChange={e => setLenderIssueYear(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(lenderIssueYear, 50) }} />
+                <input type="text" value={lenderIssueYear} onChange={e => setLenderIssueYear(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(lenderIssueYear, 35) }} />
                 មានអាសយដ្ឋានបច្ចុប្បន្ននៅភូមិ 
                 <input type="text" value={lenderVillage} onChange={e => setLenderVillage(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(lenderVillage, 100) }} />
                 ឃុំ/សង្កាត់ 
@@ -427,7 +427,7 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
                 <strong>កូនបំណុល៖</strong> ឈ្មោះ 
                 <input type="text" value={borrowerName} onChange={e => setBorrowerName(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(borrowerName, 120) }} />
                 ភេទ 
-                <input type="text" value={borrowerGender} onChange={e => setBorrowerGender(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(borrowerGender, 40) }} />
+                <input type="text" value={borrowerGender} onChange={e => setBorrowerGender(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(borrowerGender, 30) }} />
                 កើតថ្ងៃទី 
                 <input type="text" value={borrowerBirthDate} onChange={e => setBorrowerBirthDate(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(borrowerBirthDate, 75) }} />
                 សញ្ជាតិ 
@@ -435,13 +435,13 @@ export default function KhmerContractPrint({ application, onClose }: KhmerContra
                 កាន់អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរលេខ 
                 <input type="text" value={borrowerIdCard} onChange={e => setBorrowerIdCard(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(borrowerIdCard, 110) }} />
                 ចុះថ្ងៃទី 
-                <input type="text" value={borrowerIssueDay} onChange={e => setBorrowerIssueDay(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(borrowerIssueDay, 30) }} />
+                <input type="text" value={borrowerIssueDay} onChange={e => setBorrowerIssueDay(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(borrowerIssueDay, 20) }} />
                 ខែ 
-                <input type="text" value={borrowerIssueMonth} onChange={e => setBorrowerIssueMonth(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(borrowerIssueMonth, 60) }} />
+                <input type="text" value={borrowerIssueMonth} onChange={e => setBorrowerIssueMonth(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(borrowerIssueMonth, 30) }} />
                 ឆ្នាំ 
-                <input type="text" value={borrowerIssueYear} onChange={e => setBorrowerIssueYear(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(borrowerIssueYear, 50) }} />
+                <input type="text" value={borrowerIssueYear} onChange={e => setBorrowerIssueYear(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(borrowerIssueYear, 35) }} />
                 មានអាសយដ្ឋានបច្ចុប្បន្ននៅផ្ទះលេខ 
-                <input type="text" value={borrowerHouseNo} onChange={e => setBorrowerHouseNo(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(borrowerHouseNo, 40) }} />
+                <input type="text" value={borrowerHouseNo} onChange={e => setBorrowerHouseNo(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(borrowerHouseNo, 30) }} />
                 ឃុំ/សង្កាត់ 
                 <input type="text" value={borrowerCommune} onChange={e => setBorrowerCommune(e.target.value)} className="inline-contract-input" style={{ width: getInputWidth(borrowerCommune, 90) }} />
                 ស្រុក/ខណ្ឌ 
