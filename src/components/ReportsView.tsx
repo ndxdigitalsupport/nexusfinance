@@ -11,7 +11,7 @@ interface ReportsViewProps {
 }
 
 export default function ReportsView({ activeReport, loans, transactions, onViewSchedule }: ReportsViewProps) {
-  const { formatCurrency } = useCurrency();
+  const { formatCurrency, t } = useCurrency();
 
   // Search & Date states
   const [searchTerm, setSearchTerm] = useState('');
@@ -173,37 +173,37 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
     window.print();
   };
 
-  // Titles mapping
+  // Titles mapping with dynamic localized values
   const reportTitles: { [key: string]: { title: string; subtitle: string; color: string; icon: any } } = {
     report_outstanding: {
-      title: 'Loan Outstanding Report',
-      subtitle: 'Dynamic view of current active accounts and unpaid principal/interest balances.',
+      title: t('report_outstanding'),
+      subtitle: t('report_outstanding_desc'),
       color: 'from-blue-500 to-indigo-600',
       icon: TrendingUp
     },
     report_payments: {
-      title: 'Payments Report',
-      subtitle: 'Audit log of repayment transaction history and client installment credits.',
+      title: t('report_payments'),
+      subtitle: t('report_payments_desc'),
       color: 'from-emerald-500 to-teal-600',
       icon: Receipt
     },
     report_late: {
-      title: 'Loan Late Report',
-      subtitle: 'Delinquency tracker listing accounts behind schedule with accumulated penalties.',
+      title: t('report_late'),
+      subtitle: t('report_late_desc'),
       color: 'from-amber-500 to-orange-600',
       icon: AlertTriangle
     },
     report_paid_off: {
-      title: 'Paid Off Report',
-      subtitle: 'Settle history recording all loans successfully closed out and completed.',
+      title: t('report_paid_off'),
+      subtitle: t('report_paid_off_desc'),
       color: 'from-purple-500 to-pink-600',
       icon: CheckCircle
     }
   };
 
   const reportInfo = reportTitles[activeReport] || {
-    title: 'Nexus Reports',
-    subtitle: 'Manage and audit platform data.',
+    title: t('reports_menu'),
+    subtitle: t('reports_desc') || 'Manage and audit platform data.',
     color: 'from-slate-500 to-slate-600',
     icon: Landmark
   };
@@ -264,14 +264,14 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
             style={{ borderColor: 'var(--border-primary)' }}
           >
             <Download className="w-4 h-4" />
-            <span>Excel Export</span>
+            <span>{t('excel_export')}</span>
           </button>
           <button
             onClick={triggerPrint}
             className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-105 text-white rounded-xl text-[12.5px] font-bold shadow-md transition flex items-center gap-1.5 cursor-pointer"
           >
             <Printer className="w-4 h-4" />
-            <span>Print Report</span>
+            <span>{t('print_report')}</span>
           </button>
         </div>
       </div>
@@ -288,7 +288,7 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by borrower, email, or reference..."
+            placeholder={t('search_placeholder')}
             className="w-full border rounded-xl pl-10 pr-4 py-2.5 text-[13px] outline-none transition"
             style={{ backgroundColor: 'var(--surface-primary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }}
           />
@@ -331,13 +331,13 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b text-[11.5px] uppercase font-bold tracking-wider" style={{ backgroundColor: 'var(--surface-secondary)', borderColor: 'var(--border-primary)', color: 'var(--text-secondary)' }}>
-                  <th className="px-6 py-4">Loan ID</th>
-                  <th className="px-6 py-4">Borrower</th>
-                  <th className="px-6 py-4">Original Amount</th>
-                  <th className="px-6 py-4">Total Repaid</th>
-                  <th className="px-6 py-4 text-indigo-400">Outstanding Balance</th>
-                  <th className="px-6 py-4">Loan Duration</th>
-                  <th className="px-6 py-4">Next Due Date</th>
+                  <th className="px-6 py-4">{t('loan_id')}</th>
+                  <th className="px-6 py-4">{t('borrower')}</th>
+                  <th className="px-6 py-4">{t('original_amount')}</th>
+                  <th className="px-6 py-4">{t('total_repaid')}</th>
+                  <th className="px-6 py-4 text-indigo-400">{t('outstanding_balance')}</th>
+                  <th className="px-6 py-4">{t('loan_duration')}</th>
+                  <th className="px-6 py-4">{t('next_due_date')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-[13px]" style={{ color: 'var(--text-primary)' }}>
@@ -356,7 +356,7 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
                       <td className="px-6 py-4 font-semibold">{formatCurrency(row.amount)}</td>
                       <td className="px-6 py-4 text-slate-400">{formatCurrency(row.totalRepaid)}</td>
                       <td className="px-6 py-4 font-black text-indigo-400">{formatCurrency(row.outstanding)}</td>
-                      <td className="px-6 py-4">{row.durationMonths} Months</td>
+                      <td className="px-6 py-4">{row.durationMonths} {t('months')}</td>
                       <td className="px-6 py-4 text-[12px]">{formatDate(row.nextPaymentDate)}</td>
                     </tr>
                   ))
@@ -370,11 +370,11 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b text-[11.5px] uppercase font-bold tracking-wider" style={{ backgroundColor: 'var(--surface-secondary)', borderColor: 'var(--border-primary)', color: 'var(--text-secondary)' }}>
-                  <th className="px-6 py-4">Transaction ID</th>
-                  <th className="px-6 py-4">Repayment Description</th>
-                  <th className="px-6 py-4 text-emerald-400">Amount Paid</th>
-                  <th className="px-6 py-4">Payment Date</th>
-                  <th className="px-6 py-4">Log Type</th>
+                  <th className="px-6 py-4">{t('transaction_id')}</th>
+                  <th className="px-6 py-4">{t('repayment_description')}</th>
+                  <th className="px-6 py-4 text-emerald-400">{t('amount_paid')}</th>
+                  <th className="px-6 py-4">{t('payment_date')}</th>
+                  <th className="px-6 py-4">{t('log_type')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-[13px]" style={{ color: 'var(--text-primary)' }}>
@@ -402,13 +402,13 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b text-[11.5px] uppercase font-bold tracking-wider" style={{ backgroundColor: 'var(--surface-secondary)', borderColor: 'var(--border-primary)', color: 'var(--text-secondary)' }}>
-                  <th className="px-6 py-4">Loan ID</th>
-                  <th className="px-6 py-4">Borrower Name</th>
-                  <th className="px-6 py-4 text-center">Unpaid Installments</th>
-                  <th className="px-6 py-4 text-center">Overdue Duration</th>
-                  <th className="px-6 py-4">Accrued Penalty</th>
-                  <th className="px-6 py-4">Interest Rate</th>
-                  <th className="px-6 py-4">Next Payment Date</th>
+                  <th className="px-6 py-4">{t('loan_id')}</th>
+                  <th className="px-6 py-4">{t('borrower_name_label')}</th>
+                  <th className="px-6 py-4 text-center">{t('unpaid_installments')}</th>
+                  <th className="px-6 py-4 text-center">{t('overdue_duration')}</th>
+                  <th className="px-6 py-4">{t('accrued_penalty')}</th>
+                  <th className="px-6 py-4">{t('interest_rate')}</th>
+                  <th className="px-6 py-4">{t('next_due_date')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-[13px]" style={{ color: 'var(--text-primary)' }}>
@@ -441,13 +441,13 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b text-[11.5px] uppercase font-bold tracking-wider" style={{ backgroundColor: 'var(--surface-secondary)', borderColor: 'var(--border-primary)', color: 'var(--text-secondary)' }}>
-                  <th className="px-6 py-4">Loan ID</th>
-                  <th className="px-6 py-4">Borrower</th>
-                  <th className="px-6 py-4">Original Loan Amount</th>
-                  <th className="px-6 py-4">Total Repayments Collected</th>
-                  <th className="px-6 py-4 text-purple-400">Total Interest Earned</th>
-                  <th className="px-6 py-4">Loan Duration</th>
-                  <th className="px-6 py-4">Settled Status</th>
+                  <th className="px-6 py-4">{t('loan_id')}</th>
+                  <th className="px-6 py-4">{t('borrower')}</th>
+                  <th className="px-6 py-4">{t('original_loan_amount')}</th>
+                  <th className="px-6 py-4">{t('total_repayments_collected')}</th>
+                  <th className="px-6 py-4 text-purple-400">{t('total_interest_earned')}</th>
+                  <th className="px-6 py-4">{t('loan_duration')}</th>
+                  <th className="px-6 py-4">{t('settled_status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-[13px]" style={{ color: 'var(--text-primary)' }}>
@@ -466,7 +466,7 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
                       <td className="px-6 py-4 font-semibold">{formatCurrency(row.amount)}</td>
                       <td className="px-6 py-4">{formatCurrency(row.amount * 1.18)}</td>
                       <td className="px-6 py-4 font-black text-purple-400">{formatCurrency(row.amount * 0.18)}</td>
-                      <td className="px-6 py-4">{row.durationMonths} Months</td>
+                      <td className="px-6 py-4">{row.durationMonths} {t('months')}</td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
                           Fully Paid Off

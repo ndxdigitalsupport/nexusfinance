@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { LoanApplication } from '../types';
 import { Printer, X, FileText } from 'lucide-react';
 import { apiFetch } from '../api';
+import { useCurrency } from '../context/CurrencyContext';
 import KhmerContractPrint from './KhmerContractPrint';
 
 interface AmortizationScheduleModalProps {
@@ -13,6 +14,7 @@ interface AmortizationScheduleModalProps {
 export default function AmortizationScheduleModal({ loan, onClose }: AmortizationScheduleModalProps) {
   if (!loan) return null;
 
+  const { t } = useCurrency();
   const [scheduleInstallments, setScheduleInstallments] = useState<any[]>([]);
   const [scheduleLoading, setScheduleLoading] = useState(false);
   const [isPrintingContract, setIsPrintingContract] = useState(false);
@@ -83,6 +85,13 @@ export default function AmortizationScheduleModal({ loan, onClose }: Amortizatio
   for (let i = 0; i < scheduleInstallments.length; i += 12) {
     printChunks.push(scheduleInstallments.slice(i, i + 12));
   }
+
+  const getStatusText = (status: string) => {
+    const s = status.toLowerCase();
+    if (s === 'paid') return t('paid');
+    if (s === 'overdue') return t('overdue');
+    return t('unpaid');
+  };
 
   return createPortal(
     <div className="fixed inset-0 bg-black/65 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto select-none no-print-backdrop print-portal-wrapper">
@@ -180,10 +189,10 @@ export default function AmortizationScheduleModal({ loan, onClose }: Amortizatio
           <div>
             <h3 className="text-[17px] font-extrabold text-[var(--text-primary)] flex items-center gap-2">
               <Printer className="w-5 h-5 text-[var(--accent)]" />
-              <span>Loan Amortization Schedule</span>
+              <span>{t('loan_amortization_schedule')}</span>
             </h3>
             <p className="text-[12px] text-[var(--text-secondary)] font-medium mt-1">
-              Database pre-calculated installments tracker.
+              {t('schedule_desc')}
             </p>
           </div>
           <button
@@ -202,34 +211,34 @@ export default function AmortizationScheduleModal({ loan, onClose }: Amortizatio
             {/* Print Title Block */}
             <div className="text-center pb-4 border-b-2 border-dashed border-[var(--border-primary)]">
               <h2 className="text-2xl font-black tracking-tight" style={{ color: '#0d9488' }}>NexusFinance</h2>
-              <p className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest mt-1">Payment Schedule</p>
+              <p className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest mt-1">{t('payment_schedule')}</p>
             </div>
 
             {/* Info Fields Grid (Figma style) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 p-5 rounded-2xl border border-[var(--border-primary)] bg-[var(--surface-secondary)]/20 printable-metadata-grid">
               <div className="text-xs font-medium text-[var(--text-secondary)]">
-                Borrower Name: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.applicantName}</span>
+                {t('borrower_name_label')}: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.applicantName}</span>
               </div>
               <div className="text-xs font-medium text-[var(--text-secondary)]">
-                Application No: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.id}</span>
+                {t('application_no')}: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.id}</span>
               </div>
               <div className="text-xs font-medium text-[var(--text-secondary)]">
-                Reference No: <span className="font-bold text-[var(--text-primary)] ml-1">REF-{loan.id.replace('#', '')}</span>
+                {t('reference_no')}: <span className="font-bold text-[var(--text-primary)] ml-1">REF-{loan.id.replace('#', '')}</span>
               </div>
               <div className="text-xs font-medium text-[var(--text-secondary)]">
-                Loan Amount: <span className="font-bold text-[var(--text-primary)] ml-1">${loan.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                {t('loan_amount')}: <span className="font-bold text-[var(--text-primary)] ml-1">${loan.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="text-xs font-medium text-[var(--text-secondary)]">
-                Term: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.durationMonths || 12} Months</span>
+                {t('term')}: <span className="font-bold text-[var(--text-primary)] ml-1">{loan.durationMonths || 12} {t('months')}</span>
               </div>
               <div className="text-xs font-medium text-[var(--text-secondary)]">
-                Repayment Freq: <span className="font-bold text-[var(--text-primary)] ml-1">Monthly (30d)</span>
+                {t('repayment_freq')}: <span className="font-bold text-[var(--text-primary)] ml-1">{t('monthly_30d')}</span>
               </div>
               <div className="text-xs font-medium text-[var(--text-secondary)]">
-                Disbursed Date: <span className="font-bold text-[var(--text-primary)] ml-1">{formatDateStr(loan.date)}</span>
+                {t('disbursed_date')}: <span className="font-bold text-[var(--text-primary)] ml-1">{formatDateStr(loan.date)}</span>
               </div>
               <div className="text-xs font-medium text-[var(--text-secondary)]">
-                Borrower Phone: <span className="font-bold text-[var(--text-primary)] ml-1">{(loan as any).applicantPhone || (loan as any).phone || loan.applicantEmail.split('@')[0]}</span>
+                {t('borrower_phone')}: <span className="font-bold text-[var(--text-primary)] ml-1">{(loan as any).applicantPhone || (loan as any).phone || loan.applicantEmail.split('@')[0]}</span>
               </div>
             </div>
 
@@ -245,12 +254,12 @@ export default function AmortizationScheduleModal({ loan, onClose }: Amortizatio
                   <thead>
                     <tr className="bg-[var(--surface-secondary)] text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-secondary)] border-b border-[var(--border-primary)]">
                       <th className="px-5 py-3 text-center w-12">N*</th>
-                      <th className="px-5 py-3">Due Date</th>
-                      <th className="px-5 py-3 text-right">Interest</th>
-                      <th className="px-5 py-3 text-right">Principal</th>
-                      <th className="px-5 py-3 text-right">Payment</th>
-                      <th className="px-5 py-3 text-right">Balance</th>
-                      <th className="px-5 py-3 text-center no-print">Status</th>
+                      <th className="px-5 py-3">{t('due_date')}</th>
+                      <th className="px-5 py-3 text-right">{t('interest')}</th>
+                      <th className="px-5 py-3 text-right">{t('principal')}</th>
+                      <th className="px-5 py-3 text-right">{t('payment')}</th>
+                      <th className="px-5 py-3 text-right">{t('balance')}</th>
+                      <th className="px-5 py-3 text-center no-print">{t('status')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border-secondary)] text-[13px] text-[var(--text-primary)]">
@@ -274,7 +283,7 @@ export default function AmortizationScheduleModal({ loan, onClose }: Amortizatio
                                 ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                                 : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)] border border-[var(--border-primary)]'
                             }`}>
-                              {row.status}
+                              {getStatusText(row.status)}
                             </span>
                           </td>
                         </tr>
@@ -297,34 +306,34 @@ export default function AmortizationScheduleModal({ loan, onClose }: Amortizatio
                   {/* Title block on every page */}
                   <div className="text-center pb-4 border-b-2 border-dashed border-gray-300">
                     <h2 className="text-2xl font-black tracking-tight" style={{ color: '#0d9488' }}>NexusFinance</h2>
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mt-1">Payment Schedule (Page {chunkIdx + 1} of {printChunks.length})</p>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mt-1">{t('payment_schedule')} (Page {chunkIdx + 1} of {printChunks.length})</p>
                   </div>
 
                   {/* Metadata grid on every page */}
                   <div className="grid grid-cols-2 gap-4 p-5 rounded-2xl border border-gray-200 bg-gray-50/50 printable-metadata-grid">
                     <div className="text-xs font-semibold text-gray-600">
-                      Borrower Name: <span className="font-bold text-gray-900 ml-1">{loan.applicantName}</span>
+                      {t('borrower_name_label')}: <span className="font-bold text-gray-900 ml-1">{loan.applicantName}</span>
                     </div>
                     <div className="text-xs font-semibold text-gray-600">
-                      Application No: <span className="font-bold text-gray-900 ml-1">{loan.id}</span>
+                      {t('application_no')}: <span className="font-bold text-gray-900 ml-1">{loan.id}</span>
                     </div>
                     <div className="text-xs font-semibold text-gray-600">
-                      Reference No: <span className="font-bold text-gray-900 ml-1">REF-{loan.id.replace('#', '')}</span>
+                      {t('reference_no')}: <span className="font-bold text-gray-900 ml-1">REF-{loan.id.replace('#', '')}</span>
                     </div>
                     <div className="text-xs font-semibold text-gray-600">
-                      Loan Amount: <span className="font-bold text-gray-900 ml-1">${loan.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      {t('loan_amount')}: <span className="font-bold text-gray-900 ml-1">${loan.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     </div>
                     <div className="text-xs font-semibold text-gray-600">
-                      Term: <span className="font-bold text-gray-900 ml-1">{loan.durationMonths || 12} Months</span>
+                      {t('term')}: <span className="font-bold text-gray-900 ml-1">{loan.durationMonths || 12} {t('months')}</span>
                     </div>
                     <div className="text-xs font-semibold text-gray-600">
-                      Repayment Freq: <span className="font-bold text-gray-900 ml-1">Monthly (30d)</span>
+                      {t('repayment_freq')}: <span className="font-bold text-gray-900 ml-1">{t('monthly_30d')}</span>
                     </div>
                     <div className="text-xs font-semibold text-gray-600">
-                      Disbursed Date: <span className="font-bold text-gray-900 ml-1">{formatDateStr(loan.date)}</span>
+                      {t('disbursed_date')}: <span className="font-bold text-gray-900 ml-1">{formatDateStr(loan.date)}</span>
                     </div>
                     <div className="text-xs font-semibold text-gray-600">
-                      Borrower Phone: <span className="font-bold text-gray-900 ml-1">{(loan as any).applicantPhone || (loan as any).phone || loan.applicantEmail.split('@')[0]}</span>
+                      {t('borrower_phone')}: <span className="font-bold text-gray-900 ml-1">{(loan as any).applicantPhone || (loan as any).phone || loan.applicantEmail.split('@')[0]}</span>
                     </div>
                   </div>
 
@@ -334,11 +343,11 @@ export default function AmortizationScheduleModal({ loan, onClose }: Amortizatio
                       <thead>
                         <tr className="bg-gray-100 text-[11px] font-extrabold uppercase tracking-wider text-gray-500 border-b border-gray-300">
                           <th className="px-5 py-3 text-center w-12">N*</th>
-                          <th className="px-5 py-3">Due Date</th>
-                          <th className="px-5 py-3 text-right">Interest</th>
-                          <th className="px-5 py-3 text-right">Principal</th>
-                          <th className="px-5 py-3 text-right">Payment</th>
-                          <th className="px-5 py-3 text-right">Balance</th>
+                          <th className="px-5 py-3">{t('due_date')}</th>
+                          <th className="px-5 py-3 text-right">{t('interest')}</th>
+                          <th className="px-5 py-3 text-right">{t('principal')}</th>
+                          <th className="px-5 py-3 text-right">{t('payment')}</th>
+                          <th className="px-5 py-3 text-right">{t('balance')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200 text-[13px] text-gray-800">
@@ -384,7 +393,7 @@ export default function AmortizationScheduleModal({ loan, onClose }: Amortizatio
             onClick={onClose}
             className="py-2.5 px-4 text-[12.5px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer"
           >
-            Close
+            {t('close')}
           </button>
           <button
             type="button"
@@ -392,7 +401,7 @@ export default function AmortizationScheduleModal({ loan, onClose }: Amortizatio
             className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-[12.5px] font-bold shadow-md hover:brightness-105 active:scale-97 cursor-pointer flex items-center gap-1.5"
           >
             <FileText className="w-4 h-4" />
-            <span>Print Khmer Contract</span>
+            <span>{t('print_khmer_contract')}</span>
           </button>
           <button
             disabled={scheduleLoading || scheduleInstallments.length === 0}
@@ -400,7 +409,7 @@ export default function AmortizationScheduleModal({ loan, onClose }: Amortizatio
             className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[12.5px] font-bold shadow-md hover:brightness-105 active:scale-97 cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
           >
             <Printer className="w-4 h-4" />
-            <span>Print Schedule</span>
+            <span>{t('print_schedule')}</span>
           </button>
         </div>
 
