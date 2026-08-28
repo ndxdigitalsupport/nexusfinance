@@ -7,9 +7,10 @@ interface ReportsViewProps {
   activeReport: string;
   loans: LoanApplication[];
   transactions: Transaction[];
+  onViewSchedule: (loan: LoanApplication) => void;
 }
 
-export default function ReportsView({ activeReport, loans, transactions }: ReportsViewProps) {
+export default function ReportsView({ activeReport, loans, transactions, onViewSchedule }: ReportsViewProps) {
   const { formatCurrency } = useCurrency();
 
   // Search & Date states
@@ -346,7 +347,7 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
                   </tr>
                 ) : (
                   reportsData.map((row: any) => (
-                    <tr key={row.id} className="hover:bg-slate-800/10 transition">
+                    <tr key={row.id} className="hover:bg-slate-800/20 transition cursor-pointer" onClick={() => onViewSchedule(row)}>
                       <td className="px-6 py-4 font-bold text-slate-400">{row.id}</td>
                       <td className="px-6 py-4">
                         <div className="font-bold text-[var(--text-primary)]">{row.applicantName}</div>
@@ -417,7 +418,7 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
                   </tr>
                 ) : (
                   reportsData.map((row: any) => (
-                    <tr key={row.id} className="hover:bg-slate-800/10 transition">
+                    <tr key={row.id} className="hover:bg-slate-800/20 transition cursor-pointer" onClick={() => onViewSchedule(row)}>
                       <td className="px-6 py-4 font-bold text-slate-400">{row.id}</td>
                       <td className="px-6 py-4">
                         <div className="font-bold text-[var(--text-primary)]">{row.applicantName}</div>
@@ -456,7 +457,7 @@ export default function ReportsView({ activeReport, loans, transactions }: Repor
                   </tr>
                 ) : (
                   reportsData.map((row: any) => (
-                    <tr key={row.id} className="hover:bg-slate-800/10 transition">
+                    <tr key={row.id} className="hover:bg-slate-800/20 transition cursor-pointer" onClick={() => onViewSchedule(row)}>
                       <td className="px-6 py-4 font-bold text-slate-400">{row.id}</td>
                       <td className="px-6 py-4">
                         <div className="font-bold text-[var(--text-primary)]">{row.applicantName}</div>

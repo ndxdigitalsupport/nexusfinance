@@ -38,6 +38,7 @@ const UsersView = lazy(() => import('./components/UsersView'));
 const OfficerRepaymentsView = lazy(() => import('./components/OfficerRepaymentsView'));
 const ReminderSettingsView = lazy(() => import('./components/ReminderSettingsView'));
 const ReportsView = lazy(() => import('./components/ReportsView'));
+const AmortizationScheduleModal = lazy(() => import('./components/AmortizationScheduleModal'));
 const BroadcastView = lazy(() => import('./components/BroadcastView'));
 const TgSharePhone = lazy(() => import('./components/TgSharePhone'));
 
@@ -123,6 +124,7 @@ export default function App() {
   const [isApplyOpen, setIsApplyOpen] = useState(false);
   const [isRepayOpen, setIsRepayOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [viewingScheduleLoan, setViewingScheduleLoan] = useState<LoanApplication | null>(null);
   const [isMeetingOpen, setIsMeetingOpen] = useState(false);
   const [loanPage, setLoanPage] = useState(1);
   const [txPage, setTxPage] = useState(1);
@@ -570,9 +572,9 @@ export default function App() {
             ) : activeMenu === 'manage' ? (
               <LoanManagement applications={applications} onRefresh={refetchAll} />
             ) : activeMenu === 'repayments' ? (
-              <OfficerRepaymentsView loans={applications} onRefresh={refetchAll} />
+              <OfficerRepaymentsView loans={applications} onRefresh={refetchAll} onViewSchedule={setViewingScheduleLoan} />
             ) : activeMenu.startsWith('report_') ? (
-              <ReportsView activeReport={activeMenu} loans={applications} transactions={transactions} />
+              <ReportsView activeReport={activeMenu} loans={applications} transactions={transactions} onViewSchedule={setViewingScheduleLoan} />
             ) : null
           )}
 
@@ -644,6 +646,12 @@ export default function App() {
       </div>
 
       <Suspense fallback={null}>
+      {viewingScheduleLoan && (
+        <AmortizationScheduleModal
+          loan={viewingScheduleLoan}
+          onClose={() => setViewingScheduleLoan(null)}
+        />
+      )}
       <ApplicationDetailsModal
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
