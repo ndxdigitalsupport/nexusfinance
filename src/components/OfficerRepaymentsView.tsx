@@ -663,7 +663,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
         }
 
         return createPortal(
-          <div className="fixed inset-0 bg-black/65 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto select-none no-print-backdrop">
+          <div className="fixed inset-0 bg-black/65 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto select-none no-print-backdrop print-portal-wrapper">
             
             {/* Scoped print CSS injection */}
             <style dangerouslySetInnerHTML={{ __html: `
@@ -674,13 +674,18 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                   background: white !important;
                 }
                 /* Prevent layout wrapper page-cuts and clear height restrictions */
-                html, body, #root, .printable-scheduler-sheet, #print-schedule-modal, .printable-content-block {
+                html, body, #root, .printable-scheduler-sheet, #print-schedule-modal, .printable-content-block, .print-portal-wrapper {
                   height: auto !important;
                   min-height: auto !important;
                   max-height: none !important;
                   overflow: visible !important;
                   display: block !important;
                   position: relative !important;
+                }
+                .print-portal-wrapper {
+                  background: transparent !important;
+                  padding: 0 !important;
+                  z-index: auto !important;
                 }
                 /* Force two-column layout on the metadata card in print */
                 .printable-scheduler-sheet .grid {
@@ -691,9 +696,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh }: OfficerRepay
                 /* Expose printable sheet and its contents cleanly */
                 .printable-scheduler-sheet {
                   visibility: visible;
-                  position: absolute !important;
-                  left: 0 !important;
-                  top: 0 !important;
+                  position: relative !important;
                   width: 100% !important;
                   box-shadow: none !important;
                   border: none !important;
