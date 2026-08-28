@@ -3,19 +3,12 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 import { 
   ChevronRight, 
   ChevronLeft, 
-  Video, 
-  BellRing, 
-  UserCheck2,
-  FileClock,
-  ClockAlert,
-  Inbox,
-  AlertTriangle,
-  Award,
-  Sparkles,
-  Search,
-  CheckCircle2
+  Inbox, 
+  AlertTriangle, 
+  UserCheck2
 } from 'lucide-react';
 import { LoanApplication, Task } from '../types';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface LoanOfficerDashboardProps {
   applications: LoanApplication[];
@@ -32,6 +25,7 @@ export default function LoanOfficerDashboard({
   onOpenDetails,
   onJoinMeeting
 }: LoanOfficerDashboardProps) {
+  const { t } = useCurrency();
   const [activeTab, setActiveTab] = useState<'all' | 'urgent' | 'assigned'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
@@ -73,11 +67,6 @@ export default function LoanOfficerDashboard({
     hold: applications.filter(app => app.status === 'Hold').length,
   };
 
-  // Find next task
-  const nextVideoTask = tasks.find(t => t.title.toLowerCase().includes('verification') && !t.completed) || tasks[0];
-
-
-
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       
@@ -86,11 +75,11 @@ export default function LoanOfficerDashboard({
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[var(--accent)]/10 text-[var(--accent)] uppercase tracking-wider">
-              Corporate Workspace
+              {t('corporate_workspace')}
             </span>
           </div>
-          <h2 className="text-[28px] font-extrabold text-[var(--text-primary)] tracking-tight mt-1">Pending Applications</h2>
-          <p className="text-[13px] text-[var(--text-secondary)] font-medium mt-0.5">Manage and review your assigned loan requests.</p>
+          <h2 className="text-[28px] font-extrabold text-[var(--text-primary)] tracking-tight mt-1">{t('pending_applications')}</h2>
+          <p className="text-[13px] text-[var(--text-secondary)] font-medium mt-0.5">{t('pending_applications_desc')}</p>
         </div>
       </div>
 
@@ -110,10 +99,10 @@ export default function LoanOfficerDashboard({
                 <div className="p-2 bg-[var(--accent)]/10 rounded-xl text-[var(--accent)]">
                   <Inbox className="w-5 h-5" />
                 </div>
-                <span className="text-[11px] font-extrabold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">Active</span>
+                <span className="text-[11px] font-extrabold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">{t('active')}</span>
               </div>
               <div className="relative z-10">
-                <span className="text-[11px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Pending Queue</span>
+                <span className="text-[11px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">{t('pending_queue')}</span>
                 <span className="text-[32px] font-extrabold text-[var(--text-primary)] leading-none tracking-tight block mt-1">
                   {pendingCount.toString().padStart(2, '0')}
                 </span>
@@ -130,7 +119,7 @@ export default function LoanOfficerDashboard({
                 <span className="text-[11px] font-extrabold text-[var(--accent)] bg-[var(--accent)]/20 px-2 py-0.5 rounded-full">Direct</span>
               </div>
               <div className="relative z-10">
-                <span className="text-[11px] uppercase tracking-wider font-extrabold text-[var(--card-dark-text)] block">Assigned to Me</span>
+                <span className="text-[11px] uppercase tracking-wider font-extrabold text-[var(--card-dark-text)] block">{t('assigned_to_me')}</span>
                 <span className="text-[32px] font-extrabold text-[var(--card-dark-text-bright)] leading-none tracking-tight block mt-1">
                   {assignedCount}
                 </span>
@@ -147,11 +136,11 @@ export default function LoanOfficerDashboard({
                 {urgentCount > 0 ? (
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse mt-2 mr-1" />
                 ) : (
-                  <span className="text-[11px] font-extrabold text-[var(--text-tertiary)] bg-[var(--surface-secondary)] px-2 py-0.5 rounded-full">Clear</span>
+                  <span className="text-[11px] font-extrabold text-[var(--text-tertiary)] bg-[var(--surface-secondary)] px-2 py-0.5 rounded-full">{t('clear')}</span>
                 )}
               </div>
               <div className="relative z-10">
-                <span className="text-[11px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">Urgent Action</span>
+                <span className="text-[11px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block">{t('urgent_action')}</span>
                 <span className="text-[32px] font-extrabold text-rose-500 leading-none tracking-tight block mt-1">
                   {urgentCount.toString().padStart(2, '0')}
                 </span>
@@ -169,7 +158,7 @@ export default function LoanOfficerDashboard({
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
-              All Applications ({applications.length})
+              {t('all_applications')} ({applications.length})
             </button>
             
             <button
@@ -180,7 +169,7 @@ export default function LoanOfficerDashboard({
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
-              Urgent ({applications.filter(a => a.urgency === 'Urgent').length})
+              {t('urgent')} ({applications.filter(a => a.urgency === 'Urgent').length})
             </button>
             
             <button
@@ -191,7 +180,7 @@ export default function LoanOfficerDashboard({
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
-              Assigned to me ({applications.filter(a => a.assignedToMe).length})
+              {t('assigned_to_me_tab')} ({applications.filter(a => a.assignedToMe).length})
             </button>
           </div>
 
@@ -200,8 +189,8 @@ export default function LoanOfficerDashboard({
             
             {/* Table headers */}
             <div className="hidden sm:grid grid-cols-12 bg-[var(--surface-secondary)] px-6 py-4 border-b border-[var(--border-primary)]">
-              <div className="col-span-8 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold">Applicant / Reference</div>
-              <div className="col-span-4 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold text-right">Loan Value</div>
+              <div className="col-span-8 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold">{t('applicant_reference')}</div>
+              <div className="col-span-4 text-[11px] text-[var(--text-secondary)] uppercase tracking-wider font-extrabold text-right">{t('loan_value')}</div>
             </div>
 
             {/* List collection */}
@@ -209,7 +198,6 @@ export default function LoanOfficerDashboard({
               {paginatedApps.length > 0 ? (
                 paginatedApps.map((app) => {
                   const isUrgent = app.urgency === 'Urgent' && (app.status === 'New' || app.status === 'Review');
-                  const score = app.creditScore || 700;
                   return (
                     <div
                       key={app.id}
@@ -234,7 +222,7 @@ export default function LoanOfficerDashboard({
                             <span className="text-[var(--text-tertiary)]">•</span>
                             {isUrgent && (
                               <span className="text-rose-500 font-extrabold uppercase text-[9px] tracking-wider bg-rose-500/10 px-1.5 py-0.5 rounded">
-                                Urgent
+                                {t('urgent')}
                               </span>
                             )}
                             {app.status === 'Approved' && (
@@ -317,7 +305,7 @@ export default function LoanOfficerDashboard({
           {/* Visual Status Chart Card */}
           <div className="bg-[var(--surface-card)] rounded-2xl p-6 border border-[var(--border-primary)] shadow-xs select-none">
             <div className="flex justify-between items-start mb-6">
-              <h3 className="text-[16px] font-extrabold text-[var(--text-primary)] tracking-tight">Applications by Status</h3>
+              <h3 className="text-[16px] font-extrabold text-[var(--text-primary)] tracking-tight">{t('applications_by_status')}</h3>
             </div>
 
             <ResponsiveContainer width="100%" height={180}>
@@ -345,10 +333,9 @@ export default function LoanOfficerDashboard({
             </ResponsiveContainer>
 
             <div className="flex justify-between items-center text-[10.5px] font-bold pt-3 border-t border-[var(--border-primary)] text-[var(--text-tertiary)] uppercase tracking-wider">
-              <span>Total recorded: {applications.length} applications</span>
+              <span>{t('total_recorded_label')}: {applications.length} {t('applications_label').toLowerCase()}</span>
             </div>
           </div>
-
 
         </div>
       </div>

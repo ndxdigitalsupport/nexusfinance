@@ -22,10 +22,10 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
   const [peopleOpen, setPeopleOpen] = useState(false);
 
   const menuItems = currentPortal === 'loan-officer'
-    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'repayments', label: 'Repayments Checklist', icon: ClipboardList }]
+    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'repayments', label: t('repayments_checklist'), icon: ClipboardList }]
     : currentPortal === 'super-admin'
     ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]
-    : [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'loans', label: 'Loans', icon: Landmark }, { id: 'khqr', label: 'KHQR Payment', icon: QrCode }];
+    : [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'loans', label: t('loans'), icon: Landmark }, { id: 'khqr', label: t('khqr_payment'), icon: QrCode }];
 
   const bottomItems = [
     { id: 'profile', label: t('profile'), icon: User },
@@ -104,7 +104,7 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
           <div className="mt-4 pt-2 border-t border-[var(--sidebar-border)] space-y-1">
             <p className="text-[10px] font-bold uppercase tracking-widest px-3 pb-1"
               style={{ color: s('sidebar-text-muted') }}
-            >Reports</p>
+            >{t('reports')}</p>
             
             {/* Main Reports Collapsible Button */}
             <button onClick={() => setReportsOpen(!reportsOpen)}
@@ -113,7 +113,7 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
               <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--sidebar-icon-bg)] text-[var(--sidebar-icon-text)] group-hover:bg-[var(--sidebar-icon-active-bg)] group-hover:text-[var(--sidebar-icon-active-text)]">
                 <BarChart3 className="w-4 h-4" />
               </div>
-              <span className="flex-1 text-left">Reports Menu</span>
+              <span className="flex-1 text-left">{t('reports_menu')}</span>
               {reportsOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
             </button>
 
@@ -126,7 +126,7 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
                   className={`w-full flex items-center gap-2.5 text-left py-2 px-2.5 rounded-xl text-[12.5px] font-semibold transition-all duration-150 cursor-pointer ${activeMenu === 'report_outstanding' ? 'bg-[var(--sidebar-active-bg)] text-teal-400 font-bold' : 'text-[var(--sidebar-text)] hover:bg-[var(--sidebar-active-bg)] hover:text-teal-400'}`}
                 >
                   <TrendingUp className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Outstanding Report</span>
+                  <span>{t('report_outstanding')}</span>
                 </button>
 
                 {/* 2. Payments Report */}
@@ -134,7 +134,7 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
                   className={`w-full flex items-center gap-2.5 text-left py-2 px-2.5 rounded-xl text-[12.5px] font-semibold transition-all duration-150 cursor-pointer ${activeMenu === 'report_payments' ? 'bg-[var(--sidebar-active-bg)] text-teal-400 font-bold' : 'text-[var(--sidebar-text)] hover:bg-[var(--sidebar-active-bg)] hover:text-teal-400'}`}
                 >
                   <Receipt className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Payments Report</span>
+                  <span>{t('report_payments')}</span>
                 </button>
 
                 {/* 3. Loan Late Report */}
@@ -142,7 +142,7 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
                   className={`w-full flex items-center gap-2.5 text-left py-2 px-2.5 rounded-xl text-[12.5px] font-semibold transition-all duration-150 cursor-pointer ${activeMenu === 'report_late' ? 'bg-[var(--sidebar-active-bg)] text-teal-400 font-bold' : 'text-[var(--sidebar-text)] hover:bg-[var(--sidebar-active-bg)] hover:text-teal-400'}`}
                 >
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Loan Late Report</span>
+                  <span>{t('report_late')}</span>
                 </button>
 
                 {/* 4. Paid Off Report */}
@@ -150,7 +150,7 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
                   className={`w-full flex items-center gap-2.5 text-left py-2 px-2.5 rounded-xl text-[12.5px] font-semibold transition-all duration-150 cursor-pointer ${activeMenu === 'report_paid_off' ? 'bg-[var(--sidebar-active-bg)] text-teal-400 font-bold' : 'text-[var(--sidebar-text)] hover:bg-[var(--sidebar-active-bg)] hover:text-teal-400'}`}
                 >
                   <CheckCircle className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Paid Off Report</span>
+                  <span>{t('report_paid_off')}</span>
                 </button>
 
               </div>
