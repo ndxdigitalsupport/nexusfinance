@@ -11,7 +11,7 @@ interface ReportsViewProps {
 }
 
 export default function ReportsView({ activeReport, loans, transactions, onViewSchedule }: ReportsViewProps) {
-  const { formatCurrency, t } = useCurrency();
+  const { formatCurrency, t, isKhmer } = useCurrency();
 
   // Search & Date states
   const [searchTerm, setSearchTerm] = useState('');
@@ -138,47 +138,66 @@ export default function ReportsView({ activeReport, loans, transactions, onViewS
     let headers: string[] = [];
     let rows: string[][] = [];
 
+    const getStatusText = (status: string) => {
+      if (!status) return 'N/A';
+      if (!isKhmer) return status;
+      const lower = status.toLowerCase();
+      if (lower === 'paid' || lower === 'paid off' || lower === 'paidoff') return 'បានសងរួច';
+      if (lower === 'unpaid') return 'មិនទាន់សង';
+      if (lower === 'overdue') return 'ហួសកំណត់';
+      if (lower === 'on time' || lower === 'ontime') return 'ទាន់ពេល';
+      return status;
+    };
+
     if (activeReport === 'report_outstanding') {
-      headers = ["Loan ID", "Borrower Name", "Email", "Original Amount", "Total Repaid", "Outstanding Balance", "Term", "Status"];
+      headers = isKhmer 
+        ? ["លេខកូដឥណទាន", "ឈ្មោះអ្នកខ្ចី", "អ៊ីមែល", "ទឹកប្រាក់ដើមសរុប", "ប្រាក់សងសរុប", "សមតុល្យជំពាក់", "រយៈពេលឥណទាន", "ស្ថានភាព"]
+        : ["Loan ID", "Borrower Name", "Email", "Original Amount", "Total Repaid", "Outstanding Balance", "Term", "Status"];
       rows = reportsData.map((row: any) => [
         row.id,
         row.applicantName,
         row.applicantEmail,
-        `$${row.amount.toFixed(2)}`,
-        `$${row.totalRepaid.toFixed(2)}`,
-        `$${row.outstanding.toFixed(2)}`,
-        `${row.durationMonths} Months`,
-        row.repaymentStatus || 'N/A'
+        formatCurrency(row.amount),
+        formatCurrency(row.totalRepaid),
+        formatCurrency(row.outstanding),
+        `${row.durationMonths} ${isKhmer ? 'ខែ' : 'Months'}`,
+        getStatusText(row.repaymentStatus || 'N/A')
       ]);
     } else if (activeReport === 'report_payments') {
-      headers = ["Transaction ID", "Description", "Amount", "Date", "Type"];
+      headers = isKhmer
+        ? ["លេខកូដប្រតិបត្តិការ", "ការពិពណ៌នា", "ចំនួនទឹកប្រាក់", "កាលបរិច្ឆេទ", "ប្រភេទ"]
+        : ["Transaction ID", "Description", "Amount", "Date", "Type"];
       rows = reportsData.map((row: any) => [
         row.id,
         row.title,
-        `$${Math.abs(row.amount).toFixed(2)}`,
+        formatCurrency(Math.abs(row.amount)),
         formatDate(row.date),
         row.type
       ]);
     } else if (activeReport === 'report_late') {
-      headers = ["Loan ID", "Borrower Name", "Overdue Installments", "Estimated Overdue Days", "Interest Rate", "Next Payment Date", "Penalty KHR"];
+      headers = isKhmer
+        ? ["លេខកូដឥណទាន", "ឈ្មោះអ្នកខ្ចី", "ការបង់រំលោះយឺតយ៉ាវ", "ចំនួនថ្ងៃហួសកំណត់ប្រហាក់ប្រហែល", "អត្រាការប្រាក់", "កាលបរិច្ឆេទបង់ប្រាក់បន្ទាប់", "ប្រាក់ពិន័យ"]
+        : ["Loan ID", "Borrower Name", "Overdue Installments", "Estimated Overdue Days", "Interest Rate", "Next Payment Date", "Penalty"];
       rows = reportsData.map((row: any) => [
         row.id,
         row.applicantName,
         (row.overdueCount || 1).toString(),
-        `${row.overdueDays} Days`,
+        `${row.overdueDays} ${isKhmer ? 'ថ្ងៃ' : 'Days'}`,
         "1.5%",
         formatDate(row.nextPaymentDate),
-        `${row.penalty.toLocaleString()} KHR`
+        formatCurrency(row.penalty)
       ]);
     } else if (activeReport === 'report_paid_off') {
-      headers = ["Loan ID", "Borrower Name", "Email", "Disbursement Amount", "Duration Months", "Term End Status"];
+      headers = isKhmer
+        ? ["លេខកូដឥណទាន", "ឈ្មោះអ្នកខ្ចី", "អ៊ីមែល", "ទឹកប្រាក់បើកផ្តល់", "រយៈពេល (ខែ)", "ស្ថានភាពចុងក្រោយ"]
+        : ["Loan ID", "Borrower Name", "Email", "Disbursement Amount", "Duration Months", "Term End Status"];
       rows = reportsData.map((row: any) => [
         row.id,
         row.applicantName,
         row.applicantEmail,
-        `$${row.amount.toFixed(2)}`,
-        `${row.durationMonths} Months`,
-        "Paid Off"
+        formatCurrency(row.amount),
+        `${row.durationMonths} ${isKhmer ? 'ខែ' : 'Months'}`,
+        isKhmer ? "បានសងដាច់" : "Paid Off"
       ]);
     }
 

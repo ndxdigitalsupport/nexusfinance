@@ -19,6 +19,7 @@ import {
 import { LoanApplication } from '../types';
 import { apiFetch } from '../api';
 import KhmerContractPrint from './KhmerContractPrint';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface OfficerRepaymentsViewProps {
   loans: LoanApplication[];
@@ -27,6 +28,7 @@ interface OfficerRepaymentsViewProps {
 }
 
 export default function OfficerRepaymentsView({ loans, onRefresh, onViewSchedule }: OfficerRepaymentsViewProps) {
+  const { formatCurrency, isKhmer } = useCurrency();
   const [activeTab, setActiveTab] = useState<'all' | 'overdue' | 'ontime'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -118,7 +120,16 @@ export default function OfficerRepaymentsView({ loans, onRefresh, onViewSchedule
   };
 
   const exportToExcel = () => {
-    const headers = [
+    const headers = isKhmer ? [
+      'លេខកូដយោងឥណទាន',
+      'ឈ្មោះអ្នកខ្ចី',
+      'អ៊ីមែល',
+      'ទឹកប្រាក់ឥណទាន',
+      'ប្រភេទ',
+      'ការបង់ប្រចាំខែ',
+      'កាលបរិច្ឆេទបង់បន្ទាប់',
+      'ស្ថានភាពសងប្រាក់'
+    ] : [
       'Loan Reference ID',
       'Borrower Name',
       'Email',
@@ -128,16 +139,27 @@ export default function OfficerRepaymentsView({ loans, onRefresh, onViewSchedule
       'Next Payment Date',
       'Repayment Status'
     ];
+
+    const getRepaymentStatusText = (status: string) => {
+      if (!status) return isKhmer ? 'ទាន់ពេល' : 'On Time';
+      if (!isKhmer) return status;
+      const lower = status.toLowerCase();
+      if (lower === 'paid') return 'បានសងរួច';
+      if (lower === 'unpaid') return 'មិនទាន់សង';
+      if (lower === 'overdue') return 'ហួសកំណត់';
+      if (lower === 'on time' || lower === 'ontime') return 'ទាន់ពេល';
+      return status;
+    };
     
     const rows = filteredLoans.map(l => [
       l.id,
       l.applicantName,
       l.applicantEmail,
-      l.amount,
+      formatCurrency(l.amount),
       l.type,
-      l.monthlyPayment || 0,
-      l.nextPaymentDate || 'N/A',
-      l.repaymentStatus || 'On Time'
+      formatCurrency(l.monthlyPayment || 0),
+      l.nextPaymentDate ? formatDate(l.nextPaymentDate) : (isKhmer ? 'គ្មាន' : 'N/A'),
+      getRepaymentStatusText(l.repaymentStatus || '')
     ]);
 
     const excelHtml = `
