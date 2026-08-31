@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, Lock, Save, RefreshCw, Shield, UserCheck, MessageCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, Lock, Save, RefreshCw, Shield, UserCheck, MessageCircle, CheckCircle2, Loader2, Trash2, AlertTriangle } from 'lucide-react';
 import { showToast } from './Toast';
 import { SkeletonCard } from './Skeleton';
 import { apiFetch } from '../api';
@@ -26,6 +26,11 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
   const [phoneChanging, setPhoneChanging] = useState(false);
   const [phoneChangeDeepLink, setPhoneChangeDeepLink] = useState('');
   const [phoneVerified, setPhoneVerified] = useState(false);
+
+  // Account deletion state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteStep, setDeleteStep] = useState(0);
 
   useEffect(() => {
     Promise.all([
@@ -122,6 +127,24 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
     if (role === 'admin') return t('administrator');
     if (role === 'loan-officer') return t('operations_officer');
     return t('verified_client');
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteStep === 0) {
+      setDeleteStep(1);
+      return;
+    }
+    setDeleteLoading(true);
+    try {
+      await apiFetch('/auth/account', { method: 'DELETE' });
+      showToast('Account deleted successfully. You will be logged out.');
+      // Clear all storage and redirect
+      localStorage.clear();
+      window.location.href = '/';
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to delete account', 'error');
+      setDeleteLoading(false);
+    }
   };
 
   return (
@@ -341,6 +364,68 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
           </div>
         </div>
       </div>
+
+      {/* Row 3: Danger Zone - Account Deletion (Required by Apple App Store) */}
+      {user?.role !== 'super-admin' && (
+        <div className="rounded-3xl p-8 border border-red-500/20 bg-red-500/5 shadow-sm">
+          <h3 className="text-[16px] font-bold text-red-600 mb-2 flex items-center gap-2.5">
+            <Trash2 className="w-5 h-5" /> Delete Account
+          </h3>
+          <p className="text-[13px] text-[var(--text-secondary)] font-medium mb-4">
+            Permanently delete your account and all associated data. This action cannot be undone.
+          </p>
+
+          {!showDeleteConfirm ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="text-[13px] font-bold px-5 py-2.5 rounded-xl border border-red-500/30 text-red-600 hover:bg-red-500/10 active:scale-[0.98] transition-all cursor-pointer"
+            >
+              Delete Account
+            </button>
+          ) : (
+            <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 space-y-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-[13px] font-bold text-red-600">
+                    {deleteStep === 0 ? 'Are you sure you want to delete your account?' : 'Type DELETE to confirm'}
+                  </p>
+                  <p className="text-[12px] text-[var(--text-secondary)] mt-1">
+                    {deleteStep === 0
+                      ? 'This will permanently remove all your data including loans, documents, and transaction history.'
+                      : 'This is your last chance. All data will be permanently erased.'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {deleteStep === 0 ? (
+                  <button
+                    onClick={handleDeleteAccount}
+                    className="text-[13px] font-bold px-5 py-2.5 rounded-xl bg-red-600 text-white hover:bg-red-700 active:scale-[0.98] transition-all cursor-pointer"
+                  >
+                    Continue
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleteLoading}
+                    className="text-[13px] font-bold px-5 py-2.5 rounded-xl bg-red-600 text-white hover:bg-red-700 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {deleteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    {deleteLoading ? 'Deleting...' : 'Delete My Account'}
+                  </button>
+                )}
+                <button
+                  onClick={() => { setShowDeleteConfirm(false); setDeleteStep(0); }}
+                  className="text-[13px] font-medium px-4 py-2.5 rounded-xl border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
@@ -28,6 +28,34 @@ export default function App() {
   const [failed, setFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
 
+  // Handle deep links (nexusfinance://...)
+  useEffect(() => {
+    const handleDeepLink = (url: string) => {
+      // Extract the path from the deep link and navigate the WebView
+      const path = url.replace('nexusfinance://', '/');
+      if (webViewRef.current) {
+        webViewRef.current.injectJavaScript(`window.location.href = '${path}';`);
+      }
+    };
+
+    // Handle links that opened the app
+    Linking.getInitialURL().then((url) => {
+      if (url && url.startsWith('nexusfinance://')) {
+        // Small delay to let WebView load first
+        setTimeout(() => handleDeepLink(url), 1500);
+      }
+    });
+
+    // Listen for new deep links while app is open
+    const subscription = Linking.addEventListener('url', (event) => {
+      handleDeepLink(event.url);
+    });
+
+    return () => subscription?.remove();
+  }, []);
+
+  const webViewRef = useRef<WebView>(null);
+
   const handleShouldStartLoad = useCallback((request: any) => {
     const url = request.url;
     if (!url) return true;
@@ -50,6 +78,7 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="light" />
       <WebView
+        ref={webViewRef}
         key={reloadKey}
         source={{ uri: APP_URL }}
         style={styles.webview}

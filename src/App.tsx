@@ -41,6 +41,8 @@ const ReportsView = lazy(() => import('./components/ReportsView'));
 const AmortizationScheduleModal = lazy(() => import('./components/AmortizationScheduleModal'));
 const BroadcastView = lazy(() => import('./components/BroadcastView'));
 const TgSharePhone = lazy(() => import('./components/TgSharePhone'));
+const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./components/TermsOfService'));
 
 const enc = (id: string) => encodeURIComponent(id);
 
@@ -389,6 +391,8 @@ export default function App() {
 
   const isPaymentResult = window.location.pathname === '/payment/success' || window.location.pathname === '/payment/cancel';
   const isTgSharePhone = window.location.pathname === '/tg-share-phone';
+  const isPrivacy = window.location.pathname === '/privacy';
+  const isTerms = window.location.pathname === '/terms';
 
   return (
     <div className="min-h-screen bg-[var(--surface-secondary)] app-root">
@@ -398,6 +402,14 @@ export default function App() {
       ) : isTgSharePhone ? (
         <Suspense fallback={<div className="p-8 text-center text-white">Loading...</div>}>
           <TgSharePhone />
+        </Suspense>
+      ) : isPrivacy ? (
+        <Suspense fallback={<div className="p-8 text-center text-[var(--text-secondary)]">Loading...</div>}>
+          <PrivacyPolicy />
+        </Suspense>
+      ) : isTerms ? (
+        <Suspense fallback={<div className="p-8 text-center text-[var(--text-secondary)]">Loading...</div>}>
+          <TermsOfService />
         </Suspense>
       ) : !isLoggedIn ? (
         <AuthPage onLoginSuccess={handleLoginSuccess} />

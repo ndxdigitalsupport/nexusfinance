@@ -827,11 +827,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               <p>© 2026 Nexus Finance. All rights reserved.</p>
             </div>
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Privacy Policy</a>
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Terms of Service</a>
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Regulatory Disclosure</a>
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Cookie Settings</a>
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Security</a>
+              <a href="/privacy" className="hover:text-[var(--text-primary)] transition">Privacy Policy</a>
+              <a href="/terms" className="hover:text-[var(--text-primary)] transition">Terms of Service</a>
+              <a href="/privacy" className="hover:text-[var(--text-primary)] transition">Regulatory Disclosure</a>
+              <a href="/privacy" className="hover:text-[var(--text-primary)] transition">Security</a>
             </div>
           </footer>
         </div>
@@ -1322,9 +1321,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               <p>© 2026 Nexus Finance. All rights reserved.</p>
             </div>
             <div className="flex gap-6">
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Privacy Policy</a>
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Terms of Service</a>
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[var(--text-primary)] transition">Security</a>
+              <a href="/privacy" className="hover:text-[var(--text-primary)] transition">Privacy Policy</a>
+              <a href="/terms" className="hover:text-[var(--text-primary)] transition">Terms of Service</a>
+              <a href="/privacy" className="hover:text-[var(--text-primary)] transition">Security</a>
             </div>
           </footer>
         </div>

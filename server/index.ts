@@ -715,6 +715,55 @@ app.patch('/api/auth/profile', authMiddleware, async (req, res) => {
   res.json({ user: updated });
 });
 
+// ── ACCOUNT DELETION (Apple App Store requirement) ────────
+
+app.delete('/api/auth/account', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Fetch user to confirm existence
+    const { data: user, error: userErr } = await db.from('nexus_users').select('id, role').eq('id', userId).maybeSingle();
+    if (userErr || !user) return res.status(404).json({ error: 'User not found.' });
+
+    // Prevent deletion of super-admin accounts
+    if (user.role === 'super-admin') {
+      return res.status(403).json({ error: 'Super admin accounts cannot be deleted.' });
+    }
+
+    // Delete related data in order (foreign keys reference nexus_users)
+    // 1. Documents (has ON DELETE CASCADE on FK)
+    await db.from('nexus_documents').delete().eq('user_id', userId);
+
+    // 2. Notifications
+    await db.from('nexus_notifications').delete().eq('userId', userId);
+
+    // 3. Audit logs
+    await db.from('nexus_audit_logs').delete().eq('userId', userId);
+
+    // 4. Payway transactions
+    await db.from('nexus_payway_transactions').delete().eq('user_id', userId);
+
+    // 5. Loans — set user_id to NULL instead of deleting (loans have financial records)
+    await db.from('nexus_loans').update({ user_id: null }).eq('user_id', userId);
+
+    // 6. Broadcasts sent_by — set to NULL
+    await db.from('nexus_broadcasts').update({ sent_by: null }).eq('sent_by', userId);
+
+    // 7. Finally delete the user account
+    const { error: delErr } = await db.from('nexus_users').delete().eq('id', userId);
+    if (delErr) {
+      console.error('Account deletion failed:', delErr);
+      return res.status(500).json({ error: 'Failed to delete account.' });
+    }
+
+    logAudit('account_deleted', `User ${userId} deleted their account`, req.user);
+    res.json({ success: true, message: 'Account deleted successfully.' });
+  } catch (e) {
+    console.error('Account deletion error:', e);
+    res.status(500).json({ error: 'Server error during account deletion.' });
+  }
+});
+
 // ── PHONE CHANGE REQUEST ─────────────────────────────────
 
 app.post('/api/auth/phone-change-request', authMiddleware, async (req, res) => {
