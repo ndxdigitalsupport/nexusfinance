@@ -16,9 +16,7 @@ import {
   Send,
   MonitorSmartphone,
   FileText,
-  Briefcase,
-  CheckCircle2,
-  Shield
+  Briefcase
 } from 'lucide-react';
 import { showToast } from './Toast';
 import { API } from '../api';
@@ -104,95 +102,74 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [resetPassword, setResetPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
 
-  // 8 Core Features
-  const coreFeatures = [
+  // 8 Main Features (titles only for clean zigzag display)
+  const leftFeatures = [
     {
       id: 'debt_collection',
       icon: ShieldCheck,
-      color: 'emerald',
       bgLight: 'bg-emerald-50 text-emerald-600 border-emerald-200',
       titleEn: 'Bad Debt Collection',
       titleKh: 'ការទារបំណុលយឺតយ៉ាវ',
-      tagEn: 'Recovery & Tracking',
-      tagKh: 'តាមដានបំណុលយឺតយ៉ាវ',
       animClass: 'anim-float-1',
-    },
-    {
-      id: 'org_structure',
-      icon: Network,
-      color: 'teal',
-      bgLight: 'bg-teal-50 text-teal-600 border-teal-200',
-      titleEn: 'Loan Org Structure Setup',
-      titleKh: 'រចនាសម្ព័ន្ធស្ថាប័នឥណទាន',
-      tagEn: 'Roles & Governance',
-      tagKh: 'បែងចែកតួនាទីស្ថាប័ន',
-      animClass: 'anim-float-2',
     },
     {
       id: 'digital_strategy',
       icon: Target,
-      color: 'cyan',
       bgLight: 'bg-cyan-50 text-cyan-600 border-cyan-200',
       titleEn: 'Lead Digital Strategy Setup',
       titleKh: 'យុទ្ធសាស្ត្រទាក់ទាញអតិថិជន',
-      tagEn: 'Acquisition & CRM',
-      tagKh: 'ទាក់ទាញអតិថិជន & CRM',
-      animClass: 'anim-float-3',
-    },
-    {
-      id: 'payment_gateway',
-      icon: QrCode,
-      color: 'sky',
-      bgLight: 'bg-sky-50 text-sky-600 border-sky-200',
-      titleEn: 'Payment Gateway',
-      titleKh: 'ច្រកទូទាត់ប្រាក់ឌីជីថល',
-      tagEn: 'KHQR & Bakong Instant',
-      tagKh: 'KHQR និង Bakong',
-      animClass: 'anim-float-1',
+      animClass: 'anim-float-2',
     },
     {
       id: 'broadcasting',
       icon: Send,
-      color: 'indigo',
       bgLight: 'bg-indigo-50 text-indigo-600 border-indigo-200',
       titleEn: 'Broadcasting Setup',
       titleKh: 'ប្រព័ន្ធផ្ញើសារស្វ័យប្រវត្ត',
-      tagEn: 'Telegram & SMS Bots',
-      tagKh: 'Telegram និង SMS Bots',
-      animClass: 'anim-float-2',
-    },
-    {
-      id: 'loan_software',
-      icon: MonitorSmartphone,
-      color: 'violet',
-      bgLight: 'bg-violet-50 text-violet-600 border-violet-200',
-      titleEn: 'Loan Software for Web & App',
-      titleKh: 'កម្មវិធីគ្រប់គ្រង Web & App',
-      tagEn: 'Cloud Ledger & App',
-      tagKh: 'ប្រព័ន្ធ Cloud & App',
       animClass: 'anim-float-3',
     },
     {
       id: 'loan_agreement',
       icon: FileText,
-      color: 'blue',
       bgLight: 'bg-blue-50 text-blue-600 border-blue-200',
       titleEn: 'Loan Agreement Setup',
       titleKh: 'កិច្ចសន្យាឥណទានខ្មែរ',
-      tagEn: '5-Page Legal Contracts',
-      tagKh: 'កិច្ចសន្យាខ្មែរ ៥ ទំព័រ',
       animClass: 'anim-float-1',
+    },
+  ];
+
+  const rightFeatures = [
+    {
+      id: 'org_structure',
+      icon: Network,
+      bgLight: 'bg-teal-50 text-teal-600 border-teal-200',
+      titleEn: 'Loan Org Structure Setup',
+      titleKh: 'រចនាសម្ព័ន្ធស្ថាប័នឥណទាន',
+      animClass: 'anim-float-2',
+    },
+    {
+      id: 'payment_gateway',
+      icon: QrCode,
+      bgLight: 'bg-sky-50 text-sky-600 border-sky-200',
+      titleEn: 'Payment Gateway',
+      titleKh: 'ច្រកទូទាត់ប្រាក់ឌីជីថល',
+      animClass: 'anim-float-1',
+    },
+    {
+      id: 'loan_software',
+      icon: MonitorSmartphone,
+      bgLight: 'bg-violet-50 text-violet-600 border-violet-200',
+      titleEn: 'Loan Software for Web & App',
+      titleKh: 'កម្មវិធីគ្រប់គ្រង Web & App',
+      animClass: 'anim-float-2',
     },
     {
       id: 'biz_consultant',
       icon: Briefcase,
-      color: 'emerald',
       bgLight: 'bg-emerald-50 text-emerald-600 border-emerald-200',
       titleEn: 'Loan Biz Consultant',
       titleKh: 'ការប្រឹក្សាយោបល់អាជីវកម្ម',
-      tagEn: 'Advisory & Growth',
-      tagKh: 'យុទ្ធសាស្ត្រពង្រីកអាជីវកម្ម',
-      animClass: 'anim-float-2',
+      animClass: 'anim-float-3',
     },
   ];
 
@@ -613,11 +590,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       <style>{`
         @keyframes float-slow {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-8px) rotate(0.4deg); }
+          50% { transform: translateY(-7px) rotate(0.4deg); }
         }
         @keyframes float-reverse {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(8px) rotate(-0.5deg); }
+          50% { transform: translateY(7px) rotate(-0.5deg); }
         }
         @keyframes float-subtle {
           0%, 100% { transform: translateY(0px); }
@@ -637,8 +614,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           100% { transform: translateX(200%); }
         }
         .anim-float-1 { animation: float-slow 5s ease-in-out infinite; }
-        .anim-float-2 { animation: float-reverse 6s ease-in-out infinite 0.7s; }
-        .anim-float-3 { animation: float-subtle 4.5s ease-in-out infinite 0.3s; }
+        .anim-float-2 { animation: float-reverse 6s ease-in-out infinite 0.8s; }
+        .anim-float-3 { animation: float-subtle 4.5s ease-in-out infinite 0.4s; }
         .anim-glow { animation: pulse-glow 8s ease-in-out infinite; }
         .anim-aurora { animation: aurora-spin 25s linear infinite; }
         .shimmer-btn:hover .shimmer-layer { animation: shimmer-sweep 1.2s ease-in-out infinite; }
@@ -727,7 +704,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: Animated 8 Main Core Features Showcase */}
+            {/* LEFT COLUMN: Animated ZigZag 8 Features Showcase (Main Titles Only) */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col justify-center space-y-6 pr-2">
               
@@ -755,44 +732,55 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     </>
                   )}
                 </h1>
-
-                <p className="text-slate-600 text-[14px] leading-relaxed max-w-lg font-medium">
-                  {isKhmer 
-                    ? 'មុខងារស្នូលទាំង ៨ សម្រាប់គ្រប់គ្រងឥណទាន ស្វែងរកអតិថិជន បង្កើតកិច្ចសន្យា និងទូទាត់ប្រាក់ស្វ័យប្រវត្ត។'
-                    : '8 core capabilities built into one unified cloud platform for modern micro-lending enterprises.'}
-                </p>
               </div>
 
-              {/* 8 Main Features Animated Cards (4 x 2 Grid with Wave Floating Motion) */}
-              <div className="grid grid-cols-2 gap-3 max-w-2xl">
-                {coreFeatures.map((feat) => {
-                  const Icon = feat.icon;
-                  return (
-                    <div 
-                      key={feat.id}
-                      className={`group ${feat.animClass} bg-white/95 hover:bg-white backdrop-blur-xl rounded-2xl p-3.5 border border-slate-200/90 hover:border-emerald-400 shadow-md hover:shadow-lg transition-all duration-200 cursor-default select-none`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 shadow-xs ${feat.bgLight} group-hover:scale-110 transition-transform`}>
-                          <Icon className="w-5 h-5" />
+              {/* ZigZag Interlocking Animated 8-Feature Columns */}
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 max-w-xl">
+                
+                {/* Column 1 (Left ZigZag Set) */}
+                <div className="flex flex-col space-y-3">
+                  {leftFeatures.map((feat, idx) => {
+                    const Icon = feat.icon;
+                    return (
+                      <div 
+                        key={feat.id}
+                        className={`group ${feat.animClass} ${idx % 2 === 1 ? 'translate-x-2' : ''} bg-white/95 hover:bg-white backdrop-blur-xl rounded-2xl py-3 px-4 border border-slate-200/90 hover:border-emerald-400 shadow-md hover:shadow-lg transition-all duration-200 cursor-default select-none flex items-center gap-3`}
+                      >
+                        <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 shadow-xs ${feat.bgLight} group-hover:scale-110 transition-transform`}>
+                          <Icon className="w-4.5 h-4.5" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-[13px] font-bold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug truncate">
-                            {isKhmer ? feat.titleKh : feat.titleEn}
-                          </h3>
-                          <div className="text-[11px] text-slate-500 font-semibold mt-0.5 truncate flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                            <span>{isKhmer ? feat.tagKh : feat.tagEn}</span>
-                          </div>
-                        </div>
+                        <h3 className="text-[13px] font-bold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug truncate">
+                          {isKhmer ? feat.titleKh : feat.titleEn}
+                        </h3>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+
+                {/* Column 2 (Right ZigZag Set with Staggered Top Offset) */}
+                <div className="flex flex-col space-y-3 pt-5">
+                  {rightFeatures.map((feat, idx) => {
+                    const Icon = feat.icon;
+                    return (
+                      <div 
+                        key={feat.id}
+                        className={`group ${feat.animClass} ${idx % 2 === 1 ? '-translate-x-2' : 'translate-x-1'} bg-white/95 hover:bg-white backdrop-blur-xl rounded-2xl py-3 px-4 border border-slate-200/90 hover:border-emerald-400 shadow-md hover:shadow-lg transition-all duration-200 cursor-default select-none flex items-center gap-3`}
+                      >
+                        <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 shadow-xs ${feat.bgLight} group-hover:scale-110 transition-transform`}>
+                          <Icon className="w-4.5 h-4.5" />
+                        </div>
+                        <h3 className="text-[13px] font-bold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug truncate">
+                          {isKhmer ? feat.titleKh : feat.titleEn}
+                        </h3>
+                      </div>
+                    );
+                  })}
+                </div>
+
               </div>
 
               {/* Trust Metric Strip */}
-              <div className="grid grid-cols-3 gap-3 pt-2 border-t border-slate-200/70 max-w-2xl">
+              <div className="grid grid-cols-3 gap-3 pt-2 border-t border-slate-200/70 max-w-xl">
                 <div className="bg-white/80 rounded-2xl p-3 border border-slate-200/80 shadow-xs text-center">
                   <div className="text-[17px] font-black text-emerald-600">$4.8M+</div>
                   <div className="text-[11px] text-slate-500 font-semibold">{isKhmer ? 'ប្រាក់បានបើកផ្តល់' : 'Disbursed'}</div>
