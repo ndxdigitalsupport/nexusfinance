@@ -270,8 +270,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       if (!res.ok) {
         if (data.code === 'EMAIL_NOT_VERIFIED') {
           setLoginVerifyEmail(loginEmail);
+          setVerifyMethod('telegram');
+          const rawPhone = loginEmail.replace('@nexus.local', '').replace(/\D/g, '');
+          if (rawPhone) {
+            checkTelegramLink(true, rawPhone);
+          }
           await sendLoginVerifyOtp(loginEmail);
-          showToast(loginEmail.includes('@nexus.local') ? 'Account not verified — a code was sent via Telegram & SMS.' : 'Email not verified — a code was sent to your email.', 'info');
+          showToast(isKhmer ? 'គណនីមិនទាន់បានផ្ទៀងផ្ទាត់ — សូមផ្ទៀងផ្ទាត់តាម Telegram ឬ SMS' : 'Account not verified — please verify via Telegram or SMS.', 'info');
           return;
         }
         throw new Error(data.error || 'Invalid phone/email or password.');
@@ -472,19 +477,37 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     }
   };
 
+  const getActivePhone = () => {
+    if (registerPhone) return registerPhone;
+    if (loginVerifyEmail) {
+      if (loginVerifyEmail.includes('@nexus.local')) {
+        return loginVerifyEmail.replace('@nexus.local', '');
+      }
+      if (!loginVerifyEmail.includes('@')) {
+        return loginVerifyEmail;
+      }
+    }
+    return '';
+  };
+
   const handleTabChange = (method: 'email' | 'telegram' | 'sms') => {
     setVerifyMethod(method);
+    const phoneToUse = getActivePhone();
     if (method === 'telegram') {
-      checkTelegramLink(true);
+      checkTelegramLink(true, phoneToUse);
     } else if (method === 'sms') {
-      sendRegisterSmsOtp(registerPhone);
+      if (phoneToUse) {
+        sendRegisterSmsOtp(phoneToUse);
+      }
     }
   };
 
-  const checkTelegramLink = async (silent = false) => {
+  const checkTelegramLink = async (silent = false, customPhone?: string) => {
+    const phoneToUse = customPhone || getActivePhone();
+    if (!phoneToUse) return;
     if (!silent) setTgCheckLoading(true);
     try {
-      const res = await fetch(`${API}/auth/check-link?phone=${encodeURIComponent(registerPhone)}`);
+      const res = await fetch(`${API}/auth/check-link?phone=${encodeURIComponent(phoneToUse)}`);
       const data = await res.json();
       setTelegramLinked(!!data.linked);
       if (data.linked && !silent) {
@@ -501,12 +524,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   const handleSendTgOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    const phoneToUse = getActivePhone();
+    if (!phoneToUse) return showToast('Phone number is required for Telegram OTP', 'error');
     setRegisterLoading(true);
     try {
       const res = await fetch(`${API}/v1/auth/otp/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone_number: registerPhone, channel: 'telegram' }),
+        body: JSON.stringify({ phone_number: phoneToUse, channel: 'telegram' }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to send Telegram OTP.');
@@ -528,18 +553,25 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const handleVerifyTgOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tgOtpCode || tgOtpCode.length < 6) return showToast('Enter the 6-digit code', 'error');
+    const phoneToUse = getActivePhone();
     setRegisterLoading(true);
     try {
       const res = await fetch(`${API}/v1/auth/otp/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone_number: registerPhone, session_id: tgSessionId, code: tgOtpCode }),
+        body: JSON.stringify({ phone_number: phoneToUse, session_id: tgSessionId, code: tgOtpCode }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Invalid or expired OTP.');
       
-      showToast('Phone number verified successfully!', 'success');
-      onLoginSuccess(data.data.auth_token);
+      showToast('Account verified successfully!', 'success');
+      if (data.data && data.data.auth_token) {
+        onLoginSuccess(data.data.auth_token);
+      } else {
+        setLoginVerifyEmail('');
+        setRegisterOtpSent(false);
+        setView('login');
+      }
     } catch (err: any) {
       showToast(err?.message || 'Invalid or expired OTP.', 'error');
       setTgOtpCode('');
@@ -1413,77 +1445,20 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 ) : null}
 
                 {/* ------------------------------------------------------------- */}
-                {/* UNVERIFIED EMAIL LOGIN OTP STEP */}
+                {/* UNIFIED VERIFICATION OTP STEP (Registration + Unverified Login) */}
                 {/* ------------------------------------------------------------- */}
-                {loginVerifyEmail && (
+                {(registerOtpSent || loginVerifyEmail) && (
                   <div className="space-y-5 animate-in fade-in duration-300">
                     <div className="text-left mb-5">
                       <h2 className="text-[25px] font-black text-slate-900 tracking-tight">
                         {isKhmer ? 'ផ្ទៀងផ្ទាត់គណនី' : 'Verify Your Account'}
                       </h2>
                       <p className="text-[13px] text-slate-500 font-medium mt-1">
-                        {isKhmer ? 'សូមបញ្ចូលលេខកូដសម្ងាត់ ៦ ខ្ទង់' : 'Enter the 6-digit code sent to verify'}
+                        {isKhmer ? 'សូមជ្រើសរើស Telegram ឬ SMS ដើម្បីផ្ទៀងផ្ទាត់គណនី' : 'Choose Telegram or SMS to verify your account'}
                       </p>
                     </div>
 
-                    <form onSubmit={handleVerifyLoginOtp} className="space-y-5">
-                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center">
-                        <p className="text-[12.5px] text-slate-600 font-medium">
-                          Code sent to <strong className="text-emerald-700">{loginVerifyEmail.includes('@nexus.local') ? loginVerifyEmail.replace('@nexus.local', '') : loginVerifyEmail}</strong>
-                        </p>
-                      </div>
-                      <div>
-                        <input
-                          type="text"
-                          maxLength={6}
-                          value={loginOtpCode}
-                          onChange={(e) => setLoginOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                          placeholder="000000"
-                          className="w-full text-center text-[28px] tracking-[10px] font-mono rounded-2xl bg-slate-50 border border-slate-200 px-6 py-4 text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-inner font-bold"
-                          required
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={loginLoading || loginOtpCode.length < 6}
-                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-[15px] py-4 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
-                      >
-                        {loginLoading ? (
-                          <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
-                        ) : (
-                          <>{isKhmer ? 'ផ្ទៀងផ្ទាត់ឥឡូវនេះ' : 'VERIFY CODE'} <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
-                        )}
-                      </button>
-                      <div className="flex justify-between items-center text-[12.5px] pt-1">
-                        <button type="button" onClick={() => sendLoginVerifyOtp(loginVerifyEmail)} disabled={loginOtpTimer > 0}
-                          className="text-slate-500 hover:text-emerald-600 cursor-pointer disabled:opacity-40 font-semibold"
-                        >
-                          Resend code {loginOtpTimer > 0 && `(${Math.floor(loginOtpTimer / 60)}:${String(loginOtpTimer % 60).padStart(2, '0')})`}
-                        </button>
-                        <button type="button" onClick={() => { setLoginVerifyEmail(''); setLoginOtpCode(''); }}
-                          className="text-slate-500 hover:text-slate-900 cursor-pointer font-medium"
-                        >
-                          Back to login
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-
-                {/* ------------------------------------------------------------- */}
-                {/* REGISTRATION OTP STEP */}
-                {/* ------------------------------------------------------------- */}
-                {registerOtpSent && (
-                  <div className="space-y-5 animate-in fade-in duration-300">
-                    <div className="text-left mb-5">
-                      <h2 className="text-[25px] font-black text-slate-900 tracking-tight">
-                        {isKhmer ? 'ផ្ទៀងផ្ទាត់លេខកូដសម្ងាត់' : 'Enter Verification Code'}
-                      </h2>
-                      <p className="text-[13px] text-slate-500 font-medium mt-1">
-                        {isKhmer ? 'សូមបញ្ចូលលេខកូដសម្ងាត់ ៦ ខ្ទង់ដើម្បីបញ្ចប់ការចុះឈ្មោះ' : 'Enter the 6-digit code sent to complete registration'}
-                      </p>
-                    </div>
-
+                    {/* Method Selector Tabs */}
                     <div className="flex bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80 gap-1 select-none">
                       {/* 1. Telegram Tab (Shown First) */}
                       <button
@@ -1531,48 +1506,58 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       )}
                     </div>
 
+                    {/* Content for SMS or Email */}
                     {verifyMethod === 'email' || verifyMethod === 'sms' ? (
-                      <form onSubmit={handleVerifyRegisterOtp} className="space-y-4">
+                      <form onSubmit={loginVerifyEmail ? handleVerifyLoginOtp : handleVerifyRegisterOtp} className="space-y-4">
                         <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
                           <p className="text-[12px] text-slate-600 font-medium">
-                            Code sent to <strong className="text-emerald-700">{verifyMethod === 'sms' ? registerPhone : registerEmail}</strong>
+                            Code sent to <strong className="text-emerald-700">{verifyMethod === 'sms' ? getActivePhone() : (loginVerifyEmail || registerEmail)}</strong>
                           </p>
                         </div>
                         <input
                           type="text"
                           maxLength={6}
-                          value={registerOtpCode}
-                          onChange={(e) => setRegisterOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          value={loginVerifyEmail ? loginOtpCode : registerOtpCode}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                            if (loginVerifyEmail) setLoginOtpCode(val);
+                            else setRegisterOtpCode(val);
+                          }}
                           placeholder="000000"
                           className="w-full text-center text-[26px] tracking-[8px] font-mono rounded-2xl bg-slate-50 border border-slate-200 px-6 py-3.5 text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-inner font-bold"
                           required
                         />
                         <button
                           type="submit"
-                          disabled={registerLoading || registerOtpCode.length < 6}
-                          className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[14.5px] py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
+                          disabled={(loginVerifyEmail ? loginLoading : registerLoading) || (loginVerifyEmail ? loginOtpCode.length < 6 : registerOtpCode.length < 6)}
+                          className="group relative w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:via-teal-600 hover:to-emerald-700 text-white font-black text-[14.5px] py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.38)] hover:shadow-[0_14px_28px_-5px_rgba(16,185,129,0.52)] active:scale-98 transition-all cursor-pointer disabled:opacity-50 select-none"
                         >
-                          {registerLoading ? (
+                          {(loginVerifyEmail ? loginLoading : registerLoading) ? (
                             <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
                           ) : (
-                            <>{isKhmer ? 'ផ្ទៀងផ្ទាត់កូដ' : 'VERIFY CODE'} <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                            <>{isKhmer ? 'ផ្ទៀងផ្ទាត់កូដ' : 'VERIFY CODE'} <ArrowRight className="w-5 h-5 stroke-[2.5] group-hover:translate-x-1 transition-transform" /></>
                           )}
                         </button>
                         <div className="flex justify-between items-center text-[12px]">
-                          <button type="button" onClick={handleResendRegisterOtp} disabled={registerOtpTimer > 0}
+                          <button 
+                            type="button" 
+                            onClick={loginVerifyEmail ? () => sendLoginVerifyOtp(loginVerifyEmail) : handleResendRegisterOtp} 
+                            disabled={(loginVerifyEmail ? loginOtpTimer : registerOtpTimer) > 0}
                             className="text-slate-500 hover:text-emerald-700 cursor-pointer disabled:opacity-40 font-semibold"
                           >
-                            Resend code {registerOtpTimer > 0 && `(${Math.floor(registerOtpTimer / 60)}:${String(registerOtpTimer % 60).padStart(2, '0')})`}
+                            Resend code {(loginVerifyEmail ? loginOtpTimer : registerOtpTimer) > 0 && `(${Math.floor((loginVerifyEmail ? loginOtpTimer : registerOtpTimer) / 60)}:${String((loginVerifyEmail ? loginOtpTimer : registerOtpTimer) % 60).padStart(2, '0')})`}
                           </button>
-                          <button type="button" onClick={() => { setRegisterOtpSent(false); setRegisterOtpCode(''); }}
+                          <button 
+                            type="button" 
+                            onClick={() => { setRegisterOtpSent(false); setLoginVerifyEmail(''); setRegisterOtpCode(''); setLoginOtpCode(''); }}
                             className="text-slate-500 hover:text-slate-900 cursor-pointer font-medium"
                           >
-                            Change details
+                            Back to login
                           </button>
                         </div>
                       </form>
                     ) : (
-                      /* Telegram Link & OTP */
+                      /* Content for Telegram */
                       <div className="space-y-4">
                         {!emailVerificationRequired ? (
                           <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
@@ -1583,19 +1568,21 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                               Press below to open our Telegram Bot and share your contact to activate instantly.
                             </p>
                             <a
-                              href={`https://t.me/nexusfinancefintech_bot?start=${registeredUserId}`}
+                              href={registeredUserId ? `https://t.me/nexusfinancefintech_bot?start=${registeredUserId}` : `https://t.me/nexusfinancefintech_bot`}
                               target="_blank"
                               rel="noreferrer"
                               onClick={() => {
                                 const pollInterval = setInterval(async () => {
                                   try {
-                                    const res = await fetch(`${API}/auth/check-link?userId=${registeredUserId}`);
+                                    const activePhone = getActivePhone();
+                                    const q = registeredUserId ? `userId=${registeredUserId}` : `phone=${encodeURIComponent(activePhone)}`;
+                                    const res = await fetch(`${API}/auth/check-link?${q}`);
                                     const data = await res.json();
                                     if (data.linked) {
                                       clearInterval(pollInterval);
                                       showToast('Telegram account linked and verified successfully!', 'success');
                                       if (data.token) onLoginSuccess(data.token);
-                                      else { setView('login'); setRegisterOtpSent(false); }
+                                      else { setView('login'); setRegisterOtpSent(false); setLoginVerifyEmail(''); }
                                     }
                                   } catch (e) { console.error(e); }
                                 }, 2000);
@@ -1612,7 +1599,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                               <span>🔗 Link Telegram & Receive OTP</span>
                             </h4>
                             <p className="text-[11.5px] text-slate-600 leading-relaxed font-medium">
-                              Link your Telegram account to phone <strong className="text-emerald-700">{registerPhone}</strong> to get your verification code instantly:
+                              Link your Telegram account to phone <strong className="text-emerald-700">{getActivePhone()}</strong> to get your verification code instantly:
                             </p>
                             <a
                               href="https://t.me/nexusfinancefintech_bot"
@@ -1626,7 +1613,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                 }, 1000);
                                 const pollInterval = setInterval(async () => {
                                   try {
-                                    const res = await fetch(`${API}/auth/check-link?phone=${encodeURIComponent(registerPhone)}`);
+                                    const res = await fetch(`${API}/auth/check-link?phone=${encodeURIComponent(getActivePhone())}`);
                                     const data = await res.json();
                                     if (data.linked) {
                                       setTelegramLinked(true);
@@ -1679,10 +1666,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                               >
                                 Resend code {tgOtpTimer > 0 && `(${Math.floor(tgOtpTimer / 60)}:${String(tgOtpTimer % 60).padStart(2, '0')})`}
                               </button>
-                              <button type="button" onClick={() => { setRegisterOtpSent(false); setTgOtpSent(false); }}
+                              <button type="button" onClick={() => { setRegisterOtpSent(false); setLoginVerifyEmail(''); setTgOtpSent(false); }}
                                 className="text-slate-500 hover:text-slate-900 cursor-pointer font-medium"
                               >
-                                Change phone
+                                Back to login
                               </button>
                             </div>
                           </form>
