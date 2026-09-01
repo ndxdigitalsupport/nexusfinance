@@ -283,12 +283,9 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
-    const { data: config } = await db.from('nexus_config').select('emailVerificationRequired').eq('id', 1).single();
-    const isEmailVerificationRequired = config ? config.emailVerificationRequired !== false : true;
-
-    if (isEmailVerificationRequired && dbUser.email_verified === false) {
+    if (dbUser.email_verified === false) {
       return res.status(403).json({
-        error: 'Email not verified. A verification code has been sent to your email.',
+        error: 'Account not verified. Please complete your OTP verification to activate your account.',
         code: 'EMAIL_NOT_VERIFIED',
       });
     }
@@ -1838,7 +1835,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
 
     const { data: newUser } = await db.from('nexus_users').insert({
       name, email, password: hashedPassword, role: 'customer', phone: finalPhone || null,
-      email_verified: !isEmailVerificationRequired,
+      email_verified: false,
     }).select('id, name, email, role').single();
     if (!newUser) return res.status(500).json({ error: 'Failed to create account.' });
 

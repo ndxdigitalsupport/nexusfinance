@@ -142,7 +142,7 @@ export async function verifyOtpForUserByPhone(phone: string, code: string) {
   }
 
   await db.from('nexus_users')
-    .update({ otp_code: null, otp_expires_at: null, otp_verified_at: new Date().toISOString() })
+    .update({ email_verified: true, otp_code: null, otp_expires_at: null, otp_verified_at: new Date().toISOString() })
     .eq('id', user.id);
 
   return { success: true };

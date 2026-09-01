@@ -1219,6 +1219,7 @@ ${lines.join('\n')}`,
             phone: finalPhone,
             telegram_chat_id: String(chatId),
             otp_verified_at: new Date().toISOString(),
+            email_verified: true,
             email: emailPattern
           })
           .eq('id', dbUser.id);
