@@ -17,7 +17,6 @@ import {
   MonitorSmartphone,
   FileText,
   Briefcase,
-  ChevronRight,
   CheckCircle2
 } from 'lucide-react';
 import { showToast } from './Toast';
@@ -1167,7 +1166,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                               type="text"
                               value={loginEmail}
                               onChange={(e) => setLoginEmail(e.target.value)}
-                              placeholder={emailVerificationRequired ? "012 345 678 or name@domain.com" : "012 345 678"}
+                              placeholder={emailVerificationRequired ? (isKhmer ? "លេខទូរស័ព្ទ ឬ អ៊ីមែល" : "Phone number or email") : (isKhmer ? "លេខទូរស័ព្ទ" : "Phone number")}
                               className="w-full rounded-2xl bg-slate-50/90 border border-slate-200 focus:bg-white pl-12 pr-4 py-3.5 text-[14px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
                               required
                             />
@@ -1330,7 +1329,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                               type="tel"
                               value={registerPhone}
                               onChange={(e) => setRegisterPhone(e.target.value)}
-                              placeholder="012 345 678"
+                              placeholder={isKhmer ? "លេខទូរស័ព្ទ" : "Phone number"}
                               className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-11 pr-4 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
                               required
                             />
@@ -1637,11 +1636,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                           </label>
                           <div className="relative">
                             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
-                              <Lock className="w-4.5 h-4.5" />
+                              <Phone className="w-4.5 h-4.5" />
                             </div>
                             <input
                               type={emailVerificationRequired ? 'text' : 'tel'}
-                              placeholder={emailVerificationRequired ? 'name@domain.com or 012 345 678' : '012 345 678'}
+                              placeholder={emailVerificationRequired ? (isKhmer ? "លេខទូរស័ព្ទ ឬ អ៊ីមែល" : "Phone number or email") : (isKhmer ? "លេខទូរស័ព្ទ" : "Phone number")}
                               value={forgotEmail}
                               onChange={(e) => setForgotEmail(e.target.value)}
                               className="w-full pl-12 pr-4 py-3.5 bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl text-[14px] font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all"
