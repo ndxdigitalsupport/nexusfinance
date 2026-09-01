@@ -17,7 +17,13 @@ import {
   MonitorSmartphone,
   FileText,
   Briefcase,
-  CheckCircle2
+  CheckCircle2,
+  Mail,
+  Globe,
+  MessageCircle,
+  MapPin,
+  Clock,
+  X
 } from 'lucide-react';
 import { showToast } from './Toast';
 import { API } from '../api';
@@ -33,6 +39,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const { language, setLanguage, isKhmer } = useCurrency();
   const [view, setView] = useState<AuthView>('login');
   const [emailVerificationRequired, setEmailVerificationRequired] = useState<boolean | null>(null);
+
+  // Support Modal States
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [supportName, setSupportName] = useState('');
+  const [supportEmail, setSupportEmail] = useState('');
+  const [supportMessage, setSupportMessage] = useState('');
+  const [supportLoading, setSupportLoading] = useState(false);
+  const [supportSent, setSupportSent] = useState(false);
 
   useEffect(() => {
     fetch(`${API}/diag`)
@@ -102,6 +116,36 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [showResetForm, setShowResetForm] = useState(false);
   const [resetPassword, setResetPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
+
+  // Support Message Submission
+  const handleSendSupportMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supportName || !supportEmail || !supportMessage) {
+      return showToast(isKhmer ? 'សូមបំពេញព័ត៌មានទាំងអស់' : 'Please fill in all fields', 'error');
+    }
+    setSupportLoading(true);
+    try {
+      const res = await fetch(`${API}/support/message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: supportName, email: supportEmail, message: supportMessage }),
+      });
+      if (!res.ok) throw new Error('Failed to send support message');
+      setSupportSent(true);
+      showToast(isKhmer ? 'សាររបស់អ្នកត្រូវបានផ្ញើដោយជោគជ័យ!' : 'Message sent successfully! Our team will respond shortly.', 'success');
+      setTimeout(() => {
+        setSupportSent(false);
+        setSupportName('');
+        setSupportEmail('');
+        setSupportMessage('');
+        setShowSupportModal(false);
+      }, 2000);
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to send message', 'error');
+    } finally {
+      setSupportLoading(false);
+    }
+  };
 
   // 8 Main Features with rich popup details
   const features3D = [
@@ -771,10 +815,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           50% { transform: rotate(180deg) scale(1.1); }
           100% { transform: rotate(360deg) scale(1); }
         }
-        @keyframes shimmer-sweep {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(200%); }
-        }
         
         .anim-planet-core { animation: planet-float 6s ease-in-out infinite; }
         .anim-planet-ring-1 { animation: planet-ring-spin-1 18s linear infinite; }
@@ -782,7 +822,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         .anim-ring-pulse { animation: pulse-ring 6s ease-in-out infinite; }
         .anim-glow { animation: pulse-glow 8s ease-in-out infinite; }
         .anim-aurora { animation: aurora-spin 25s linear infinite; }
-        .shimmer-btn:hover .shimmer-layer { animation: shimmer-sweep 1.2s ease-in-out infinite; }
         
         .dot-matrix-light {
           background-image: radial-gradient(rgba(15, 23, 42, 0.05) 1.2px, transparent 1.2px);
@@ -837,13 +876,21 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               <span>Systems Online</span>
             </div>
 
-            <div className="flex items-center bg-white/90 border border-slate-200 rounded-xl p-1 shadow-xs">
+            {/* Sliding Language Switcher (EN <-> KH) with Gliding Active Pill */}
+            <div className="relative flex items-center bg-slate-100/90 border border-slate-200/80 rounded-xl p-1 shadow-xs select-none">
+              <div 
+                className="absolute top-1 bottom-1 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 shadow-sm shadow-emerald-500/25 transition-all duration-300 ease-out"
+                style={{
+                  width: 'calc(50% - 4px)',
+                  left: language === 'en' ? '4px' : 'calc(50%)',
+                }}
+              />
               <button
                 type="button"
                 onClick={() => setLanguage('en')}
-                className={`px-3 py-1 rounded-lg text-[11.5px] font-bold transition-all cursor-pointer ${
+                className={`relative z-10 px-3.5 py-1 rounded-lg text-[11.5px] font-extrabold transition-colors duration-200 cursor-pointer ${
                   language === 'en'
-                    ? 'bg-emerald-500 text-white shadow-sm'
+                    ? 'text-white'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -852,9 +899,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               <button
                 type="button"
                 onClick={() => setLanguage('kh')}
-                className={`px-3 py-1 rounded-lg text-[11.5px] font-bold transition-all cursor-pointer ${
+                className={`relative z-10 px-3.5 py-1 rounded-lg text-[11.5px] font-extrabold transition-colors duration-200 cursor-pointer ${
                   language === 'kh'
-                    ? 'bg-emerald-500 text-white shadow-sm'
+                    ? 'text-white'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -862,13 +909,15 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               </button>
             </div>
 
-            <a 
-              href="mailto:support@nexusfinance.com" 
-              className="hidden md:flex items-center gap-1.5 text-slate-600 hover:text-slate-900 font-semibold text-[13px] transition px-3 py-1.5 rounded-xl hover:bg-slate-100/70"
+            {/* Interactive Support Modal Trigger Button */}
+            <button 
+              type="button"
+              onClick={() => setShowSupportModal(true)}
+              className="flex items-center gap-1.5 text-slate-700 hover:text-emerald-700 font-bold text-[13px] transition px-3.5 py-1.5 rounded-xl hover:bg-slate-100/80 cursor-pointer border border-slate-200/80 hover:border-emerald-300 shadow-xs"
             >
               <HelpCircle className="w-4 h-4 text-emerald-600" />
               <span>{isKhmer ? 'ជំនួយ' : 'Support'}</span>
-            </a>
+            </button>
           </div>
         </header>
 
@@ -1173,7 +1222,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                               </div>
                             </div>
 
-                            {/* Submit Button */}
+                            {/* Magnetic FinTech Pulse Submit Button */}
                             <div className="pt-2">
                               <button
                                 type="submit"
@@ -1338,7 +1387,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                               </div>
                             </div>
 
-                            {/* Submit Action */}
+                            {/* Magnetic FinTech Pulse Submit Button */}
                             <div className="pt-2">
                               <button
                                 type="submit"
@@ -1802,6 +1851,246 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         </footer>
 
       </div>
+
+      {/* ========================================================================= */}
+      {/* 4. PREMIUM FLOATING SUPPORT & CUSTOMER CARE MODAL */}
+      {/* ========================================================================= */}
+      {showSupportModal && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+          
+          {/* Backdrop Blur */}
+          <div 
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-md transition-opacity"
+            onClick={() => setShowSupportModal(false)}
+          />
+
+          {/* Dialog Container */}
+          <div className="relative w-full max-w-4xl bg-white/95 backdrop-blur-3xl rounded-[32px] border border-slate-200/90 shadow-2xl shadow-slate-950/40 overflow-hidden z-10 flex flex-col max-h-[90vh]">
+            
+            {/* Top Modal Header */}
+            <div className="relative px-6 py-5 sm:px-8 sm:py-6 border-b border-slate-200/80 bg-gradient-to-r from-emerald-50/50 via-teal-50/30 to-transparent flex justify-between items-start">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100/70 border border-emerald-200 text-emerald-800 text-[11.5px] font-extrabold tracking-wide uppercase">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>{isKhmer ? 'សេវាអតិថិជន & មជ្ឈមណ្ឌលជំនួយ' : 'Support & Customer Care'}</span>
+                </div>
+                <h3 className="text-[22px] sm:text-[24px] font-black text-slate-900 tracking-tight">
+                  {isKhmer ? 'ទាក់ទងមកកាន់ក្រុមការងារយើងខ្ញុំ' : 'How can we help you today?'}
+                </h3>
+                <p className="text-[13px] text-slate-500 font-medium">
+                  {isKhmer ? 'ទាក់ទងតាមបណ្តាញសង្គម ឬ ផ្ញើសារផ្ទាល់មកកាន់ក្រុមជំនួយបច្ចេកទេស' : 'Get in touch with our helpdesk or send a direct inquiry to our team.'}
+                </p>
+              </div>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setShowSupportModal(false)}
+                className="w-9 h-9 rounded-2xl bg-slate-100 hover:bg-slate-200/80 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer border border-slate-200/80 active:scale-95 shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body: Two-Column Split Layout */}
+            <div className="p-6 sm:p-8 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+              
+              {/* Left Column: Direct Contact Channels (5 Cols) */}
+              <div className="lg:col-span-5 flex flex-col justify-between space-y-4 bg-slate-50/80 border border-slate-200/80 rounded-3xl p-5">
+                <div className="space-y-3.5">
+                  <h4 className="text-[14px] font-extrabold text-slate-900 flex items-center gap-2">
+                    <span>📍 {isKhmer ? 'ព័ត៌មានទំនាក់ទំនង' : 'Get in Touch'}</span>
+                  </h4>
+
+                  <div className="space-y-2">
+                    {/* Phone Channel */}
+                    <a 
+                      href="tel:+85581968581" 
+                      className="flex items-center gap-3 p-2.5 rounded-2xl bg-white hover:bg-emerald-50/60 border border-slate-200/80 hover:border-emerald-300 transition group shadow-2xs cursor-pointer"
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <Phone className="w-4.5 h-4.5" />
+                      </div>
+                      <div className="min-w-0 flex-grow">
+                        <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider block">
+                          {isKhmer ? 'លេខទូរស័ព្ទ' : 'Phone Number'}
+                        </span>
+                        <span className="text-[13px] font-bold text-slate-900 group-hover:text-emerald-700 transition-colors truncate block">
+                          +855 81 968 581
+                        </span>
+                      </div>
+                    </a>
+
+                    {/* Telegram Channel */}
+                    <a 
+                      href="https://t.me/Nexusfinance_Support" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="flex items-center gap-3 p-2.5 rounded-2xl bg-white hover:bg-cyan-50/60 border border-slate-200/80 hover:border-cyan-300 transition group shadow-2xs cursor-pointer"
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <MessageCircle className="w-4.5 h-4.5" />
+                      </div>
+                      <div className="min-w-0 flex-grow">
+                        <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider block">
+                          {isKhmer ? 'តេឡេក្រាមជំនួយ' : 'Telegram Support'}
+                        </span>
+                        <span className="text-[13px] font-bold text-slate-900 group-hover:text-cyan-700 transition-colors truncate block">
+                          @Nexusfinance_Support
+                        </span>
+                      </div>
+                    </a>
+
+                    {/* Email Channel */}
+                    <a 
+                      href="mailto:support@nexusfinance.asia" 
+                      className="flex items-center gap-3 p-2.5 rounded-2xl bg-white hover:bg-emerald-50/60 border border-slate-200/80 hover:border-emerald-300 transition group shadow-2xs cursor-pointer"
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <Mail className="w-4.5 h-4.5" />
+                      </div>
+                      <div className="min-w-0 flex-grow">
+                        <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider block">
+                          {isKhmer ? 'អ៊ីមែលជំនួយ' : 'Email Support'}
+                        </span>
+                        <span className="text-[13px] font-bold text-slate-900 group-hover:text-emerald-700 transition-colors truncate block">
+                          support@nexusfinance.asia
+                        </span>
+                      </div>
+                    </a>
+
+                    {/* Official Website */}
+                    <a 
+                      href="https://www.nexusfinance.asia" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="flex items-center gap-3 p-2.5 rounded-2xl bg-white hover:bg-slate-100 border border-slate-200/80 hover:border-slate-300 transition group shadow-2xs cursor-pointer"
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <Globe className="w-4.5 h-4.5" />
+                      </div>
+                      <div className="min-w-0 flex-grow">
+                        <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider block">
+                          {isKhmer ? 'គេហទំព័រផ្លូវការ' : 'Official Website'}
+                        </span>
+                        <span className="text-[13px] font-bold text-slate-900 group-hover:text-emerald-700 transition-colors truncate block">
+                          www.nexusfinance.asia
+                        </span>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Address & Hours Footer in Left Column */}
+                <div className="pt-2 border-t border-slate-200/80 space-y-2 text-slate-600">
+                  <div className="flex items-center gap-2 text-[12px]">
+                    <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="font-semibold text-slate-700 truncate">OCIC, Phnom Penh, Cambodia</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[12px]">
+                    <Clock className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="font-medium text-slate-600">Mon–Fri, 8:00 AM – 5:00 PM ICT</span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right Column: Interactive Send Message Form (7 Cols) */}
+              <div className="lg:col-span-7 bg-white rounded-3xl p-6 border border-slate-200/90 shadow-xs flex flex-col justify-between">
+                <div>
+                  <h4 className="text-[15px] font-extrabold text-slate-900 flex items-center gap-2 mb-1">
+                    <span>✉️ {isKhmer ? 'ផ្ញើសារមកកាន់យើង' : 'Send us a Message'}</span>
+                  </h4>
+                  <p className="text-[12.5px] text-slate-500 font-medium mb-4">
+                    {isKhmer ? 'យើងនឹងឆ្លើយតបក្នុងរយៈពេលយ៉ាងយូរ ២៤ ម៉ោង។' : 'Leave your inquiry below and our helpdesk will get back to you promptly.'}
+                  </p>
+
+                  <form onSubmit={handleSendSupportMessage} className="space-y-3.5">
+                    {/* Name & Email Fields */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
+                          {isKhmer ? 'ឈ្មោះរបស់អ្នក' : 'Your Name'}
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-slate-400">
+                            <User className="w-4 h-4" />
+                          </div>
+                          <input
+                            type="text"
+                            value={supportName}
+                            onChange={(e) => setSupportName(e.target.value)}
+                            placeholder={isKhmer ? "បញ្ចូលឈ្មោះ" : "Enter your name"}
+                            className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-10 pr-3.5 py-2.5 text-[13px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
+                          {isKhmer ? 'អ៊ីមែលរបស់អ្នក' : 'Email Address'}
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-slate-400">
+                            <Mail className="w-4 h-4" />
+                          </div>
+                          <input
+                            type="email"
+                            value={supportEmail}
+                            onChange={(e) => setSupportEmail(e.target.value)}
+                            placeholder="name@domain.com"
+                            className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-10 pr-3.5 py-2.5 text-[13px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Message Textarea */}
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
+                        {isKhmer ? 'ខ្លឹមសារសារ' : 'Message Details'}
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={supportMessage}
+                        onChange={(e) => setSupportMessage(e.target.value)}
+                        placeholder={isKhmer ? "សូមសរសេរសំណួរ ឬបញ្ហារបស់អ្នកនៅទីនេះ..." : "Describe how we can assist you with loans, accounts, or payments..."}
+                        className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl p-3.5 text-[13px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all resize-none"
+                        required
+                      />
+                    </div>
+
+                    {/* Send Message Button */}
+                    <div className="pt-1">
+                      <button
+                        type="submit"
+                        disabled={supportLoading || supportSent}
+                        className="group relative w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:via-teal-600 hover:to-emerald-700 text-white font-black text-[14px] tracking-wide py-3 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-[0_8px_20px_-4px_rgba(16,185,129,0.35)] hover:shadow-[0_12px_24px_-4px_rgba(16,185,129,0.48)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] transition-all duration-200 cursor-pointer disabled:opacity-50 select-none"
+                      >
+                        {supportLoading ? (
+                          <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> {isKhmer ? 'កំពុងផ្ញើ...' : 'SENDING MESSAGE...'}</span>
+                        ) : supportSent ? (
+                          <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-white" /> {isKhmer ? 'បានផ្ញើជោគជ័យ!' : 'MESSAGE SENT!'}</span>
+                        ) : (
+                          <>
+                            <span>{isKhmer ? 'ផ្ញើសារឥឡូវនេះ' : 'Send Message'}</span>
+                            <Send className="w-4 h-4 stroke-[2.3] group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-200 ease-out" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
