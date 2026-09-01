@@ -18,7 +18,7 @@ import { LoanApplication, Task, Transaction, PlatformConfig, PlatformStats, Port
 import { DEFAULT_CONFIG, DEFAULT_STATS } from './data';
 import { API, apiFetch } from './api';
 import { downloadCSV } from './utils';
-import { CurrencyProvider, translations } from './context/CurrencyContext';
+import { translations, useCurrency } from './context/CurrencyContext';
 
 const CustomerDashboard = lazy(() => import('./components/CustomerDashboard'));
 const LoanOfficerDashboard = lazy(() => import('./components/LoanOfficerDashboard'));
@@ -415,7 +415,8 @@ export default function App() {
         <AuthPage onLoginSuccess={handleLoginSuccess} />
       ) : currentPortal === 'portal-selection' ? (
         <PortalSelection onSelectPortal={handleSetPortal} userRole={portalUser?.role || 'customer'} />
-      ) : (<CurrencyProvider>
+      ) : (
+      <>
       <Sidebar
         currentPortal={currentPortal}
         activeMenu={activeMenu}
@@ -713,7 +714,7 @@ export default function App() {
         onCompleteKyc={handleCompleteMeetingKyc}
       />
       </Suspense>
-      </CurrencyProvider>)}
+      </>)}
     </div>
   );
 }
