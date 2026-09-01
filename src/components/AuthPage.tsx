@@ -771,10 +771,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           50% { transform: rotate(180deg) scale(1.1); }
           100% { transform: rotate(360deg) scale(1); }
         }
-        @keyframes shimmer-sweep {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(200%); }
-        }
         
         .anim-planet-core { animation: planet-float 6s ease-in-out infinite; }
         .anim-planet-ring-1 { animation: planet-ring-spin-1 18s linear infinite; }
@@ -782,7 +778,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         .anim-ring-pulse { animation: pulse-ring 6s ease-in-out infinite; }
         .anim-glow { animation: pulse-glow 8s ease-in-out infinite; }
         .anim-aurora { animation: aurora-spin 25s linear infinite; }
-        .shimmer-btn:hover .shimmer-layer { animation: shimmer-sweep 1.2s ease-in-out infinite; }
         
         .dot-matrix-light {
           background-image: radial-gradient(rgba(15, 23, 42, 0.05) 1.2px, transparent 1.2px);
@@ -1051,320 +1046,309 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
             </div>
 
             {/* ========================================================================= */}
-            {/* RIGHT COLUMN: Modern Crisp Light Glassmorphic Auth Form Card with Sliding Transitions */}
+            {/* RIGHT COLUMN: Modern Crisp Light Glassmorphic Auth Form Card */}
             {/* ========================================================================= */}
             <div className="lg:col-span-5 flex justify-center lg:justify-end w-full">
-              <div className="w-full max-w-md bg-white/95 backdrop-blur-2xl rounded-[32px] p-8 sm:p-9 border border-slate-200/90 shadow-2xl shadow-slate-300/50 relative z-10 transition-all overflow-hidden">
+              <div className="w-full max-w-md bg-white/95 backdrop-blur-2xl rounded-[32px] p-8 sm:p-9 border border-slate-200/90 shadow-2xl shadow-slate-300/50 relative z-10 transition-all">
                 
                 {/* ------------------------------------------------------------- */}
-                {/* VIEW A & B: DUAL-PANEL SLIDING SWITCHER (Sign In <-> Create Account) */}
+                {/* VIEW A & B: DUAL-TAB SWITCHER (Sign In <-> Create Account) */}
                 {/* ------------------------------------------------------------- */}
-                {view !== 'forgot' && !loginVerifyEmail && !registerOtpSent ? (
-                  <div>
-                    {/* Sliding Tab Switcher Header */}
-                    <div className="relative flex bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/70 mb-6 select-none">
-                      
-                      {/* Sliding Pill Indicator */}
-                      <div 
-                        className="absolute top-1.5 bottom-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 shadow-md shadow-emerald-500/25 transition-all duration-300 ease-in-out"
-                        style={{
-                          width: 'calc(50% - 6px)',
-                          transform: view === 'login' ? 'translateX(0%)' : 'translateX(100%)',
-                          left: '3px'
-                        }}
-                      />
+                {view !== 'forgot' && !loginVerifyEmail && !registerOtpSent && (
+                  <div className="relative flex bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/70 mb-7 select-none">
+                    
+                    {/* Animated Sliding Pill Background */}
+                    <div 
+                      className="absolute top-1.5 bottom-1.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 shadow-md shadow-emerald-500/25 transition-all duration-300 ease-out"
+                      style={{
+                        width: 'calc(50% - 3px)',
+                        left: view === 'login' ? '3px' : 'calc(50%)',
+                      }}
+                    />
 
-                      <button
-                        type="button"
-                        onClick={() => setView('login')}
-                        className={`relative z-10 flex-1 py-2.5 rounded-xl text-[13.5px] font-bold transition-colors duration-200 cursor-pointer text-center ${
-                          view === 'login' ? 'text-white' : 'text-slate-600 hover:text-slate-900'
-                        }`}
-                      >
-                        {isKhmer ? 'ចូលប្រើប្រាស់' : 'Sign In'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setView('register')}
-                        className={`relative z-10 flex-1 py-2.5 rounded-xl text-[13.5px] font-bold transition-colors duration-200 cursor-pointer text-center ${
-                          view === 'register' ? 'text-white' : 'text-slate-600 hover:text-slate-900'
-                        }`}
-                      >
-                        {isKhmer ? 'បង្កើតគណនី' : 'Create Account'}
-                      </button>
+                    <button
+                      type="button"
+                      onClick={() => setView('login')}
+                      className={`relative z-10 flex-1 py-2.5 rounded-xl text-[13.5px] font-bold transition-colors duration-200 cursor-pointer text-center ${
+                        view === 'login' ? 'text-white' : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {isKhmer ? 'ចូលប្រើប្រាស់' : 'Sign In'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setView('register')}
+                      className={`relative z-10 flex-1 py-2.5 rounded-xl text-[13.5px] font-bold transition-colors duration-200 cursor-pointer text-center ${
+                        view === 'register' ? 'text-white' : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {isKhmer ? 'បង្កើតគណនី' : 'Create Account'}
+                    </button>
+                  </div>
+                )}
+
+                {/* ------------------------------------------------------------- */}
+                {/* VIEW A: SIGN IN FORM */}
+                {/* ------------------------------------------------------------- */}
+                {view === 'login' && !loginVerifyEmail && (
+                  <div className="space-y-5 animate-in fade-in slide-in-from-left-3 duration-250">
+                    <div className="text-left mb-4">
+                      <h2 className="text-[25px] font-black text-slate-900 tracking-tight">
+                        {isKhmer ? 'ស្វាគមន៍ការចូលប្រើ' : 'Welcome Back'}
+                      </h2>
+                      <p className="text-[13px] text-slate-500 font-medium mt-1">
+                        {isKhmer ? 'បញ្ចូលព័ត៌មានគណនីដើម្បីចូលទៅកាន់ផ្ទាំងគ្រប់គ្រង' : 'Access your loans, ledger, and repayments'}
+                      </p>
                     </div>
 
-                    {/* Sliding Dual-Track Form Viewport */}
-                    <div className="overflow-hidden w-full">
-                      <div 
-                        className="w-[200%] flex transition-transform duration-350 ease-out"
-                        style={{
-                          transform: view === 'login' ? 'translateX(0%)' : 'translateX(-50%)',
-                        }}
-                      >
-                        
-                        {/* PANEL 1: SIGN IN FORM */}
-                        <div className="w-1/2 shrink-0 pr-3">
-                          <div className="text-left mb-4">
-                            <h2 className="text-[25px] font-black text-slate-900 tracking-tight">
-                              {isKhmer ? 'ស្វាគមន៍ការចូលប្រើ' : 'Welcome Back'}
-                            </h2>
-                            <p className="text-[13px] text-slate-500 font-medium mt-1">
-                              {isKhmer ? 'បញ្ចូលព័ត៌មានគណនីដើម្បីចូលទៅកាន់ផ្ទាំងគ្រប់គ្រង' : 'Access your loans, ledger, and repayments'}
-                            </p>
+                    <form onSubmit={handleLoginSubmit} className="space-y-4">
+                      {/* Phone / Email Field */}
+                      <div className="space-y-1.5">
+                        <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
+                          {emailVerificationRequired 
+                            ? (isKhmer ? 'អ៊ីមែល ឬ លេខទូរស័ព្ទ' : 'Email or Phone Number') 
+                            : (isKhmer ? 'លេខទូរស័ព្ទ' : 'Phone Number')}
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                            <Phone className="w-4.5 h-4.5" />
                           </div>
+                          <input
+                            type="text"
+                            value={loginEmail}
+                            onChange={(e) => setLoginEmail(e.target.value)}
+                            placeholder={emailVerificationRequired ? (isKhmer ? "លេខទូរស័ព្ទ ឬ អ៊ីមែល" : "Phone number or email") : (isKhmer ? "លេខទូរស័ព្ទ" : "Phone number")}
+                            className="w-full rounded-2xl bg-slate-50/90 border border-slate-200 focus:bg-white pl-12 pr-4 py-3.5 text-[14px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
+                            required
+                          />
+                        </div>
+                      </div>
 
-                          <form onSubmit={handleLoginSubmit} className="space-y-4">
-                            {/* Phone / Email Field */}
-                            <div className="space-y-1.5">
-                              <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
-                                {emailVerificationRequired 
-                                  ? (isKhmer ? 'អ៊ីមែល ឬ លេខទូរស័ព្ទ' : 'Email or Phone Number') 
-                                  : (isKhmer ? 'លេខទូរស័ព្ទ' : 'Phone Number')}
-                              </label>
-                              <div className="relative">
-                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
-                                  <Phone className="w-4.5 h-4.5" />
-                                </div>
-                                <input
-                                  type="text"
-                                  value={loginEmail}
-                                  onChange={(e) => setLoginEmail(e.target.value)}
-                                  placeholder={emailVerificationRequired ? (isKhmer ? "លេខទូរស័ព្ទ ឬ អ៊ីមែល" : "Phone number or email") : (isKhmer ? "លេខទូរស័ព្ទ" : "Phone number")}
-                                  className="w-full rounded-2xl bg-slate-50/90 border border-slate-200 focus:bg-white pl-12 pr-4 py-3.5 text-[14px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
-                                  required={view === 'login'}
-                                />
-                              </div>
-                            </div>
-
-                            {/* Password Field */}
-                            <div className="space-y-1.5">
-                              <div className="flex justify-between items-center">
-                                <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
-                                  {isKhmer ? 'ពាក្យសម្ងាត់' : 'Password'}
-                                </label>
-                                <button 
-                                  type="button" 
-                                  onClick={() => { setForgotEmail(loginEmail); setView('forgot'); }} 
-                                  className="text-[12px] text-emerald-600 hover:text-emerald-700 font-bold cursor-pointer transition hover:underline"
-                                >
-                                  {isKhmer ? 'ភ្លេចពាក្យសម្ងាត់?' : 'Forgot Password?'}
-                                </button>
-                              </div>
-                              <div className="relative">
-                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
-                                  <Lock className="w-4.5 h-4.5" />
-                                </div>
-                                <input
-                                  type={showLoginPassword ? 'text' : 'password'}
-                                  value={loginPassword}
-                                  onChange={(e) => setLoginPassword(e.target.value)}
-                                  placeholder="••••••••••••"
-                                  className="w-full rounded-2xl bg-slate-50/90 border border-slate-200 focus:bg-white pl-12 pr-12 py-3.5 text-[14px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
-                                  required={view === 'login'}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => setShowLoginPassword(!showLoginPassword)}
-                                  className="absolute inset-y-0 right-4 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer select-none"
-                                >
-                                  {showLoginPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Submit Button */}
-                            <div className="pt-1.5">
-                              <button
-                                type="submit"
-                                disabled={loginLoading}
-                                className="group shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:via-teal-500 hover:to-emerald-500 text-white font-black text-[15px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 border border-white/20 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.4)] hover:shadow-[0_16px_32px_-6px_rgba(16,185,129,0.55)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                <div className="shimmer-layer absolute inset-0 w-1/2 h-full bg-white/30 transform -skew-x-12 pointer-events-none -translate-x-full" />
-                                
-                                {loginLoading ? (
-                                  <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> LOGGING IN...</span>
-                                ) : (
-                                  <>
-                                    <span>{isKhmer ? 'ចូលប្រើប្រាស់' : 'LOG IN'}</span>
-                                    <ArrowRight className="w-5 h-5 stroke-[2.5] group-hover:translate-x-1.5 transition-transform duration-200" />
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                          </form>
-
-                          {/* Divider */}
-                          <div className="flex items-center gap-3 my-4">
-                            <div className="h-[1px] bg-slate-200 flex-grow" />
-                            <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">or</span>
-                            <div className="h-[1px] bg-slate-200 flex-grow" />
-                          </div>
-
-                          {/* Google OAuth Button */}
-                          <button
-                            type="button"
-                            onClick={() => window.location.href = API + '/auth/google'}
-                            className="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300 font-bold text-[13px] py-3 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-98 cursor-pointer shadow-xs"
+                      {/* Password Field */}
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
+                            {isKhmer ? 'ពាក្យសម្ងាត់' : 'Password'}
+                          </label>
+                          <button 
+                            type="button" 
+                            onClick={() => { setForgotEmail(loginEmail); setView('forgot'); }} 
+                            className="text-[12px] text-emerald-600 hover:text-emerald-700 font-bold cursor-pointer transition hover:underline"
                           >
-                            <svg className="w-4 h-4" viewBox="0 0 24 24">
-                              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.61c-.29 1.5-.14 3.01-.97 4.29l3.1 2.4c1.8-1.66 2.8-4.11 2.8-6.54z" />
-                              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.1-2.4c-.9.6-2.01.99-3.23.99-3.11 0-5.74-2.11-6.68-4.96l-3.2 2.48C5.69 21.09 8.63 24 12 24z" />
-                              <path fill="#FBBC05" d="M5.32 14.72a7.16 7.16 0 0 1 0-4.55l-3.2-2.48a11.94 11.94 0 0 0 0 10.43l3.2-2.4c-.38-.3-.38-.7-.38-1z" />
-                              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 8.63 0 5.69 2.91 3.72 6.79l3.2 2.48C7.86 6.36 10.49 4.75 12 4.75z" />
-                            </svg>
-                            <span>{isKhmer ? 'ចូលតាមរយៈ Google' : 'Sign in with Google'}</span>
+                            {isKhmer ? 'ភ្លេចពាក្យសម្ងាត់?' : 'Forgot Password?'}
                           </button>
                         </div>
-
-                        {/* PANEL 2: CREATE ACCOUNT FORM */}
-                        <div className="w-1/2 shrink-0 pl-3">
-                          <div className="text-left mb-4">
-                            <h2 className="text-[25px] font-black text-slate-900 tracking-tight">
-                              {isKhmer ? 'បង្កើតគណនីថ្មី' : 'Create Account'}
-                            </h2>
-                            <p className="text-[13px] text-slate-500 font-medium mt-1">
-                              {isKhmer ? 'ចាប់ផ្តើមដំណើរការឥណទាន និងការគ្រប់គ្រងហិរញ្ញវត្ថុ' : 'Get started in less than 2 minutes'}
-                            </p>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                            <Lock className="w-4.5 h-4.5" />
                           </div>
+                          <input
+                            type={showLoginPassword ? 'text' : 'password'}
+                            value={loginPassword}
+                            onChange={(e) => setLoginPassword(e.target.value)}
+                            placeholder="••••••••••••"
+                            className="w-full rounded-2xl bg-slate-50/90 border border-slate-200 focus:bg-white pl-12 pr-12 py-3.5 text-[14px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowLoginPassword(!showLoginPassword)}
+                            className="absolute inset-y-0 right-4 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer select-none"
+                          >
+                            {showLoginPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                          </button>
+                        </div>
+                      </div>
 
-                          <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
-                            {/* Full Name */}
-                            <div className="space-y-1">
-                              <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
-                                {isKhmer ? 'ឈ្មោះពេញ' : 'Full Name'}
-                              </label>
-                              <div className="relative">
-                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
-                                  <User className="w-4 h-4" />
-                                </div>
-                                <input
-                                  type="text"
-                                  value={registerName}
-                                  onChange={(e) => setRegisterName(e.target.value)}
-                                  placeholder={isKhmer ? "ឈ្មោះពេញ" : "Full Name"}
-                                  className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-11 pr-4 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
-                                  required={view === 'register'}
-                                />
-                              </div>
+                      {/* Premium Clean Log In Submit Button */}
+                      <div className="pt-2">
+                        <button
+                          type="submit"
+                          disabled={loginLoading}
+                          className="group w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:via-teal-600 hover:to-emerald-700 text-white font-black text-[15px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {loginLoading ? (
+                            <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> LOGGING IN...</span>
+                          ) : (
+                            <>
+                              <span>{isKhmer ? 'ចូលប្រើប្រាស់' : 'LOG IN'}</span>
+                              <ArrowRight className="w-5 h-5 stroke-[2.5] group-hover:translate-x-1 transition-transform duration-200" />
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+
+                    {/* Divider */}
+                    <div className="flex items-center gap-3 my-4">
+                      <div className="h-[1px] bg-slate-200 flex-grow" />
+                      <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">or</span>
+                      <div className="h-[1px] bg-slate-200 flex-grow" />
+                    </div>
+
+                    {/* Google OAuth Button */}
+                    <button
+                      type="button"
+                      onClick={() => window.location.href = API + '/auth/google'}
+                      className="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300 font-bold text-[13px] py-3 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-98 cursor-pointer shadow-xs"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.61c-.29 1.5-.14 3.01-.97 4.29l3.1 2.4c1.8-1.66 2.8-4.11 2.8-6.54z" />
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.1-2.4c-.9.6-2.01.99-3.23.99-3.11 0-5.74-2.11-6.68-4.96l-3.2 2.48C5.69 21.09 8.63 24 12 24z" />
+                        <path fill="#FBBC05" d="M5.32 14.72a7.16 7.16 0 0 1 0-4.55l-3.2-2.48a11.94 11.94 0 0 0 0 10.43l3.2-2.4c-.38-.3-.38-.7-.38-1z" />
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 8.63 0 5.69 2.91 3.72 6.79l3.2 2.48C7.86 6.36 10.49 4.75 12 4.75z" />
+                      </svg>
+                      <span>{isKhmer ? 'ចូលតាមរយៈ Google' : 'Sign in with Google'}</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* ------------------------------------------------------------- */}
+                {/* VIEW B: CREATE ACCOUNT FORM */}
+                {/* ------------------------------------------------------------- */}
+                {view === 'register' && !registerOtpSent && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-3 duration-250">
+                    <div className="text-left mb-3">
+                      <h2 className="text-[25px] font-black text-slate-900 tracking-tight">
+                        {isKhmer ? 'បង្កើតគណនីថ្មី' : 'Create Account'}
+                      </h2>
+                      <p className="text-[13px] text-slate-500 font-medium mt-1">
+                        {isKhmer ? 'ចាប់ផ្តើមដំណើរការឥណទាន និងការគ្រប់គ្រងហិរញ្ញវត្ថុ' : 'Get started in less than 2 minutes'}
+                      </p>
+                    </div>
+
+                    <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+                      {/* Full Name */}
+                      <div className="space-y-1">
+                        <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
+                          {isKhmer ? 'ឈ្មោះពេញ' : 'Full Name'}
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                            <User className="w-4 h-4" />
+                          </div>
+                          <input
+                            type="text"
+                            value={registerName}
+                            onChange={(e) => setRegisterName(e.target.value)}
+                            placeholder={isKhmer ? "ឈ្មោះពេញ" : "Full Name"}
+                            className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-11 pr-4 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      {/* Email Address (if enabled) */}
+                      {emailVerificationRequired && (
+                        <div className="space-y-1">
+                          <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
+                            {isKhmer ? 'អាសយដ្ឋានអ៊ីមែល' : 'Email Address'}
+                          </label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                              <span className="text-[15px] font-light select-none">@</span>
                             </div>
+                            <input
+                              type="email"
+                              value={registerEmail}
+                              onChange={(e) => setRegisterEmail(e.target.value)}
+                              placeholder="name@domain.com"
+                              className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-11 pr-4 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
+                              required
+                            />
+                          </div>
+                        </div>
+                      )}
 
-                            {/* Email Address (if enabled) */}
-                            {emailVerificationRequired && (
-                              <div className="space-y-1">
-                                <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
-                                  {isKhmer ? 'អាសយដ្ឋានអ៊ីមែល' : 'Email Address'}
-                                </label>
-                                <div className="relative">
-                                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
-                                    <span className="text-[15px] font-light select-none">@</span>
-                                  </div>
-                                  <input
-                                    type="email"
-                                    value={registerEmail}
-                                    onChange={(e) => setRegisterEmail(e.target.value)}
-                                    placeholder="name@domain.com"
-                                    className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-11 pr-4 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
-                                    required={view === 'register'}
-                                  />
-                                </div>
-                              </div>
-                            )}
+                      {/* Phone Number */}
+                      <div className="space-y-1">
+                        <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
+                          {isKhmer ? 'លេខទូរស័ព្ទ' : 'Phone Number'}
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                            <Phone className="w-4 h-4" />
+                          </div>
+                          <input
+                            type="tel"
+                            value={registerPhone}
+                            onChange={(e) => setRegisterPhone(e.target.value)}
+                            placeholder={isKhmer ? "លេខទូរស័ព្ទ" : "Phone number"}
+                            className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-11 pr-4 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
+                            required
+                          />
+                        </div>
+                      </div>
 
-                            {/* Phone Number */}
-                            <div className="space-y-1">
-                              <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
-                                {isKhmer ? 'លេខទូរស័ព្ទ' : 'Phone Number'}
-                              </label>
-                              <div className="relative">
-                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
-                                  <Phone className="w-4 h-4" />
-                                </div>
-                                <input
-                                  type="tel"
-                                  value={registerPhone}
-                                  onChange={(e) => setRegisterPhone(e.target.value)}
-                                  placeholder={isKhmer ? "លេខទូរស័ព្ទ" : "Phone number"}
-                                  className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-11 pr-4 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
-                                  required={view === 'register'}
-                                />
-                              </div>
-                            </div>
-
-                            {/* Password & Confirm */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              <div className="space-y-1">
-                                <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
-                                  {isKhmer ? 'ពាក្យសម្ងាត់' : 'Password'}
-                                </label>
-                                <div className="relative">
-                                  <input
-                                    type={showRegisterPassword ? 'text' : 'password'}
-                                    value={registerPassword}
-                                    onChange={(e) => setRegisterPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-3.5 pr-9 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-mono transition-all"
-                                    required={view === 'register'}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                                    className="absolute inset-y-0 right-2.5 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer select-none"
-                                  >
-                                    {showRegisterPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                  </button>
-                                </div>
-                              </div>
-
-                              <div className="space-y-1">
-                                <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
-                                  {isKhmer ? 'ផ្ទៀងផ្ទាត់' : 'Confirm'}
-                                </label>
-                                <div className="relative">
-                                  <input
-                                    type={showRegisterConfirmPassword ? 'text' : 'password'}
-                                    value={registerConfirmPassword}
-                                    onChange={(e) => setRegisterConfirmPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-3.5 pr-9 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-mono transition-all"
-                                    required={view === 'register'}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
-                                    className="absolute inset-y-0 right-2.5 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer select-none"
-                                  >
-                                    {showRegisterConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Submit Action */}
-                            <div className="pt-2">
-                              <button
-                                type="submit"
-                                disabled={registerLoading}
-                                className="group shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:via-teal-500 hover:to-emerald-500 text-white font-black text-[15px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 border border-white/20 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.4)] hover:shadow-[0_16px_32px_-6px_rgba(16,185,129,0.55)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] transition-all duration-200 cursor-pointer disabled:opacity-50"
-                              >
-                                <div className="shimmer-layer absolute inset-0 w-1/2 h-full bg-white/30 transform -skew-x-12 pointer-events-none -translate-x-full" />
-                                {registerLoading ? (
-                                  <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> CREATING ACCOUNT...</span>
-                                ) : (
-                                  <>
-                                    <span>{isKhmer ? 'បង្កើតគណនី' : 'CREATE ACCOUNT'}</span>
-                                    <ArrowRight className="w-5 h-5 stroke-[2.5] group-hover:translate-x-1.5 transition-transform duration-200" />
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                          </form>
+                      {/* Password & Confirm */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
+                            {isKhmer ? 'ពាក្យសម្ងាត់' : 'Password'}
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showRegisterPassword ? 'text' : 'password'}
+                              value={registerPassword}
+                              onChange={(e) => setRegisterPassword(e.target.value)}
+                              placeholder="••••••••"
+                              className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-3.5 pr-9 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-mono transition-all"
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                              className="absolute inset-y-0 right-2.5 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer select-none"
+                            >
+                              {showRegisterPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
                         </div>
 
+                        <div className="space-y-1">
+                          <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
+                            {isKhmer ? 'ផ្ទៀងផ្ទាត់' : 'Confirm'}
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showRegisterConfirmPassword ? 'text' : 'password'}
+                              value={registerConfirmPassword}
+                              onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                              placeholder="••••••••"
+                              className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-3.5 pr-9 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-mono transition-all"
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
+                              className="absolute inset-y-0 right-2.5 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer select-none"
+                            >
+                              {showRegisterConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+
+                      {/* Premium Clean Create Account Submit Button */}
+                      <div className="pt-2">
+                        <button
+                          type="submit"
+                          disabled={registerLoading}
+                          className="group w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:via-teal-600 hover:to-emerald-700 text-white font-black text-[15px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] transition-all duration-200 cursor-pointer disabled:opacity-50"
+                        >
+                          {registerLoading ? (
+                            <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> CREATING ACCOUNT...</span>
+                          ) : (
+                            <>
+                              <span>{isKhmer ? 'បង្កើតគណនី' : 'CREATE ACCOUNT'}</span>
+                              <ArrowRight className="w-5 h-5 stroke-[2.5] group-hover:translate-x-1 transition-transform duration-200" />
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </form>
                   </div>
-                ) : null}
+                )}
 
                 {/* ------------------------------------------------------------- */}
                 {/* UNVERIFIED EMAIL LOGIN OTP STEP */}
@@ -1447,7 +1431,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                             verifyMethod === 'email' ? 'bg-white text-emerald-700 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900'
                           }`}
                         >
-                          📧 Email
+                              📧 Email
                         </button>
                       ) : (
                         <button
@@ -1457,7 +1441,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                             verifyMethod === 'sms' ? 'bg-white text-emerald-700 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900'
                           }`}
                         >
-                          💬 SMS OTP
+                              💬 SMS OTP
                         </button>
                       )}
                       <button
@@ -1467,7 +1451,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                           verifyMethod === 'telegram' ? 'bg-white text-cyan-700 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900'
                         }`}
                       >
-                        📱 Telegram
+                            📱 Telegram
                       </button>
                     </div>
 
@@ -1676,9 +1660,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         <button
                           type="submit"
                           disabled={forgotLoading}
-                          className="shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[15px] py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
+                          className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[15px] py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
                         >
-                          <div className="shimmer-layer absolute inset-0 w-1/2 h-full bg-white/30 transform -skew-x-12 pointer-events-none -translate-x-full" />
                           {forgotLoading ? (
                             <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> SENDING OTP...</span>
                           ) : (
