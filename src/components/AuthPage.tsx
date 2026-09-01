@@ -102,7 +102,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [resetPassword, setResetPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
 
-  // 8 Main Features: Alternating and Interleaved Color Scheme (Green -> Violet -> Teal -> Blue -> Emerald -> Purple -> Cyan -> Sky)
+  // 8 Main Features: Alternating and Interleaved Color Scheme
   const features3D = [
     {
       id: 'debt_collection',
@@ -591,12 +591,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   return (
     <div className="h-screen w-full relative bg-gradient-to-br from-[#f8fcfa] via-[#eef8f5] to-[#f0f6ff] text-slate-800 font-sans select-none overflow-hidden flex flex-col">
-      {/* 100% Reliable Hit-Testing Smooth Circular Orbit with Alternating Colors */}
+      {/* Precision Hover Pause on Card-Only Interaction */}
       <style>{`
-        .orbit-stage-wrapper {
-          position: relative;
-        }
-
         .circular-orbiting-card {
           animation: orbit-harmonic-2d 32s linear infinite;
           will-change: transform, opacity;
@@ -604,8 +600,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           cursor: pointer;
         }
 
-        /* Hover pauses orbit and highlights cards cleanly at any position */
-        .orbit-stage-wrapper:hover .circular-orbiting-card {
+        /* Stop spinning ONLY when cursor hovers directly on an actual card */
+        .orbit-cards-container:has(.circular-orbiting-card:hover) .circular-orbiting-card {
           animation-play-state: paused;
         }
 
@@ -622,7 +618,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           border-color: rgba(16, 185, 129, 0.7) !important;
         }
 
-        /* 16 Pure Trigonometric Steps on Standard Plane for 100% Guaranteed Mouse Hover Detection */
+        /* 16 Pure Trigonometric Steps on Standard Plane */
         @keyframes orbit-harmonic-2d {
           0% {
             transform: translate(260px, 0px) scale(1.00);
@@ -848,7 +844,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: Harmoniously Interleaved Orbit Around 3D Planet */}
+            {/* LEFT COLUMN: Clean Card-Only Hover Pause Around 3D Planet */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-1.5 pr-2">
               
@@ -878,8 +874,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 </h1>
               </div>
 
-              {/* Stage Container with 100% Reliable Hover Detection */}
-              <div className="orbit-stage-wrapper relative w-full h-[460px] flex items-center justify-center select-none overflow-visible">
+              {/* Stage Container: Orbit keeps rotating freely unless cursor is on a card */}
+              <div className="relative w-full h-[460px] flex items-center justify-center select-none overflow-visible pointer-events-none">
                 
                 {/* Dynamic Cyber Concentric Orbital Halo Guides (Strictly pointer-events-none) */}
                 <div className="absolute w-[530px] h-[290px] rounded-[100%] border border-emerald-400/20 pointer-events-none anim-ring-pulse" />
@@ -929,8 +925,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                 </div>
 
-                {/* 8 Feature Cards Revolving with Interleaved Alternating Color Pattern */}
-                <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
+                {/* 8 Feature Cards Revolving: Pauses only when cursor directly touches a card */}
+                <div className="orbit-cards-container relative w-full h-full flex items-center justify-center pointer-events-none">
                   {features3D.map((feat, idx) => {
                     const Icon = feat.icon;
                     // Stagger 8 cards evenly across the 32s circular orbit (4.0s each)
@@ -944,7 +940,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                           animationDelay: `${delaySeconds}s`,
                         }}
                       >
-                        {/* Compact, Clean Frosted Glass Card with Instant Hover Reaction */}
+                        {/* Compact, Clean Frosted Glass Card */}
                         <div className={`card-inner-box group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-2 sm:p-2.5 shadow-lg hover:shadow-2xl transition-all duration-150 cursor-pointer flex items-center gap-2 w-[165px] sm:w-[172px]`}>
                           
                           {/* 3D Glass Light Sheen */}
