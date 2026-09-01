@@ -110,7 +110,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-emerald-500 text-white shadow-emerald-500/30',
       titleEn: 'Bad Debt Collection',
       titleKh: 'ការទារបំណុលយឺតយ៉ាវ',
-      descEn: 'Recovery & Automated Tracking',
+      descEn: 'Recovery & Auto Tracking',
       descKh: 'ការទារបំណុលស្វ័យប្រវត្តិ',
       borderGlow: 'hover:border-emerald-500 hover:shadow-emerald-500/25',
     },
@@ -130,8 +130,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-cyan-500 text-white shadow-cyan-500/30',
       titleEn: 'Lead Digital Strategy Setup',
       titleKh: 'យុទ្ធសាស្ត្រទាក់ទាញអតិថិជន',
-      descEn: 'Funnel & Customer Acquisition',
-      descKh: 'ទាក់ទាញអតិថិជនប្រកបដោយប្រសិទ្ធភាព',
+      descEn: 'Customer Acquisition',
+      descKh: 'ទាក់ទាញអតិថិជន',
       borderGlow: 'hover:border-cyan-500 hover:shadow-cyan-500/25',
     },
     {
@@ -140,8 +140,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-sky-500 text-white shadow-sky-500/30',
       titleEn: 'Payment Gateway',
       titleKh: 'ច្រកទូទាត់ប្រាក់ឌីជីថល',
-      descEn: 'KHQR & Bakong Real-Time Settlement',
-      descKh: 'ទូទាត់ភ្លាមៗតាម KHQR & Bakong',
+      descEn: 'KHQR & Bakong Settlement',
+      descKh: 'ទូទាត់តាម KHQR & Bakong',
       borderGlow: 'hover:border-sky-500 hover:shadow-sky-500/25',
     },
     {
@@ -150,7 +150,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-indigo-500 text-white shadow-indigo-500/30',
       titleEn: 'Broadcasting Setup',
       titleKh: 'ប្រព័ន្ធផ្ញើសារស្វ័យប្រវត្ត',
-      descEn: 'Telegram & SMS Smart Notification',
+      descEn: 'Telegram & SMS Smart Bots',
       descKh: 'ផ្ញើសាររំលឹកស្វ័យប្រវត្តិ',
       borderGlow: 'hover:border-indigo-500 hover:shadow-indigo-500/25',
     },
@@ -160,8 +160,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-violet-500 text-white shadow-violet-500/30',
       titleEn: 'Loan Software for Web & App',
       titleKh: 'កម្មវិធីគ្រប់គ្រង Web & App',
-      descEn: 'Modern Cloud Ledger Platform',
-      descKh: 'ប្រព័ន្ធគ្រប់គ្រងលើ Web និង App',
+      descEn: 'Modern Cloud Platform',
+      descKh: 'ប្រព័ន្ធលើ Web & App',
       borderGlow: 'hover:border-violet-500 hover:shadow-violet-500/25',
     },
     {
@@ -170,8 +170,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-blue-500 text-white shadow-blue-500/30',
       titleEn: 'Loan Agreement Setup',
       titleKh: 'កិច្ចសន្យាឥណទានខ្មែរ',
-      descEn: '5-Page Bilingual Legal Contracts',
-      descKh: 'កិច្ចសន្យាផ្លូវការ ៥ ទំព័រ',
+      descEn: '5-Page Legal Contracts',
+      descKh: 'កិច្ចសន្យា ៥ ទំព័រ',
       borderGlow: 'hover:border-blue-500 hover:shadow-blue-500/25',
     },
     {
@@ -180,7 +180,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-emerald-600 text-white shadow-emerald-600/30',
       titleEn: 'Loan Biz Consultant',
       titleKh: 'ការប្រឹក្សាយោបល់អាជីវកម្ម',
-      descEn: 'Risk Advisory & Fintech Scaling',
+      descEn: 'Risk Advisory & Scaling',
       descKh: 'យុទ្ធសាស្ត្រពង្រីកអាជីវកម្ម',
       borderGlow: 'hover:border-emerald-600 hover:shadow-emerald-600/25',
     },
@@ -603,12 +603,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       <style>{`
         .perspective-stage {
           perspective: 1200px;
-          perspective-origin: 50% 45%;
+          perspective-origin: 50% 50%;
+          transform-style: preserve-3d;
         }
         
         .carousel-3d-cylinder {
           transform-style: preserve-3d;
-          animation: spin-cylinder 36s linear infinite;
+          animation: spin-cylinder 38s linear infinite;
         }
 
         .carousel-3d-cylinder:hover {
@@ -617,21 +618,18 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
         @keyframes spin-cylinder {
           from {
-            transform: rotateX(-8deg) rotateY(0deg);
+            transform: rotateX(-10deg) rotateY(0deg);
           }
           to {
-            transform: rotateX(-8deg) rotateY(360deg);
+            transform: rotateX(-10deg) rotateY(360deg);
           }
         }
 
-        .core-3d-pedestal {
+        /* 3D Depth Card with Backface styling */
+        .card-3d-item {
           transform-style: preserve-3d;
-          animation: core-float 6s ease-in-out infinite;
-        }
-
-        @keyframes core-float {
-          0%, 100% { transform: translateZ(0px) translateY(0px); }
-          50% { transform: translateZ(25px) translateY(-8px); }
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
         }
 
         @keyframes pulse-glow {
@@ -736,7 +734,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: Ultra-Modern 3D Revolving Cylinder FinTech Carousel */}
+            {/* LEFT COLUMN: Ultra-Modern 3D Revolving Cylinder with Nexus Core INSIDE */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-4 pr-2">
               
@@ -767,41 +765,44 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               </div>
 
               {/* 3D Perspective Stage */}
-              <div className="perspective-stage relative w-full h-[400px] flex items-center justify-center select-none overflow-visible">
+              <div className="perspective-stage relative w-full h-[420px] flex items-center justify-center select-none overflow-visible">
                 
                 {/* 3D Floor Shadow & Radar Circles */}
-                <div className="absolute top-[68%] w-[420px] h-[180px] rounded-[100%] bg-gradient-to-tr from-emerald-400/20 via-teal-400/10 to-transparent blur-xl pointer-events-none transform -rotate-x-[70deg]" />
-                <div className="absolute top-[68%] w-[380px] h-[160px] rounded-[100%] border-2 border-dashed border-emerald-400/30 pointer-events-none transform -rotate-x-[70deg]" />
+                <div className="absolute top-[65%] w-[460px] h-[190px] rounded-[100%] bg-gradient-to-tr from-emerald-400/20 via-teal-400/10 to-transparent blur-xl pointer-events-none transform -rotate-x-[70deg]" />
+                <div className="absolute top-[65%] w-[420px] h-[170px] rounded-[100%] border-2 border-dashed border-emerald-400/30 pointer-events-none transform -rotate-x-[70deg]" />
 
-                {/* Central Floating 3D Nexus Core Hub */}
-                <div className="core-3d-pedestal absolute z-20 flex flex-col items-center justify-center p-5 bg-white/95 backdrop-blur-2xl rounded-3xl border border-emerald-300 shadow-2xl shadow-emerald-500/25 cursor-default pointer-events-none">
-                  <div className="relative flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-400 p-0.5 shadow-lg shadow-emerald-500/30">
-                    <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
-                      <span className="text-emerald-600 font-black text-2xl tracking-tighter">N</span>
+                {/* 3D Cylinder System: Nexus Core sits in the middle (Z = 0) with cards revolving in front and behind it */}
+                <div className="carousel-3d-cylinder relative w-[280px] h-[120px]">
+                  
+                  {/* Central Nexus Core Hub INSIDE the 3D rotating cylinder ring (Z = 0) */}
+                  <div 
+                    className="absolute inset-0 m-auto w-[140px] h-[140px] flex flex-col items-center justify-center p-3.5 bg-white/95 backdrop-blur-2xl rounded-3xl border border-emerald-300 shadow-2xl shadow-emerald-500/25 pointer-events-none select-none"
+                    style={{ transform: 'translateZ(0px)' }}
+                  >
+                    <div className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-400 p-0.5 shadow-lg shadow-emerald-500/30">
+                      <div className="w-full h-full bg-white rounded-[13px] flex items-center justify-center">
+                        <span className="text-emerald-600 font-black text-xl tracking-tighter">N</span>
+                      </div>
+                      <span className="absolute -inset-1 rounded-2xl bg-emerald-400/30 blur-sm -z-10 anim-glow" />
                     </div>
-                    {/* Glowing pulse ring */}
-                    <span className="absolute -inset-1 rounded-2xl bg-emerald-400/30 blur-sm -z-10 anim-glow" />
+                    <div className="text-center mt-1.5">
+                      <span className="text-[12px] font-black text-slate-900 tracking-tight block">Nexus Core</span>
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-600 block">Fintech 3D Hub</span>
+                    </div>
                   </div>
-                  <div className="text-center mt-2">
-                    <span className="text-[13px] font-black text-slate-900 tracking-tight block">Nexus Core</span>
-                    <span className="text-[9.5px] font-bold uppercase tracking-wider text-emerald-600 block">Fintech 3D Engine</span>
-                  </div>
-                </div>
 
-                {/* True 3D Revolving Cylinder Container with 8 Cards */}
-                <div className="carousel-3d-cylinder relative w-[240px] h-[120px]">
+                  {/* 8 Feature Cards Revolving Around Nexus Core (Z = 290px) */}
                   {features3D.map((feat, idx) => {
                     const Icon = feat.icon;
                     const angleDeg = idx * 45; // 8 items = 360 / 8 = 45 degrees
-                    const radiusZ = 270; // 3D radius depth in pixels
+                    const radiusZ = 290; // 3D radius depth in pixels
 
                     return (
                       <div
                         key={feat.id}
-                        className="absolute inset-0 m-auto w-[240px] h-[86px]"
+                        className="card-3d-item absolute inset-0 m-auto w-[250px] h-[86px]"
                         style={{
                           transform: `rotateY(${angleDeg}deg) translateZ(${radiusZ}px)`,
-                          backfaceVisibility: 'visible',
                         }}
                       >
                         <div className={`group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-3.5 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer flex items-center gap-3.5`}>
