@@ -851,24 +851,24 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       <div className="absolute inset-0 overflow-y-auto w-full h-full flex flex-col z-10">
         
         {/* Global Navigation Header with Official Brand Logo */}
-        <header className="relative z-20 px-6 py-4 sm:px-12 flex justify-between items-center bg-white/50 backdrop-blur-md border-b border-slate-200/70 shadow-xs">
-          <div className="flex items-center gap-3">
+        <header className="relative z-20 px-4 py-3 sm:px-8 md:px-12 sm:py-4 flex justify-between items-center bg-white/60 backdrop-blur-md border-b border-slate-200/70 shadow-xs">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <img 
               src="/logo-nexus-finance.png" 
               alt="Nexus Finance Logo" 
-              className="w-10 h-10 object-contain rounded-2xl shadow-md shadow-emerald-500/20"
+              className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-xl sm:rounded-2xl shadow-md shadow-emerald-500/20 shrink-0"
             />
-            <div className="flex flex-col">
-              <span className="font-sans text-[20px] tracking-tight flex items-center leading-none">
+            <div className="flex flex-col min-w-0">
+              <span className="font-sans text-[17px] sm:text-[20px] tracking-tight flex items-center leading-none">
                 <span className="text-slate-900 font-extrabold">Nexus</span>
-                <span className="text-emerald-600 font-medium ml-0.5">Finance</span>
+                <span className="text-emerald-600 font-semibold ml-0.5">Finance</span>
               </span>
-              <span className="text-[10px] text-slate-500 font-bold tracking-wider uppercase mt-1">All-in-One FinTech Ecosystem</span>
+              <span className="hidden sm:block text-[10px] text-slate-500 font-bold tracking-wider uppercase mt-1 truncate">All-in-One FinTech Ecosystem</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-[12px] font-bold shadow-xs">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-[12px] font-bold shadow-xs">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -876,19 +876,19 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               <span>Systems Online</span>
             </div>
 
-            {/* Sliding Language Switcher (EN <-> KH) with Gliding Active Pill */}
-            <div className="relative flex items-center bg-slate-100/90 border border-slate-200/80 rounded-xl p-1 shadow-xs select-none">
+            {/* Sliding Language Switcher (EN <-> KH) */}
+            <div className="relative flex items-center bg-slate-100/90 border border-slate-200/80 rounded-xl p-0.5 sm:p-1 shadow-xs select-none">
               <div 
-                className="absolute top-1 bottom-1 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 shadow-sm shadow-emerald-500/25 transition-all duration-300 ease-out"
+                className="absolute top-0.5 bottom-0.5 sm:top-1 sm:bottom-1 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 shadow-sm shadow-emerald-500/25 transition-all duration-300 ease-out"
                 style={{
-                  width: 'calc(50% - 4px)',
-                  left: language === 'en' ? '4px' : 'calc(50%)',
+                  width: 'calc(50% - 2px)',
+                  left: language === 'en' ? '2px' : 'calc(50%)',
                 }}
               />
               <button
                 type="button"
                 onClick={() => setLanguage('en')}
-                className={`relative z-10 px-3.5 py-1 rounded-lg text-[11.5px] font-extrabold transition-colors duration-200 cursor-pointer ${
+                className={`relative z-10 px-2.5 py-1 sm:px-3.5 sm:py-1 rounded-lg text-[11px] sm:text-[11.5px] font-extrabold transition-colors duration-200 cursor-pointer ${
                   language === 'en'
                     ? 'text-white'
                     : 'text-slate-600 hover:text-slate-900'
@@ -899,7 +899,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               <button
                 type="button"
                 onClick={() => setLanguage('kh')}
-                className={`relative z-10 px-3.5 py-1 rounded-lg text-[11.5px] font-extrabold transition-colors duration-200 cursor-pointer ${
+                className={`relative z-10 px-2.5 py-1 sm:px-3.5 sm:py-1 rounded-lg text-[11px] sm:text-[11.5px] font-extrabold transition-colors duration-200 cursor-pointer ${
                   language === 'kh'
                     ? 'text-white'
                     : 'text-slate-600 hover:text-slate-900'
@@ -913,10 +913,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
             <button 
               type="button"
               onClick={() => setShowSupportModal(true)}
-              className="flex items-center gap-1.5 text-slate-700 hover:text-emerald-700 font-bold text-[13px] transition px-3.5 py-1.5 rounded-xl hover:bg-slate-100/80 cursor-pointer border border-slate-200/80 hover:border-emerald-300 shadow-xs"
+              className="flex items-center gap-1.5 text-slate-700 hover:text-emerald-700 font-bold text-[12px] sm:text-[13px] transition px-2.5 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl hover:bg-slate-100/80 cursor-pointer border border-slate-200/80 hover:border-emerald-300 shadow-xs"
             >
-              <HelpCircle className="w-4 h-4 text-emerald-600" />
-              <span>{isKhmer ? 'ជំនួយ' : 'Support'}</span>
+              <HelpCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="hidden xs:inline sm:inline">{isKhmer ? 'ជំនួយ' : 'Support'}</span>
             </button>
           </div>
         </header>
