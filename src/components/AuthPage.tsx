@@ -102,15 +102,25 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [resetPassword, setResetPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
 
-  // 8 Main Features (titles only for clean zigzag display)
-  const leftFeatures = [
+  // 8 Main Features for the ZigZag Staggered Flow
+  const allFeatures = [
     {
       id: 'debt_collection',
       icon: ShieldCheck,
       bgLight: 'bg-emerald-50 text-emerald-600 border-emerald-200',
       titleEn: 'Bad Debt Collection',
       titleKh: 'ការទារបំណុលយឺតយ៉ាវ',
+      side: 'left',
       animClass: 'anim-float-1',
+    },
+    {
+      id: 'org_structure',
+      icon: Network,
+      bgLight: 'bg-teal-50 text-teal-600 border-teal-200',
+      titleEn: 'Loan Org Structure Setup',
+      titleKh: 'រចនាសម្ព័ន្ធស្ថាប័នឥណទាន',
+      side: 'right',
+      animClass: 'anim-float-2',
     },
     {
       id: 'digital_strategy',
@@ -118,7 +128,17 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-cyan-50 text-cyan-600 border-cyan-200',
       titleEn: 'Lead Digital Strategy Setup',
       titleKh: 'យុទ្ធសាស្ត្រទាក់ទាញអតិថិជន',
-      animClass: 'anim-float-2',
+      side: 'left',
+      animClass: 'anim-float-3',
+    },
+    {
+      id: 'payment_gateway',
+      icon: QrCode,
+      bgLight: 'bg-sky-50 text-sky-600 border-sky-200',
+      titleEn: 'Payment Gateway',
+      titleKh: 'ច្រកទូទាត់ប្រាក់ឌីជីថល',
+      side: 'right',
+      animClass: 'anim-float-1',
     },
     {
       id: 'broadcasting',
@@ -126,6 +146,16 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-indigo-50 text-indigo-600 border-indigo-200',
       titleEn: 'Broadcasting Setup',
       titleKh: 'ប្រព័ន្ធផ្ញើសារស្វ័យប្រវត្ត',
+      side: 'left',
+      animClass: 'anim-float-2',
+    },
+    {
+      id: 'loan_software',
+      icon: MonitorSmartphone,
+      bgLight: 'bg-violet-50 text-violet-600 border-violet-200',
+      titleEn: 'Loan Software for Web & App',
+      titleKh: 'កម្មវិធីគ្រប់គ្រង Web & App',
+      side: 'right',
       animClass: 'anim-float-3',
     },
     {
@@ -134,34 +164,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-blue-50 text-blue-600 border-blue-200',
       titleEn: 'Loan Agreement Setup',
       titleKh: 'កិច្ចសន្យាឥណទានខ្មែរ',
+      side: 'left',
       animClass: 'anim-float-1',
-    },
-  ];
-
-  const rightFeatures = [
-    {
-      id: 'org_structure',
-      icon: Network,
-      bgLight: 'bg-teal-50 text-teal-600 border-teal-200',
-      titleEn: 'Loan Org Structure Setup',
-      titleKh: 'រចនាសម្ព័ន្ធស្ថាប័នឥណទាន',
-      animClass: 'anim-float-2',
-    },
-    {
-      id: 'payment_gateway',
-      icon: QrCode,
-      bgLight: 'bg-sky-50 text-sky-600 border-sky-200',
-      titleEn: 'Payment Gateway',
-      titleKh: 'ច្រកទូទាត់ប្រាក់ឌីជីថល',
-      animClass: 'anim-float-1',
-    },
-    {
-      id: 'loan_software',
-      icon: MonitorSmartphone,
-      bgLight: 'bg-violet-50 text-violet-600 border-violet-200',
-      titleEn: 'Loan Software for Web & App',
-      titleKh: 'កម្មវិធីគ្រប់គ្រង Web & App',
-      animClass: 'anim-float-2',
     },
     {
       id: 'biz_consultant',
@@ -169,7 +173,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-emerald-50 text-emerald-600 border-emerald-200',
       titleEn: 'Loan Biz Consultant',
       titleKh: 'ការប្រឹក្សាយោបល់អាជីវកម្ម',
-      animClass: 'anim-float-3',
+      side: 'right',
+      animClass: 'anim-float-2',
     },
   ];
 
@@ -516,7 +521,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       if (!res.ok) throw new Error(data.error || 'Invalid or expired code.');
       setShowResetForm(true);
     } catch (err: any) {
-      showToast(err?.message || 'Invalid or expired code.', 'error');
+      showToast(err?.message || 'Invalid or expired code.');
     } finally {
       setForgotLoading(false);
     }
@@ -701,10 +706,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
         {/* 3. Main Split Hero & Auth Card Section */}
         <main className="relative z-10 flex-grow flex items-center justify-center px-4 sm:px-8 lg:px-12 py-8 max-w-7xl mx-auto w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: Animated ZigZag 8 Features Showcase (Main Titles Only) */}
+            {/* LEFT COLUMN: Animated ZigZag 8 Features Flow (Titles Only, Overlapping/Staggered) */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col justify-center space-y-6 pr-2">
               
@@ -734,67 +739,27 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 </h1>
               </div>
 
-              {/* ZigZag Interlocking Animated 8-Feature Columns */}
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3 max-w-xl">
-                
-                {/* Column 1 (Left ZigZag Set) */}
-                <div className="flex flex-col space-y-3">
-                  {leftFeatures.map((feat, idx) => {
-                    const Icon = feat.icon;
-                    return (
-                      <div 
-                        key={feat.id}
-                        className={`group ${feat.animClass} ${idx % 2 === 1 ? 'translate-x-2' : ''} bg-white/95 hover:bg-white backdrop-blur-xl rounded-2xl py-3 px-4 border border-slate-200/90 hover:border-emerald-400 shadow-md hover:shadow-lg transition-all duration-200 cursor-default select-none flex items-center gap-3`}
-                      >
-                        <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 shadow-xs ${feat.bgLight} group-hover:scale-110 transition-transform`}>
-                          <Icon className="w-4.5 h-4.5" />
-                        </div>
-                        <h3 className="text-[13px] font-bold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug truncate">
-                          {isKhmer ? feat.titleKh : feat.titleEn}
-                        </h3>
+              {/* ZigZag Interlocking 8-Card Stack with Alternating Indents */}
+              <div className="flex flex-col space-y-2.5 max-w-lg select-none">
+                {allFeatures.map((feat, idx) => {
+                  const Icon = feat.icon;
+                  const isEven = idx % 2 === 1;
+                  return (
+                    <div 
+                      key={feat.id}
+                      className={`group ${feat.animClass} ${
+                        isEven ? 'self-end ml-12 sm:ml-16' : 'self-start mr-12 sm:mr-16'
+                      } bg-white/95 hover:bg-white backdrop-blur-xl rounded-2xl py-3 px-5 border border-slate-200/90 hover:border-emerald-400 shadow-md hover:shadow-xl transition-all duration-200 cursor-default flex items-center gap-3.5 w-auto`}
+                    >
+                      <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 shadow-xs ${feat.bgLight} group-hover:scale-110 transition-transform`}>
+                        <Icon className="w-4.5 h-4.5" />
                       </div>
-                    );
-                  })}
-                </div>
-
-                {/* Column 2 (Right ZigZag Set with Staggered Top Offset) */}
-                <div className="flex flex-col space-y-3 pt-5">
-                  {rightFeatures.map((feat, idx) => {
-                    const Icon = feat.icon;
-                    return (
-                      <div 
-                        key={feat.id}
-                        className={`group ${feat.animClass} ${idx % 2 === 1 ? '-translate-x-2' : 'translate-x-1'} bg-white/95 hover:bg-white backdrop-blur-xl rounded-2xl py-3 px-4 border border-slate-200/90 hover:border-emerald-400 shadow-md hover:shadow-lg transition-all duration-200 cursor-default select-none flex items-center gap-3`}
-                      >
-                        <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 shadow-xs ${feat.bgLight} group-hover:scale-110 transition-transform`}>
-                          <Icon className="w-4.5 h-4.5" />
-                        </div>
-                        <h3 className="text-[13px] font-bold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug truncate">
-                          {isKhmer ? feat.titleKh : feat.titleEn}
-                        </h3>
-                      </div>
-                    );
-                  })}
-                </div>
-
-              </div>
-
-              {/* Trust Metric Strip */}
-              <div className="grid grid-cols-3 gap-3 pt-2 border-t border-slate-200/70 max-w-xl">
-                <div className="bg-white/80 rounded-2xl p-3 border border-slate-200/80 shadow-xs text-center">
-                  <div className="text-[17px] font-black text-emerald-600">$4.8M+</div>
-                  <div className="text-[11px] text-slate-500 font-semibold">{isKhmer ? 'ប្រាក់បានបើកផ្តល់' : 'Disbursed'}</div>
-                </div>
-
-                <div className="bg-white/80 rounded-2xl p-3 border border-slate-200/80 shadow-xs text-center">
-                  <div className="text-[17px] font-black text-cyan-600">12,500+</div>
-                  <div className="text-[11px] text-slate-500 font-semibold">{isKhmer ? 'អតិថិជនសកម្ម' : 'Active Borrowers'}</div>
-                </div>
-
-                <div className="bg-white/80 rounded-2xl p-3 border border-slate-200/80 shadow-xs text-center">
-                  <div className="text-[17px] font-black text-indigo-600">256-Bit</div>
-                  <div className="text-[11px] text-slate-500 font-semibold">{isKhmer ? 'សុវត្ថិភាពធនាគារ' : 'Bank SSL'}</div>
-                </div>
+                      <span className="text-[14px] font-bold text-slate-900 group-hover:text-emerald-700 transition-colors leading-none tracking-tight">
+                        {isKhmer ? feat.titleKh : feat.titleEn}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
             </div>
@@ -1488,7 +1453,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                           className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[14.5px] py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
                         >
                           {forgotLoading ? (
-                            <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> SAVING...</span>
+                            <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> SAVING...</span>
                           ) : (
                             <>{isKhmer ? 'រក្សាទុកពាក្យសម្ងាត់' : 'SAVE NEW PASSWORD'} <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
                           )}
