@@ -591,7 +591,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   return (
     <div className="h-screen w-full relative bg-gradient-to-br from-[#f8fcfa] via-[#eef8f5] to-[#f0f6ff] text-slate-800 font-sans select-none overflow-hidden flex flex-col">
-      {/* True 3D GPU Depth-Buffer Orbit with Zero Jumpy z-index Popping */}
+      {/* Fully Interactive Hoverable 3D Orbit with Smooth Continuous Depth */}
       <style>{`
         .orbit-stage-top-view {
           perspective: 1200px;
@@ -607,15 +607,27 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           animation: orbit-3d-true-depth 32s linear infinite;
           will-change: transform, opacity;
           transform-style: preserve-3d;
-          backface-visibility: hidden;
         }
 
-        /* Hover pauses the orbit cleanly */
+        /* Hover pauses orbit and highlights cards cleanly at any depth */
         .orbit-stage-top-view:hover .circular-orbiting-card {
           animation-play-state: paused;
         }
 
-        /* 16 Continuous Pure 3D Trigonometric Steps (Rx: 260px, Ry: 135px, Rz: 160px) with NO z-index jumps */
+        .circular-orbiting-card:hover {
+          opacity: 1 !important;
+          z-index: 100 !important;
+        }
+
+        .circular-orbiting-card:hover .card-inner-box {
+          transform: scale(1.14);
+          opacity: 1 !important;
+          background: rgba(255, 255, 255, 1) !important;
+          box-shadow: 0 20px 35px -8px rgba(16, 185, 129, 0.35) !important;
+          border-color: rgba(16, 185, 129, 0.6) !important;
+        }
+
+        /* 16 Continuous Pure 3D Trigonometric Steps (Rx: 260px, Ry: 135px, Rz: 160px) */
         @keyframes orbit-3d-true-depth {
           0% {
             transform: translate3d(260px, 0px, 0px) scale(1.00);
@@ -824,7 +836,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: True 3D GPU Depth-Sorted Orbit Around 3D Planet */}
+            {/* LEFT COLUMN: Fully Interactive Hoverable 3D Orbit Around 3D Planet */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-1.5 pr-2">
               
@@ -857,7 +869,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
               {/* True 3D Preserve-3D Stage (Rx: 260px, Ry: 135px, Rz: 160px) */}
               <div className="orbit-stage-top-view relative w-full h-[460px] flex items-center justify-center select-none overflow-visible">
                 
-                {/* Dynamic Cyber Concentric Orbital Halo Guides */}
+                {/* Dynamic Cyber Concentric Orbital Halo Guides (Strictly pointer-events-none) */}
                 <div className="absolute w-[530px] h-[290px] rounded-[100%] border border-emerald-400/20 pointer-events-none anim-ring-pulse" />
                 <div className="absolute w-[490px] h-[270px] rounded-[100%] border-2 border-dashed border-emerald-500/30 pointer-events-none" />
                 <div className="absolute w-[450px] h-[240px] rounded-[100%] bg-gradient-to-b from-emerald-400/15 via-teal-400/10 to-cyan-400/15 blur-2xl pointer-events-none" />
@@ -871,13 +883,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   <div className="relative w-24 h-24 flex items-center justify-center">
                     
                     {/* Atmospheric Corona Glow */}
-                    <div className="absolute -inset-3 rounded-full bg-gradient-to-tr from-emerald-400 via-teal-300 to-cyan-400 opacity-50 blur-xl anim-glow" />
+                    <div className="absolute -inset-3 rounded-full bg-gradient-to-tr from-emerald-400 via-teal-300 to-cyan-400 opacity-50 blur-xl anim-glow pointer-events-none" />
 
                     {/* Gyroscopic Planetary Orbit Ring 1 (Tilted Saturn Style) */}
-                    <div className="anim-planet-ring-1 absolute w-32 h-32 rounded-full border border-cyan-400/60 border-t-emerald-300 border-b-transparent shadow-xs" />
+                    <div className="anim-planet-ring-1 absolute w-32 h-32 rounded-full border border-cyan-400/60 border-t-emerald-300 border-b-transparent shadow-xs pointer-events-none" />
 
                     {/* Gyroscopic Planetary Orbit Ring 2 (Counter-Rotating Angle) */}
-                    <div className="anim-planet-ring-2 absolute w-35 h-35 rounded-full border border-teal-300/40 border-l-cyan-300 border-r-transparent" />
+                    <div className="anim-planet-ring-2 absolute w-35 h-35 rounded-full border border-teal-300/40 border-l-cyan-300 border-r-transparent pointer-events-none" />
 
                     {/* 3D Shaded Planet Orb */}
                     <div className="planet-sphere-3d relative w-20 h-20 rounded-full flex items-center justify-center overflow-hidden border border-emerald-300/40">
@@ -895,7 +907,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   </div>
 
                   {/* Sleek Floating Glass Pod Badge */}
-                  <div className="mt-2 px-2.5 py-0.5 bg-white/90 backdrop-blur-md rounded-full border border-emerald-300/80 shadow-md shadow-emerald-500/20 flex items-center gap-1.5">
+                  <div className="mt-2 px-2.5 py-0.5 bg-white/90 backdrop-blur-md rounded-full border border-emerald-300/80 shadow-md shadow-emerald-500/20 flex items-center gap-1.5 pointer-events-none">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     <span className="text-[10.5px] font-black text-slate-900 tracking-tight">Nexus Core</span>
                     <span className="text-[8px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 ml-0.5">
@@ -905,7 +917,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                 </div>
 
-                {/* 8 Feature Cards Revolving with True 3D Depth Sorting */}
+                {/* 8 Feature Cards Revolving with Full Hover Interactivity at All Depths */}
                 <div className="orbit-3d-space relative w-full h-full flex items-center justify-center pointer-events-none">
                   {features3D.map((feat, idx) => {
                     const Icon = feat.icon;
@@ -915,13 +927,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     return (
                       <div
                         key={feat.id}
-                        className="circular-orbiting-card absolute pointer-events-auto"
+                        className="circular-orbiting-card absolute pointer-events-auto cursor-pointer"
                         style={{
                           animationDelay: `${delaySeconds}s`,
                         }}
                       >
-                        {/* Compact, Clean Frosted Glass Card */}
-                        <div className={`group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-2 sm:p-2.5 shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 cursor-pointer flex items-center gap-2 w-[165px] sm:w-[172px]`}>
+                        {/* Compact, Clean Frosted Glass Card with Hover Lift */}
+                        <div className={`card-inner-box group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-2 sm:p-2.5 shadow-lg hover:shadow-2xl transition-all duration-200 cursor-pointer flex items-center gap-2 w-[165px] sm:w-[172px]`}>
                           
                           {/* 3D Glass Light Sheen */}
                           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/50 via-transparent to-emerald-50/20 pointer-events-none" />
@@ -936,7 +948,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                           {/* Clean Main Title Only */}
                           <div className="flex flex-col min-w-0 pr-0.5 flex-grow">
-                            <span className="text-[11px] font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug truncate">
+                            <span className="text-[11px] sm:text-[11.5px] font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug truncate">
                               {isKhmer ? feat.titleKh : feat.titleEn}
                             </span>
                           </div>
