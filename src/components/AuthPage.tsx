@@ -102,71 +102,87 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [resetPassword, setResetPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
 
-  // 8 Main Features for the Rotating Ecosystem Orbit
-  const orbitFeatures = [
+  // 8 Main Features for the 3D Revolving Cylinder Carousel
+  const features3D = [
     {
       id: 'debt_collection',
       icon: ShieldCheck,
-      bgLight: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+      bgLight: 'bg-emerald-500 text-white shadow-emerald-500/30',
       titleEn: 'Bad Debt Collection',
       titleKh: 'ការទារបំណុលយឺតយ៉ាវ',
-      angle: 0,
+      descEn: 'Recovery & Automated Tracking',
+      descKh: 'ការទារបំណុលស្វ័យប្រវត្តិ',
+      borderGlow: 'hover:border-emerald-500 hover:shadow-emerald-500/25',
     },
     {
       id: 'org_structure',
       icon: Network,
-      bgLight: 'bg-teal-50 text-teal-600 border-teal-200',
+      bgLight: 'bg-teal-500 text-white shadow-teal-500/30',
       titleEn: 'Loan Org Structure Setup',
       titleKh: 'រចនាសម្ព័ន្ធស្ថាប័នឥណទាន',
-      angle: 45,
+      descEn: 'Governance & Roles Engine',
+      descKh: 'បែងចែកតួនាទីបុគ្គលិក',
+      borderGlow: 'hover:border-teal-500 hover:shadow-teal-500/25',
     },
     {
       id: 'digital_strategy',
       icon: Target,
-      bgLight: 'bg-cyan-50 text-cyan-600 border-cyan-200',
+      bgLight: 'bg-cyan-500 text-white shadow-cyan-500/30',
       titleEn: 'Lead Digital Strategy Setup',
       titleKh: 'យុទ្ធសាស្ត្រទាក់ទាញអតិថិជន',
-      angle: 90,
+      descEn: 'Funnel & Customer Acquisition',
+      descKh: 'ទាក់ទាញអតិថិជនប្រកបដោយប្រសិទ្ធភាព',
+      borderGlow: 'hover:border-cyan-500 hover:shadow-cyan-500/25',
     },
     {
       id: 'payment_gateway',
       icon: QrCode,
-      bgLight: 'bg-sky-50 text-sky-600 border-sky-200',
+      bgLight: 'bg-sky-500 text-white shadow-sky-500/30',
       titleEn: 'Payment Gateway',
       titleKh: 'ច្រកទូទាត់ប្រាក់ឌីជីថល',
-      angle: 135,
+      descEn: 'KHQR & Bakong Real-Time Settlement',
+      descKh: 'ទូទាត់ភ្លាមៗតាម KHQR & Bakong',
+      borderGlow: 'hover:border-sky-500 hover:shadow-sky-500/25',
     },
     {
       id: 'broadcasting',
       icon: Send,
-      bgLight: 'bg-indigo-50 text-indigo-600 border-indigo-200',
+      bgLight: 'bg-indigo-500 text-white shadow-indigo-500/30',
       titleEn: 'Broadcasting Setup',
       titleKh: 'ប្រព័ន្ធផ្ញើសារស្វ័យប្រវត្ត',
-      angle: 180,
+      descEn: 'Telegram & SMS Smart Notification',
+      descKh: 'ផ្ញើសាររំលឹកស្វ័យប្រវត្តិ',
+      borderGlow: 'hover:border-indigo-500 hover:shadow-indigo-500/25',
     },
     {
       id: 'loan_software',
       icon: MonitorSmartphone,
-      bgLight: 'bg-violet-50 text-violet-600 border-violet-200',
+      bgLight: 'bg-violet-500 text-white shadow-violet-500/30',
       titleEn: 'Loan Software for Web & App',
       titleKh: 'កម្មវិធីគ្រប់គ្រង Web & App',
-      angle: 225,
+      descEn: 'Modern Cloud Ledger Platform',
+      descKh: 'ប្រព័ន្ធគ្រប់គ្រងលើ Web និង App',
+      borderGlow: 'hover:border-violet-500 hover:shadow-violet-500/25',
     },
     {
       id: 'loan_agreement',
       icon: FileText,
-      bgLight: 'bg-blue-50 text-blue-600 border-blue-200',
+      bgLight: 'bg-blue-500 text-white shadow-blue-500/30',
       titleEn: 'Loan Agreement Setup',
       titleKh: 'កិច្ចសន្យាឥណទានខ្មែរ',
-      angle: 270,
+      descEn: '5-Page Bilingual Legal Contracts',
+      descKh: 'កិច្ចសន្យាផ្លូវការ ៥ ទំព័រ',
+      borderGlow: 'hover:border-blue-500 hover:shadow-blue-500/25',
     },
     {
       id: 'biz_consultant',
       icon: Briefcase,
-      bgLight: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+      bgLight: 'bg-emerald-600 text-white shadow-emerald-600/30',
       titleEn: 'Loan Biz Consultant',
       titleKh: 'ការប្រឹក្សាយោបល់អាជីវកម្ម',
-      angle: 315,
+      descEn: 'Risk Advisory & Fintech Scaling',
+      descKh: 'យុទ្ធសាស្ត្រពង្រីកអាជីវកម្ម',
+      borderGlow: 'hover:border-emerald-600 hover:shadow-emerald-600/25',
     },
   ];
 
@@ -246,7 +262,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       setLoginOtpCode('');
       showToast('Verified! Login to continue.', 'success');
     } catch (err: any) {
-      showToast(err?.message || 'Invalid or expired code.', 'error');
+      showToast(err?.message || 'Invalid or expired code.');
     } finally {
       setLoginLoading(false);
     }
@@ -581,24 +597,46 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     );
   }
 
-  // Radius for the orbit circle in pixels
-  const orbitRadius = 195;
-
   return (
     <div className="h-screen w-full relative bg-gradient-to-br from-[#f8fcfa] via-[#eef8f5] to-[#f0f6ff] text-slate-800 font-sans select-none overflow-hidden flex flex-col">
-      {/* Dynamic Keyframes for Orbit Rotation and Upright Counter-Rotation */}
+      {/* 3D Perspective & Cylindrical Revolution Keyframes */}
       <style>{`
-        @keyframes orbit-spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        .perspective-stage {
+          perspective: 1200px;
+          perspective-origin: 50% 45%;
         }
-        @keyframes orbit-counter-spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(-360deg); }
+        
+        .carousel-3d-cylinder {
+          transform-style: preserve-3d;
+          animation: spin-cylinder 36s linear infinite;
         }
+
+        .carousel-3d-cylinder:hover {
+          animation-play-state: paused;
+        }
+
+        @keyframes spin-cylinder {
+          from {
+            transform: rotateX(-8deg) rotateY(0deg);
+          }
+          to {
+            transform: rotateX(-8deg) rotateY(360deg);
+          }
+        }
+
+        .core-3d-pedestal {
+          transform-style: preserve-3d;
+          animation: core-float 6s ease-in-out infinite;
+        }
+
+        @keyframes core-float {
+          0%, 100% { transform: translateZ(0px) translateY(0px); }
+          50% { transform: translateZ(25px) translateY(-8px); }
+        }
+
         @keyframes pulse-glow {
-          0%, 100% { opacity: 0.4; transform: scale(1); }
-          50% { opacity: 0.75; transform: scale(1.08); }
+          0%, 100% { opacity: 0.35; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(1.1); }
         }
         @keyframes aurora-spin {
           0% { transform: rotate(0deg) scale(1); }
@@ -608,19 +646,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         @keyframes shimmer-sweep {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(200%); }
-        }
-        
-        .orbit-spin-track {
-          animation: orbit-spin 38s linear infinite;
-        }
-        .orbit-counter-item {
-          animation: orbit-counter-spin 38s linear infinite;
-        }
-        
-        /* Pause orbit animation seamlessly on hover */
-        .orbit-container:hover .orbit-spin-track,
-        .orbit-container:hover .orbit-counter-item {
-          animation-play-state: paused;
         }
         
         .anim-glow { animation: pulse-glow 8s ease-in-out infinite; }
@@ -711,12 +736,12 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: Continuous Rotating Ecosystem Orbit of 8 Main Features */}
+            {/* LEFT COLUMN: Ultra-Modern 3D Revolving Cylinder FinTech Carousel */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-4 pr-2">
               
               {/* Badge & Headline */}
-              <div className="space-y-2.5 text-center lg:text-left w-full">
+              <div className="space-y-2 text-center lg:text-left w-full">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[12px] font-bold tracking-wide shadow-xs">
                   <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                   <span>{isKhmer ? 'ប្រព័ន្ធអេកូឡូស៊ីហិរញ្ញវត្ថុពេញលេញ (All-in-One)' : 'ALL-IN-ONE FINTECH ECOSYSTEM'}</span>
@@ -741,18 +766,15 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 </h1>
               </div>
 
-              {/* The Interactive Rotating Ecosystem Orbit Container */}
-              <div className="orbit-container relative w-[480px] h-[480px] flex items-center justify-center select-none my-2">
+              {/* 3D Perspective Stage */}
+              <div className="perspective-stage relative w-full h-[400px] flex items-center justify-center select-none overflow-visible">
                 
-                {/* Outer Dashed Orbit Track */}
-                <div className="absolute w-[390px] h-[390px] rounded-full border-2 border-dashed border-emerald-400/25 pointer-events-none" />
-                
-                {/* Inner Decorative Glowing Track */}
-                <div className="absolute w-[240px] h-[240px] rounded-full border border-teal-300/30 pointer-events-none" />
-                <div className="absolute w-[440px] h-[440px] rounded-full border border-slate-200/50 pointer-events-none" />
+                {/* 3D Floor Shadow & Radar Circles */}
+                <div className="absolute top-[68%] w-[420px] h-[180px] rounded-[100%] bg-gradient-to-tr from-emerald-400/20 via-teal-400/10 to-transparent blur-xl pointer-events-none transform -rotate-x-[70deg]" />
+                <div className="absolute top-[68%] w-[380px] h-[160px] rounded-[100%] border-2 border-dashed border-emerald-400/30 pointer-events-none transform -rotate-x-[70deg]" />
 
-                {/* Central Nexus Core Hub */}
-                <div className="relative z-20 flex flex-col items-center justify-center p-4 bg-white/95 backdrop-blur-2xl rounded-3xl border border-emerald-300 shadow-2xl shadow-emerald-500/20 group cursor-default">
+                {/* Central Floating 3D Nexus Core Hub */}
+                <div className="core-3d-pedestal absolute z-20 flex flex-col items-center justify-center p-5 bg-white/95 backdrop-blur-2xl rounded-3xl border border-emerald-300 shadow-2xl shadow-emerald-500/25 cursor-default pointer-events-none">
                   <div className="relative flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-400 p-0.5 shadow-lg shadow-emerald-500/30">
                     <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
                       <span className="text-emerald-600 font-black text-2xl tracking-tighter">N</span>
@@ -762,36 +784,46 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   </div>
                   <div className="text-center mt-2">
                     <span className="text-[13px] font-black text-slate-900 tracking-tight block">Nexus Core</span>
-                    <span className="text-[9.5px] font-bold uppercase tracking-wider text-emerald-600 block">Fintech Hub</span>
+                    <span className="text-[9.5px] font-bold uppercase tracking-wider text-emerald-600 block">Fintech 3D Engine</span>
                   </div>
                 </div>
 
-                {/* Rotating Orbit Ring containing 8 Features */}
-                <div className="orbit-spin-track absolute inset-0 w-full h-full">
-                  {orbitFeatures.map((feat) => {
+                {/* True 3D Revolving Cylinder Container with 8 Cards */}
+                <div className="carousel-3d-cylinder relative w-[240px] h-[120px]">
+                  {features3D.map((feat, idx) => {
                     const Icon = feat.icon;
-                    const rad = (feat.angle * Math.PI) / 180;
-                    const x = Math.cos(rad) * orbitRadius;
-                    const y = Math.sin(rad) * orbitRadius;
+                    const angleDeg = idx * 45; // 8 items = 360 / 8 = 45 degrees
+                    const radiusZ = 270; // 3D radius depth in pixels
 
                     return (
                       <div
                         key={feat.id}
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                        className="absolute inset-0 m-auto w-[240px] h-[86px]"
                         style={{
-                          transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                          transform: `rotateY(${angleDeg}deg) translateZ(${radiusZ}px)`,
+                          backfaceVisibility: 'visible',
                         }}
                       >
-                        {/* Counter-Spin Wrapper so badge is ALWAYS upright and horizontal */}
-                        <div className="orbit-counter-item">
-                          <div className="group bg-white/95 hover:bg-white backdrop-blur-xl border border-slate-200/90 hover:border-emerald-500 shadow-md hover:shadow-2xl hover:scale-110 transition-all duration-200 py-2 px-3.5 rounded-2xl flex items-center gap-2.5 whitespace-nowrap cursor-pointer">
-                            <div className={`w-7 h-7 rounded-xl border flex items-center justify-center shrink-0 shadow-xs ${feat.bgLight} group-hover:scale-110 transition-transform`}>
-                              <Icon className="w-3.5 h-3.5" />
-                            </div>
-                            <span className="text-[12.5px] font-bold text-slate-800 group-hover:text-emerald-700 transition-colors leading-none">
+                        <div className={`group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-3.5 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer flex items-center gap-3.5`}>
+                          
+                          {/* 3D Glass Light Sheen */}
+                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+
+                          {/* Icon Badge */}
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md ${feat.bgLight} group-hover:scale-110 transition-transform duration-200`}>
+                            <Icon className="w-5 h-5" />
+                          </div>
+
+                          {/* Title & Short Tag */}
+                          <div className="flex flex-col min-w-0 pr-1">
+                            <span className="text-[13px] font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug truncate">
                               {isKhmer ? feat.titleKh : feat.titleEn}
                             </span>
+                            <span className="text-[10px] font-semibold text-slate-400 group-hover:text-slate-600 transition-colors truncate mt-0.5">
+                              {isKhmer ? feat.descKh : feat.descEn}
+                            </span>
                           </div>
+
                         </div>
                       </div>
                     );
@@ -1436,7 +1468,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                           className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[14.5px] py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
                         >
                           {forgotLoading ? (
-                            <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> VERIFYING...</span>
+                            <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
                           ) : (
                             <>{isKhmer ? 'ផ្ទៀងផ្ទាត់' : 'VERIFY CODE'} <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
                           )}
