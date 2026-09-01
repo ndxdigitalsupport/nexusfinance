@@ -102,16 +102,15 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [resetPassword, setResetPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
 
-  // 8 Main Features for the ZigZag Staggered Flow
-  const allFeatures = [
+  // 8 Main Features for the Rotating Ecosystem Orbit
+  const orbitFeatures = [
     {
       id: 'debt_collection',
       icon: ShieldCheck,
       bgLight: 'bg-emerald-50 text-emerald-600 border-emerald-200',
       titleEn: 'Bad Debt Collection',
       titleKh: 'ការទារបំណុលយឺតយ៉ាវ',
-      side: 'left',
-      animClass: 'anim-float-1',
+      angle: 0,
     },
     {
       id: 'org_structure',
@@ -119,8 +118,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-teal-50 text-teal-600 border-teal-200',
       titleEn: 'Loan Org Structure Setup',
       titleKh: 'រចនាសម្ព័ន្ធស្ថាប័នឥណទាន',
-      side: 'right',
-      animClass: 'anim-float-2',
+      angle: 45,
     },
     {
       id: 'digital_strategy',
@@ -128,8 +126,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-cyan-50 text-cyan-600 border-cyan-200',
       titleEn: 'Lead Digital Strategy Setup',
       titleKh: 'យុទ្ធសាស្ត្រទាក់ទាញអតិថិជន',
-      side: 'left',
-      animClass: 'anim-float-3',
+      angle: 90,
     },
     {
       id: 'payment_gateway',
@@ -137,8 +134,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-sky-50 text-sky-600 border-sky-200',
       titleEn: 'Payment Gateway',
       titleKh: 'ច្រកទូទាត់ប្រាក់ឌីជីថល',
-      side: 'right',
-      animClass: 'anim-float-1',
+      angle: 135,
     },
     {
       id: 'broadcasting',
@@ -146,8 +142,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-indigo-50 text-indigo-600 border-indigo-200',
       titleEn: 'Broadcasting Setup',
       titleKh: 'ប្រព័ន្ធផ្ញើសារស្វ័យប្រវត្ត',
-      side: 'left',
-      animClass: 'anim-float-2',
+      angle: 180,
     },
     {
       id: 'loan_software',
@@ -155,8 +150,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-violet-50 text-violet-600 border-violet-200',
       titleEn: 'Loan Software for Web & App',
       titleKh: 'កម្មវិធីគ្រប់គ្រង Web & App',
-      side: 'right',
-      animClass: 'anim-float-3',
+      angle: 225,
     },
     {
       id: 'loan_agreement',
@@ -164,8 +158,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-blue-50 text-blue-600 border-blue-200',
       titleEn: 'Loan Agreement Setup',
       titleKh: 'កិច្ចសន្យាឥណទានខ្មែរ',
-      side: 'left',
-      animClass: 'anim-float-1',
+      angle: 270,
     },
     {
       id: 'biz_consultant',
@@ -173,8 +166,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       bgLight: 'bg-emerald-50 text-emerald-600 border-emerald-200',
       titleEn: 'Loan Biz Consultant',
       titleKh: 'ការប្រឹក្សាយោបល់អាជីវកម្ម',
-      side: 'right',
-      animClass: 'anim-float-2',
+      angle: 315,
     },
   ];
 
@@ -552,7 +544,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       setResetConfirmPassword('');
       setView('login');
     } catch (err: any) {
-      showToast(err?.message || 'Failed to reset password.', 'error');
+      showToast(err?.message || 'Failed to reset password.');
     } finally {
       setForgotLoading(false);
     }
@@ -589,25 +581,24 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     );
   }
 
+  // Radius for the orbit circle in pixels
+  const orbitRadius = 195;
+
   return (
     <div className="h-screen w-full relative bg-gradient-to-br from-[#f8fcfa] via-[#eef8f5] to-[#f0f6ff] text-slate-800 font-sans select-none overflow-hidden flex flex-col">
-      {/* Dynamic Keyframes & Shimmer Styles */}
+      {/* Dynamic Keyframes for Orbit Rotation and Upright Counter-Rotation */}
       <style>{`
-        @keyframes float-slow {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-7px) rotate(0.4deg); }
+        @keyframes orbit-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
-        @keyframes float-reverse {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(7px) rotate(-0.5deg); }
-        }
-        @keyframes float-subtle {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-5px); }
+        @keyframes orbit-counter-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(-360deg); }
         }
         @keyframes pulse-glow {
-          0%, 100% { opacity: 0.35; transform: scale(1); }
-          50% { opacity: 0.65; transform: scale(1.08); }
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50% { opacity: 0.75; transform: scale(1.08); }
         }
         @keyframes aurora-spin {
           0% { transform: rotate(0deg) scale(1); }
@@ -618,9 +609,20 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(200%); }
         }
-        .anim-float-1 { animation: float-slow 5s ease-in-out infinite; }
-        .anim-float-2 { animation: float-reverse 6s ease-in-out infinite 0.8s; }
-        .anim-float-3 { animation: float-subtle 4.5s ease-in-out infinite 0.4s; }
+        
+        .orbit-spin-track {
+          animation: orbit-spin 38s linear infinite;
+        }
+        .orbit-counter-item {
+          animation: orbit-counter-spin 38s linear infinite;
+        }
+        
+        /* Pause orbit animation seamlessly on hover */
+        .orbit-container:hover .orbit-spin-track,
+        .orbit-container:hover .orbit-counter-item {
+          animation-play-state: paused;
+        }
+        
         .anim-glow { animation: pulse-glow 8s ease-in-out infinite; }
         .anim-aurora { animation: aurora-spin 25s linear infinite; }
         .shimmer-btn:hover .shimmer-layer { animation: shimmer-sweep 1.2s ease-in-out infinite; }
@@ -705,22 +707,22 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         </header>
 
         {/* 3. Main Split Hero & Auth Card Section */}
-        <main className="relative z-10 flex-grow flex items-center justify-center px-4 sm:px-8 lg:px-12 py-8 max-w-7xl mx-auto w-full">
+        <main className="relative z-10 flex-grow flex items-center justify-center px-4 sm:px-8 lg:px-12 py-6 max-w-7xl mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: Animated ZigZag 8 Features Flow (Titles Only, Overlapping/Staggered) */}
+            {/* LEFT COLUMN: Continuous Rotating Ecosystem Orbit of 8 Main Features */}
             {/* ========================================================================= */}
-            <div className="lg:col-span-7 hidden lg:flex flex-col justify-center space-y-6 pr-2">
+            <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-4 pr-2">
               
               {/* Badge & Headline */}
-              <div className="space-y-3">
+              <div className="space-y-2.5 text-center lg:text-left w-full">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[12px] font-bold tracking-wide shadow-xs">
                   <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                   <span>{isKhmer ? 'ប្រព័ន្ធអេកូឡូស៊ីហិរញ្ញវត្ថុពេញលេញ (All-in-One)' : 'ALL-IN-ONE FINTECH ECOSYSTEM'}</span>
                 </div>
 
-                <h1 className="text-[34px] xl:text-[40px] font-black text-slate-900 tracking-tight leading-[1.15]">
+                <h1 className="text-[32px] xl:text-[36px] font-black text-slate-900 tracking-tight leading-[1.15]">
                   {isKhmer ? (
                     <>
                       ការផ្តល់ឥណទាន <br />
@@ -739,27 +741,63 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 </h1>
               </div>
 
-              {/* ZigZag Interlocking 8-Card Stack with Alternating Indents */}
-              <div className="flex flex-col space-y-2.5 max-w-lg select-none">
-                {allFeatures.map((feat, idx) => {
-                  const Icon = feat.icon;
-                  const isEven = idx % 2 === 1;
-                  return (
-                    <div 
-                      key={feat.id}
-                      className={`group ${feat.animClass} ${
-                        isEven ? 'self-end ml-12 sm:ml-16' : 'self-start mr-12 sm:mr-16'
-                      } bg-white/95 hover:bg-white backdrop-blur-xl rounded-2xl py-3 px-5 border border-slate-200/90 hover:border-emerald-400 shadow-md hover:shadow-xl transition-all duration-200 cursor-default flex items-center gap-3.5 w-auto`}
-                    >
-                      <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 shadow-xs ${feat.bgLight} group-hover:scale-110 transition-transform`}>
-                        <Icon className="w-4.5 h-4.5" />
-                      </div>
-                      <span className="text-[14px] font-bold text-slate-900 group-hover:text-emerald-700 transition-colors leading-none tracking-tight">
-                        {isKhmer ? feat.titleKh : feat.titleEn}
-                      </span>
+              {/* The Interactive Rotating Ecosystem Orbit Container */}
+              <div className="orbit-container relative w-[480px] h-[480px] flex items-center justify-center select-none my-2">
+                
+                {/* Outer Dashed Orbit Track */}
+                <div className="absolute w-[390px] h-[390px] rounded-full border-2 border-dashed border-emerald-400/25 pointer-events-none" />
+                
+                {/* Inner Decorative Glowing Track */}
+                <div className="absolute w-[240px] h-[240px] rounded-full border border-teal-300/30 pointer-events-none" />
+                <div className="absolute w-[440px] h-[440px] rounded-full border border-slate-200/50 pointer-events-none" />
+
+                {/* Central Nexus Core Hub */}
+                <div className="relative z-20 flex flex-col items-center justify-center p-4 bg-white/95 backdrop-blur-2xl rounded-3xl border border-emerald-300 shadow-2xl shadow-emerald-500/20 group cursor-default">
+                  <div className="relative flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-400 p-0.5 shadow-lg shadow-emerald-500/30">
+                    <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
+                      <span className="text-emerald-600 font-black text-2xl tracking-tighter">N</span>
                     </div>
-                  );
-                })}
+                    {/* Glowing pulse ring */}
+                    <span className="absolute -inset-1 rounded-2xl bg-emerald-400/30 blur-sm -z-10 anim-glow" />
+                  </div>
+                  <div className="text-center mt-2">
+                    <span className="text-[13px] font-black text-slate-900 tracking-tight block">Nexus Core</span>
+                    <span className="text-[9.5px] font-bold uppercase tracking-wider text-emerald-600 block">Fintech Hub</span>
+                  </div>
+                </div>
+
+                {/* Rotating Orbit Ring containing 8 Features */}
+                <div className="orbit-spin-track absolute inset-0 w-full h-full">
+                  {orbitFeatures.map((feat) => {
+                    const Icon = feat.icon;
+                    const rad = (feat.angle * Math.PI) / 180;
+                    const x = Math.cos(rad) * orbitRadius;
+                    const y = Math.sin(rad) * orbitRadius;
+
+                    return (
+                      <div
+                        key={feat.id}
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                        style={{
+                          transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                        }}
+                      >
+                        {/* Counter-Spin Wrapper so badge is ALWAYS upright and horizontal */}
+                        <div className="orbit-counter-item">
+                          <div className="group bg-white/95 hover:bg-white backdrop-blur-xl border border-slate-200/90 hover:border-emerald-500 shadow-md hover:shadow-2xl hover:scale-110 transition-all duration-200 py-2 px-3.5 rounded-2xl flex items-center gap-2.5 whitespace-nowrap cursor-pointer">
+                            <div className={`w-7 h-7 rounded-xl border flex items-center justify-center shrink-0 shadow-xs ${feat.bgLight} group-hover:scale-110 transition-transform`}>
+                              <Icon className="w-3.5 h-3.5" />
+                            </div>
+                            <span className="text-[12.5px] font-bold text-slate-800 group-hover:text-emerald-700 transition-colors leading-none">
+                              {isKhmer ? feat.titleKh : feat.titleEn}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
               </div>
 
             </div>
