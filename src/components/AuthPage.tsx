@@ -1178,15 +1178,16 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                               <button
                                 type="submit"
                                 disabled={loginLoading}
-                                className="shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-[15px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/25 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
+                                className="group shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:via-teal-500 hover:to-emerald-500 text-white font-black text-[15px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 border border-white/20 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.4)] hover:shadow-[0_16px_32px_-6px_rgba(16,185,129,0.55)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 <div className="shimmer-layer absolute inset-0 w-1/2 h-full bg-white/30 transform -skew-x-12 pointer-events-none -translate-x-full" />
+                                
                                 {loginLoading ? (
                                   <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> LOGGING IN...</span>
                                 ) : (
                                   <>
                                     <span>{isKhmer ? 'ចូលប្រើប្រាស់' : 'LOG IN'}</span>
-                                    <ArrowRight className="w-5 h-5 stroke-[2.5]" />
+                                    <ArrowRight className="w-5 h-5 stroke-[2.5] group-hover:translate-x-1.5 transition-transform duration-200" />
                                   </>
                                 )}
                               </button>
@@ -1241,7 +1242,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                   type="text"
                                   value={registerName}
                                   onChange={(e) => setRegisterName(e.target.value)}
-                                  placeholder="e.g. John Doe"
+                                  placeholder={isKhmer ? "ឈ្មោះពេញ" : "Full Name"}
                                   className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-11 pr-4 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
                                   required={view === 'register'}
                                 />
@@ -1344,7 +1345,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                               <button
                                 type="submit"
                                 disabled={registerLoading}
-                                className="shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-[15px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/25 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
+                                className="group shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:via-teal-500 hover:to-emerald-500 text-white font-black text-[15px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 border border-white/20 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.4)] hover:shadow-[0_16px_32px_-6px_rgba(16,185,129,0.55)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] transition-all duration-200 cursor-pointer disabled:opacity-50"
                               >
                                 <div className="shimmer-layer absolute inset-0 w-1/2 h-full bg-white/30 transform -skew-x-12 pointer-events-none -translate-x-full" />
                                 {registerLoading ? (
@@ -1352,7 +1353,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                 ) : (
                                   <>
                                     <span>{isKhmer ? 'បង្កើតគណនី' : 'CREATE ACCOUNT'}</span>
-                                    <ArrowRight className="w-5 h-5 stroke-[2.5]" />
+                                    <ArrowRight className="w-5 h-5 stroke-[2.5] group-hover:translate-x-1.5 transition-transform duration-200" />
                                   </>
                                 )}
                               </button>
