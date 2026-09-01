@@ -102,7 +102,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [resetPassword, setResetPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
 
-  // 8 Main Features for the Wide, Round 3D Orbit
+  // 8 Main Features for the Refined Proportional 3D Orbit
   const features3D = [
     {
       id: 'debt_collection',
@@ -591,10 +591,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   return (
     <div className="h-screen w-full relative bg-gradient-to-br from-[#f8fcfa] via-[#eef8f5] to-[#f0f6ff] text-slate-800 font-sans select-none overflow-hidden flex flex-col">
-      {/* 3D Planet & Wide Open Round Trigonometric Orbit Keyframes */}
+      {/* 3D Planet & Harmonious Proportional 3D Orbit Keyframes */}
       <style>{`
         .orbit-stage-top-view {
-          perspective: 1400px;
+          perspective: 1300px;
           perspective-origin: 50% 30%;
         }
 
@@ -608,90 +608,90 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           animation-play-state: paused;
         }
 
-        /* 16 Trigonometric Harmonic Steps (Rx: 300px, Ry: 180px, Rz: 190px) for Wide, Open Round Geometry */
+        /* 16 Harmonious Trigonometric Steps (Rx: 240px, Ry: 140px, Rz: 150px) for Ideal Proportions */
         @keyframes orbit-3d-perfect-round {
           0% {
-            transform: translate3d(300px, 0px, 0px) scale(1.00);
+            transform: translate3d(240px, 0px, 0px) scale(1.00);
             opacity: 0.95;
             z-index: 20;
           }
           6.25% {
-            transform: translate3d(277px, 69px, 73px) scale(1.06);
+            transform: translate3d(222px, 54px, 57px) scale(1.06);
             opacity: 0.98;
             z-index: 30;
           }
           12.50% {
-            transform: translate3d(212px, 127px, 134px) scale(1.11);
+            transform: translate3d(170px, 99px, 106px) scale(1.11);
             opacity: 1.00;
             z-index: 35;
           }
           18.75% {
-            transform: translate3d(115px, 166px, 176px) scale(1.15);
+            transform: translate3d(92px, 129px, 139px) scale(1.15);
             opacity: 1.00;
             z-index: 40;
           }
           25.00% {
-            transform: translate3d(0px, 180px, 190px) scale(1.16);
+            transform: translate3d(0px, 140px, 150px) scale(1.16);
             opacity: 1.00;
             z-index: 45;
           }
           31.25% {
-            transform: translate3d(-115px, 166px, 176px) scale(1.15);
+            transform: translate3d(-92px, 129px, 139px) scale(1.15);
             opacity: 1.00;
             z-index: 40;
           }
           37.50% {
-            transform: translate3d(-212px, 127px, 134px) scale(1.11);
+            transform: translate3d(-170px, 99px, 106px) scale(1.11);
             opacity: 1.00;
             z-index: 35;
           }
           43.75% {
-            transform: translate3d(-277px, 69px, 73px) scale(1.06);
+            transform: translate3d(-222px, 54px, 57px) scale(1.06);
             opacity: 0.98;
             z-index: 30;
           }
           50.00% {
-            transform: translate3d(-300px, 0px, 0px) scale(1.00);
+            transform: translate3d(-240px, 0px, 0px) scale(1.00);
             opacity: 0.95;
             z-index: 20;
           }
           56.25% {
-            transform: translate3d(-277px, -69px, -73px) scale(0.94);
+            transform: translate3d(-222px, -54px, -57px) scale(0.94);
             opacity: 0.90;
             z-index: 10;
           }
           62.50% {
-            transform: translate3d(-212px, -127px, -134px) scale(0.89);
+            transform: translate3d(-170px, -99px, -106px) scale(0.89);
             opacity: 0.86;
             z-index: 5;
           }
           68.75% {
-            transform: translate3d(-115px, -166px, -176px) scale(0.85);
+            transform: translate3d(-92px, -129px, -139px) scale(0.85);
             opacity: 0.83;
             z-index: 3;
           }
           75.00% {
-            transform: translate3d(0px, -180px, -190px) scale(0.84);
+            transform: translate3d(0px, -140px, -150px) scale(0.84);
             opacity: 0.82;
             z-index: 1;
           }
           81.25% {
-            transform: translate3d(115px, -166px, -176px) scale(0.85);
+            transform: translate3d(92px, -129px, -139px) scale(0.85);
             opacity: 0.83;
             z-index: 3;
           }
           87.50% {
-            transform: translate3d(212px, -127px, -134px) scale(0.89);
+            transform: translate3d(170px, -99px, -106px) scale(0.89);
             opacity: 0.86;
             z-index: 5;
           }
           93.75% {
-            transform: translate3d(277px, -69px, -73px) scale(0.94);
+            transform: translate3d(222px, -54px, -57px) scale(0.94);
             opacity: 0.90;
             z-index: 10;
           }
           100.00% {
-            transform: translate3d(300px, 0px, 0px) scale(1.00);
+            transform: translate3d(240px, 0px, 0px) scale(1.00);
             opacity: 0.95;
             z-index: 20;
           }
@@ -710,7 +710,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
         @keyframes planet-float {
           0%, 100% { transform: translateY(0px) scale(1); }
-          50% { transform: translateY(-6px) scale(1.02); }
+          50% { transform: translateY(-5px) scale(1.02); }
         }
 
         @keyframes pulse-ring {
@@ -750,9 +750,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         .planet-sphere-3d {
           background: radial-gradient(circle at 35% 28%, #6ee7b7 0%, #10b981 35%, #059669 68%, #064e3b 100%);
           box-shadow: 
-            inset -10px -12px 25px rgba(2, 44, 34, 0.8),
-            inset 6px 8px 15px rgba(255, 255, 255, 0.7),
-            0 15px 35px -5px rgba(16, 185, 129, 0.45);
+            inset -8px -10px 20px rgba(2, 44, 34, 0.8),
+            inset 5px 6px 12px rgba(255, 255, 255, 0.7),
+            0 12px 28px -4px rgba(16, 185, 129, 0.45);
         }
       `}</style>
 
@@ -834,7 +834,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: Wide, Open Round 3D Orbit Around the 3D Fintech Planet Core */}
+            {/* LEFT COLUMN: Harmonious Proportional 3D Orbit Around the Planet Core */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-1.5 pr-2">
               
@@ -864,13 +864,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 </h1>
               </div>
 
-              {/* Wide & Open Round Circular 3D Stage (Rx: 300px, Ry: 180px) */}
-              <div className="orbit-stage-top-view relative w-full h-[520px] flex items-center justify-center select-none overflow-visible">
+              {/* Refined Proportional Circular 3D Stage (Rx: 240px, Ry: 140px) */}
+              <div className="orbit-stage-top-view relative w-full h-[460px] flex items-center justify-center select-none overflow-visible">
                 
-                {/* Dynamic Cyber Concentric Orbital Halo Guides (Scaled to match wide round orbit) */}
-                <div className="absolute w-[640px] h-[380px] rounded-[100%] border border-emerald-400/20 pointer-events-none anim-ring-pulse" />
-                <div className="absolute w-[600px] h-[350px] rounded-[100%] border-2 border-dashed border-emerald-500/30 pointer-events-none" />
-                <div className="absolute w-[560px] h-[320px] rounded-[100%] bg-gradient-to-b from-emerald-400/15 via-teal-400/10 to-cyan-400/15 blur-3xl pointer-events-none" />
+                {/* Dynamic Cyber Concentric Orbital Halo Guides */}
+                <div className="absolute w-[510px] h-[300px] rounded-[100%] border border-emerald-400/20 pointer-events-none anim-ring-pulse" />
+                <div className="absolute w-[480px] h-[280px] rounded-[100%] border-2 border-dashed border-emerald-500/30 pointer-events-none" />
+                <div className="absolute w-[440px] h-[250px] rounded-[100%] bg-gradient-to-b from-emerald-400/15 via-teal-400/10 to-cyan-400/15 blur-2xl pointer-events-none" />
 
                 {/* ========================================================= */}
                 {/* 3D HOLOGRAPHIC FINTECH PLANET (Stationed at Z = 0 Center) */}
@@ -878,26 +878,26 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 <div className="absolute z-10 flex flex-col items-center justify-center pointer-events-none select-none anim-planet-core">
                   
                   {/* Planet Sphere with Atmospheric Aura */}
-                  <div className="relative w-28 h-28 flex items-center justify-center">
+                  <div className="relative w-24 h-24 flex items-center justify-center">
                     
                     {/* Atmospheric Corona Glow */}
-                    <div className="absolute -inset-4 rounded-full bg-gradient-to-tr from-emerald-400 via-teal-300 to-cyan-400 opacity-50 blur-xl anim-glow" />
+                    <div className="absolute -inset-3 rounded-full bg-gradient-to-tr from-emerald-400 via-teal-300 to-cyan-400 opacity-50 blur-xl anim-glow" />
 
                     {/* Gyroscopic Planetary Orbit Ring 1 (Tilted Saturn Style) */}
-                    <div className="anim-planet-ring-1 absolute w-36 h-36 rounded-full border border-cyan-400/60 border-t-emerald-300 border-b-transparent shadow-xs" />
+                    <div className="anim-planet-ring-1 absolute w-32 h-32 rounded-full border border-cyan-400/60 border-t-emerald-300 border-b-transparent shadow-xs" />
 
                     {/* Gyroscopic Planetary Orbit Ring 2 (Counter-Rotating Angle) */}
-                    <div className="anim-planet-ring-2 absolute w-40 h-40 rounded-full border border-teal-300/40 border-l-cyan-300 border-r-transparent" />
+                    <div className="anim-planet-ring-2 absolute w-35 h-35 rounded-full border border-teal-300/40 border-l-cyan-300 border-r-transparent" />
 
                     {/* 3D Shaded Planet Orb */}
-                    <div className="planet-sphere-3d relative w-24 h-24 rounded-full flex items-center justify-center overflow-hidden border border-emerald-300/40">
+                    <div className="planet-sphere-3d relative w-20 h-20 rounded-full flex items-center justify-center overflow-hidden border border-emerald-300/40">
                       
                       {/* Top Light Dome Reflection */}
-                      <div className="absolute top-1 left-2 w-10 h-6 bg-white/45 rounded-full blur-[2px] transform -rotate-12 pointer-events-none" />
+                      <div className="absolute top-1 left-2 w-8 h-5 bg-white/45 rounded-full blur-[2px] transform -rotate-12 pointer-events-none" />
 
                       {/* 3D Inner Glowing Core Letter 'N' */}
-                      <div className="relative z-10 flex items-center justify-center w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-xs border border-white/40 shadow-inner">
-                        <span className="text-white font-black text-2xl tracking-tighter drop-shadow-md">N</span>
+                      <div className="relative z-10 flex items-center justify-center w-9 h-9 rounded-xl bg-white/20 backdrop-blur-xs border border-white/40 shadow-inner">
+                        <span className="text-white font-black text-xl tracking-tighter drop-shadow-md">N</span>
                       </div>
 
                     </div>
@@ -905,17 +905,17 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   </div>
 
                   {/* Sleek Floating Glass Pod Badge */}
-                  <div className="mt-2.5 px-3 py-1 bg-white/90 backdrop-blur-md rounded-full border border-emerald-300/80 shadow-md shadow-emerald-500/20 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[11px] font-black text-slate-900 tracking-tight">Nexus Core</span>
-                    <span className="text-[8.5px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 ml-0.5">
+                  <div className="mt-2 px-2.5 py-0.5 bg-white/90 backdrop-blur-md rounded-full border border-emerald-300/80 shadow-md shadow-emerald-500/20 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10.5px] font-black text-slate-900 tracking-tight">Nexus Core</span>
+                    <span className="text-[8px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 ml-0.5">
                       Hub
                     </span>
                   </div>
 
                 </div>
 
-                {/* 8 Feature Cards Revolving in a Wide, Open Round Orbit */}
+                {/* 8 Feature Cards Revolving in a Perfectly Proportioned Round Orbit */}
                 <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
                   {features3D.map((feat, idx) => {
                     const Icon = feat.icon;
@@ -931,22 +931,22 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         }}
                       >
                         {/* Compact, Clean Frosted Glass Card */}
-                        <div className={`group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-2.5 sm:p-3 shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-200 cursor-pointer flex items-center gap-2.5 w-[190px] sm:w-[200px]`}>
+                        <div className={`group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-2 sm:p-2.5 shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 cursor-pointer flex items-center gap-2 w-[175px] sm:w-[185px]`}>
                           
                           {/* 3D Glass Light Sheen */}
                           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/50 via-transparent to-emerald-50/20 pointer-events-none" />
 
                           {/* Gradient Icon Squircle Badge with Ambient Glow */}
                           <div 
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-md bg-gradient-to-tr ${feat.gradient} text-white group-hover:scale-110 transition-transform duration-200`}
-                            style={{ boxShadow: `0 6px 14px -2px ${feat.glowColor}` }}
+                            className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-md bg-gradient-to-tr ${feat.gradient} text-white group-hover:scale-110 transition-transform duration-200`}
+                            style={{ boxShadow: `0 5px 12px -2px ${feat.glowColor}` }}
                           >
-                            <Icon className="w-4.5 h-4.5 stroke-[2.2]" />
+                            <Icon className="w-4 h-4 stroke-[2.2]" />
                           </div>
 
                           {/* Clean Main Title Only */}
-                          <div className="flex flex-col min-w-0 pr-1 flex-grow">
-                            <span className="text-[12px] font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug truncate">
+                          <div className="flex flex-col min-w-0 pr-0.5 flex-grow">
+                            <span className="text-[11px] sm:text-[11.5px] font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug truncate">
                               {isKhmer ? feat.titleKh : feat.titleEn}
                             </span>
                           </div>
