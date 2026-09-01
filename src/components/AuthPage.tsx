@@ -16,8 +16,7 @@ import {
   Send,
   MonitorSmartphone,
   FileText,
-  Briefcase,
-  Zap
+  Briefcase
 } from 'lucide-react';
 import { showToast } from './Toast';
 import { API } from '../api';
@@ -103,102 +102,78 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [resetPassword, setResetPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
 
-  // 8 Main Features for the Ultra-Premium Circular 3D Orbit
+  // 8 Main Features for the Spacious Circular 3D Orbit
   const features3D = [
     {
       id: 'debt_collection',
       icon: ShieldCheck,
-      badgeTag: 'RECOVERY',
       gradient: 'from-emerald-500 to-teal-500',
       glowColor: 'rgba(16, 185, 129, 0.35)',
       titleEn: 'Bad Debt Collection',
       titleKh: 'ការទារបំណុលយឺតយ៉ាវ',
-      descEn: 'Recovery & Automated Tracking',
-      descKh: 'ការទារបំណុលស្វ័យប្រវត្តិ',
       borderGlow: 'hover:border-emerald-400 hover:shadow-emerald-500/25',
     },
     {
       id: 'org_structure',
       icon: Network,
-      badgeTag: 'ROLES',
       gradient: 'from-teal-500 to-emerald-600',
       glowColor: 'rgba(20, 184, 166, 0.35)',
       titleEn: 'Loan Org Structure Setup',
       titleKh: 'រចនាសម្ព័ន្ធស្ថាប័នឥណទាន',
-      descEn: 'Role Governance & Matrix',
-      descKh: 'បែងចែកតួនាទីស្ថាប័ន',
       borderGlow: 'hover:border-teal-400 hover:shadow-teal-500/25',
     },
     {
       id: 'digital_strategy',
       icon: Target,
-      badgeTag: 'CRM / ADS',
       gradient: 'from-cyan-500 to-blue-500',
       glowColor: 'rgba(6, 182, 212, 0.35)',
       titleEn: 'Lead Digital Strategy Setup',
       titleKh: 'យុទ្ធសាស្ត្រទាក់ទាញអតិថិជន',
-      descEn: 'Acquisition Funnels & Ads',
-      descKh: 'ទាក់ទាញអតិថិជន & CRM',
       borderGlow: 'hover:border-cyan-400 hover:shadow-cyan-500/25',
     },
     {
       id: 'payment_gateway',
       icon: QrCode,
-      badgeTag: 'KHQR',
       gradient: 'from-sky-500 to-indigo-500',
       glowColor: 'rgba(14, 165, 233, 0.35)',
       titleEn: 'Payment Gateway',
       titleKh: 'ច្រកទូទាត់ប្រាក់ឌីជីថល',
-      descEn: 'KHQR & Bakong Instant Pay',
-      descKh: 'KHQR និង Bakong',
       borderGlow: 'hover:border-sky-400 hover:shadow-sky-500/25',
     },
     {
       id: 'broadcasting',
       icon: Send,
-      badgeTag: 'BOTS',
       gradient: 'from-indigo-500 to-violet-500',
       glowColor: 'rgba(99, 102, 241, 0.35)',
       titleEn: 'Broadcasting Setup',
       titleKh: 'ប្រព័ន្ធផ្ញើសារស្វ័យប្រវត្ត',
-      descEn: 'Telegram & SMS Smart Alerts',
-      descKh: 'Telegram & SMS Bots',
       borderGlow: 'hover:border-indigo-400 hover:shadow-indigo-500/25',
     },
     {
       id: 'loan_software',
       icon: MonitorSmartphone,
-      badgeTag: 'ERP',
       gradient: 'from-violet-500 to-purple-500',
       glowColor: 'rgba(139, 92, 246, 0.35)',
       titleEn: 'Loan Software for Web & App',
       titleKh: 'កម្មវិធីគ្រប់គ្រង Web & App',
-      descEn: 'Realtime Cloud Ledger & App',
-      descKh: 'ប្រព័ន្ធ Web & App',
       borderGlow: 'hover:border-violet-400 hover:shadow-violet-500/25',
     },
     {
       id: 'loan_agreement',
       icon: FileText,
-      badgeTag: 'LEGAL',
       gradient: 'from-blue-500 to-cyan-500',
       glowColor: 'rgba(59, 130, 246, 0.35)',
       titleEn: 'Loan Agreement Setup',
       titleKh: 'កិច្ចសន្យាឥណទានខ្មែរ',
-      descEn: '5-Page Legal Contracts',
-      descKh: 'កិច្ចសន្យា ៥ ទំព័រ',
       borderGlow: 'hover:border-blue-400 hover:shadow-blue-500/25',
     },
     {
       id: 'biz_consultant',
       icon: Briefcase,
-      badgeTag: 'ADVISORY',
       gradient: 'from-emerald-600 to-teal-600',
       glowColor: 'rgba(5, 150, 105, 0.35)',
       titleEn: 'Loan Biz Consultant',
       titleKh: 'ការប្រឹក្សាយោបល់អាជីវកម្ម',
-      descEn: 'Strategy & Growth Consulting',
-      descKh: 'យុទ្ធសាស្ត្រពង្រីកអាជីវកម្ម',
       borderGlow: 'hover:border-emerald-500 hover:shadow-emerald-600/25',
     },
   ];
@@ -616,11 +591,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   return (
     <div className="h-screen w-full relative bg-gradient-to-br from-[#f8fcfa] via-[#eef8f5] to-[#f0f6ff] text-slate-800 font-sans select-none overflow-hidden flex flex-col">
-      {/* Ultra-Premium Circular 3D Orbit Keyframes with Glowing Cyber Aura */}
+      {/* Spacious Circular 3D Orbit Keyframes (Expanded Radius & Clean Title Only) */}
       <style>{`
         .orbit-stage-top-view {
-          perspective: 1200px;
-          perspective-origin: 50% 32%;
+          perspective: 1300px;
+          perspective-origin: 50% 30%;
         }
 
         .circular-orbiting-card {
@@ -633,59 +608,59 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           animation-play-state: paused;
         }
 
-        /* Orbiting 3D Ring Animation */
+        /* Expanded 3D Orbit (X: 275px, Y: 135px, Z: 170px) for Generous Card Spacing */
         @keyframes orbit-3d-circular-top {
           0% {
-            /* RIGHT SIDE */
-            transform: translate3d(245px, 0px, 0px) scale(0.98);
+            /* RIGHT SIDE APEX */
+            transform: translate3d(275px, 0px, 0px) scale(0.98);
             opacity: 0.96;
             z-index: 20;
           }
           12.5% {
             /* BOTTOM-RIGHT (FRONT) */
-            transform: translate3d(175px, 85px, 115px) scale(1.08);
+            transform: translate3d(195px, 95px, 120px) scale(1.08);
             opacity: 1;
             z-index: 35;
           }
           25% {
             /* BOTTOM APEX (FOREGROUND FRONT OF CORE) */
-            transform: translate3d(0px, 118px, 165px) scale(1.16);
+            transform: translate3d(0px, 135px, 170px) scale(1.15);
             opacity: 1;
             z-index: 45;
           }
           37.5% {
             /* BOTTOM-LEFT (FRONT) */
-            transform: translate3d(-175px, 85px, 115px) scale(1.08);
+            transform: translate3d(-195px, 95px, 120px) scale(1.08);
             opacity: 1;
             z-index: 35;
           }
           50% {
-            /* LEFT SIDE */
-            transform: translate3d(-245px, 0px, 0px) scale(0.98);
+            /* LEFT SIDE APEX */
+            transform: translate3d(-275px, 0px, 0px) scale(0.98);
             opacity: 0.96;
             z-index: 20;
           }
           62.5% {
             /* TOP-LEFT (BACK BEHIND CORE) */
-            transform: translate3d(-175px, -85px, -115px) scale(0.88);
+            transform: translate3d(-195px, -95px, -120px) scale(0.88);
             opacity: 0.88;
             z-index: 5;
           }
           75% {
             /* TOP APEX (BACKGROUND ABOVE & BEHIND CORE) */
-            transform: translate3d(0px, -118px, -165px) scale(0.84);
+            transform: translate3d(0px, -135px, -170px) scale(0.84);
             opacity: 0.82;
             z-index: 1;
           }
           87.5% {
             /* TOP-RIGHT (BACK BEHIND CORE) */
-            transform: translate3d(175px, -85px, -115px) scale(0.88);
+            transform: translate3d(195px, -95px, -120px) scale(0.88);
             opacity: 0.88;
             z-index: 5;
           }
           100% {
             /* RETURN TO RIGHT SIDE */
-            transform: translate3d(245px, 0px, 0px) scale(0.98);
+            transform: translate3d(275px, 0px, 0px) scale(0.98);
             opacity: 0.96;
             z-index: 20;
           }
@@ -800,7 +775,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: Ultra-Sleek Circular 3D Orbit (Gentle Top Perspective View) */}
+            {/* LEFT COLUMN: Spacious Circular 3D Orbit (Clean Main Titles, Zero Cramping) */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-2 pr-2">
               
@@ -830,13 +805,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 </h1>
               </div>
 
-              {/* Circular 3D Stage (Gentle Top Perspective with Polished Visual Elements) */}
+              {/* Circular 3D Stage with Spacious Track & Ambient Glowing Guides */}
               <div className="orbit-stage-top-view relative w-full h-[470px] flex items-center justify-center select-none overflow-visible">
                 
                 {/* Dynamic Cyber Concentric Orbital Halo Guides */}
-                <div className="absolute w-[520px] h-[260px] rounded-[100%] border border-emerald-400/20 pointer-events-none anim-ring-pulse" />
-                <div className="absolute w-[490px] h-[235px] rounded-[100%] border-2 border-dashed border-emerald-500/35 pointer-events-none" />
-                <div className="absolute w-[460px] h-[210px] rounded-[100%] bg-gradient-to-b from-emerald-400/15 via-teal-400/10 to-cyan-400/15 blur-2xl pointer-events-none" />
+                <div className="absolute w-[570px] h-[290px] rounded-[100%] border border-emerald-400/20 pointer-events-none anim-ring-pulse" />
+                <div className="absolute w-[540px] h-[265px] rounded-[100%] border-2 border-dashed border-emerald-500/35 pointer-events-none" />
+                <div className="absolute w-[510px] h-[240px] rounded-[100%] bg-gradient-to-b from-emerald-400/15 via-teal-400/10 to-cyan-400/15 blur-2xl pointer-events-none" />
 
                 {/* Central Nexus Core Power Hub (Stationed at Z = 0) */}
                 <div className="absolute z-10 flex flex-col items-center justify-center p-4 bg-white/95 backdrop-blur-2xl rounded-3xl border-2 border-emerald-300 shadow-2xl shadow-emerald-500/30 pointer-events-none select-none transition-transform">
@@ -859,7 +834,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                 </div>
 
-                {/* 8 Feature Cards Revolving in a Wide Open Circular 3D Ring */}
+                {/* 8 Feature Cards Revolving with Abundant Spacing & Clean Titles */}
                 <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
                   {features3D.map((feat, idx) => {
                     const Icon = feat.icon;
@@ -874,36 +849,25 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                           animationDelay: `${delaySeconds}s`,
                         }}
                       >
-                        {/* Ultra-Modern Frosted Glass Card with Gradient Accent Border & Tech Badge */}
-                        <div className={`group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-3.5 shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-200 cursor-pointer flex items-center gap-3 w-[240px]`}>
+                        {/* Compact, Clean Frosted Glass Card (Main Title Only) */}
+                        <div className={`group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-2.5 sm:p-3 shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-200 cursor-pointer flex items-center gap-2.5 w-[190px] sm:w-[200px]`}>
                           
                           {/* 3D Glass Light Sheen */}
                           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/50 via-transparent to-emerald-50/20 pointer-events-none" />
 
                           {/* Gradient Icon Squircle Badge with Ambient Glow */}
                           <div 
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg bg-gradient-to-tr ${feat.gradient} text-white group-hover:scale-110 transition-transform duration-200`}
-                            style={{ boxShadow: `0 8px 16px -2px ${feat.glowColor}` }}
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-md bg-gradient-to-tr ${feat.gradient} text-white group-hover:scale-110 transition-transform duration-200`}
+                            style={{ boxShadow: `0 6px 14px -2px ${feat.glowColor}` }}
                           >
-                            <Icon className="w-5 h-5 stroke-[2.2]" />
+                            <Icon className="w-4.5 h-4.5 stroke-[2.2]" />
                           </div>
 
-                          {/* Title, Subtitle, & Tech Badge */}
+                          {/* Clean Main Title Only */}
                           <div className="flex flex-col min-w-0 pr-1 flex-grow">
-                            <div className="flex items-center justify-between gap-1">
-                              <span className="text-[12.5px] font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug truncate">
-                                {isKhmer ? feat.titleKh : feat.titleEn}
-                              </span>
-                            </div>
-                            
-                            <div className="flex items-center justify-between gap-1 mt-0.5">
-                              <span className="text-[9.5px] font-semibold text-slate-500 group-hover:text-slate-700 transition-colors truncate">
-                                {isKhmer ? feat.descKh : feat.descEn}
-                              </span>
-                              <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 group-hover:bg-emerald-50 group-hover:text-emerald-700 transition-colors uppercase tracking-wider shrink-0">
-                                {feat.badgeTag}
-                              </span>
-                            </div>
+                            <span className="text-[12px] font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug truncate">
+                              {isKhmer ? feat.titleKh : feat.titleEn}
+                            </span>
                           </div>
 
                         </div>
