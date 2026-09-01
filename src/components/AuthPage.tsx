@@ -102,7 +102,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [resetPassword, setResetPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
 
-  // 8 Main Features for the True 3D GPU Depth-Sorted Orbit
+  // 8 Main Features for the 100% Hoverable Orbit
   const features3D = [
     {
       id: 'debt_collection',
@@ -591,111 +591,123 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   return (
     <div className="h-screen w-full relative bg-gradient-to-br from-[#f8fcfa] via-[#eef8f5] to-[#f0f6ff] text-slate-800 font-sans select-none overflow-hidden flex flex-col">
-      {/* Fully Interactive Hoverable 3D Orbit with Smooth Continuous Depth */}
+      {/* 100% Reliable Hit-Testing Smooth Circular Orbit */}
       <style>{`
-        .orbit-stage-top-view {
-          perspective: 1200px;
-          perspective-origin: 50% 30%;
-          transform-style: preserve-3d;
-        }
-
-        .orbit-3d-space {
-          transform-style: preserve-3d;
+        .orbit-stage-wrapper {
+          position: relative;
         }
 
         .circular-orbiting-card {
-          animation: orbit-3d-true-depth 32s linear infinite;
+          animation: orbit-harmonic-2d 32s linear infinite;
           will-change: transform, opacity;
-          transform-style: preserve-3d;
+          pointer-events: auto !important;
+          cursor: pointer;
         }
 
-        /* Hover pauses orbit and highlights cards cleanly at any depth */
-        .orbit-stage-top-view:hover .circular-orbiting-card {
+        /* Hover pauses orbit and highlights cards cleanly at any position */
+        .orbit-stage-wrapper:hover .circular-orbiting-card {
           animation-play-state: paused;
         }
 
         .circular-orbiting-card:hover {
           opacity: 1 !important;
-          z-index: 100 !important;
+          z-index: 9999 !important;
         }
 
         .circular-orbiting-card:hover .card-inner-box {
-          transform: scale(1.14);
+          transform: scale(1.15);
           opacity: 1 !important;
-          background: rgba(255, 255, 255, 1) !important;
+          background-color: #ffffff !important;
           box-shadow: 0 20px 35px -8px rgba(16, 185, 129, 0.35) !important;
-          border-color: rgba(16, 185, 129, 0.6) !important;
+          border-color: rgba(16, 185, 129, 0.7) !important;
         }
 
-        /* 16 Continuous Pure 3D Trigonometric Steps (Rx: 260px, Ry: 135px, Rz: 160px) */
-        @keyframes orbit-3d-true-depth {
+        /* 16 Pure Trigonometric Steps on Standard Plane for 100% Guaranteed Mouse Hover Detection */
+        @keyframes orbit-harmonic-2d {
           0% {
-            transform: translate3d(260px, 0px, 0px) scale(1.00);
+            transform: translate(260px, 0px) scale(1.00);
             opacity: 0.95;
+            z-index: 20;
           }
           6.25% {
-            transform: translate3d(240px, 52px, 61px) scale(1.06);
+            transform: translate(240px, 52px) scale(1.06);
             opacity: 0.98;
+            z-index: 30;
           }
           12.50% {
-            transform: translate3d(184px, 95px, 113px) scale(1.11);
+            transform: translate(184px, 95px) scale(1.11);
             opacity: 1.00;
+            z-index: 35;
           }
           18.75% {
-            transform: translate3d(100px, 125px, 148px) scale(1.15);
+            transform: translate(100px, 125px) scale(1.15);
             opacity: 1.00;
+            z-index: 40;
           }
           25.00% {
-            transform: translate3d(0px, 135px, 160px) scale(1.16);
+            transform: translate(0px, 135px) scale(1.16);
             opacity: 1.00;
+            z-index: 45;
           }
           31.25% {
-            transform: translate3d(-100px, 125px, 148px) scale(1.15);
+            transform: translate(-100px, 125px) scale(1.15);
             opacity: 1.00;
+            z-index: 40;
           }
           37.50% {
-            transform: translate3d(-184px, 95px, 113px) scale(1.11);
+            transform: translate(-184px, 95px) scale(1.11);
             opacity: 1.00;
+            z-index: 35;
           }
           43.75% {
-            transform: translate3d(-240px, 52px, 61px) scale(1.06);
+            transform: translate(-240px, 52px) scale(1.06);
             opacity: 0.98;
+            z-index: 30;
           }
           50.00% {
-            transform: translate3d(-260px, 0px, 0px) scale(1.00);
+            transform: translate(-260px, 0px) scale(1.00);
             opacity: 0.95;
+            z-index: 20;
           }
           56.25% {
-            transform: translate3d(-240px, -52px, -61px) scale(0.94);
+            transform: translate(-240px, -52px) scale(0.94);
             opacity: 0.90;
+            z-index: 10;
           }
           62.50% {
-            transform: translate3d(-184px, -95px, -113px) scale(0.89);
+            transform: translate(-184px, -95px) scale(0.89);
             opacity: 0.86;
+            z-index: 8;
           }
           68.75% {
-            transform: translate3d(-100px, -125px, -148px) scale(0.85);
+            transform: translate(-100px, -125px) scale(0.85);
             opacity: 0.83;
+            z-index: 6;
           }
           75.00% {
-            transform: translate3d(0px, -135px, -160px) scale(0.84);
+            transform: translate(0px, -135px) scale(0.84);
             opacity: 0.82;
+            z-index: 5;
           }
           81.25% {
-            transform: translate3d(100px, -125px, -148px) scale(0.85);
+            transform: translate(100px, -125px) scale(0.85);
             opacity: 0.83;
+            z-index: 6;
           }
           87.50% {
-            transform: translate3d(184px, -95px, -113px) scale(0.89);
+            transform: translate(184px, -95px) scale(0.89);
             opacity: 0.86;
+            z-index: 8;
           }
           93.75% {
-            transform: translate3d(240px, -52px, -61px) scale(0.94);
+            transform: translate(240px, -52px) scale(0.94);
             opacity: 0.90;
+            z-index: 10;
           }
           100.00% {
-            transform: translate3d(260px, 0px, 0px) scale(1.00);
+            transform: translate(260px, 0px) scale(1.00);
             opacity: 0.95;
+            z-index: 20;
           }
         }
 
@@ -836,7 +848,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: Fully Interactive Hoverable 3D Orbit Around 3D Planet */}
+            {/* LEFT COLUMN: 100% Hoverable Orbit Around 3D Planet */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-1.5 pr-2">
               
@@ -866,8 +878,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 </h1>
               </div>
 
-              {/* True 3D Preserve-3D Stage (Rx: 260px, Ry: 135px, Rz: 160px) */}
-              <div className="orbit-stage-top-view relative w-full h-[460px] flex items-center justify-center select-none overflow-visible">
+              {/* Stage Container with 100% Reliable Hover Detection */}
+              <div className="orbit-stage-wrapper relative w-full h-[460px] flex items-center justify-center select-none overflow-visible">
                 
                 {/* Dynamic Cyber Concentric Orbital Halo Guides (Strictly pointer-events-none) */}
                 <div className="absolute w-[530px] h-[290px] rounded-[100%] border border-emerald-400/20 pointer-events-none anim-ring-pulse" />
@@ -875,9 +887,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 <div className="absolute w-[450px] h-[240px] rounded-[100%] bg-gradient-to-b from-emerald-400/15 via-teal-400/10 to-cyan-400/15 blur-2xl pointer-events-none" />
 
                 {/* ========================================================= */}
-                {/* 3D HOLOGRAPHIC FINTECH PLANET (Stationed at Z = 0 Center) */}
+                {/* 3D HOLOGRAPHIC FINTECH PLANET (Center Hub, z-index: 15) */}
                 {/* ========================================================= */}
-                <div className="absolute flex flex-col items-center justify-center pointer-events-none select-none anim-planet-core" style={{ transform: 'translate3d(0, 0, 0)' }}>
+                <div className="absolute flex flex-col items-center justify-center pointer-events-none select-none anim-planet-core z-15">
                   
                   {/* Planet Sphere with Atmospheric Aura */}
                   <div className="relative w-24 h-24 flex items-center justify-center">
@@ -917,8 +929,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                 </div>
 
-                {/* 8 Feature Cards Revolving with Full Hover Interactivity at All Depths */}
-                <div className="orbit-3d-space relative w-full h-full flex items-center justify-center pointer-events-none">
+                {/* 8 Feature Cards Revolving with Instantaneous Hover Response */}
+                <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
                   {features3D.map((feat, idx) => {
                     const Icon = feat.icon;
                     // Stagger 8 cards evenly across the 32s circular orbit (4.0s each)
@@ -927,13 +939,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     return (
                       <div
                         key={feat.id}
-                        className="circular-orbiting-card absolute pointer-events-auto cursor-pointer"
+                        className="circular-orbiting-card absolute"
                         style={{
                           animationDelay: `${delaySeconds}s`,
                         }}
                       >
-                        {/* Compact, Clean Frosted Glass Card with Hover Lift */}
-                        <div className={`card-inner-box group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-2 sm:p-2.5 shadow-lg hover:shadow-2xl transition-all duration-200 cursor-pointer flex items-center gap-2 w-[165px] sm:w-[172px]`}>
+                        {/* Compact, Clean Frosted Glass Card with Instant Hover Reaction */}
+                        <div className={`card-inner-box group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-2 sm:p-2.5 shadow-lg hover:shadow-2xl transition-all duration-150 cursor-pointer flex items-center gap-2 w-[165px] sm:w-[172px]`}>
                           
                           {/* 3D Glass Light Sheen */}
                           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/50 via-transparent to-emerald-50/20 pointer-events-none" />
