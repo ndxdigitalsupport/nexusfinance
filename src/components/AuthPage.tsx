@@ -8,18 +8,15 @@ import {
   RefreshCw,
   Eye,
   EyeOff,
-  Sparkles,
-  ShieldCheck,
-  Network,
-  Target,
-  QrCode,
-  Send,
-  MonitorSmartphone,
-  FileText,
-  Briefcase,
+  Zap,
   CheckCircle2,
+  Sparkles,
+  FileText,
+  Send,
   Shield,
-  Layers
+  Clock,
+  Check,
+  QrCode
 } from 'lucide-react';
 import { showToast } from './Toast';
 import { API } from '../api';
@@ -56,7 +53,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // Login → unverified email states (user must verify before logging in)
+  // Login → unverified email states
   const [loginVerifyEmail, setLoginVerifyEmail] = useState('');
   const [loginOtpSent, setLoginOtpSent] = useState(false);
   const [loginOtpCode, setLoginOtpCode] = useState('');
@@ -104,90 +101,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [showResetForm, setShowResetForm] = useState(false);
   const [resetPassword, setResetPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
-
-  // 8 Official Core Ecosystem Services
-  const ecosystemServices = [
-    {
-      id: 'debt_collection',
-      icon: ShieldCheck,
-      color: 'emerald',
-      bgLight: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-      titleEn: 'Bad Debt Collection',
-      titleKh: 'ការទារបំណុលយឺតយ៉ាវ',
-      briefEn: 'Automated delinquency tracking & recovery workflows',
-      briefKh: 'តាមដានបំណុលយឺតយ៉ាវ និងប្រព័ន្ធទារប្រាក់ស្វ័យប្រវត្តិ',
-    },
-    {
-      id: 'org_structure',
-      icon: Network,
-      color: 'teal',
-      bgLight: 'bg-teal-50 text-teal-600 border-teal-200',
-      titleEn: 'Loan Org Structure Setup',
-      titleKh: 'រចនាសម្ព័ន្ធស្ថាប័នឥណទាន',
-      briefEn: 'Role-based access for Officers, Underwriters & Admins',
-      briefKh: 'បែងចែកតួនាទីមន្ត្រីឥណទាន និងអ្នកអនុម័ត',
-    },
-    {
-      id: 'digital_strategy',
-      icon: Target,
-      color: 'cyan',
-      bgLight: 'bg-cyan-50 text-cyan-600 border-cyan-200',
-      titleEn: 'Lead Digital Strategy Setup',
-      titleKh: 'យុទ្ធសាស្ត្រទាក់ទាញអតិថិជន',
-      briefEn: 'Digital borrower acquisition funnels & CRM integration',
-      briefKh: 'ប្រព័ន្ធស្រូបទាញអតិថិជន និងគ្រប់គ្រង CRM',
-    },
-    {
-      id: 'payment_gateway',
-      icon: QrCode,
-      color: 'sky',
-      bgLight: 'bg-sky-50 text-sky-600 border-sky-200',
-      titleEn: 'Payment Gateway',
-      titleKh: 'ច្រកទូទាត់ប្រាក់ឌីជីថល',
-      briefEn: 'Instant KHQR, Bakong & dual USD/KHR settlements',
-      briefKh: 'ទូទាត់ភ្លាមៗតាម KHQR, Bakong និង USD / KHR',
-    },
-    {
-      id: 'broadcasting',
-      icon: Send,
-      color: 'indigo',
-      bgLight: 'bg-indigo-50 text-indigo-600 border-indigo-200',
-      titleEn: 'Broadcasting Setup',
-      titleKh: 'ប្រព័ន្ធផ្ញើសារស្វ័យប្រវត្ត',
-      briefEn: 'Telegram & SMS reminder bots with 1-trip OTP link',
-      briefKh: 'ផ្ញើសាររំលឹកបង់ប្រាក់តាម Telegram និង SMS',
-    },
-    {
-      id: 'loan_software',
-      icon: MonitorSmartphone,
-      color: 'violet',
-      bgLight: 'bg-violet-50 text-violet-600 border-violet-200',
-      titleEn: 'Loan Software for Web & App',
-      titleKh: 'កម្មវិធីគ្រប់គ្រង Web & App',
-      briefEn: 'Cloud lending platform, customer app & digital ledger',
-      briefKh: 'ផ្ទាំងគ្រប់គ្រងលើ Web & App តាមប្រព័ន្ធ Cloud',
-    },
-    {
-      id: 'loan_agreement',
-      icon: FileText,
-      color: 'blue',
-      bgLight: 'bg-blue-50 text-blue-600 border-blue-200',
-      titleEn: 'Loan Agreement Setup',
-      titleKh: 'កិច្ចសន្យាឥណទានខ្មែរ',
-      briefEn: 'Standard 5-page print-ready legal Khmer contracts',
-      briefKh: 'កិច្ចសន្យាខ្មែរស្របច្បាប់ និងតារាងបង់ប្រាក់ A4',
-    },
-    {
-      id: 'biz_consultant',
-      icon: Briefcase,
-      color: 'emerald',
-      bgLight: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-      titleEn: 'Loan Biz Consultant',
-      titleKh: 'ការប្រឹក្សាយោបល់អាជីវកម្ម',
-      briefEn: 'Interest rate modeling, compliance & portfolio growth',
-      briefKh: 'យុទ្ធសាស្ត្រការប្រាក់ និងការពង្រីកផលប័ត្រ',
-    },
-  ];
 
   // Login handler — email + password
   const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -604,9 +517,21 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     <div className="h-screen w-full relative bg-gradient-to-br from-[#f8fcfa] via-[#eef8f5] to-[#f0f6ff] text-slate-800 font-sans select-none overflow-hidden flex flex-col">
       {/* Dynamic Keyframes & Shimmer Styles */}
       <style>{`
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(0.6deg); }
+        }
+        @keyframes float-reverse {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(11px) rotate(-0.8deg); }
+        }
+        @keyframes float-subtle {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-7px); }
+        }
         @keyframes pulse-glow {
-          0%, 100% { opacity: 0.4; transform: scale(1); }
-          50% { opacity: 0.7; transform: scale(1.08); }
+          0%, 100% { opacity: 0.35; transform: scale(1); }
+          50% { opacity: 0.65; transform: scale(1.08); }
         }
         @keyframes aurora-spin {
           0% { transform: rotate(0deg) scale(1); }
@@ -617,6 +542,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(200%); }
         }
+        .anim-float-1 { animation: float-slow 6s ease-in-out infinite; }
+        .anim-float-2 { animation: float-reverse 7s ease-in-out infinite 1s; }
+        .anim-float-3 { animation: float-subtle 5.5s ease-in-out infinite 0.5s; }
         .anim-glow { animation: pulse-glow 8s ease-in-out infinite; }
         .anim-aurora { animation: aurora-spin 25s linear infinite; }
         .shimmer-btn:hover .shimmer-layer { animation: shimmer-sweep 1.2s ease-in-out infinite; }
@@ -710,96 +638,114 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
         {/* 3. Main Split Hero & Auth Card Section */}
         <main className="relative z-10 flex-grow flex items-center justify-center px-4 sm:px-8 lg:px-12 py-8 max-w-7xl mx-auto w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: 8 Core FinTech Ecosystem Services Showcase */}
+            {/* LEFT COLUMN: Clean Brand Hero & Animated Floating 3D Feature Cards */}
             {/* ========================================================================= */}
-            <div className="lg:col-span-7 hidden lg:flex flex-col justify-center space-y-6 pr-2">
+            <div className="lg:col-span-6 hidden lg:flex flex-col justify-center space-y-7 pr-2">
               
               {/* Badge & Headline */}
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[12px] font-bold tracking-wide shadow-xs">
+              <div className="space-y-3.5">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-[12px] font-bold tracking-wide shadow-xs">
                   <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>{isKhmer ? 'ប្រព័ន្ធអេកូឡូស៊ីហិរញ្ញវត្ថុពេញលេញ (All-in-One)' : 'ALL-IN-ONE FINTECH ECOSYSTEM'}</span>
+                  <span>{isKhmer ? 'ប្រព័ន្ធអេកូឡូស៊ីហិរញ្ញវត្ថុជំនាន់ថ្មី' : 'NEXT-GEN FINTECH ECOSYSTEM'}</span>
                 </div>
 
-                <h1 className="text-[34px] xl:text-[38px] font-black text-slate-900 tracking-tight leading-[1.2]">
+                <h1 className="text-[38px] xl:text-[44px] font-black text-slate-900 tracking-tight leading-[1.15]">
                   {isKhmer ? (
                     <>
-                      សេវាកម្មឥណទាន និងហិរញ្ញវត្ថុឌីជីថល <br />
+                      ការផ្តល់ឥណទាន <br />
                       <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600">
-                        ៨ មុខងារស្នូលពេញលេញក្នុងប្រព័ន្ធតែមួយ
+                        លឿន រហ័ស និងមានសុវត្ថិភាពខ្ពស់
                       </span>
                     </>
                   ) : (
                     <>
                       Smarter Lending. <br />
                       <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600">
-                        8 Core FinTech Services in One Place.
+                        Instant Approvals & Contracts.
                       </span>
                     </>
                   )}
                 </h1>
 
-                <p className="text-slate-600 text-[14px] leading-relaxed max-w-xl font-medium">
+                <p className="text-slate-600 text-[15px] leading-relaxed max-w-lg font-medium">
                   {isKhmer 
-                    ? 'ដំណោះស្រាយហិរញ្ញវត្ថុឌីជីថលគ្រប់ជ្រុងជ្រោយ ចាប់ពីការទាក់ទាញអតិថិជន រៀបចំកិច្ចសន្យាខ្មែរ រហូតដល់ការទូទាត់ប្រាក់ និងទារបំណុលស្វ័យប្រវត្ត។'
-                    : 'Everything your enterprise needs to launch, automate, and scale: from lead acquisition and legal Khmer agreements to multi-channel collections.'}
+                    ? 'គ្រប់គ្រងឥណទាន បង្កើតកិច្ចសន្យាខ្មែរស្របច្បាប់ និងភ្ជាប់ទំនាក់ទំនងជាមួយ Telegram & SMS ស្វ័យប្រវត្ត។'
+                    : 'Automated underwriting, instant KHQR payouts, real-time Telegram alerts, and print-ready legal Khmer contracts.'}
                 </p>
               </div>
 
-              {/* 8 Official Core Services Grid (4 x 2) */}
-              <div className="grid grid-cols-2 gap-3 max-w-2xl">
-                {ecosystemServices.map((svc) => {
-                  const Icon = svc.icon;
-                  return (
-                    <div 
-                      key={svc.id}
-                      className="group bg-white/90 hover:bg-white backdrop-blur-md rounded-2xl p-3.5 border border-slate-200/80 hover:border-emerald-300 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 shadow-xs ${svc.bgLight} group-hover:scale-105 transition-transform`}>
-                          <Icon className="w-4.5 h-4.5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-[13px] font-bold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug">
-                            {isKhmer ? svc.titleKh : svc.titleEn}
-                          </h3>
-                          <p className="text-[11px] text-slate-500 font-medium leading-normal mt-0.5 line-clamp-2">
-                            {isKhmer ? svc.briefKh : svc.briefEn}
-                          </p>
-                        </div>
-                      </div>
+              {/* 3 Animated Floating 3D Light Glass Cards */}
+              <div className="relative h-[250px] w-full max-w-lg select-none">
+                
+                {/* Floating Card 1: Instant Auto-Underwriting & KHQR */}
+                <div className="absolute top-0 left-0 w-[275px] bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-2xl p-4 shadow-xl shadow-slate-200/60 anim-float-1">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0">
+                      <Zap className="w-5 h-5" />
                     </div>
-                  );
-                })}
+                    <div>
+                      <div className="text-[13px] font-bold text-slate-900 flex items-center gap-1.5">
+                        <span>Auto-Underwriting</span>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      </div>
+                      <div className="text-[11.5px] text-emerald-600 font-bold">$500 Disbursed in 45s</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500 pt-2.5 border-t border-slate-100 font-medium">
+                    <span>Credit Score: 780</span>
+                    <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">Approved</span>
+                  </div>
+                </div>
+
+                {/* Floating Card 2: Telegram & SMS Broadcasting Bot */}
+                <div className="absolute top-14 right-2 w-[265px] bg-white/95 backdrop-blur-xl border border-cyan-200 rounded-2xl p-4 shadow-xl shadow-cyan-900/5 anim-float-2 z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-600 shrink-0">
+                      <Send className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-[13px] font-bold text-slate-900">Telegram & SMS Bot</div>
+                      <div className="text-[11px] text-cyan-700 font-semibold">1-Trip OTP & Live Alerts</div>
+                    </div>
+                  </div>
+                  <div className="mt-2.5 bg-slate-50 rounded-lg p-2 text-[11px] text-slate-700 flex items-center gap-2 border border-slate-100">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-ping" />
+                    <span className="font-medium">Next installment: Sep 27</span>
+                  </div>
+                </div>
+
+                {/* Floating Card 3: Khmer Legal Contracts Engine */}
+                <div className="absolute bottom-0 left-10 w-[285px] bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-2xl p-3.5 shadow-xl shadow-slate-200/60 anim-float-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 shrink-0">
+                      <FileText className="w-4.5 h-4.5" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-[12.5px] font-bold text-slate-900">Khmer Legal Contracts</div>
+                      <div className="text-[10.5px] text-indigo-600 font-medium">A4 Print Ready • 5 Pages</div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold">PDF/Print</span>
+                  </div>
+                </div>
+
               </div>
 
               {/* Trust Metric Strip */}
-              <div className="grid grid-cols-3 gap-3 pt-3 border-t border-slate-200/70 max-w-2xl">
-                <div className="bg-white/80 rounded-2xl p-3 border border-slate-200/80 shadow-xs text-center">
-                  <div className="text-[16px] font-black text-emerald-600 flex items-center justify-center gap-1">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                    <span>KHQR / Bakong</span>
-                  </div>
-                  <div className="text-[11px] text-slate-500 font-semibold mt-0.5">{isKhmer ? 'ទូទាត់រហ័សទាន់ចិត្ត' : 'Instant QR Payouts'}</div>
+              <div className="grid grid-cols-3 gap-3 pt-2 border-t border-slate-200/70 max-w-lg">
+                <div className="bg-white/80 rounded-2xl p-3.5 border border-slate-200/80 shadow-xs">
+                  <div className="text-[18px] font-black text-emerald-600">$4.8M+</div>
+                  <div className="text-[11px] text-slate-500 font-semibold">{isKhmer ? 'ប្រាក់បានបើកផ្តល់' : 'Disbursed'}</div>
                 </div>
-
-                <div className="bg-white/80 rounded-2xl p-3 border border-slate-200/80 shadow-xs text-center">
-                  <div className="text-[16px] font-black text-cyan-600 flex items-center justify-center gap-1">
-                    <Send className="w-3.5 h-3.5 text-cyan-500" />
-                    <span>Telegram & SMS</span>
-                  </div>
-                  <div className="text-[11px] text-slate-500 font-semibold mt-0.5">{isKhmer ? 'សាររំលឹកស្វ័យប្រវត្ត' : 'Auto Reminders'}</div>
+                <div className="bg-white/80 rounded-2xl p-3.5 border border-slate-200/80 shadow-xs">
+                  <div className="text-[18px] font-black text-cyan-600">12,500+</div>
+                  <div className="text-[11px] text-slate-500 font-semibold">{isKhmer ? 'អតិថិជនសកម្ម' : 'Active Borrowers'}</div>
                 </div>
-
-                <div className="bg-white/80 rounded-2xl p-3 border border-slate-200/80 shadow-xs text-center">
-                  <div className="text-[16px] font-black text-indigo-600 flex items-center justify-center gap-1">
-                    <Shield className="w-3.5 h-3.5 text-indigo-500" />
-                    <span>256-Bit SSL</span>
-                  </div>
-                  <div className="text-[11px] text-slate-500 font-semibold mt-0.5">{isKhmer ? 'សុវត្ថិភាពធនាគារ' : 'Bank Encryption'}</div>
+                <div className="bg-white/80 rounded-2xl p-3.5 border border-slate-200/80 shadow-xs">
+                  <div className="text-[18px] font-black text-indigo-600">256-Bit</div>
+                  <div className="text-[11px] text-slate-500 font-semibold">{isKhmer ? 'សុវត្ថិភាពធនាគារ' : 'Bank SSL'}</div>
                 </div>
               </div>
 
@@ -808,12 +754,12 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
             {/* ========================================================================= */}
             {/* RIGHT COLUMN: Modern Crisp Light Glassmorphic Auth Form Card */}
             {/* ========================================================================= */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-end w-full">
-              <div className="w-full max-w-md bg-white/95 backdrop-blur-2xl rounded-[32px] p-8 sm:p-9 border border-slate-200/90 shadow-2xl shadow-slate-300/50 relative z-10 transition-all">
+            <div className="lg:col-span-6 flex justify-center lg:justify-end w-full">
+              <div className="w-full max-w-md bg-white/95 backdrop-blur-2xl rounded-[32px] p-8 sm:p-10 border border-slate-200/90 shadow-2xl shadow-slate-300/50 relative z-10 transition-all">
                 
                 {/* View Switcher Tabs (Login vs Register) */}
                 {view !== 'forgot' && !loginVerifyEmail && !registerOtpSent && (
-                  <div className="flex bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/70 mb-7">
+                  <div className="flex bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/70 mb-8">
                     <button
                       type="button"
                       onClick={() => setView('login')}
@@ -843,19 +789,19 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 {/* VIEW A: LOGIN FORM */}
                 {/* ------------------------------------------------------------- */}
                 {view === 'login' && (
-                  <div className="space-y-5 animate-in fade-in duration-300">
+                  <div className="space-y-6 animate-in fade-in duration-300">
                     
                     {/* Header Text */}
-                    <div className="text-left mb-5">
-                      <h2 className="text-[25px] font-black text-slate-900 tracking-tight">
+                    <div className="text-left mb-6">
+                      <h2 className="text-[26px] font-black text-slate-900 tracking-tight">
                         {loginVerifyEmail 
                           ? (isKhmer ? 'ផ្ទៀងផ្ទាត់គណនី' : 'Verify Your Account') 
                           : (isKhmer ? 'ស្វាគមន៍ការចូលប្រើ' : 'Welcome Back')}
                       </h2>
-                      <p className="text-[13px] text-slate-500 font-medium mt-1">
+                      <p className="text-[13.5px] text-slate-500 font-medium mt-1">
                         {loginVerifyEmail 
                           ? (isKhmer ? 'សូមបញ្ចូលលេខកូដសម្ងាត់ ៦ ខ្ទង់' : 'Enter the 6-digit code sent to verify') 
-                          : (isKhmer ? 'បញ្ចូលព័ត៌មានគណនីដើម្បីចូលទៅកាន់ផ្ទាំងគ្រប់គ្រង' : 'Access your loans, ledger, and repayments')}
+                          : (isKhmer ? 'បញ្ចូលព័ត៌មានគណនីរបស់អ្នកដើម្បីចូលទៅកាន់ផ្ទាំងគ្រប់គ្រង' : 'Access your loans, ledger, and repayments')}
                       </p>
                     </div>
 
@@ -965,11 +911,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         </div>
 
                         {/* Submit Button with Animated Shimmer */}
-                        <div className="pt-1.5">
+                        <div className="pt-2">
                           <button
                             type="submit"
                             disabled={loginLoading}
-                            className="shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-[15px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/25 active:scale-98 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-[15.5px] tracking-wide py-4 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/25 active:scale-98 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <div className="shimmer-layer absolute inset-0 w-1/2 h-full bg-white/30 transform -skew-x-12 pointer-events-none -translate-x-full" />
                             
@@ -988,7 +934,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     )}
 
                     {/* Divider */}
-                    <div className="flex items-center gap-3 my-4">
+                    <div className="flex items-center gap-3 my-5">
                       <div className="h-[1px] bg-slate-200 flex-grow" />
                       <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">or</span>
                       <div className="h-[1px] bg-slate-200 flex-grow" />
@@ -998,7 +944,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     <button
                       type="button"
                       onClick={() => window.location.href = API + '/auth/google'}
-                      className="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300 font-bold text-[13px] py-3 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-98 cursor-pointer shadow-xs"
+                      className="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300 font-bold text-[13.5px] py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-98 cursor-pointer shadow-xs"
                     >
                       <svg className="w-4 h-4" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.61c-.29 1.5-.14 3.01-.97 4.29l3.1 2.4c1.8-1.66 2.8-4.11 2.8-6.54z" />
@@ -1016,34 +962,34 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 {/* VIEW B: REGISTER / CREATE ACCOUNT FORM */}
                 {/* ------------------------------------------------------------- */}
                 {view === 'register' && (
-                  <div className="space-y-5 animate-in fade-in duration-300">
-                    <div className="text-left mb-5">
-                      <h2 className="text-[25px] font-black text-slate-900 tracking-tight">
+                  <div className="space-y-6 animate-in fade-in duration-300">
+                    <div className="text-left mb-6">
+                      <h2 className="text-[26px] font-black text-slate-900 tracking-tight">
                         {isKhmer ? 'បង្កើតគណនីថ្មី' : 'Create Account'}
                       </h2>
-                      <p className="text-[13px] text-slate-500 font-medium mt-1">
+                      <p className="text-[13.5px] text-slate-500 font-medium mt-1">
                         {isKhmer ? 'ចាប់ផ្តើមដំណើរការឥណទាន និងការគ្រប់គ្រងហិរញ្ញវត្ថុ' : 'Get started in less than 2 minutes'}
                       </p>
                     </div>
 
                     {!registerOtpSent ? (
-                      <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+                      <form onSubmit={handleRegisterSubmit} className="space-y-4">
                         
                         {/* Full Name */}
-                        <div className="space-y-1">
+                        <div className="space-y-1.5">
                           <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
                             {isKhmer ? 'ឈ្មោះពេញ' : 'Full Name'}
                           </label>
                           <div className="relative">
                             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
-                              <User className="w-4 h-4" />
+                              <User className="w-4.5 h-4.5" />
                             </div>
                             <input
                               type="text"
                               value={registerName}
                               onChange={(e) => setRegisterName(e.target.value)}
                               placeholder="e.g. John Doe"
-                              className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-11 pr-4 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
+                              className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-12 pr-4 py-3.5 text-[14px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
                               required
                             />
                           </div>
@@ -1051,20 +997,20 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                         {/* Email Address (if enabled) */}
                         {emailVerificationRequired && (
-                          <div className="space-y-1">
+                          <div className="space-y-1.5">
                             <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
                               {isKhmer ? 'អាសយដ្ឋានអ៊ីមែល' : 'Email Address'}
                             </label>
                             <div className="relative">
                               <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
-                                <span className="text-[15px] font-light select-none">@</span>
+                                <span className="text-[16px] font-light select-none">@</span>
                               </div>
                               <input
                                 type="email"
                                 value={registerEmail}
                                 onChange={(e) => setRegisterEmail(e.target.value)}
                                 placeholder="name@domain.com"
-                                className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-11 pr-4 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
+                                className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-12 pr-4 py-3.5 text-[14px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
                                 required
                               />
                             </div>
@@ -1072,20 +1018,20 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         )}
 
                         {/* Phone Number */}
-                        <div className="space-y-1">
+                        <div className="space-y-1.5">
                           <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
                             {isKhmer ? 'លេខទូរស័ព្ទ' : 'Phone Number'}
                           </label>
                           <div className="relative">
                             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
-                              <Phone className="w-4 h-4" />
+                              <Phone className="w-4.5 h-4.5" />
                             </div>
                             <input
                               type="tel"
                               value={registerPhone}
                               onChange={(e) => setRegisterPhone(e.target.value)}
                               placeholder="012 345 678"
-                              className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-11 pr-4 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
+                              className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-12 pr-4 py-3.5 text-[14px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
                               required
                             />
                           </div>
@@ -1093,7 +1039,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                         {/* Password & Confirm */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="space-y-1">
+                          <div className="space-y-1.5">
                             <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
                               {isKhmer ? 'ពាក្យសម្ងាត់' : 'Password'}
                             </label>
@@ -1103,20 +1049,20 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                 value={registerPassword}
                                 onChange={(e) => setRegisterPassword(e.target.value)}
                                 placeholder="••••••••"
-                                className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-3.5 pr-9 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-mono transition-all"
+                                className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-4 pr-10 py-3.5 text-[14px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-mono transition-all"
                                 required
                               />
                               <button
                                 type="button"
                                 onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                                className="absolute inset-y-0 right-2.5 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer select-none"
+                                className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer select-none"
                               >
                                 {showRegisterPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                               </button>
                             </div>
                           </div>
 
-                          <div className="space-y-1">
+                          <div className="space-y-1.5">
                             <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
                               {isKhmer ? 'ផ្ទៀងផ្ទាត់' : 'Confirm'}
                             </label>
@@ -1126,13 +1072,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                 value={registerConfirmPassword}
                                 onChange={(e) => setRegisterConfirmPassword(e.target.value)}
                                 placeholder="••••••••"
-                                className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-3.5 pr-9 py-3 text-[13.5px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-mono transition-all"
+                                className="w-full bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl pl-4 pr-10 py-3.5 text-[14px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-mono transition-all"
                                 required
                               />
                               <button
                                 type="button"
                                 onClick={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
-                                className="absolute inset-y-0 right-2.5 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer select-none"
+                                className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer select-none"
                               >
                                 {showRegisterConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                               </button>
@@ -1141,11 +1087,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         </div>
 
                         {/* Submit Action */}
-                        <div className="pt-2">
+                        <div className="pt-3">
                           <button
                             type="submit"
                             disabled={registerLoading}
-                            className="shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-[15px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/25 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
+                            className="shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-[15.5px] tracking-wide py-4 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/25 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
                           >
                             <div className="shimmer-layer absolute inset-0 w-1/2 h-full bg-white/30 transform -skew-x-12 pointer-events-none -translate-x-full" />
                             {registerLoading ? (
@@ -1161,8 +1107,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                       </form>
                     ) : (
-                      /* Multi-Channel Verification Step (SMS / Telegram / Email) */
-                      <div className="space-y-5">
+                      /* Multi-Channel Verification Step */
+                      <div className="space-y-6">
                         
                         {/* Channel selector tabs */}
                         <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200">
@@ -1170,7 +1116,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                             <button
                               type="button"
                               onClick={() => handleTabChange('email')}
-                              className={`flex-1 py-2 text-[12px] font-bold rounded-xl transition cursor-pointer ${
+                              className={`flex-1 py-2 text-[12.5px] font-bold rounded-xl transition cursor-pointer ${
                                 verifyMethod === 'email' ? 'bg-white text-emerald-700 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900'
                               }`}
                             >
@@ -1180,7 +1126,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                             <button
                               type="button"
                               onClick={() => handleTabChange('sms')}
-                              className={`flex-1 py-2 text-[12px] font-bold rounded-xl transition cursor-pointer ${
+                              className={`flex-1 py-2 text-[12.5px] font-bold rounded-xl transition cursor-pointer ${
                                 verifyMethod === 'sms' ? 'bg-white text-emerald-700 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900'
                               }`}
                             >
@@ -1190,7 +1136,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                           <button
                             type="button"
                             onClick={() => handleTabChange('telegram')}
-                            className={`flex-1 py-2 text-[12px] font-bold rounded-xl transition cursor-pointer ${
+                            className={`flex-1 py-2 text-[12.5px] font-bold rounded-xl transition cursor-pointer ${
                               verifyMethod === 'telegram' ? 'bg-white text-cyan-700 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900'
                             }`}
                           >
@@ -1199,9 +1145,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         </div>
 
                         {verifyMethod === 'email' || verifyMethod === 'sms' ? (
-                          <form onSubmit={handleVerifyRegisterOtp} className="space-y-4">
-                            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
-                              <p className="text-[12px] text-slate-600 font-medium">
+                          <form onSubmit={handleVerifyRegisterOtp} className="space-y-5">
+                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center">
+                              <p className="text-[12.5px] text-slate-600 font-medium">
                                 Code sent to <strong className="text-emerald-700">{verifyMethod === 'sms' ? registerPhone : registerEmail}</strong>
                               </p>
                             </div>
@@ -1211,13 +1157,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                               value={registerOtpCode}
                               onChange={(e) => setRegisterOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                               placeholder="000000"
-                              className="w-full text-center text-[26px] tracking-[8px] font-mono rounded-2xl bg-slate-50 border border-slate-200 px-6 py-3.5 text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-inner font-bold"
+                              className="w-full text-center text-[28px] tracking-[10px] font-mono rounded-2xl bg-slate-50 border border-slate-200 px-6 py-4 text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-inner font-bold"
                               required
                             />
                             <button
                               type="submit"
                               disabled={registerLoading || registerOtpCode.length < 6}
-                              className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[14.5px] py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
+                              className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[15px] py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
                             >
                               {registerLoading ? (
                                 <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
@@ -1225,7 +1171,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                 <>{isKhmer ? 'ផ្ទៀងផ្ទាត់កូដ' : 'VERIFY CODE'} <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
                               )}
                             </button>
-                            <div className="flex justify-between items-center text-[12px]">
+                            <div className="flex justify-between items-center text-[12.5px]">
                               <button type="button" onClick={handleResendRegisterOtp} disabled={registerOtpTimer > 0}
                                 className="text-slate-500 hover:text-emerald-700 cursor-pointer disabled:opacity-40 font-semibold"
                               >
@@ -1242,11 +1188,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                           /* Telegram Link & OTP */
                           <div className="space-y-4">
                             {!emailVerificationRequired ? (
-                              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
-                                <h4 className="text-[13px] font-bold text-slate-900 flex items-center gap-2">
+                              <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-3">
+                                <h4 className="text-[13.5px] font-bold text-slate-900 flex items-center gap-2">
                                   <span>🔗 Link Telegram to Activate Profile</span>
                                 </h4>
-                                <p className="text-[11.5px] text-slate-600 leading-relaxed font-medium">
+                                <p className="text-[12px] text-slate-600 leading-relaxed font-medium">
                                   Press below to open our Telegram Bot and share your contact to activate instantly.
                                 </p>
                                 <a
@@ -1268,17 +1214,17 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                     }, 2000);
                                     setTimeout(() => clearInterval(pollInterval), 300000);
                                   }}
-                                  className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[13.5px] py-3 rounded-2xl flex items-center justify-center gap-2 transition shadow-md cursor-pointer text-center"
+                                  className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[14px] py-3.5 rounded-2xl flex items-center justify-center gap-2 transition shadow-md cursor-pointer text-center"
                                 >
                                   💬 Open Telegram Bot
                                 </a>
                               </div>
                             ) : !tgOtpSent ? (
-                              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
-                                <h4 className="text-[13px] font-bold text-slate-900 flex items-center gap-2">
+                              <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-3">
+                                <h4 className="text-[13.5px] font-bold text-slate-900 flex items-center gap-2">
                                   <span>🔗 Link Telegram & Receive OTP</span>
                                 </h4>
-                                <p className="text-[11.5px] text-slate-600 leading-relaxed font-medium">
+                                <p className="text-[12px] text-slate-600 leading-relaxed font-medium">
                                   Link your Telegram account to phone <strong className="text-emerald-700">{registerPhone}</strong> to get your verification code instantly:
                                 </p>
                                 <a
@@ -1303,19 +1249,19 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                     }, 2000);
                                     setTimeout(() => clearInterval(pollInterval), 300000);
                                   }}
-                                  className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[13.5px] py-3 rounded-2xl flex items-center justify-center gap-2 transition shadow-md cursor-pointer text-center"
+                                  className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[14px] py-3.5 rounded-2xl flex items-center justify-center gap-2 transition shadow-md cursor-pointer text-center"
                                 >
                                   💬 Link & Get Code on Telegram
                                 </a>
                               </div>
                             ) : (
-                              <form onSubmit={handleVerifyTgOtp} className="space-y-3.5">
+                              <form onSubmit={handleVerifyTgOtp} className="space-y-4">
                                 {telegramLinked ? (
-                                  <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl p-2.5 text-[12px] font-bold flex items-center justify-center gap-2">
+                                  <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl p-3 text-[12.5px] font-bold flex items-center justify-center gap-2">
                                     <span>✅ Telegram linked successfully!</span>
                                   </div>
                                 ) : (
-                                  <div className="bg-slate-50 border border-slate-200 text-slate-600 rounded-2xl p-2.5 text-[12px] font-semibold flex items-center justify-center gap-2">
+                                  <div className="bg-slate-50 border border-slate-200 text-slate-600 rounded-2xl p-3 text-[12.5px] font-semibold flex items-center justify-center gap-2">
                                     <RefreshCw className="w-3.5 h-3.5 animate-spin text-cyan-600" />
                                     <span>Waiting for Telegram link & code...</span>
                                   </div>
@@ -1326,13 +1272,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                   value={tgOtpCode}
                                   onChange={(e) => setTgOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                   placeholder="000000"
-                                  className="w-full text-center text-[26px] tracking-[8px] font-mono rounded-2xl bg-slate-50 border border-slate-200 px-6 py-3.5 text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-inner font-bold"
+                                  className="w-full text-center text-[28px] tracking-[10px] font-mono rounded-2xl bg-slate-50 border border-slate-200 px-6 py-4 text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-inner font-bold"
                                   required
                                 />
                                 <button
                                   type="submit"
                                   disabled={registerLoading || tgOtpCode.length < 6}
-                                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[14.5px] py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
+                                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[15px] py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
                                 >
                                   {registerLoading ? (
                                     <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
@@ -1340,7 +1286,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                     <>{isKhmer ? 'ផ្ទៀងផ្ទាត់កូដ' : 'VERIFY CODE'} <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
                                   )}
                                 </button>
-                                <div className="flex justify-between items-center text-[12px]">
+                                <div className="flex justify-between items-center text-[12.5px]">
                                   <button type="button" onClick={() => handleSendTgOtp()} disabled={tgOtpTimer > 0}
                                     className="text-slate-500 hover:text-emerald-700 cursor-pointer disabled:opacity-40 font-semibold"
                                   >
@@ -1367,15 +1313,15 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 {/* VIEW C: FORGOT PASSWORD FORM */}
                 {/* ------------------------------------------------------------- */}
                 {view === 'forgot' && (
-                  <div className="space-y-5 animate-in fade-in duration-300">
+                  <div className="space-y-6 animate-in fade-in duration-300">
                     
-                    <div className="text-left mb-5">
-                      <h2 className="text-[25px] font-black text-slate-900 tracking-tight">
+                    <div className="text-left mb-6">
+                      <h2 className="text-[26px] font-black text-slate-900 tracking-tight">
                         {showResetForm 
                           ? (isKhmer ? 'កំណត់ពាក្យសម្ងាត់ថ្មី' : 'Set New Password') 
                           : (isKhmer ? 'សង្គ្រោះពាក្យសម្ងាត់' : 'Reset Password')}
                       </h2>
-                      <p className="text-[13px] text-slate-500 font-medium mt-1">
+                      <p className="text-[13.5px] text-slate-500 font-medium mt-1">
                         {isKhmer ? 'យើងនឹងផ្ញើលេខកូដសម្ងាត់ដើម្បីផ្ទៀងផ្ទាត់គណនីរបស់អ្នក' : 'Recover your account access safely'}
                       </p>
                     </div>
@@ -1406,7 +1352,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         <button
                           type="submit"
                           disabled={forgotLoading}
-                          className="shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[15px] py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
+                          className="shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[15px] py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
                         >
                           <div className="shimmer-layer absolute inset-0 w-1/2 h-full bg-white/30 transform -skew-x-12 pointer-events-none -translate-x-full" />
                           {forgotLoading ? (
@@ -1418,9 +1364,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       </form>
                     ) : forgotOtpSent && !showResetForm ? (
                       /* Step 2: Input OTP */
-                      <form onSubmit={handleVerifyForgotOtp} className="space-y-4">
-                        <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
-                          <p className="text-[12px] text-slate-600 font-medium">
+                      <form onSubmit={handleVerifyForgotOtp} className="space-y-5">
+                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center">
+                          <p className="text-[12.5px] text-slate-600 font-medium">
                             Enter the code sent to <strong className="text-emerald-700">{forgotEmail}</strong>
                           </p>
                         </div>
@@ -1430,13 +1376,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                           value={forgotOtpCode}
                           onChange={(e) => setForgotOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                           placeholder="000000"
-                          className="w-full text-center text-[26px] tracking-[8px] font-mono rounded-2xl bg-slate-50 border border-slate-200 px-6 py-3.5 text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-inner font-bold"
+                          className="w-full text-center text-[28px] tracking-[10px] font-mono rounded-2xl bg-slate-50 border border-slate-200 px-6 py-4 text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-inner font-bold"
                           required
                         />
                         <button
                           type="submit"
                           disabled={forgotLoading || forgotOtpCode.length < 6}
-                          className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[14.5px] py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
+                          className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[15px] py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
                         >
                           {forgotLoading ? (
                             <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> VERIFYING...</span>
@@ -1444,7 +1390,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                             <>{isKhmer ? 'ផ្ទៀងផ្ទាត់' : 'VERIFY CODE'} <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
                           )}
                         </button>
-                        <div className="flex justify-between items-center text-[12px]">
+                        <div className="flex justify-between items-center text-[12.5px]">
                           <button type="button" onClick={handleResendForgotOtp} disabled={forgotOtpTimer > 0}
                             className="text-slate-500 hover:text-emerald-700 cursor-pointer disabled:opacity-40 font-semibold"
                           >
@@ -1459,8 +1405,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       </form>
                     ) : (
                       /* Step 3: New Password Input */
-                      <form onSubmit={handleResetPassword} className="space-y-3.5">
-                        <div className="space-y-1">
+                      <form onSubmit={handleResetPassword} className="space-y-4">
+                        <div className="space-y-1.5">
                           <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
                             {isKhmer ? 'ពាក្យសម្ងាត់ថ្មី' : 'New Password'}
                           </label>
@@ -1469,12 +1415,12 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                             value={resetPassword} 
                             onChange={(e) => setResetPassword(e.target.value)} 
                             placeholder="Min 6 characters" 
-                            className="w-full px-4 py-3 bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl text-[13.5px] font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all" 
+                            className="w-full px-4 py-3.5 bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl text-[14px] font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all" 
                             required 
                             minLength={6} 
                           />
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-1.5">
                           <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
                             {isKhmer ? 'ផ្ទៀងផ្ទាត់ពាក្យសម្ងាត់ថ្មី' : 'Confirm New Password'}
                           </label>
@@ -1483,7 +1429,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                             value={resetConfirmPassword} 
                             onChange={(e) => setResetConfirmPassword(e.target.value)} 
                             placeholder="Re-enter new password" 
-                            className="w-full px-4 py-3 bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl text-[13.5px] font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all" 
+                            className="w-full px-4 py-3.5 bg-slate-50/90 border border-slate-200 focus:bg-white rounded-2xl text-[14px] font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all" 
                             required 
                             minLength={6} 
                           />
@@ -1491,7 +1437,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         <button
                           type="submit"
                           disabled={forgotLoading}
-                          className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[14.5px] py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
+                          className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[15px] py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
                         >
                           {forgotLoading ? (
                             <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> SAVING...</span>
@@ -1503,11 +1449,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     )}
 
                     {/* Back to login trigger */}
-                    <div className="text-center pt-1.5">
+                    <div className="text-center pt-2">
                       <button
                         type="button"
                         onClick={() => { setView('login'); setForgotOtpSent(false); setShowResetForm(false); }}
-                        className="text-[12.5px] font-bold text-slate-500 hover:text-slate-900 cursor-pointer transition inline-flex items-center gap-1.5"
+                        className="text-[13px] font-bold text-slate-500 hover:text-slate-900 cursor-pointer transition inline-flex items-center gap-1.5"
                       >
                         ← {isKhmer ? 'ត្រឡប់ទៅការចូលប្រើ' : 'Back to Login'}
                       </button>
