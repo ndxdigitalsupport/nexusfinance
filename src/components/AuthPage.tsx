@@ -102,7 +102,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [resetPassword, setResetPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
 
-  // 8 Main Features for the Top-to-Bottom Vertical 3D Flow
+  // 8 Main Features for the Eye-Level 3D Elliptical Orbit
   const features3D = [
     {
       id: 'debt_collection',
@@ -599,79 +599,68 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   return (
     <div className="h-screen w-full relative bg-gradient-to-br from-[#f8fcfa] via-[#eef8f5] to-[#f0f6ff] text-slate-800 font-sans select-none overflow-hidden flex flex-col">
-      {/* Top-to-Bottom Vertical 3D Orbit Keyframes (Revolving around Central Core with Depth) */}
+      {/* Eye-Level 3D Elliptical Orbit Keyframes (Cards ALWAYS face forward, no upside-down text) */}
       <style>{`
-        .vertical-orbit-stage {
-          perspective: 1300px;
+        .orbit-stage-3d {
+          perspective: 1200px;
           perspective-origin: 50% 50%;
         }
 
-        .vertical-orbiting-card {
-          animation: orbit-vertical-3d 32s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+        .orbiting-card-item {
+          animation: orbit-3d-ellipse 32s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
           will-change: transform, opacity;
         }
 
-        /* Hover pauses the vertical orbit cleanly */
-        .vertical-orbit-stage:hover .vertical-orbiting-card {
+        /* Hover pauses the orbit cleanly */
+        .orbit-stage-3d:hover .orbiting-card-item {
           animation-play-state: paused;
         }
 
-        /* Smooth Top-to-Bottom 3D Revolution (Top -> Descends Front -> Bottom -> Ascends Back) */
-        @keyframes orbit-vertical-3d {
+        @keyframes orbit-3d-ellipse {
           0% {
-            /* TOP APEX */
-            transform: translate3d(0px, -185px, 0px) scale(0.96);
-            opacity: 0.95;
-            z-index: 25;
+            transform: translate3d(240px, -6px, 0px) scale(0.95);
+            opacity: 0.92;
+            z-index: 20;
           }
           12.5% {
-            /* DESCENDING RIGHT-FRONT */
-            transform: translate3d(150px, -95px, 110px) scale(1.06);
+            transform: translate3d(170px, 12px, 110px) scale(1.05);
             opacity: 1;
-            z-index: 35;
+            z-index: 30;
           }
           25% {
-            /* FOREGROUND CENTER (PASSES IN FRONT OF CORE) */
-            transform: translate3d(0px, 0px, 160px) scale(1.14);
+            transform: translate3d(0px, 22px, 160px) scale(1.12);
             opacity: 1;
-            z-index: 45;
-            filter: drop-shadow(0 20px 25px rgba(16, 185, 129, 0.2));
+            z-index: 40;
           }
           37.5% {
-            /* DESCENDING LEFT-FRONT */
-            transform: translate3d(-150px, 95px, 110px) scale(1.06);
+            transform: translate3d(-170px, 12px, 110px) scale(1.05);
             opacity: 1;
-            z-index: 35;
+            z-index: 30;
           }
           50% {
-            /* BOTTOM APEX */
-            transform: translate3d(0px, 185px, 0px) scale(0.96);
-            opacity: 0.95;
-            z-index: 25;
+            transform: translate3d(-240px, -6px, 0px) scale(0.95);
+            opacity: 0.92;
+            z-index: 20;
           }
           62.5% {
-            /* ASCENDING RIGHT-BACK */
-            transform: translate3d(140px, 95px, -110px) scale(0.85);
+            transform: translate3d(-170px, -20px, -110px) scale(0.86);
             opacity: 0.75;
             z-index: 5;
           }
           75% {
-            /* BACKGROUND CENTER (PASSES BEHIND CORE) */
-            transform: translate3d(0px, 0px, -160px) scale(0.80);
-            opacity: 0.65;
+            transform: translate3d(0px, -30px, -160px) scale(0.80);
+            opacity: 0.70;
             z-index: 1;
           }
           87.5% {
-            /* ASCENDING LEFT-BACK */
-            transform: translate3d(-140px, -95px, -110px) scale(0.85);
+            transform: translate3d(170px, -20px, -110px) scale(0.86);
             opacity: 0.75;
             z-index: 5;
           }
           100% {
-            /* RETURN TO TOP */
-            transform: translate3d(0px, -185px, 0px) scale(0.96);
-            opacity: 0.95;
-            z-index: 25;
+            transform: translate3d(240px, -6px, 0px) scale(0.95);
+            opacity: 0.92;
+            z-index: 20;
           }
         }
 
@@ -773,16 +762,16 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         </header>
 
         {/* 3. Main Split Hero & Auth Card Section */}
-        <main className="relative z-10 flex-grow flex items-center justify-center px-4 sm:px-8 lg:px-12 py-4 max-w-7xl mx-auto w-full">
+        <main className="relative z-10 flex-grow flex items-center justify-center px-4 sm:px-8 lg:px-12 py-6 max-w-7xl mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: Top-to-Bottom 3D Vertical Orbit Showcase (Filled Vertical Track) */}
+            {/* LEFT COLUMN: Eye-Level 3D Revolving Orbit (Clean Front-Facing Cards) */}
             {/* ========================================================================= */}
-            <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-2 pr-2">
+            <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-3 pr-2">
               
               {/* Badge & Headline */}
-              <div className="space-y-1.5 text-center lg:text-left w-full">
+              <div className="space-y-2 text-center lg:text-left w-full">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[12px] font-bold tracking-wide shadow-xs">
                   <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                   <span>{isKhmer ? 'ប្រព័ន្ធអេកូឡូស៊ីហិរញ្ញវត្ថុពេញលេញ (All-in-One)' : 'ALL-IN-ONE FINTECH ECOSYSTEM'}</span>
@@ -807,14 +796,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 </h1>
               </div>
 
-              {/* Vertical 3D Stage (Top-to-Bottom Open Diamond / Oval Orbit) */}
-              <div className="vertical-orbit-stage relative w-full h-[470px] flex items-center justify-center select-none overflow-visible">
+              {/* Eye-Level 3D Orbit Stage */}
+              <div className="orbit-stage-3d relative w-full h-[400px] flex items-center justify-center select-none overflow-visible">
                 
-                {/* 3D Vertical Ambient Loop Guide */}
-                <div className="absolute w-[360px] h-[420px] rounded-[100%] border border-dashed border-emerald-400/25 pointer-events-none" />
-                <div className="absolute w-[280px] h-[340px] rounded-[100%] bg-gradient-to-b from-emerald-400/10 via-teal-400/5 to-cyan-400/10 blur-xl pointer-events-none" />
+                {/* 3D Soft Floor Radial Shadow */}
+                <div className="absolute top-[68%] w-[500px] h-[140px] rounded-[100%] bg-gradient-to-tr from-emerald-400/20 via-teal-400/10 to-transparent blur-2xl pointer-events-none" />
+                <div className="absolute top-[68%] w-[460px] h-[120px] rounded-[100%] border border-dashed border-emerald-400/25 pointer-events-none" />
 
-                {/* Central Nexus Core Hub (Stationed in Center at Z = 0) */}
+                {/* Central Nexus Core Hub (Situated in 3D Center) */}
                 <div className="absolute z-10 flex flex-col items-center justify-center p-4 bg-white/95 backdrop-blur-2xl rounded-3xl border border-emerald-300 shadow-2xl shadow-emerald-500/25 pointer-events-none select-none">
                   <div className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-400 p-0.5 shadow-lg shadow-emerald-500/30">
                     <div className="w-full h-full bg-white rounded-[13px] flex items-center justify-center">
@@ -828,22 +817,22 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   </div>
                 </div>
 
-                {/* 8 Feature Cards Moving in Vertical 3D Loop (Top -> Front -> Bottom -> Back) */}
+                {/* 8 Feature Cards Revolving in 3D Space (Always Facing Forward, Upright Text) */}
                 <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
                   {features3D.map((feat, idx) => {
                     const Icon = feat.icon;
-                    // Stagger 8 cards evenly across the 32s vertical loop (4s each)
+                    // Stagger animation by 4s (32s / 8 cards = 4s each)
                     const delaySeconds = (idx * -4);
 
                     return (
                       <div
                         key={feat.id}
-                        className="vertical-orbiting-card absolute pointer-events-auto"
+                        className="orbiting-card-item absolute pointer-events-auto"
                         style={{
                           animationDelay: `${delaySeconds}s`,
                         }}
                       >
-                        <div className={`group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-3 shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-200 cursor-pointer flex items-center gap-3 w-[235px]`}>
+                        <div className={`group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-3 shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-200 cursor-pointer flex items-center gap-3 w-[225px]`}>
                           
                           {/* 3D Glass Light Sheen */}
                           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
