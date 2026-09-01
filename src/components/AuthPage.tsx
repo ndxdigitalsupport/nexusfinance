@@ -1174,20 +1174,18 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                             </div>
 
                             {/* Submit Button */}
-                            <div className="pt-1.5">
+                            <div className="pt-2">
                               <button
                                 type="submit"
                                 disabled={loginLoading}
-                                className="group shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:via-teal-500 hover:to-emerald-500 text-white font-black text-[15px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 border border-white/20 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.4)] hover:shadow-[0_16px_32px_-6px_rgba(16,185,129,0.55)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="group relative w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:via-teal-600 hover:to-emerald-700 text-white font-black text-[15px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.38)] hover:shadow-[0_14px_28px_-5px_rgba(16,185,129,0.52)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none"
                               >
-                                <div className="shimmer-layer absolute inset-0 w-1/2 h-full bg-white/30 transform -skew-x-12 pointer-events-none -translate-x-full" />
-                                
                                 {loginLoading ? (
                                   <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> LOGGING IN...</span>
                                 ) : (
                                   <>
                                     <span>{isKhmer ? 'ចូលប្រើប្រាស់' : 'LOG IN'}</span>
-                                    <ArrowRight className="w-5 h-5 stroke-[2.5] group-hover:translate-x-1.5 transition-transform duration-200" />
+                                    <ArrowRight className="w-5 h-5 stroke-[2.5] group-hover:translate-x-1.5 transition-transform duration-200 ease-out" />
                                   </>
                                 )}
                               </button>
@@ -1345,15 +1343,14 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                               <button
                                 type="submit"
                                 disabled={registerLoading}
-                                className="group shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:via-teal-500 hover:to-emerald-500 text-white font-black text-[15px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 border border-white/20 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.4)] hover:shadow-[0_16px_32px_-6px_rgba(16,185,129,0.55)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] transition-all duration-200 cursor-pointer disabled:opacity-50"
+                                className="group relative w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:via-teal-600 hover:to-emerald-700 text-white font-black text-[15px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.38)] hover:shadow-[0_14px_28px_-5px_rgba(16,185,129,0.52)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] transition-all duration-200 cursor-pointer disabled:opacity-50 select-none"
                               >
-                                <div className="shimmer-layer absolute inset-0 w-1/2 h-full bg-white/30 transform -skew-x-12 pointer-events-none -translate-x-full" />
                                 {registerLoading ? (
                                   <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> CREATING ACCOUNT...</span>
                                 ) : (
                                   <>
                                     <span>{isKhmer ? 'បង្កើតគណនី' : 'CREATE ACCOUNT'}</span>
-                                    <ArrowRight className="w-5 h-5 stroke-[2.5] group-hover:translate-x-1.5 transition-transform duration-200" />
+                                    <ArrowRight className="w-5 h-5 stroke-[2.5] group-hover:translate-x-1.5 transition-transform duration-200 ease-out" />
                                   </>
                                 )}
                               </button>
@@ -1676,13 +1673,12 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                         <button
                           type="submit"
                           disabled={forgotLoading}
-                          className="shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-[15px] py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
+                          className="group relative w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:via-teal-600 hover:to-emerald-700 text-white font-black text-[15px] py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.38)] hover:shadow-[0_14px_28px_-5px_rgba(16,185,129,0.52)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] transition-all duration-200 cursor-pointer disabled:opacity-50 select-none"
                         >
-                          <div className="shimmer-layer absolute inset-0 w-1/2 h-full bg-white/30 transform -skew-x-12 pointer-events-none -translate-x-full" />
                           {forgotLoading ? (
                             <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> SENDING OTP...</span>
                           ) : (
-                            <>{isKhmer ? 'ផ្ញើលេខកូដ OTP' : 'SEND OTP CODE'} <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                            <>{isKhmer ? 'ផ្ញើលេខកូដ OTP' : 'SEND OTP CODE'} <ArrowRight className="w-5 h-5 stroke-[2.5] group-hover:translate-x-1.5 transition-transform duration-200 ease-out" /></>
                           )}
                         </button>
                       </form>
