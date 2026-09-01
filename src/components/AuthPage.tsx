@@ -844,7 +844,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: Pure Clean 3D Planet Center (No Under-Text) */}
+            {/* LEFT COLUMN: 3D Holographic Planet with Nexus Core Hub Badge */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-1.5 pr-2">
               
@@ -883,7 +883,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 <div className="absolute w-[450px] h-[240px] rounded-[100%] bg-gradient-to-b from-emerald-400/15 via-teal-400/10 to-cyan-400/15 blur-2xl pointer-events-none" />
 
                 {/* ========================================================= */}
-                {/* 3D HOLOGRAPHIC FINTECH PLANET (Clean Pure Sphere, No Text) */}
+                {/* 3D HOLOGRAPHIC FINTECH PLANET (Center Hub, z-index: 15) */}
                 {/* ========================================================= */}
                 <div className="absolute flex flex-col items-center justify-center pointer-events-none select-none anim-planet-core z-15">
                   
@@ -912,6 +912,15 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                     </div>
 
+                  </div>
+
+                  {/* Sleek Floating Glass Pod Badge */}
+                  <div className="mt-2 px-2.5 py-0.5 bg-white/90 backdrop-blur-md rounded-full border border-emerald-300/80 shadow-md shadow-emerald-500/20 flex items-center gap-1.5 pointer-events-none">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10.5px] font-black text-slate-900 tracking-tight">Nexus Core</span>
+                    <span className="text-[8px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 ml-0.5">
+                      Hub
+                    </span>
                   </div>
 
                 </div>
