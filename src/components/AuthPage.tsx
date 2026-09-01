@@ -4,14 +4,19 @@ import {
   Lock, 
   User, 
   Phone, 
-  Globe, 
   HelpCircle, 
   RefreshCw,
   Eye,
   EyeOff,
+  Zap,
+  CheckCircle2,
+  Sparkles,
+  FileText,
+  Send,
 } from 'lucide-react';
 import { showToast } from './Toast';
 import { API } from '../api';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface AuthPageProps {
   onLoginSuccess: (token: string) => void;
@@ -20,6 +25,7 @@ interface AuthPageProps {
 type AuthView = 'login' | 'register' | 'forgot';
 
 export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
+  const { language, setLanguage, isKhmer } = useCurrency();
   const [view, setView] = useState<AuthView>('login');
   const [emailVerificationRequired, setEmailVerificationRequired] = useState<boolean | null>(null);
 
@@ -95,7 +101,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   // Login handler — email + password
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginEmail || !loginPassword) return showToast('Enter email and password', 'error');
+    if (!loginEmail || !loginPassword) return showToast('Enter phone/email and password', 'error');
     setLoginLoading(true);
     try {
       const res = await fetch(`${API}/auth/login`, {
@@ -111,11 +117,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           showToast(loginEmail.includes('@nexus.local') ? 'Account not verified — a code was sent via Telegram & SMS.' : 'Email not verified — a code was sent to your email.', 'info');
           return;
         }
-        throw new Error(data.error || 'Invalid email or password.');
+        throw new Error(data.error || 'Invalid phone/email or password.');
       }
       onLoginSuccess(data.token);
     } catch (err: any) {
-      showToast(err?.message || 'Invalid email or password.', 'error');
+      showToast(err?.message || 'Invalid phone/email or password.', 'error');
     } finally {
       setLoginLoading(false);
     }
@@ -203,7 +209,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     }
     setRegisterLoading(true);
     try {
-      // If email is disabled, generate a placeholder phone-based email to register
       const targetEmail = emailVerificationRequired 
         ? registerEmail 
         : `${registerPhone.replace(/\D/g, '')}@nexus.local`;
@@ -237,7 +242,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           setRegisteredUserId(registerData.user.id);
         }
         setRegisterOtpSent(true);
-        setVerifyMethod('sms'); // Default to SMS OTP verification
+        setVerifyMethod('sms');
         await sendRegisterSmsOtp(targetPhone);
       }
     } catch (err: any) {
@@ -255,7 +260,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       const isSms = verifyMethod === 'sms';
       const endpoint = isSms ? `${API}/auth/verify-otp-phone` : `${API}/auth/verify-otp`;
       
-      // If email verification is disabled, registerEmail was mapped to the target phone email
       const targetUserEmail = emailVerificationRequired 
         ? registerEmail 
         : `${registerPhone.replace(/\D/g, '')}@nexus.local`;
@@ -499,716 +503,737 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   if (emailVerificationRequired === null) {
     return (
-      <div className="h-screen w-full relative bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] flex items-center justify-center">
-        <div className="w-8 h-8 border-3 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+      <div className="h-screen w-full relative bg-[#091520] flex items-center justify-center">
+        <div className="w-10 h-10 border-3 border-emerald-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="h-screen w-full relative bg-gradient-to-tr from-[#e3f4f0] via-[#edf7f5] to-[#f4faff] select-none text-[var(--text-primary)] font-sans auth-page overflow-hidden">
-      
-      {/* Background soft glowing decorative orbs */}
-      <div className="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full bg-[#c0f5ea]/40 blur-[120px] pointer-events-none z-0" />
-      <div className="absolute bottom-[-150px] right-[-100px] w-[600px] h-[600px] rounded-full bg-[#d0effa]/50 blur-[130px] pointer-events-none z-0" />
+    <div className="h-screen w-full relative bg-slate-950 text-slate-100 font-sans select-none overflow-hidden flex flex-col">
+      {/* Dynamic Keyframes & Shimmer Styles */}
+      <style>{`
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(0.8deg); }
+        }
+        @keyframes float-reverse {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(12px) rotate(-1deg); }
+        }
+        @keyframes float-subtle {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-6px); }
+        }
+        @keyframes pulse-glow {
+          0%, 100% { opacity: 0.45; transform: scale(1); }
+          50% { opacity: 0.75; transform: scale(1.08); }
+        }
+        @keyframes aurora-spin {
+          0% { transform: rotate(0deg) scale(1); }
+          50% { transform: rotate(180deg) scale(1.1); }
+          100% { transform: rotate(360deg) scale(1); }
+        }
+        @keyframes shimmer-sweep {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(200%); }
+        }
+        .anim-float-1 { animation: float-slow 6s ease-in-out infinite; }
+        .anim-float-2 { animation: float-reverse 7s ease-in-out infinite 1s; }
+        .anim-float-3 { animation: float-subtle 5s ease-in-out infinite 0.5s; }
+        .anim-glow { animation: pulse-glow 8s ease-in-out infinite; }
+        .anim-aurora { animation: aurora-spin 25s linear infinite; }
+        .shimmer-btn:hover .shimmer-layer { animation: shimmer-sweep 1.2s ease-in-out infinite; }
+        
+        .dot-matrix-bg {
+          background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1.2px, transparent 1.2px);
+          background-size: 28px 28px;
+        }
+      `}</style>
 
-      {/* Content wrapper with isolated scrollbar */}
+      {/* 1. Ambient Background Layer with Animated Glowing Mesh Orbs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 bg-gradient-to-br from-[#061019] via-[#091827] to-[#040b12]">
+        {/* Dot matrix overlay */}
+        <div className="absolute inset-0 dot-matrix-bg opacity-60 pointer-events-none" />
+
+        {/* Aurora Glowing Mesh Orbs */}
+        <div className="absolute top-[-15%] left-[-10%] w-[650px] h-[650px] rounded-full bg-emerald-500/20 blur-[130px] anim-aurora pointer-events-none" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[700px] h-[700px] rounded-full bg-cyan-500/15 blur-[140px] anim-aurora pointer-events-none" style={{ animationDuration: '30s', animationDirection: 'reverse' }} />
+        <div className="absolute top-[30%] left-[35%] w-[450px] h-[450px] rounded-full bg-indigo-600/15 blur-[120px] anim-glow pointer-events-none" />
+        <div className="absolute top-[60%] left-[10%] w-[350px] h-[350px] rounded-full bg-teal-400/10 blur-[100px] pointer-events-none" />
+      </div>
+
+      {/* 2. Scrollable Viewport Container */}
       <div className="absolute inset-0 overflow-y-auto w-full h-full flex flex-col z-10">
-
-      {/* VIEW: LOGIN */}
-      {view === 'login' && (
-        <div key="login" className="min-h-screen grid grid-rows-[auto_1fr_auto] w-full relative z-10">
-          {/* Header */}
-          <header className="relative z-10 px-6 py-5 sm:px-12 flex justify-between items-center bg-transparent">
-            <div className="flex items-center gap-2">
-              <span className="font-sans text-[20px] tracking-tight flex items-center">
-                <span className="text-[var(--text-primary)] font-black">Nexus</span>
-                <span className="text-[var(--text-secondary)] font-light">Finance</span>
-              </span>
-            </div>
-            <button 
-              onClick={() => {}} 
-              className="text-[var(--text-tertiary)] font-semibold text-[14px] hover:text-[var(--text-primary)]"
-            >
-              Support
-            </button>
-          </header>
-
-          {/* Main content grid */}
-          <main className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center px-6 sm:px-12 max-w-7xl mx-auto w-full gap-8 lg:gap-16 py-4">
-            
-            {/* Form Right Row (Column 7) */}
-            <div className="lg:col-span-7 flex justify-center lg:justify-end order-2 lg:order-2">
-              <div className="bg-[var(--surface-card)]/80 backdrop-blur-xl rounded-3xl p-8 sm:p-10 w-full max-w-md shadow-2xl shadow-teal-900/5 border border-[var(--border-primary)]/60 animate-in fade-in slide-in-from-right duration-500">
-                
-                {/* Title block */}
-                <div className="text-center mb-8">
-                  <h2 className="text-[36px] font-extrabold tracking-tight text-[var(--text-primary)]">Login</h2>
-                  <p className="text-[14px] text-[var(--text-secondary)] font-medium mt-1 leading-none">welcome to nexus finance</p>
-                </div>
-
-                {loginVerifyEmail ? (
-                  /* Step: unverified email — enter the OTP sent to them */
-                  <form onSubmit={handleVerifyLoginOtp} className="space-y-5">
-                    <div className="text-center">
-                      <p className="text-[13px] text-[var(--text-secondary)] font-medium">
-                        Enter the code sent to <strong className="text-[var(--text-primary)]">{loginVerifyEmail.includes('@nexus.local') ? loginVerifyEmail.replace('@nexus.local', '') : loginVerifyEmail}</strong> {loginVerifyEmail.includes('@nexus.local') ? 'via Telegram & SMS' : 'to verify your email'}
-                      </p>
-                    </div>
-                    <div>
-                      <input
-                        type="text"
-                        maxLength={6}
-                        value={loginOtpCode}
-                        onChange={(e) => setLoginOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        placeholder="000000"
-                        className="w-full text-center text-[28px] tracking-[12px] font-mono rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-4 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
-                        required
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={loginLoading || loginOtpCode.length < 6}
-                      className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-black text-[15.5px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[var(--accent)]/20 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                    >
-                      {loginLoading ? (
-                        <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
-                      ) : (
-                        <>VERIFY EMAIL <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
-                      )}
-                    </button>
-                    <div className="flex justify-between items-center text-[13px]">
-                      <button type="button" onClick={() => sendLoginVerifyOtp(loginVerifyEmail)} disabled={loginOtpTimer > 0}
-                        className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40 font-medium"
-                      >
-                        Resend code {loginOtpTimer > 0 && `(${Math.floor(loginOtpTimer / 60)}:${String(loginOtpTimer % 60).padStart(2, '0')})`}
-                      </button>
-                      <button type="button" onClick={() => { setLoginVerifyEmail(''); setLoginOtpCode(''); }}
-                        className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
-                      >
-                        Back to login
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                <form onSubmit={handleLoginSubmit} className="space-y-4">
-                  <div>
-                    <input
-                      type="text"
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      placeholder={emailVerificationRequired ? "Email or Phone Number" : "Phone Number"}
-                      className="w-full rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-medium transition-all"
-                      required
-                    />
-                  </div>
-                  <div className="relative">
-                    <input
-                      type={showLoginPassword ? 'text' : 'password'}
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="Password"
-                      className="w-full rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 pl-6 pr-12 py-3.5 text-[14px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 font-medium transition-all"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowLoginPassword(!showLoginPassword)}
-                      className="absolute inset-y-0 right-4 flex items-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] cursor-pointer select-none"
-                    >
-                      {showLoginPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
-                    </button>
-                  </div>
-
-                  <div className="pt-2">
-                    <button
-                      type="submit"
-                      disabled={loginLoading}
-                      className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-black text-[15.5px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[var(--accent)]/20 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                    >
-                      {loginLoading ? (
-                        <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> LOGGING IN...</span>
-                      ) : (
-                        <>LOGIN <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
-                      )}
-                    </button>
-                  </div>
-
-                  <div className="text-center">
-                    <button type="button" onClick={() => { setForgotEmail(loginEmail); setView('forgot'); }} className="text-[12.5px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium">
-                      Forgot Password?
-                    </button>
-                  </div>
-                </form>
-                )}
-
-                {/* Create account trigger */}
-                <div className="text-center mt-6 text-[13.5px] font-semibold text-[var(--text-secondary)]">
-                  <span>Don’t have an account? </span>
-                  <button 
-                    onClick={() => setView('register')}
-                    className="text-[var(--text-primary)] underline hover:text-[var(--accent-hover)] cursor-pointer font-bold"
-                  >
-                    create account
-                  </button>
-                </div>
-
-                {/* Divider */}
-                <div className="flex items-center gap-3 my-6">
-                  <div className="h-[1px] bg-[var(--border-primary)] flex-grow" />
-                  <span className="text-[11px] text-[var(--text-tertiary)] font-bold uppercase tracking-wider">or</span>
-                  <div className="h-[1px] bg-[var(--border-primary)] flex-grow" />
-                </div>
-
-                {/* Google Sign In — redirects to real Google OAuth */}
-                <button
-                  type="button"
-                  onClick={() => window.location.href = API + '/auth/google'}
-                  className="w-full bg-[var(--surface-card)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] border border-[var(--border-primary)] font-bold text-[14px] py-3 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-95 shadow-xs cursor-pointer"
-                >
-                  <svg className="w-4 h-4 mr-0.5" viewBox="0 0 24 24">
-                    <path
-                      fill="#4285F4"
-                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.61c-.29 1.5-.14 3.01-.97 4.29l3.1 2.4c1.8-1.66 2.8-4.11 2.8-6.54z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.1-2.4c-.9.6-2.01.99-3.23.99-3.11 0-5.74-2.11-6.68-4.96l-3.2 2.48C5.69 21.09 8.63 24 12 24z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.32 14.72a7.16 7.16 0 0 1 0-4.55l-3.2-2.48a11.94 11.94 0 0 0 0 10.43l3.2-2.4c-.38-.3-.38-.7-.38-1z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 8.63 0 5.69 2.91 3.72 6.79l3.2 2.48C7.86 6.36 10.49 4.75 12 4.75z"
-                    />
-                  </svg>
-                  Sign in with Google
-                </button>
-
+        
+        {/* Global Navigation Header */}
+        <header className="relative z-20 px-6 py-5 sm:px-12 flex justify-between items-center bg-transparent border-b border-white/5">
+          {/* Logo Mark */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-300 p-0.5 shadow-lg shadow-emerald-500/20 flex items-center justify-center">
+              <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+                <span className="text-emerald-400 font-black text-xl tracking-tighter">N</span>
               </div>
             </div>
-
-            {/* Isometric 3D Illustration Right (Column 7) */}
-            <div className="lg:col-span-5 hidden lg:flex justify-center items-center h-full max-h-[800px] select-none pointer-events-none relative order-1 lg:order-1">
-              <svg
-                viewBox="0 0 800 600"
-                className="w-full max-w-[750px] h-auto drop-shadow-2xl animate-in zoom-in duration-700"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                {/* Perspective Grid Floor */}
-                <g opacity="0.3">
-                  <path d="M 100,500 L 400,200 L 700,500 M 400,200 L 400,580" stroke="#5CF2D0" strokeWidth="1.5" strokeDasharray="5,5" />
-                  <path d="M 200,400 L 600,400 M 250,450 L 550,450" stroke="#00bfa5" strokeWidth="1" />
-                </g>
-
-                {/* Glassmorphic Rounded 3D Smartphone Device Mockup */}
-                <g transform="translate(180, 50)">
-                  {/* Smartphone Body Silhouette & Outer Frame shadow */}
-                  <rect x="150" y="50" width="220" height="420" rx="40" fill="white" fillOpacity="0.45" stroke="white" strokeWidth="4" className="backdrop-blur-lg" />
-                  <rect x="156" y="56" width="208" height="408" rx="34" fill="url(#device-grad)" opacity="0.9" />
-
-                  {/* Reflection highlights */}
-                  <path d="M 156,56 L 364,200 L 364,240 L 156,96 Z" fill="white" opacity="0.12" />
-
-                  {/* UI Screens inside mock device container */}
-                  <g transform="translate(176, 84)">
-                    {/* Floating top bar */}
-                    <rect x="10" y="10" width="160" height="28" rx="8" fill="white" fillOpacity="0.15" />
-                    <circle cx="28" cy="24" r="6" fill="#5CF2D0" />
-                    <rect x="42" y="20" width="80" height="8" rx="4" fill="white" fillOpacity="0.3" />
-
-                    {/* Balance box card */}
-                    <rect x="10" y="50" width="160" height="74" rx="16" fill="white" fillOpacity="0.25" stroke="white" strokeWidth="1.5" className="backdrop-blur-md" />
-                    <rect x="24" y="66" width="50" height="8" rx="4" fill="white" fillOpacity="0.4" />
-                    <rect x="24" y="82" width="110" height="18" rx="6" fill="#5CF2D0" />
-                    {/* Tiny stats graph symbol */}
-                    <path d="M 24,110 L 50,102 L 76,108 L 102,96 L 128,104" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-
-                    {/* Chart columns inside phone screen */}
-                    <g transform="translate(10, 140)">
-                      <rect x="0" y="0" width="160" height="96" rx="16" fill="white" fillOpacity="0.1" />
-                      <rect x="16" y="70" width="16" height="14" rx="3" fill="#5CF2D0" />
-                      <rect x="42" y="50" width="16" height="34" rx="3" fill="white" fillOpacity="0.6" />
-                      <rect x="68" y="30" width="16" height="54" rx="3" fill="#00b6ff" />
-                      <rect x="94" y="44" width="16" height="40" rx="3" fill="#5CF2D0" />
-                      <rect x="120" y="15" width="16" height="69" rx="3" fill="white" />
-                    </g>
-
-                    {/* Mini button actions */}
-                    <rect x="10" y="250" width="42" height="42" rx="12" fill="white" fillOpacity="0.4" />
-                    <rect x="68" y="250" width="42" height="42" rx="12" fill="#5CF2D0" />
-                    <rect x="126" y="250" width="42" height="42" rx="12" fill="white" fillOpacity="0.4" />
-                  </g>
-                </g>
-
-                {/* Floating Isometric 3D Boards & Grids */}
-                {/* 3D Glass Dashboard in foreground left */}
-                <g className="animate-bounce" style={{ animationDuration: '6s' }}>
-                  <polygon points="120,400 280,320 320,380 160,460" fill="white" fillOpacity="0.7" stroke="white" strokeWidth="2" />
-                  <polygon points="135,410 215,370 235,400 155,440" fill="url(#chart-grad-green)" opacity="0.8" />
-                  <circle cx="260" cy="360" r="12" fill="#00bfa5" />
-                  <circle cx="160" cy="420" r="6" fill="#00796b" />
-                  {/* Micro indicator line block */}
-                  <line x1="175" y1="415" x2="230" y2="388" stroke="#00796b" strokeWidth="4" />
-                </g>
-
-                {/* Isometric 3D Platform Right Charts stand */}
-                <g transform="translate(480, 260)">
-                  <polygon points="0,150 160,70 200,90 40,170" fill="white" fillOpacity="0.4" stroke="white" strokeWidth="1" />
-                  
-                  {/* Columns stacked in 3D perspective */}
-                  <g transform="translate(20, 80)">
-                    {/* Prism 1 */}
-                    <path d="M 20,40 L 40,30 L 40,0 L 20,10 Z M 40,30 L 60,20 L 60,-10 L 40,0 Z" fill="#5CF2D0" />
-                    <polygon points="20,10 40,0 60,-10 40,-20" fill="#4effdf" />
-                    {/* Shadow prism */}
-                    <path d="M 20,40 L 40,30 L 60,20" stroke="white" opacity="0.4" />
-                  </g>
-
-                  <g transform="translate(70, 50)">
-                    {/* Prism 2 - taller */}
-                    <path d="M 20,50 L 40,40 L 40,-30 L 20,-20 Z M 40,40 L 60,30 L 60,-40 L 40,-30 Z" fill="#00b6ff" />
-                    <polygon points="20,-20 40,-30 60,-40 40,-50" fill="#69d4ff" />
-                  </g>
-
-                  <g transform="translate(120, 20)">
-                    {/* Prism 3 */}
-                    <path d="M 20,35 L 40,25 L 40,-5 L 20,5 Z M 40,25 L 60,15 L 60,-15 L 40,-5 Z" fill="#5CF2D0" />
-                    <polygon points="20,5 40,-5 60,-15 40,-25" fill="#4effdf" />
-                  </g>
-                </g>
-
-                {/* Floating Micro elements */}
-                <g transform="translate(160, 240)">
-                  <polygon points="10,20 30,10 40,25 20,35" fill="#5CF2D0" opacity="0.4" />
-                </g>
-                <g transform="translate(490, 100)">
-                  <polygon points="0,40 40,20 60,50 20,70" fill="#00b6ff" opacity="0.3" />
-                  <rect x="20" y="30" width="20" height="20" rx="6" fill="white" fillOpacity="0.7" className="backdrop-blur-xs" />
-                </g>
-
-                {/* Character Icon overlay standing right dashboard */}
-                <g transform="translate(560, 160)">
-                  {/* Styled minimalist figure representant */}
-                  <circle cx="50" cy="60" r="16" fill="#1e293b" /> {/* Head */}
-                  <path d="M 20,110 C 20,85 40,80 50,80 C 60,80 80,85 80,110 L 74,230 C 74,240 68,245 58,245 C 50,245 42,240 42,230 Z" fill="#3b82f6" /> {/* Body */}
-                  
-                  {/* Floating handheld glass panel tablet */}
-                  <g transform="translate(10, 80)">
-                    <rect x="-35" y="10" width="55" height="34" rx="6" fill="#4effdf" fillOpacity="0.8" stroke="white" strokeWidth="1.5" />
-                    <line x1="-25" y1="20" x2="-5" y2="20" stroke="#1e293b" strokeWidth="2.5" />
-                    <line x1="-25" y1="28" x2="5" y2="28" stroke="#1e293b" strokeWidth="1.5" />
-                  </g>
-                  {/* Interacting visual lines */}
-                  <path d="M -10,100 C -40,110 -60,90 -90,120" stroke="#5CF2D0" strokeWidth="2" strokeDasharray="4,4" />
-                </g>
-
-                <defs>
-                  <linearGradient id="device-grad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#0a2c42" />
-                    <stop offset="100%" stopColor="#1e293b" />
-                  </linearGradient>
-                  <linearGradient id="chart-grad-green" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#5CF2D0" />
-                    <stop offset="100%" stopColor="#004d40" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-
-          </main>
-
-          {/* Footer of Login Screen */}
-          <footer className="relative z-10 px-6 py-6 sm:px-12 border-t border-[var(--border-primary)]/50 bg-[var(--surface-card)]/40 flex flex-col md:flex-row justify-between items-center gap-4 text-[12px] font-medium text-[var(--text-secondary)]">
-            <div>
-              <p>© 2026 Nexus Finance. All rights reserved.</p>
-            </div>
-            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-              <a href="/privacy" className="hover:text-[var(--text-primary)] transition">Privacy Policy</a>
-              <a href="/terms" className="hover:text-[var(--text-primary)] transition">Terms of Service</a>
-              <a href="/privacy" className="hover:text-[var(--text-primary)] transition">Regulatory Disclosure</a>
-              <a href="/privacy" className="hover:text-[var(--text-primary)] transition">Security</a>
-            </div>
-          </footer>
-        </div>
-      )}
-
-      {/* VIEW: REGISTER / CREATE ACCOUNT */}
-      {view === 'register' && (
-        <div key="register" className="min-h-screen grid grid-rows-[auto_1fr_auto] w-full relative z-10">
-          {/* Header */}
-          <header className="relative z-10 px-6 py-5 sm:px-12 flex justify-between items-center bg-transparent">
-            <div className="flex items-center gap-2">
-              <span className="font-sans text-[20px] tracking-tight flex items-center">
-                <span className="text-[var(--text-primary)] font-black">Nexus</span>
-                <span className="text-[var(--text-primary)] font-light">Finance</span>
+            <div className="flex flex-col">
+              <span className="font-sans text-[20px] tracking-tight flex items-center leading-none">
+                <span className="text-white font-extrabold">Nexus</span>
+                <span className="text-emerald-400 font-light ml-0.5">Finance</span>
               </span>
+              <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase mt-1">Enterprise Fintech Portal</span>
             </div>
-            <div className="flex items-center gap-4 text-[var(--text-secondary)]">
-              <Globe className="w-5 h-5 cursor-pointer hover:text-[var(--text-primary)]" />
-              <HelpCircle className="w-5 h-5 cursor-pointer hover:text-[var(--text-primary)]" />
+          </div>
+
+          {/* Right Header Badges & Language Switcher */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* System Status Pill */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[12px] font-semibold">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>Systems Online</span>
             </div>
-          </header>
 
-          {/* Main Container */}
-          <main className="relative z-10 flex-grow flex flex-col justify-center items-center px-4 py-8">
-            <h2 className="text-[32px] sm:text-[36px] font-bold text-[var(--text-primary)] mb-8 text-center tracking-tight">
-              Create your account
-            </h2>
+            {/* Language Switcher */}
+            <div className="flex items-center bg-slate-900/80 border border-white/10 rounded-xl p-1 shadow-inner">
+              <button
+                type="button"
+                onClick={() => setLanguage('en')}
+                className={`px-2.5 py-1 rounded-lg text-[11.5px] font-bold transition-all cursor-pointer ${
+                  language === 'en'
+                    ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage('kh')}
+                className={`px-2.5 py-1 rounded-lg text-[11.5px] font-bold transition-all cursor-pointer ${
+                  language === 'kh'
+                    ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                KH
+              </button>
+            </div>
 
-            {/* Custom Create account white frame card */}
-            <div className="bg-[var(--surface-card)]/80 backdrop-blur-xl rounded-[32px] shadow-xl shadow-teal-900/5 border border-[var(--border-primary)]/60 p-8 sm:p-10 w-full max-w-lg animate-in fade-in zoom-in-95 duration-300">
-              {!registerOtpSent ? (
-                <form onSubmit={handleRegisterSubmit} className="space-y-6">
-                  
-                  {/* Field: Full Name */}
-                  <div className="space-y-1.5">
-                    <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
-                      Full Name
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
-                        <User className="w-4.5 h-4.5" />
-                      </div>
-                      <input
-                        type="text"
-                        value={registerName}
-                        onChange={(e) => setRegisterName(e.target.value)}
-                        placeholder="Enter your full name"
-                        className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
-                        required
-                      />
-                    </div>
-                  </div>
+            {/* Help / Support Link */}
+            <a 
+              href="mailto:support@nexusfinance.com" 
+              className="hidden md:flex items-center gap-1.5 text-slate-400 hover:text-white font-medium text-[13px] transition px-3 py-1.5 rounded-xl hover:bg-white/5"
+            >
+              <HelpCircle className="w-4 h-4 text-emerald-400" />
+              <span>{isKhmer ? 'ជំនួយ' : 'Support'}</span>
+            </a>
+          </div>
+        </header>
 
-                  {/* Field: Email Address */}
-                  {emailVerificationRequired && (
-                    <div className="space-y-1.5">
-                      <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
-                        Email Address
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
-                          <span className="text-[17px] font-light leading-none select-none">@</span>
-                        </div>
-                        <input
-                          type="email"
-                          value={registerEmail}
-                          onChange={(e) => setRegisterEmail(e.target.value)}
-                          placeholder="Enter your email address"
-                          className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
-                          required
-                        />
-                      </div>
-                    </div>
+        {/* 3. Main Split Hero & Auth Card Section */}
+        <main className="relative z-10 flex-grow flex items-center justify-center px-4 sm:px-8 lg:px-12 py-8 max-w-7xl mx-auto w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
+
+            {/* ========================================================================= */}
+            {/* LEFT COLUMN: Modern Fintech Hero Showcase & Animated Floating Glass Cards */}
+            {/* ========================================================================= */}
+            <div className="lg:col-span-6 hidden lg:flex flex-col justify-center space-y-8 pr-2">
+              
+              {/* Badge & Headline */}
+              <div className="space-y-4">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[12px] font-bold tracking-wide shadow-sm">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{isKhmer ? 'បច្ចេកវិទ្យាហិរញ្ញវត្ថុ និងឥណទានជំនាន់ថ្មី' : 'NEXT-GEN MICRO-LENDING PLATFORM'}</span>
+                </div>
+
+                <h1 className="text-[38px] xl:text-[44px] font-extrabold text-white tracking-tight leading-[1.15]">
+                  {isKhmer ? (
+                    <>
+                      ការផ្តល់ឥណទាន <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">លឿន រហ័ស និងមានសុវត្ថិភាពខ្ពស់</span>
+                    </>
+                  ) : (
+                    <>
+                      Smarter Lending. <br />
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
+                        Instant Approvals & Contracts.
+                      </span>
+                    </>
                   )}
+                </h1>
 
-                  {/* Field: Password */}
-                  <div className="space-y-1.5">
-                    <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
-                      Password
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
-                        <Lock className="w-4.5 h-4.5" />
-                      </div>
-                      <input
-                        type={showRegisterPassword ? 'text' : 'password'}
-                        value={registerPassword}
-                        onChange={(e) => setRegisterPassword(e.target.value)}
-                        placeholder="••••••••••••"
-                        className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-12 py-3.5 text-[14px] text-[var(--text-primary)] font-mono transition-all animate-none"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                        className="absolute inset-y-0 right-4 flex items-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] cursor-pointer select-none"
-                      >
-                        {showRegisterPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
-                      </button>
+                <p className="text-slate-300/80 text-[15px] leading-relaxed max-w-lg">
+                  {isKhmer 
+                    ? 'គ្រប់គ្រងឥណទាន បង្កើតកិច្ចសន្យាខ្មែរស្របច្បាប់ និងភ្ជាប់ទំនាក់ទំនងជាមួយ Telegram & SMS ស្វ័យប្រវត្ត។'
+                    : 'Empower your borrowers with instant automated underwriting, real-time Telegram & SMS repayment alerts, and legal print-ready Khmer contracts in USD & KHR.'}
+                </p>
+              </div>
+
+              {/* 3 Floating 3D Glass Cards Showcase */}
+              <div className="relative h-[250px] w-full max-w-lg select-none">
+                
+                {/* Floating Card 1: Auto-Approval */}
+                <div className="absolute top-0 left-0 w-[270px] bg-slate-900/80 backdrop-blur-xl border border-white/15 rounded-2xl p-4 shadow-2xl shadow-emerald-950/40 anim-float-1">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                      <Zap className="w-5 h-5" />
                     </div>
- 
-                    {/* Field: Confirm Password */}
-                    <div className="space-y-1.5">
-                      <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
-                        Confirm Password
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
-                          <Lock className="w-4.5 h-4.5" />
-                        </div>
-                        <input
-                          type={showRegisterConfirmPassword ? 'text' : 'password'}
-                          value={registerConfirmPassword}
-                          onChange={(e) => setRegisterConfirmPassword(e.target.value)}
-                          placeholder="••••••••••••"
-                          className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-12 py-3.5 text-[14px] text-[var(--text-primary)] font-mono transition-all animate-none"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
-                          className="absolute inset-y-0 right-4 flex items-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] cursor-pointer select-none"
-                        >
-                          {showRegisterConfirmPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
-                        </button>
+                    <div>
+                      <div className="text-[13px] font-bold text-white flex items-center gap-1.5">
+                        <span>Auto-Underwriting</span>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                       </div>
+                      <div className="text-[11px] text-emerald-400 font-semibold">$500 Disbursed in 45s</div>
                     </div>
                   </div>
+                  <div className="mt-3 flex items-center justify-between text-[10.5px] text-slate-400 pt-2.5 border-t border-white/10">
+                    <span>Credit Score: 780</span>
+                    <span className="text-emerald-400 font-bold">Approved</span>
+                  </div>
+                </div>
 
-                  {/* Field: Phone Number */}
-                  <div className="space-y-1.5">
-                    <label className="block text-[10px] font-extrabold uppercase text-[var(--text-secondary)] tracking-wider">
-                      Phone Number
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-tertiary)]">
-                        <Phone className="w-4.5 h-4.5" />
-                      </div>
-                      <input
-                        type="tel"
-                        value={registerPhone}
-                        onChange={(e) => setRegisterPhone(e.target.value)}
-                        placeholder="Enter your phone number"
-                        className="w-full bg-[var(--surface-secondary)] border-0 focus:bg-[var(--surface-card)] focus:ring-2 focus:ring-[var(--accent)]/20 focus:outline-[var(--accent)]/40 rounded-2xl pl-12 pr-6 py-3.5 text-[14px] text-[var(--text-primary)] font-medium transition-all"
-                        required
-                      />
+                {/* Floating Card 2: Telegram Linkage */}
+                <div className="absolute top-14 right-2 w-[260px] bg-slate-900/85 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-4 shadow-2xl shadow-cyan-950/40 anim-float-2 z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300">
+                      <Send className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-[13px] font-bold text-white">Telegram & SMS Bot</div>
+                      <div className="text-[11px] text-cyan-300 font-medium">1-Trip OTP & Live Alerts</div>
                     </div>
                   </div>
-
-                  {/* Button Action */}
-                  <div className="pt-2">
-                    <button
-                      type="submit"
-                      disabled={registerLoading}
-                      className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {registerLoading ? (
-                        <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> CREATING...</span>
-                      ) : (
-                        <>Create Account <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
-                      )}
-                    </button>
+                  <div className="mt-2.5 bg-slate-950/60 rounded-lg p-2 text-[10.5px] text-slate-300 flex items-center gap-2 border border-white/5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+                    <span>Next installment: Sep 27</span>
                   </div>
-                </form>
-              ) : (
-                <div className="space-y-6">
-                  {/* Tab Headers */}
-                  <div className="flex border-b border-[var(--border-primary)]/50 pb-2">
-                    {emailVerificationRequired ? (
-                      <button
-                        type="button"
-                        onClick={() => handleTabChange('email')}
-                        className={`flex-1 text-center pb-2.5 text-[14px] font-bold transition-all cursor-pointer border-b-2 ${
-                          verifyMethod === 'email'
-                            ? 'border-[var(--accent)] text-[var(--accent)]'
-                            : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                        }`}
-                      >
-                        📧 Email Verification
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleTabChange('sms')}
-                        className={`flex-1 text-center pb-2.5 text-[14px] font-bold transition-all cursor-pointer border-b-2 ${
-                          verifyMethod === 'sms'
-                            ? 'border-[var(--accent)] text-[var(--accent)]'
-                            : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                        }`}
-                      >
-                        💬 SMS Verification
-                      </button>
-                    )}
+                </div>
+
+                {/* Floating Card 3: Khmer Contracts Engine */}
+                <div className="absolute bottom-0 left-12 w-[280px] bg-slate-900/80 backdrop-blur-xl border border-white/15 rounded-2xl p-3.5 shadow-2xl anim-float-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-300">
+                      <FileText className="w-4.5 h-4.5" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-[12.5px] font-bold text-white">Khmer Legal Contracts</div>
+                      <div className="text-[10.5px] text-indigo-300">A4 Print Ready • 5 Pages</div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 text-[10px] font-bold">PDF/Print</span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Trust Metric Strip */}
+              <div className="grid grid-cols-3 gap-3 pt-2 border-t border-white/10 max-w-lg">
+                <div className="bg-white/5 rounded-2xl p-3 border border-white/5">
+                  <div className="text-[17px] font-black text-emerald-400">$4.8M+</div>
+                  <div className="text-[11px] text-slate-400 font-medium">{isKhmer ? 'ប្រាក់បានបើកផ្តល់' : 'Disbursed'}</div>
+                </div>
+                <div className="bg-white/5 rounded-2xl p-3 border border-white/5">
+                  <div className="text-[17px] font-black text-cyan-400">12,500+</div>
+                  <div className="text-[11px] text-slate-400 font-medium">{isKhmer ? 'អតិថិជនសកម្ម' : 'Active Borrowers'}</div>
+                </div>
+                <div className="bg-white/5 rounded-2xl p-3 border border-white/5">
+                  <div className="text-[17px] font-black text-indigo-300">256-Bit</div>
+                  <div className="text-[11px] text-slate-400 font-medium">{isKhmer ? 'សុវត្ថិភាពធនាគារ' : 'Bank SSL'}</div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* ========================================================================= */}
+            {/* RIGHT COLUMN: Modern Glassmorphic Auth Form Card */}
+            {/* ========================================================================= */}
+            <div className="lg:col-span-6 flex justify-center lg:justify-end w-full">
+              <div className="w-full max-w-md bg-slate-900/75 backdrop-blur-2xl rounded-[32px] p-8 sm:p-10 border border-white/15 shadow-2xl shadow-emerald-950/30 relative z-10 transition-all">
+                
+                {/* Glow accent halo around card */}
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/20 via-teal-500/10 to-cyan-500/20 rounded-[34px] blur-xl -z-10 opacity-75 pointer-events-none" />
+
+                {/* View Switcher Tabs (Login vs Register) */}
+                {view !== 'forgot' && !loginVerifyEmail && !registerOtpSent && (
+                  <div className="flex bg-slate-950/60 p-1.5 rounded-2xl border border-white/10 mb-8">
                     <button
                       type="button"
-                      onClick={() => handleTabChange('telegram')}
-                      className={`flex-1 text-center pb-2.5 text-[14px] font-bold transition-all cursor-pointer border-b-2 ${
-                        verifyMethod === 'telegram'
-                          ? 'border-[var(--accent)] text-[var(--accent)]'
-                          : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      onClick={() => setView('login')}
+                      className={`flex-1 py-2.5 rounded-xl text-[13.5px] font-bold transition-all cursor-pointer text-center ${
+                        view === 'login'
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 shadow-md shadow-emerald-500/20'
+                          : 'text-slate-400 hover:text-white'
                       }`}
                     >
-                      📱 Telegram Verification
+                      {isKhmer ? 'ចូលប្រើប្រាស់' : 'Sign In'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setView('register')}
+                      className={`flex-1 py-2.5 rounded-xl text-[13.5px] font-bold transition-all cursor-pointer text-center ${
+                        view === 'register'
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 shadow-md shadow-emerald-500/20'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {isKhmer ? 'បង្កើតគណនី' : 'Create Account'}
                     </button>
                   </div>
+                )}
 
-                  {verifyMethod === 'email' || verifyMethod === 'sms' ? (
-                    /* Email / SMS OTP Form */
-                    <form onSubmit={handleVerifyRegisterOtp} className="space-y-6">
-                      <div className="text-center">
-                        <p className="text-[13px] text-[var(--text-secondary)] font-medium">
-                          Enter the code sent to{" "}
-                          <strong className="text-[var(--text-primary)]">
-                            {verifyMethod === 'sms' ? registerPhone : registerEmail}
-                          </strong>
-                        </p>
-                      </div>
-                      <div>
-                        <input
-                          type="text"
-                          maxLength={6}
-                          value={registerOtpCode}
-                          onChange={(e) => setRegisterOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                          placeholder="000000"
-                          className="w-full text-center text-[28px] tracking-[12px] font-mono rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-4 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
-                          required
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={registerLoading || registerOtpCode.length < 6}
-                        className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50"
-                      >
-                        {registerLoading ? (
-                          <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
-                        ) : (
-                          <>VERIFY <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
-                        )}
-                      </button>
-                      <div className="flex justify-between items-center text-[13px]">
-                        <button type="button" onClick={handleResendRegisterOtp} disabled={registerOtpTimer > 0}
-                          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40 font-medium"
+                {/* ------------------------------------------------------------- */}
+                {/* VIEW A: LOGIN FORM */}
+                {/* ------------------------------------------------------------- */}
+                {view === 'login' && (
+                  <div className="space-y-6 animate-in fade-in duration-300">
+                    
+                    {/* Header Text */}
+                    <div className="text-left mb-6">
+                      <h2 className="text-[26px] font-extrabold text-white tracking-tight">
+                        {loginVerifyEmail 
+                          ? (isKhmer ? 'ផ្ទៀងផ្ទាត់គណនី' : 'Verify Your Account') 
+                          : (isKhmer ? 'ស្វាគមន៍ការចូលប្រើ' : 'Welcome Back')}
+                      </h2>
+                      <p className="text-[13.5px] text-slate-400 font-medium mt-1">
+                        {loginVerifyEmail 
+                          ? (isKhmer ? 'សូមបញ្ចូលលេខកូដសម្ងាត់ ៦ ខ្ទង់' : 'Enter the 6-digit code sent to verify') 
+                          : (isKhmer ? 'បញ្ចូលព័ត៌មានគណនីរបស់អ្នកដើម្បីចូលទៅកាន់ផ្ទាំងគ្រប់គ្រង' : 'Access your loans, ledger, and repayments')}
+                      </p>
+                    </div>
+
+                    {loginVerifyEmail ? (
+                      /* Unverified Account OTP Step */
+                      <form onSubmit={handleVerifyLoginOtp} className="space-y-5">
+                        <div className="bg-slate-950/60 p-4 rounded-2xl border border-white/10 text-center">
+                          <p className="text-[12.5px] text-slate-300 font-medium">
+                            Code sent to <strong className="text-emerald-400">{loginVerifyEmail.includes('@nexus.local') ? loginVerifyEmail.replace('@nexus.local', '') : loginVerifyEmail}</strong>
+                          </p>
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            maxLength={6}
+                            value={loginOtpCode}
+                            onChange={(e) => setLoginOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                            placeholder="000000"
+                            className="w-full text-center text-[28px] tracking-[10px] font-mono rounded-2xl bg-slate-950/90 border border-white/20 px-6 py-4 text-white focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition-all shadow-inner"
+                            required
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={loginLoading || loginOtpCode.length < 6}
+                          className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-[15px] py-4 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
                         >
-                          Resend code {registerOtpTimer > 0 && `(${Math.floor(registerOtpTimer / 60)}:${String(registerOtpTimer % 60).padStart(2, '0')})`}
+                          {loginLoading ? (
+                            <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
+                          ) : (
+                            <>{isKhmer ? 'ផ្ទៀងផ្ទាត់ឥឡូវនេះ' : 'VERIFY CODE'} <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                          )}
                         </button>
-                        <button type="button" onClick={() => { setRegisterOtpSent(false); setRegisterOtpCode(''); setView('register'); }}
-                          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
-                        >
-                          {verifyMethod === 'sms' ? 'Use different phone' : 'Use different email'}
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
-                    /* Telegram OTP Flow */
-                    <div className="space-y-6 animate-in fade-in duration-300">
-                      {!emailVerificationRequired ? (
-                        /* Direct Linkage without OTP */
-                        <div className="space-y-5">
-                          <div className="bg-[var(--surface-secondary)]/50 rounded-2xl p-5 border border-[var(--border-primary)]/40 space-y-3">
-                            <h4 className="text-[13.5px] font-bold text-[var(--text-primary)] flex items-center gap-1.5">
-                              🔗 Link Telegram to Activate Profile
-                            </h4>
-                            <p className="text-[12.5px] text-[var(--text-secondary)] leading-relaxed">
-                              We will link your Telegram account to activate your profile. Follow these simple steps:
-                            </p>
-                            <ol className="text-[12px] text-[var(--text-secondary)] space-y-2 list-decimal pl-4">
-                              <li>Click the button below to open our Telegram Bot.</li>
-                              <li>Press <strong>Start</strong> in the chat.</li>
-                              <li>Click the <strong>📱 Share Phone Number to Link</strong> button that pops up.</li>
-                            </ol>
-                            <div className="pt-2">
-                              <a
-                                href={`https://t.me/nexusfinancefintech_bot?start=${registeredUserId}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={() => {
-                                  // Start polling checks
-                                  const pollInterval = setInterval(async () => {
-                                    try {
-                                      const res = await fetch(`${API}/auth/check-link?userId=${registeredUserId}`);
-                                      const data = await res.json();
-                                      if (data.linked) {
-                                        clearInterval(pollInterval);
-                                        showToast('Telegram account linked and verified successfully!', 'success');
-                                        if (data.token) {
-                                          onLoginSuccess(data.token);
-                                        } else {
-                                          setView('login');
-                                          setRegisterOtpSent(false);
-                                        }
-                                      }
-                                    } catch (e) {
-                                      console.error(e);
-                                    }
-                                  }, 2000);
-                                  setTimeout(() => clearInterval(pollInterval), 300000);
-                                }}
-                                className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[14px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition shadow-sm hover:shadow active:scale-98 cursor-pointer text-center"
-                              >
-                                💬 Open Telegram Bot
-                              </a>
+                        <div className="flex justify-between items-center text-[12.5px] pt-1">
+                          <button type="button" onClick={() => sendLoginVerifyOtp(loginVerifyEmail)} disabled={loginOtpTimer > 0}
+                            className="text-slate-400 hover:text-emerald-400 cursor-pointer disabled:opacity-40 font-medium"
+                          >
+                            Resend code {loginOtpTimer > 0 && `(${Math.floor(loginOtpTimer / 60)}:${String(loginOtpTimer % 60).padStart(2, '0')})`}
+                          </button>
+                          <button type="button" onClick={() => { setLoginVerifyEmail(''); setLoginOtpCode(''); }}
+                            className="text-slate-400 hover:text-white cursor-pointer font-medium"
+                          >
+                            Back to login
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      /* Main Login Form */
+                      <form onSubmit={handleLoginSubmit} className="space-y-4">
+                        
+                        {/* Phone / Email Field */}
+                        <div className="space-y-1.5">
+                          <label className="block text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
+                            {emailVerificationRequired 
+                              ? (isKhmer ? 'អ៊ីមែល ឬ លេខទូរស័ព្ទ' : 'Email or Phone Number') 
+                              : (isKhmer ? 'លេខទូរស័ព្ទ' : 'Phone Number')}
+                          </label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                              <Phone className="w-4.5 h-4.5" />
                             </div>
-                            <div className="pt-2.5 text-center">
+                            <input
+                              type="text"
+                              value={loginEmail}
+                              onChange={(e) => setLoginEmail(e.target.value)}
+                              placeholder={emailVerificationRequired ? "012 345 678 or name@domain.com" : "012 345 678"}
+                              className="w-full rounded-2xl bg-slate-950/80 border border-white/15 pl-12 pr-4 py-3.5 text-[14px] text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 font-medium transition-all"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        {/* Password Field */}
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between items-center">
+                            <label className="block text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
+                              {isKhmer ? 'ពាក្យសម្ងាត់' : 'Password'}
+                            </label>
+                            <button 
+                              type="button" 
+                              onClick={() => { setForgotEmail(loginEmail); setView('forgot'); }} 
+                              className="text-[12px] text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer transition hover:underline"
+                            >
+                              {isKhmer ? 'ភ្លេចពាក្យសម្ងាត់?' : 'Forgot Password?'}
+                            </button>
+                          </div>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                              <Lock className="w-4.5 h-4.5" />
+                            </div>
+                            <input
+                              type={showLoginPassword ? 'text' : 'password'}
+                              value={loginPassword}
+                              onChange={(e) => setLoginPassword(e.target.value)}
+                              placeholder="••••••••••••"
+                              className="w-full rounded-2xl bg-slate-950/80 border border-white/15 pl-12 pr-12 py-3.5 text-[14px] text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 font-medium transition-all"
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowLoginPassword(!showLoginPassword)}
+                              className="absolute inset-y-0 right-4 flex items-center text-slate-400 hover:text-white cursor-pointer select-none"
+                            >
+                              {showLoginPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Submit Button with Animated Shimmer */}
+                        <div className="pt-2">
+                          <button
+                            type="submit"
+                            disabled={loginLoading}
+                            className="shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-[15.5px] tracking-wide py-4 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/20 active:scale-98 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {/* Shimmer sweep layer */}
+                            <div className="shimmer-layer absolute inset-0 w-1/2 h-full bg-white/30 transform -skew-x-12 pointer-events-none -translate-x-full" />
+                            
+                            {loginLoading ? (
+                              <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> LOGGING IN...</span>
+                            ) : (
+                              <>
+                                <span>{isKhmer ? 'ចូលប្រើប្រាស់' : 'LOG IN'}</span>
+                                <ArrowRight className="w-5 h-5 stroke-[2.5]" />
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                      </form>
+                    )}
+
+                    {/* Divider */}
+                    <div className="flex items-center gap-3 my-5">
+                      <div className="h-[1px] bg-white/10 flex-grow" />
+                      <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">or</span>
+                      <div className="h-[1px] bg-white/10 flex-grow" />
+                    </div>
+
+                    {/* Google OAuth Button */}
+                    <button
+                      type="button"
+                      onClick={() => window.location.href = API + '/auth/google'}
+                      className="w-full bg-slate-950/80 hover:bg-slate-800/80 text-white border border-white/15 hover:border-white/30 font-bold text-[13.5px] py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2.5 transition active:scale-98 cursor-pointer shadow-sm"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.61c-.29 1.5-.14 3.01-.97 4.29l3.1 2.4c1.8-1.66 2.8-4.11 2.8-6.54z" />
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.1-2.4c-.9.6-2.01.99-3.23.99-3.11 0-5.74-2.11-6.68-4.96l-3.2 2.48C5.69 21.09 8.63 24 12 24z" />
+                        <path fill="#FBBC05" d="M5.32 14.72a7.16 7.16 0 0 1 0-4.55l-3.2-2.48a11.94 11.94 0 0 0 0 10.43l3.2-2.4c-.38-.3-.38-.7-.38-1z" />
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 8.63 0 5.69 2.91 3.72 6.79l3.2 2.48C7.86 6.36 10.49 4.75 12 4.75z" />
+                      </svg>
+                      <span>{isKhmer ? 'ចូលតាមរយៈ Google' : 'Sign in with Google'}</span>
+                    </button>
+
+                  </div>
+                )}
+
+                {/* ------------------------------------------------------------- */}
+                {/* VIEW B: REGISTER / CREATE ACCOUNT FORM */}
+                {/* ------------------------------------------------------------- */}
+                {view === 'register' && (
+                  <div className="space-y-6 animate-in fade-in duration-300">
+                    <div className="text-left mb-6">
+                      <h2 className="text-[26px] font-extrabold text-white tracking-tight">
+                        {isKhmer ? 'បង្កើតគណនីថ្មី' : 'Create Account'}
+                      </h2>
+                      <p className="text-[13.5px] text-slate-400 font-medium mt-1">
+                        {isKhmer ? 'ចាប់ផ្តើមដំណើរការឥណទាន និងការគ្រប់គ្រងហិរញ្ញវត្ថុ' : 'Get started in less than 2 minutes'}
+                      </p>
+                    </div>
+
+                    {!registerOtpSent ? (
+                      <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                        
+                        {/* Full Name */}
+                        <div className="space-y-1.5">
+                          <label className="block text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
+                            {isKhmer ? 'ឈ្មោះពេញ' : 'Full Name'}
+                          </label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                              <User className="w-4.5 h-4.5" />
+                            </div>
+                            <input
+                              type="text"
+                              value={registerName}
+                              onChange={(e) => setRegisterName(e.target.value)}
+                              placeholder="e.g. John Doe"
+                              className="w-full bg-slate-950/80 border border-white/15 rounded-2xl pl-12 pr-4 py-3.5 text-[14px] text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 font-medium transition-all"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        {/* Email Address (if enabled) */}
+                        {emailVerificationRequired && (
+                          <div className="space-y-1.5">
+                            <label className="block text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
+                              {isKhmer ? 'អាសយដ្ឋានអ៊ីមែល' : 'Email Address'}
+                            </label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                                <span className="text-[16px] font-light select-none">@</span>
+                              </div>
+                              <input
+                                type="email"
+                                value={registerEmail}
+                                onChange={(e) => setRegisterEmail(e.target.value)}
+                                placeholder="name@domain.com"
+                                className="w-full bg-slate-950/80 border border-white/15 rounded-2xl pl-12 pr-4 py-3.5 text-[14px] text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 font-medium transition-all"
+                                required
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Phone Number */}
+                        <div className="space-y-1.5">
+                          <label className="block text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
+                            {isKhmer ? 'លេខទូរស័ព្ទ' : 'Phone Number'}
+                          </label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                              <Phone className="w-4.5 h-4.5" />
+                            </div>
+                            <input
+                              type="tel"
+                              value={registerPhone}
+                              onChange={(e) => setRegisterPhone(e.target.value)}
+                              placeholder="012 345 678"
+                              className="w-full bg-slate-950/80 border border-white/15 rounded-2xl pl-12 pr-4 py-3.5 text-[14px] text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 font-medium transition-all"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        {/* Password & Confirm */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1.5">
+                            <label className="block text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
+                              {isKhmer ? 'ពាក្យសម្ងាត់' : 'Password'}
+                            </label>
+                            <div className="relative">
+                              <input
+                                type={showRegisterPassword ? 'text' : 'password'}
+                                value={registerPassword}
+                                onChange={(e) => setRegisterPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="w-full bg-slate-950/80 border border-white/15 rounded-2xl pl-4 pr-10 py-3.5 text-[14px] text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 font-mono transition-all"
+                                required
+                              />
                               <button
                                 type="button"
-                                onClick={() => { setRegisterOtpSent(false); setView('register'); }}
-                                className="text-[12px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-bold inline-flex items-center gap-1 hover:underline"
+                                onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                                className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-white cursor-pointer select-none"
                               >
-                                ✏️ Back to Register
+                                {showRegisterPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="block text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
+                              {isKhmer ? 'ផ្ទៀងផ្ទាត់' : 'Confirm'}
+                            </label>
+                            <div className="relative">
+                              <input
+                                type={showRegisterConfirmPassword ? 'text' : 'password'}
+                                value={registerConfirmPassword}
+                                onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="w-full bg-slate-950/80 border border-white/15 rounded-2xl pl-4 pr-10 py-3.5 text-[14px] text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 font-mono transition-all"
+                                required
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
+                                className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-white cursor-pointer select-none"
+                              >
+                                {showRegisterConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                               </button>
                             </div>
                           </div>
                         </div>
-                      ) : !tgOtpSent ? (
-                        /* Step A: Link & Trigger Onboarding Button */
-                        <div className="space-y-5">
-                          <div className="bg-[var(--surface-secondary)]/50 rounded-2xl p-5 border border-[var(--border-primary)]/40 space-y-3">
-                            <h4 className="text-[13.5px] font-bold text-[var(--text-primary)] flex items-center gap-1.5">
-                              🔗 Link Telegram & Receive OTP
-                            </h4>
-                            <p className="text-[12.5px] text-[var(--text-secondary)] leading-relaxed">
-                              We will link your Telegram account to phone number <strong className="text-[var(--text-primary)]">{registerPhone}</strong> and send your verification code instantly:
-                            </p>
-                            <ol className="text-[12px] text-[var(--text-secondary)] space-y-2 list-decimal pl-4">
-                              <li>Click the button below to open our Telegram Bot.</li>
-                              <li>Press <strong>Start</strong> in the chat.</li>
-                              <li>Click the <strong>📱 Share Phone Number to Link</strong> button that pops up at the bottom of your screen to get your code instantly.</li>
-                            </ol>
-                            <div className="pt-2">
-                              {typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData ? (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const webApp = (window as any).Telegram.WebApp;
-                                    webApp.requestContact((shared: boolean) => {
-                                      if (shared) {
-                                        setTgOtpSent(true);
-                                        setTgOtpTimer(300);
-                                        const interval = setInterval(() => {
-                                          setTgOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
-                                        }, 1000);
-                                        
-                                        const pollInterval = setInterval(async () => {
-                                          try {
-                                            const res = await fetch(`${API}/auth/check-link?phone=${encodeURIComponent(registerPhone)}`);
-                                            const data = await res.json();
-                                            if (data.linked) {
-                                              setTelegramLinked(true);
-                                              clearInterval(pollInterval);
-                                            }
-                                          } catch (e) {
-                                            console.error(e);
-                                          }
-                                        }, 2000);
-                                        setTimeout(() => clearInterval(pollInterval), 300000);
-                                      } else {
-                                        showToast('Sharing contact is required to link Telegram.', 'error');
-                                      }
-                                    });
-                                  }}
-                                  className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[14px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition shadow-sm hover:shadow active:scale-98 cursor-pointer text-center"
-                                >
-                                  📱 Share Phone Number
-                                </button>
+
+                        {/* Submit Action */}
+                        <div className="pt-3">
+                          <button
+                            type="submit"
+                            disabled={registerLoading}
+                            className="shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-[15.5px] tracking-wide py-4 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/20 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
+                          >
+                            <div className="shimmer-layer absolute inset-0 w-1/2 h-full bg-white/30 transform -skew-x-12 pointer-events-none -translate-x-full" />
+                            {registerLoading ? (
+                              <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> CREATING ACCOUNT...</span>
+                            ) : (
+                              <>
+                                <span>{isKhmer ? 'បង្កើតគណនី' : 'CREATE ACCOUNT'}</span>
+                                <ArrowRight className="w-5 h-5 stroke-[2.5]" />
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                      </form>
+                    ) : (
+                      /* Multi-Channel Verification Step (SMS / Telegram / Email) */
+                      <div className="space-y-6">
+                        
+                        {/* Channel selector tabs */}
+                        <div className="flex bg-slate-950/60 p-1 rounded-2xl border border-white/10">
+                          {emailVerificationRequired ? (
+                            <button
+                              type="button"
+                              onClick={() => handleTabChange('email')}
+                              className={`flex-1 py-2 text-[12.5px] font-bold rounded-xl transition cursor-pointer ${
+                                verifyMethod === 'email' ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400' : 'text-slate-400 hover:text-white'
+                              }`}
+                            >
+                              📧 Email
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleTabChange('sms')}
+                              className={`flex-1 py-2 text-[12.5px] font-bold rounded-xl transition cursor-pointer ${
+                                verifyMethod === 'sms' ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400' : 'text-slate-400 hover:text-white'
+                              }`}
+                            >
+                              💬 SMS OTP
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleTabChange('telegram')}
+                            className={`flex-1 py-2 text-[12.5px] font-bold rounded-xl transition cursor-pointer ${
+                              verifyMethod === 'telegram' ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-300' : 'text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            📱 Telegram
+                          </button>
+                        </div>
+
+                        {verifyMethod === 'email' || verifyMethod === 'sms' ? (
+                          <form onSubmit={handleVerifyRegisterOtp} className="space-y-5">
+                            <div className="bg-slate-950/60 p-4 rounded-2xl border border-white/10 text-center">
+                              <p className="text-[12.5px] text-slate-300 font-medium">
+                                Code sent to <strong className="text-emerald-400">{verifyMethod === 'sms' ? registerPhone : registerEmail}</strong>
+                              </p>
+                            </div>
+                            <input
+                              type="text"
+                              maxLength={6}
+                              value={registerOtpCode}
+                              onChange={(e) => setRegisterOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                              placeholder="000000"
+                              className="w-full text-center text-[28px] tracking-[10px] font-mono rounded-2xl bg-slate-950/90 border border-white/20 px-6 py-4 text-white focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition-all shadow-inner"
+                              required
+                            />
+                            <button
+                              type="submit"
+                              disabled={registerLoading || registerOtpCode.length < 6}
+                              className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-[15px] py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
+                            >
+                              {registerLoading ? (
+                                <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
                               ) : (
+                                <>{isKhmer ? 'ផ្ទៀងផ្ទាត់កូដ' : 'VERIFY CODE'} <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                              )}
+                            </button>
+                            <div className="flex justify-between items-center text-[12.5px]">
+                              <button type="button" onClick={handleResendRegisterOtp} disabled={registerOtpTimer > 0}
+                                className="text-slate-400 hover:text-emerald-400 cursor-pointer disabled:opacity-40 font-medium"
+                              >
+                                Resend code {registerOtpTimer > 0 && `(${Math.floor(registerOtpTimer / 60)}:${String(registerOtpTimer % 60).padStart(2, '0')})`}
+                              </button>
+                              <button type="button" onClick={() => { setRegisterOtpSent(false); setRegisterOtpCode(''); }}
+                                className="text-slate-400 hover:text-white cursor-pointer font-medium"
+                              >
+                                Change details
+                              </button>
+                            </div>
+                          </form>
+                        ) : (
+                          /* Telegram Link & OTP */
+                          <div className="space-y-4">
+                            {!emailVerificationRequired ? (
+                              <div className="bg-slate-950/60 rounded-2xl p-5 border border-white/10 space-y-3">
+                                <h4 className="text-[13.5px] font-bold text-white flex items-center gap-2">
+                                  <span>🔗 Link Telegram to Activate Profile</span>
+                                </h4>
+                                <p className="text-[12px] text-slate-300 leading-relaxed">
+                                  Press below to open our Telegram Bot and share your contact to activate instantly.
+                                </p>
+                                <a
+                                  href={`https://t.me/nexusfinancefintech_bot?start=${registeredUserId}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={() => {
+                                    const pollInterval = setInterval(async () => {
+                                      try {
+                                        const res = await fetch(`${API}/auth/check-link?userId=${registeredUserId}`);
+                                        const data = await res.json();
+                                        if (data.linked) {
+                                          clearInterval(pollInterval);
+                                          showToast('Telegram account linked and verified successfully!', 'success');
+                                          if (data.token) onLoginSuccess(data.token);
+                                          else { setView('login'); setRegisterOtpSent(false); }
+                                        }
+                                      } catch (e) { console.error(e); }
+                                    }, 2000);
+                                    setTimeout(() => clearInterval(pollInterval), 300000);
+                                  }}
+                                  className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[14px] py-3.5 rounded-2xl flex items-center justify-center gap-2 transition shadow-md cursor-pointer text-center"
+                                >
+                                  💬 Open Telegram Bot
+                                </a>
+                              </div>
+                            ) : !tgOtpSent ? (
+                              <div className="bg-slate-950/60 rounded-2xl p-5 border border-white/10 space-y-3">
+                                <h4 className="text-[13.5px] font-bold text-white flex items-center gap-2">
+                                  <span>🔗 Link Telegram & Receive OTP</span>
+                                </h4>
+                                <p className="text-[12px] text-slate-300 leading-relaxed">
+                                  Link your Telegram account to phone <strong className="text-emerald-400">{registerPhone}</strong> to get your verification code instantly:
+                                </p>
                                 <a
                                   href="https://t.me/nexusfinancefintech_bot"
                                   target="_blank"
                                   rel="noreferrer"
                                   onClick={() => {
-                                    // Instantly transition to code input screen
                                     setTgOtpSent(true);
                                     setTgOtpTimer(300);
                                     const interval = setInterval(() => {
                                       setTgOtpTimer(prev => { if (prev <= 1) clearInterval(interval); return prev - 1; });
                                     }, 1000);
-                                    
-                                    // Start background polling for linking success
                                     const pollInterval = setInterval(async () => {
                                       try {
                                         const res = await fetch(`${API}/auth/check-link?phone=${encodeURIComponent(registerPhone)}`);
@@ -1217,247 +1242,242 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                           setTelegramLinked(true);
                                           clearInterval(pollInterval);
                                         }
-                                      } catch (e) {
-                                        console.error(e);
-                                      }
+                                      } catch (e) { console.error(e); }
                                     }, 2000);
                                     setTimeout(() => clearInterval(pollInterval), 300000);
                                   }}
-                                  className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[14px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition shadow-sm hover:shadow active:scale-98 cursor-pointer text-center"
+                                  className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[14px] py-3.5 rounded-2xl flex items-center justify-center gap-2 transition shadow-md cursor-pointer text-center"
                                 >
                                   💬 Link & Get Code on Telegram
                                 </a>
-                              )}
-                              <div className="pt-2.5 text-center">
-                                <button
-                                  type="button"
-                                  onClick={() => { setRegisterOtpSent(false); setView('register'); }}
-                                  className="text-[12px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-bold inline-flex items-center gap-1 hover:underline"
-                                >
-                                  ✏️ Change phone number
-                                </button>
                               </div>
-                            </div>
+                            ) : (
+                              <form onSubmit={handleVerifyTgOtp} className="space-y-4">
+                                {telegramLinked ? (
+                                  <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl p-3 text-[12.5px] font-semibold flex items-center justify-center gap-2">
+                                    <span>✅ Telegram linked successfully!</span>
+                                  </div>
+                                ) : (
+                                  <div className="bg-slate-950/60 border border-white/10 text-slate-300 rounded-2xl p-3 text-[12.5px] font-semibold flex items-center justify-center gap-2">
+                                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-cyan-400" />
+                                    <span>Waiting for Telegram link & code...</span>
+                                  </div>
+                                )}
+                                <input
+                                  type="text"
+                                  maxLength={6}
+                                  value={tgOtpCode}
+                                  onChange={(e) => setTgOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                  placeholder="000000"
+                                  className="w-full text-center text-[28px] tracking-[10px] font-mono rounded-2xl bg-slate-950/90 border border-white/20 px-6 py-4 text-white focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition-all shadow-inner"
+                                  required
+                                />
+                                <button
+                                  type="submit"
+                                  disabled={registerLoading || tgOtpCode.length < 6}
+                                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-[15px] py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
+                                >
+                                  {registerLoading ? (
+                                    <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
+                                  ) : (
+                                    <>{isKhmer ? 'ផ្ទៀងផ្ទាត់កូដ' : 'VERIFY CODE'} <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                                  )}
+                                </button>
+                                <div className="flex justify-between items-center text-[12.5px]">
+                                  <button type="button" onClick={() => handleSendTgOtp()} disabled={tgOtpTimer > 0}
+                                    className="text-slate-400 hover:text-emerald-400 cursor-pointer disabled:opacity-40 font-medium"
+                                  >
+                                    Resend code {tgOtpTimer > 0 && `(${Math.floor(tgOtpTimer / 60)}:${String(tgOtpTimer % 60).padStart(2, '0')})`}
+                                  </button>
+                                  <button type="button" onClick={() => { setRegisterOtpSent(false); setTgOtpSent(false); }}
+                                    className="text-slate-400 hover:text-white cursor-pointer font-medium"
+                                  >
+                                    Change phone
+                                  </button>
+                                </div>
+                              </form>
+                            )}
                           </div>
-                        </div>
-                      ) : (
-                        /* Step B: Verify Code Form Screen */
-                        <form onSubmit={handleVerifyTgOtp} className="space-y-6">
-                          {telegramLinked ? (
-                            <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl p-4 text-[13px] font-semibold flex items-center justify-center gap-2 animate-in fade-in duration-300">
-                              <span>✅ Telegram linked to your phone successfully!</span>
+                        )}
+
+                      </div>
+                    )}
+
+                  </div>
+                )}
+
+                {/* ------------------------------------------------------------- */}
+                {/* VIEW C: FORGOT PASSWORD FORM */}
+                {/* ------------------------------------------------------------- */}
+                {view === 'forgot' && (
+                  <div className="space-y-6 animate-in fade-in duration-300">
+                    
+                    <div className="text-left mb-6">
+                      <h2 className="text-[26px] font-extrabold text-white tracking-tight">
+                        {showResetForm 
+                          ? (isKhmer ? 'កំណត់ពាក្យសម្ងាត់ថ្មី' : 'Set New Password') 
+                          : (isKhmer ? 'សង្គ្រោះពាក្យសម្ងាត់' : 'Reset Password')}
+                      </h2>
+                      <p className="text-[13.5px] text-slate-400 font-medium mt-1">
+                        {isKhmer ? 'យើងនឹងផ្ញើលេខកូដសម្ងាត់ដើម្បីផ្ទៀងផ្ទាត់គណនីរបស់អ្នក' : 'Recover your account access safely'}
+                      </p>
+                    </div>
+
+                    {!forgotOtpSent && !showResetForm ? (
+                      /* Step 1: Input email or phone */
+                      <form onSubmit={handleSendForgotOtp} className="space-y-4">
+                        <div className="space-y-1.5">
+                          <label className="block text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
+                            {emailVerificationRequired 
+                              ? (isKhmer ? 'អ៊ីមែល ឬ លេខទូរស័ព្ទ' : 'Email or Phone Number') 
+                              : (isKhmer ? 'លេខទូរស័ព្ទ' : 'Phone Number')}
+                          </label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                              <Lock className="w-4.5 h-4.5" />
                             </div>
-                          ) : (
-                            <div className="bg-[var(--surface-secondary)]/50 border border-[var(--border-primary)]/30 text-[var(--text-secondary)] rounded-2xl p-4 text-[13px] font-semibold flex items-center justify-center gap-2">
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                              <span>⏳ Waiting for Telegram link & code...</span>
-                            </div>
-                          )}
-                          <div className="text-center">
-                            <p className="text-[13px] text-[var(--text-secondary)] font-medium">
-                              Enter the 6-digit code sent to your Telegram chat.
-                            </p>
-                          </div>
-                          <div>
                             <input
-                              type="text"
-                              maxLength={6}
-                              value={tgOtpCode}
-                              onChange={(e) => setTgOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                              placeholder="000000"
-                              className="w-full text-center text-[28px] tracking-[12px] font-mono rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-4 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                              type={emailVerificationRequired ? 'text' : 'tel'}
+                              placeholder={emailVerificationRequired ? 'name@domain.com or 012 345 678' : '012 345 678'}
+                              value={forgotEmail}
+                              onChange={(e) => setForgotEmail(e.target.value)}
+                              className="w-full pl-12 pr-4 py-3.5 bg-slate-950/80 border border-white/15 rounded-2xl text-[14px] font-medium text-white focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition-all"
                               required
                             />
                           </div>
-                          <button
-                            type="submit"
-                            disabled={registerLoading || tgOtpCode.length < 6}
-                            className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[15.5px] py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50"
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={forgotLoading}
+                          className="shimmer-btn relative overflow-hidden w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-[15px] py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
+                        >
+                          <div className="shimmer-layer absolute inset-0 w-1/2 h-full bg-white/30 transform -skew-x-12 pointer-events-none -translate-x-full" />
+                          {forgotLoading ? (
+                            <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> SENDING OTP...</span>
+                          ) : (
+                            <>{isKhmer ? 'ផ្ញើលេខកូដ OTP' : 'SEND OTP CODE'} <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                          )}
+                        </button>
+                      </form>
+                    ) : forgotOtpSent && !showResetForm ? (
+                      /* Step 2: Input OTP */
+                      <form onSubmit={handleVerifyForgotOtp} className="space-y-5">
+                        <div className="bg-slate-950/60 p-4 rounded-2xl border border-white/10 text-center">
+                          <p className="text-[12.5px] text-slate-300 font-medium">
+                            Enter the code sent to <strong className="text-emerald-400">{forgotEmail}</strong>
+                          </p>
+                        </div>
+                        <input
+                          type="text"
+                          maxLength={6}
+                          value={forgotOtpCode}
+                          onChange={(e) => setForgotOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          placeholder="000000"
+                          className="w-full text-center text-[28px] tracking-[10px] font-mono rounded-2xl bg-slate-950/90 border border-white/20 px-6 py-4 text-white focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition-all shadow-inner"
+                          required
+                        />
+                        <button
+                          type="submit"
+                          disabled={forgotLoading || forgotOtpCode.length < 6}
+                          className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-[15px] py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
+                        >
+                          {forgotLoading ? (
+                            <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> VERIFYING...</span>
+                          ) : (
+                            <>{isKhmer ? 'ផ្ទៀងផ្ទាត់' : 'VERIFY CODE'} <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                          )}
+                        </button>
+                        <div className="flex justify-between items-center text-[12.5px]">
+                          <button type="button" onClick={handleResendForgotOtp} disabled={forgotOtpTimer > 0}
+                            className="text-slate-400 hover:text-emerald-400 cursor-pointer disabled:opacity-40 font-medium"
                           >
-                            {registerLoading ? (
-                              <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
-                            ) : (
-                              <>VERIFY CODE <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
-                            )}
+                            Resend code {forgotOtpTimer > 0 && `(${Math.floor(forgotOtpTimer / 60)}:${String(forgotOtpTimer % 60).padStart(2, '0')})`}
                           </button>
-                          <div className="flex justify-between items-center text-[13px]">
-                            <button type="button" onClick={() => handleSendTgOtp()} disabled={tgOtpTimer > 0}
-                              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40 font-medium"
-                            >
-                              Resend code {tgOtpTimer > 0 && `(${Math.floor(tgOtpTimer / 60)}:${String(tgOtpTimer % 60).padStart(2, '0')})`}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => { setRegisterOtpSent(false); setTgOtpSent(false); setTgOtpCode(''); setView('register'); }}
-                              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
-                            >
-                              Change phone number
-                            </button>
-                          </div>
-                        </form>
-                      )}
+                          <button type="button" onClick={() => { setForgotOtpSent(false); setForgotOtpCode(''); }}
+                            className="text-slate-400 hover:text-white cursor-pointer font-medium"
+                          >
+                            Change input
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      /* Step 3: New Password Input */
+                      <form onSubmit={handleResetPassword} className="space-y-4">
+                        <div className="space-y-1.5">
+                          <label className="block text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
+                            {isKhmer ? 'ពាក្យសម្ងាត់ថ្មី' : 'New Password'}
+                          </label>
+                          <input 
+                            type="password" 
+                            value={resetPassword} 
+                            onChange={(e) => setResetPassword(e.target.value)} 
+                            placeholder="Min 6 characters" 
+                            className="w-full px-4 py-3.5 bg-slate-950/80 border border-white/15 rounded-2xl text-[14px] font-medium text-white focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition-all" 
+                            required 
+                            minLength={6} 
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="block text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
+                            {isKhmer ? 'ផ្ទៀងផ្ទាត់ពាក្យសម្ងាត់ថ្មី' : 'Confirm New Password'}
+                          </label>
+                          <input 
+                            type="password" 
+                            value={resetConfirmPassword} 
+                            onChange={(e) => setResetConfirmPassword(e.target.value)} 
+                            placeholder="Re-enter new password" 
+                            className="w-full px-4 py-3.5 bg-slate-950/80 border border-white/15 rounded-2xl text-[14px] font-medium text-white focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition-all" 
+                            required 
+                            minLength={6} 
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={forgotLoading}
+                          className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-[15px] py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
+                        >
+                          {forgotLoading ? (
+                            <span className="flex items-center gap-2"><RefreshCw className="w-4.5 h-4.5 animate-spin" /> SAVING...</span>
+                          ) : (
+                            <>{isKhmer ? 'រក្សាទុកពាក្យសម្ងាត់' : 'SAVE NEW PASSWORD'} <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
+                          )}
+                        </button>
+                      </form>
+                    )}
+
+                    {/* Back to login trigger */}
+                    <div className="text-center pt-2">
+                      <button
+                        type="button"
+                        onClick={() => { setView('login'); setForgotOtpSent(false); setShowResetForm(false); }}
+                        className="text-[13px] font-bold text-slate-400 hover:text-white cursor-pointer transition inline-flex items-center gap-1.5"
+                      >
+                        ← {isKhmer ? 'ត្រឡប់ទៅការចូលប្រើ' : 'Back to Login'}
+                      </button>
                     </div>
-                  )}
-                </div>
-              )}
 
-              {/* Already have accounts */}
-              <div className="text-center mt-6 text-[13.5px] font-semibold text-[var(--text-secondary)]">
-                <span>Already have an account? </span>
-                <button 
-                  onClick={() => setView('login')}
-                  className="text-[var(--text-primary)] hover:text-[var(--accent-hover)] cursor-pointer font-bold ml-0.5"
-                >
-                  Log In
-                </button>
-              </div>
-
-            </div>
-          </main>
-
-          {/* Footer of Create Account page */}
-          <footer className="relative z-10 px-6 py-6 sm:px-12 border-t border-[var(--border-primary)]/50 bg-[var(--surface-card)]/40 flex flex-col md:flex-row justify-between items-center gap-4 text-[12px] font-semibold tracking-wide text-[var(--text-secondary)]">
-            <div>
-              <p>© 2026 Nexus Finance. All rights reserved.</p>
-            </div>
-            <div className="flex gap-6">
-              <a href="/privacy" className="hover:text-[var(--text-primary)] transition">Privacy Policy</a>
-              <a href="/terms" className="hover:text-[var(--text-primary)] transition">Terms of Service</a>
-              <a href="/privacy" className="hover:text-[var(--text-primary)] transition">Security</a>
-            </div>
-          </footer>
-        </div>
-      )}
-
-      {view === 'forgot' && (
-        <div className="min-h-screen flex flex-col justify-between w-full h-full">
-          <div className="flex-grow flex flex-col justify-center items-center px-4 py-8">
-            <div className="bg-[var(--surface-card)]/90 backdrop-blur-xl rounded-[32px] border border-[var(--border-primary)]/80 p-8 sm:p-12 w-full max-w-lg shadow-xl shadow-teal-900/5 flex flex-col items-center animate-in zoom-in-95 duration-200">
-
-              <div className="relative w-16 h-16 bg-[var(--surface-secondary)] rounded-full flex items-center justify-center text-[var(--text-secondary)] border border-[var(--border-primary)]/10 mb-6">
-                <Lock className="w-7 h-7" />
-              </div>
-
-              <h2 className="text-[28px] sm:text-[32px] font-bold text-[var(--text-primary)] text-center tracking-tight">
-                {showResetForm ? 'Set New Password' : 'Reset Password'}
-              </h2>
-
-              {!forgotOtpSent && !showResetForm ? (
-                /* Step 1: Email input */
-                <form onSubmit={handleSendForgotOtp} className="w-full space-y-5">
-                  <p className="text-[13px] text-[var(--text-secondary)] font-medium text-center">
-                    {emailVerificationRequired ? 'Enter your email to receive a 6-digit code' : 'Enter your phone number to receive a 6-digit code'}
-                  </p>
-                  <div className="space-y-1.5">
-                    <label className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">{emailVerificationRequired ? 'Email' : 'Phone Number'}</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                        {emailVerificationRequired ? <Lock className="w-4 h-4 text-[var(--text-tertiary)]" /> : <Phone className="w-4 h-4 text-[var(--text-tertiary)]" />}
-                      </div>
-                      <input
-                        type={emailVerificationRequired ? 'email' : 'tel'}
-                        placeholder={emailVerificationRequired ? 'Enter your email address' : 'Enter your phone number'}
-                        value={forgotEmail}
-                        onChange={(e) => setForgotEmail(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3.5 bg-[var(--surface-card)]/90 border border-[var(--border-primary)]/90 rounded-2xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all"
-                        required
-                      />
-                    </div>
                   </div>
-                  <button
-                    type="submit"
-                    disabled={forgotLoading}
-                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg text-[15px] cursor-pointer disabled:opacity-50"
-                  >
-                    {forgotLoading ? (
-                      <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> SENDING OTP...</span>
-                    ) : (
-                      <>SEND OTP <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
-                    )}
-                  </button>
-                </form>
-              ) : forgotOtpSent && !showResetForm ? (
-                /* Step 2: OTP code input */
-                <form onSubmit={handleVerifyForgotOtp} className="w-full space-y-6">
-                  <p className="text-[13px] text-[var(--text-secondary)] font-medium text-center">
-                    Enter the code sent to <strong className="text-[var(--text-primary)]">{forgotEmail}</strong>
-                  </p>
-                  <input
-                    type="text"
-                    maxLength={6}
-                    value={forgotOtpCode}
-                    onChange={(e) => setForgotOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="000000"
-                    className="w-full text-center text-[28px] tracking-[12px] font-mono rounded-2xl bg-[var(--surface-card)] border border-[var(--border-primary)]/90 px-6 py-4 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/80 focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    disabled={forgotLoading || forgotOtpCode.length < 6}
-                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg text-[15px] cursor-pointer disabled:opacity-50"
-                  >
-                    {forgotLoading ? (
-                      <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> VERIFYING...</span>
-                    ) : (
-                      <>VERIFY <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
-                    )}
-                  </button>
-                  <div className="flex justify-between items-center text-[13px]">
-                    <button type="button" onClick={handleResendForgotOtp} disabled={forgotOtpTimer > 0}
-                      className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40 font-medium"
-                    >
-                      Resend code {forgotOtpTimer > 0 && `(${Math.floor(forgotOtpTimer / 60)}:${String(forgotOtpTimer % 60).padStart(2, '0')})`}
-                    </button>
-                    <button type="button" onClick={() => { setForgotOtpSent(false); setForgotOtpCode(''); }}
-                      className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer font-medium"
-                    >
-                      Use different email
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                /* Step 3: Reset password form */
-                <form onSubmit={handleResetPassword} className="w-full space-y-5">
-                  <p className="text-[13px] text-[var(--text-secondary)] font-medium text-center">
-                    Choose a new password
-                  </p>
-                  <div className="space-y-1.5">
-                    <label className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">New Password</label>
-                    <input type="password" value={resetPassword} onChange={(e) => setResetPassword(e.target.value)} placeholder="Min 6 characters" className="w-full px-4 py-3.5 bg-[var(--surface-card)]/90 border border-[var(--border-primary)]/90 rounded-2xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all" required minLength={6} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11.5px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Confirm New Password</label>
-                    <input type="password" value={resetConfirmPassword} onChange={(e) => setResetConfirmPassword(e.target.value)} placeholder="Confirm new password" className="w-full px-4 py-3.5 bg-[var(--surface-card)]/90 border border-[var(--border-primary)]/90 rounded-2xl text-[14px] font-medium focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-primary)] transition-all" required minLength={6} />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={forgotLoading}
-                    className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold py-4 rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md hover:shadow-lg text-[15px] cursor-pointer disabled:opacity-50"
-                  >
-                    {forgotLoading ? (
-                      <span className="flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> RESETTING...</span>
-                    ) : (
-                      <>RESET PASSWORD <ArrowRight className="w-5 h-5 stroke-[2.5]" /></>
-                    )}
-                  </button>
-                </form>
-              )}
+                )}
 
-              <div className="w-full flex justify-between items-center text-[13px] font-bold text-[var(--text-secondary)] mt-8 pt-6 border-t border-[var(--border-primary)] select-none">
-                <button onClick={() => setView('login')} className="hover:text-[var(--text-primary)] cursor-pointer">
-                  ← Back to Login
-                </button>
-                <button onClick={() => setView('register')} className="hover:text-[var(--text-primary)] cursor-pointer">
-                  Create Account
-                </button>
               </div>
             </div>
+
           </div>
-          <footer className="relative z-10 px-6 py-6 sm:px-12 bg-transparent flex justify-center text-[11.5px] font-semibold text-[var(--text-secondary)]/60">
-            <p>© 2026 Nexus Finance. All rights reserved.</p>
-          </footer>
-        </div>
-      )}
+        </main>
+
+        {/* Global Footer */}
+        <footer className="relative z-20 px-6 py-5 sm:px-12 border-t border-white/5 bg-slate-950/40 flex flex-col md:flex-row justify-between items-center gap-3 text-[12px] font-medium text-slate-500">
+          <div>
+            <p>© 2026 Nexus Finance Inc. All rights reserved.</p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+            <a href="/privacy" className="hover:text-slate-300 transition">Privacy Policy</a>
+            <a href="/terms" className="hover:text-slate-300 transition">Terms of Service</a>
+            <a href="/privacy" className="hover:text-slate-300 transition">Regulatory Disclosure</a>
+            <a href="/privacy" className="hover:text-slate-300 transition">Bank-Grade Security</a>
+          </div>
+        </footer>
+
       </div>
     </div>
   );

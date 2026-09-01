@@ -16,7 +16,7 @@ os.makedirs(KH_DIR, exist_ok=True)
 #  1. EXECUTIVE OVERVIEW
 # ═══════════════════════════════════════════════════════════════
 def doc001(doc):
-    doc.cover(version="1.0", date="August 2026", author="NDX Digital Support",
+    doc.cover(version="1.1", date="August 2026", author="NDX Digital Support",
               tags=["Loan Management", "KHQR Payments", "Telegram Bot", "Android App"])
     doc.toc([
         ("1", "Executive Summary"),
@@ -42,9 +42,9 @@ def doc001(doc):
         [
             ["Web App", "React SPA with three portals — Customer, Loan Officer, Super Admin"],
             ["Backend API", "Node.js/Express REST API with JWT authentication and audit logging"],
-            ["Auth", "Email + password with Brevo OTP verification — login blocked until the email is verified"],
+            ["Auth", "Email or phone + password with OTP verification (Brevo email or Telegram/SMS) — login blocked until verified"],
             ["Payments", "KHQR (Bakong) integration and ABA PayWay hosted checkout"],
-            ["Telegram Bot", "Payment notifications, reminders, admin commands"],
+            ["Telegram Bot", "Payment notifications, reminders, admin commands, phone linking, password/phone changes"],
             ["Android App", "Expo WebView shell — installable APK"],
             ["Deployment", "Vercel (frontend) + Render (backend) + Supabase (database)"],
         ],
@@ -53,13 +53,13 @@ def doc001(doc):
 
     doc.h1("3. Demo Accounts")
     doc.table(
-        ["Role", "Email", "Password"],
+        ["Role", "Email", "Phone", "Password"],
         [
-            ["Customer", "customer@nexus.com", "password123"],
-            ["Loan Officer", "officer@nexus.com", "password123"],
-            ["Super Admin", "admin@nexus.com", "password123"],
+            ["Customer", "customer@nexus.com", "85570961423", "password123"],
+            ["Loan Officer", "officer@nexus.com", "85570961424", "password123"],
+            ["Super Admin", "admin@nexus.com", "85570961425", "password123"],
         ],
-        col_widths=[1.6, 2.6, 2.2],
+        col_widths=[1.4, 2.2, 1.6, 1.2],
     )
     doc.callout("Security note",
                 "All passwords are stored as bcrypt hashes. OTP codes are hashed and expire "
@@ -73,36 +73,37 @@ def doc001(doc):
             ["Frontend", "React 18, TypeScript, Vite, Tailwind CSS"],
             ["Backend", "Node.js, Express, TypeScript (tsx)"],
             ["Database", "Supabase (PostgreSQL)"],
-            ["Auth", "JWT + bcrypt + Brevo OTP email"],
+            ["Auth", "JWT + bcrypt + Brevo OTP email / Telegram OTP / SMS"],
             ["Hosting", "Vercel (frontend) + Render (backend)"],
             ["Payments", "KHQR / EMVCo QR, ABA PayWay (sandbox)"],
-            ["Notifications", "Telegram Bot API, Brevo transactional email"],
+            ["Notifications", "Telegram Bot API, Brevo transactional email, Brevo SMS"],
             ["Mobile", "Expo SDK 57, React Native WebView"],
         ],
         col_widths=[1.8, 4.6],
     )
 
     doc.h1("5. Security & Compliance Highlights")
-    doc.bullet("JWT sessions with server-side role enforcement (customer / loan-officer / super-admin)")
+    doc.bullet("JWT sessions with server-side role enforcement (customer / loan-officer / admin / super-admin)")
     doc.bullet("Bcrypt password hashing — no plain-text credentials stored")
-    doc.bullet("Email OTP verification required before first login (new accounts are locked until verified)")
+    doc.bullet("OTP verification required before first login (email, Telegram, or SMS delivery)")
+    doc.bullet("Email verification optional — configurable per platform by Super Admin")
     doc.bullet("Full audit log with timestamps for every sensitive action")
     doc.bullet("Rate limiting on auth endpoints to prevent brute force")
     doc.bullet("Environment variables keep all secrets out of the codebase")
 
     doc.h1("6. Roadmap")
     doc.check_item("Go live with ABA PayWay production checkout")
-    doc.check_item("Add ACLEDA bank integration for payment notifications")
     doc.check_item("Connect Vercel auto-deploys (already connected)")
-    doc.check_item("Add Google OAuth sign-in (deferred)")
     doc.check_item("Launch customer mobile app to app stores")
+    doc.check_item("Add Google OAuth sign-in (deferred)")
+    doc.check_item("Add ACLEDA bank integration for payment notifications (deferred)")
 
 
 # ═══════════════════════════════════════════════════════════════
 #  2. PLATFORM REPORT
 # ═══════════════════════════════════════════════════════════════
 def doc002(doc):
-    doc.cover(version="1.0", date="August 2026", author="NDX Digital Support",
+    doc.cover(version="1.1", date="August 2026", author="NDX Digital Support",
               tags=["Full Project Report", "Features", "Architecture", "Integrations"])
     doc.toc([
         ("1", "Project Overview"),
@@ -115,16 +116,18 @@ def doc002(doc):
     ])
     doc.h1("1. Project Overview")
     doc.p("NexusFinance is a comprehensive fintech lending platform designed for microfinance "
-          "institutions in Cambodia. The platform serves three user roles — Customers, Loan Officers, "
-          "and Super Administrators — each with a dedicated portal tailored to their workflow.")
+          "institutions in Cambodia. The platform serves four user roles — Customers, Loan Officers, "
+          "Admins, and Super Administrators — each with a dedicated portal tailored to their workflow.")
 
     doc.h1("2. Portal Features")
     doc.h2("2.1 Customer Portal")
+    doc.bullet("Redesigned dashboard with balance card, loan progress, due date stats, and full-width Recent History")
     doc.bullet("Loan application with step-by-step form (personal info, financial details, loan terms)")
-    doc.bullet("Outstanding balance tracking and wallet management")
-    doc.bullet("KHQR payment integration (Bakong-compatible)")
-    doc.bullet("Transaction history and repayment scheduling")
+    doc.bullet("Merged Loans + History Logs page with loan cards and transaction history")
+    doc.bullet("KHQR Payment page with ABA PayWay hosted checkout")
     doc.bullet("Profile management (name, email, phone, password)")
+    doc.bullet("Phone number change with Telegram-based OTP verification")
+    doc.bullet("Password change via Telegram deep link")
 
     doc.h2("2.2 Loan Officer Portal")
     doc.bullet("Application review dashboard with priority filtering")
@@ -135,23 +138,30 @@ def doc002(doc):
     doc.h2("2.3 Super Admin Portal")
     doc.bullet("Platform-wide analytics and volume tracking")
     doc.bullet("Interest rate and auto-underwrite configuration")
-    doc.bullet("User management (roles, password resets)")
+    doc.bullet("User management (roles, password resets, promotion to admin)")
     doc.bullet("Full audit log with timestamped entries")
-    doc.bullet("System configuration")
+    doc.bullet("System configuration (email verification toggle, Telegram bot settings, Brevo SMS config)")
+    doc.bullet("Payment Reminder Settings with per-interval and overdue reminders")
+    doc.bullet("Broadcast messaging to all linked users")
+    doc.bullet("Loan Management (view, filter, and manage all loans)")
 
     doc.h1("3. Authentication & User Management")
     doc.table(
         ["Feature", "Implementation"],
         [
-            ["Registration", "Email + password → Brevo OTP verification (10-min expiry)"],
-            ["Login", "Email + password with bcrypt comparison, JWT issued — blocked until email is verified"],
-            ["Email Verification", "New accounts cannot log in until the emailed OTP is verified"],
-            ["Password Reset", "Brevo OTP → verify code → set new password"],
+            ["Registration", "Email + password + phone (optional) → OTP verification (email, Telegram, or SMS)"],
+            ["Login", "Email or phone + password with bcrypt comparison, JWT issued — blocked until verified"],
+            ["Email Verification", "Optional — configurable by Super Admin. When enabled, new accounts are locked until OTP verified"],
+            ["Phone-Only Users", "Phone-only registration creates synthetic email (e.g., 85570961423@nexus.local)"],
+            ["Password Reset", "OTP via email → verify code → set new password"],
+            ["Password Change (Web)", "OTP verification required before password update via Profile page"],
+            ["Password Change (Telegram)", "Send /changepassword to bot — OTP sent via Telegram message"],
+            ["Phone Change", "Profile triggers verification; user verifies via Telegram bot deep link"],
             ["Profile Update", "PATCH /api/auth/profile (name, email, phone)"],
-            ["Password Change", "OTP verification required before password update"],
-            ["Role System", "customer, loan-officer, super-admin with server-side enforcement"],
+            ["Role System", "customer / loan-officer / admin / super-admin with server-side enforcement"],
+            ["Single-Trip Phone Linkage", "Share phone number via Telegram bot — instant link, OTP sent in same response"],
         ],
-        col_widths=[2.0, 4.4],
+        col_widths=[2.2, 4.2],
     )
 
     doc.h1("4. Payment Integration")
@@ -178,13 +188,15 @@ def doc002(doc):
         ["Command", "Access", "Description"],
         [
             ["/start", "All users", "Welcome message and quick actions"],
-            ["/link", "All users", "Link Telegram account — emails a code to your NexusFinance profile"],
+            ["/link", "All users", "Link Telegram account — emails a verification code"],
             ["/confirm <code>", "All users", "Complete linking with the emailed code"],
             ["/unlink", "All users", "Unlink Telegram account"],
             ["/status", "All users", "View linked account status"],
+            ["/send", "All users", "Share phone number for single-trip linkage"],
+            ["/changepassword", "All users", "Start password change flow — OTP sent via Telegram"],
             ["/reminder-check", "Admin", "Run payment reminder check now"],
             ["/broadcast", "Admin", "Send message to all linked users"],
-            ["/send", "Admin", "Send message to a specific user"],
+            ["/send <user_id>", "Admin", "Send message to a specific user"],
             ["/stats", "Admin", "Platform statistics"],
             ["/loans", "Admin", "Recent loan applications"],
             ["/users", "Admin", "Registered users list"],
@@ -211,6 +223,7 @@ def doc002(doc):
             ["Backend", "Render", "Node.js/Express, free tier with UptimeRobot keep-alive"],
             ["Database", "Supabase", "PostgreSQL with Row Level Security"],
             ["Email", "Brevo", "Transactional OTP emails, 300/day free tier"],
+            ["SMS", "Brevo", "OTP SMS delivery via Brevo API"],
             ["Monitoring", "UptimeRobot", "5-minute health checks on /api/health"],
             ["Bot", "Telegram API", "node-telegram-bot-api with long polling"],
         ],
@@ -222,7 +235,7 @@ def doc002(doc):
 #  3. SECURITY & COMPLIANCE
 # ═══════════════════════════════════════════════════════════════
 def doc003(doc):
-    doc.cover(version="1.0", date="August 2026", author="NDX Digital Support",
+    doc.cover(version="1.1", date="August 2026", author="NDX Digital Support",
               tags=["Security", "Auth", "OTP", "Data Protection", "Audit"])
     doc.toc([
         ("1", "Authentication Architecture"),
@@ -236,21 +249,24 @@ def doc003(doc):
         ("9", "Payment Security"),
     ])
     doc.h1("1. Authentication Architecture")
-    doc.p("NexusFinance uses a multi-layer authentication system combining email/password "
-          "with OTP verification. All authentication flows are handled by the Express backend "
+    doc.p("NexusFinance uses a multi-layer authentication system combining email or phone "
+          "with password and OTP verification. All authentication flows are handled by the Express backend "
           "and validated against the Supabase PostgreSQL database.")
 
     doc.h2("1.1 Auth Flow Summary")
     doc.table(
         ["Flow", "Steps", "Security Measure"],
         [
-            ["Register", "Email + password → OTP email → verify → account created", "OTP hash, 10-min expiry"],
-            ["Login", "Email + password → bcrypt verify → email must be verified → JWT issued", "Rate limited, gated on email_verified"],
-            ["Email Verification", "Unverified accounts receive 403 EMAIL_NOT_VERIFIED and must verify first", "email_verified flag on nexus_users"],
+            ["Register", "Email + password + phone → OTP (email/Telegram/SMS) → verify → account created", "OTP hash, 10-min expiry"],
+            ["Phone-Only Register", "Phone + password → synthetic email → OTP (Telegram/SMS) → verify", "Synthetic email (e.g., 85570961423@nexus.local)"],
+            ["Login", "Email or phone + password → bcrypt verify → must be verified → JWT issued", "Rate limited, gated on verified flag"],
+            ["Email Verification", "Optional — configurable by Super Admin. When enabled, 403 EMAIL_NOT_VERIFIED returned", "email_verified flag on nexus_users"],
             ["Forgot Password", "Email → OTP → verify → set new password", "OTP verified before change"],
-            ["Change Password", "OTP email → verify → update password", "Requires active session + OTP"],
+            ["Change Password (Web)", "OTP email → verify → update password", "Requires active session + OTP"],
+            ["Change Password (Telegram)", "/changepassword → OTP sent via Telegram → verify → update", "Deep link + Telegram OTP"],
+            ["Phone Change", "Profile triggers verification → user verifies via Telegram bot deep link", "Phone change OTP via Telegram"],
         ],
-        col_widths=[1.6, 3.0, 1.8],
+        col_widths=[1.8, 2.8, 1.8],
     )
 
     doc.h1("2. Password Security")
@@ -258,7 +274,7 @@ def doc003(doc):
     doc.bullet("Plain-text passwords are never stored or logged")
     doc.bullet("Password comparison uses bcrypt.compare() — constant-time to prevent timing attacks")
     doc.bullet("Minimum password length: 6 characters (enforced on registration)")
-    doc.bullet("All password changes require OTP verification first")
+    doc.bullet("All password changes require OTP verification first (email or Telegram)")
 
     doc.h1("3. OTP Verification System")
     doc.table(
@@ -269,7 +285,7 @@ def doc003(doc):
             ["Expiry", "10 minutes from generation"],
             ["Verified Window", "15 minutes after successful verification"],
             ["Storage", "otp_code (hashed), otp_expires_at, otp_verified_at columns on nexus_users"],
-            ["Delivery", "Brevo transactional email API"],
+            ["Delivery Channels", "Brevo email API, Telegram bot messages, Brevo SMS API"],
             ["Resend Limit", "300 seconds cooldown"],
         ],
         col_widths=[2.0, 4.4],
@@ -291,13 +307,14 @@ def doc003(doc):
         [
             ["customer", "Apply for loans, view own transactions, manage profile, make payments"],
             ["loan-officer", "Review applications, approve/reject/hold loans, view assigned cases, access stats & tasks"],
-            ["super-admin", "Full access: analytics, user management, config, audit logs, bot commands"],
+            ["admin", "Client-level admin — platform dashboard access, user management, loan oversight"],
+            ["super-admin", "Full access: analytics, user management, config, audit logs, bot commands, system settings"],
         ],
         col_widths=[1.6, 4.8],
     )
     doc.p("All API endpoints enforce role checks server-side. A user cannot access another "
           "role's endpoints even with a valid JWT token. Loan approval/rejection/hold actions "
-          "and the platform statistics and tasks endpoints require a loan-officer or super-admin role.")
+          "and the platform statistics and tasks endpoints require a loan-officer, admin, or super-admin role.")
 
     doc.h1("6. Audit Logging")
     doc.bullet("Every sensitive action is logged to the nexus_audit_logs table")
@@ -333,7 +350,7 @@ def doc003(doc):
 #  4. USER MANUAL — ADMIN & OFFICER
 # ═══════════════════════════════════════════════════════════════
 def doc004(doc):
-    doc.cover(version="1.0", date="August 2026", author="NDX Digital Support",
+    doc.cover(version="1.1", date="August 2026", author="NDX Digital Support",
               tags=["Admin Guide", "Loan Officer Guide", "Operations Manual"])
     doc.toc([
         ("1", "Logging In"),
@@ -341,19 +358,22 @@ def doc004(doc):
         ("3", "User Management"),
         ("4", "Loan Review Workflow"),
         ("5", "System Configuration"),
-        ("6", "Audit Logs"),
-        ("7", "Telegram Bot Commands"),
+        ("6", "Payment Reminders"),
+        ("7", "Broadcasts"),
+        ("8", "Loan Management"),
+        ("9", "Audit Logs"),
+        ("10", "Telegram Bot Commands"),
     ])
     doc.h1("1. Logging In")
-    doc.p("Navigate to https://nexusfinancefintech.vercel.app and enter your email and password. "
-          "You will be redirected to the appropriate portal based on your role.")
+    doc.p("Navigate to https://nexusfinancefintech.vercel.app and enter your email or phone "
+          "number and password. You will be redirected to the appropriate portal based on your role.")
     doc.table(
-        ["Email", "Password", "Role"],
+        ["Email", "Phone", "Password", "Role"],
         [
-            ["admin@nexus.com", "password123", "Super Admin"],
-            ["officer@nexus.com", "password123", "Loan Officer"],
+            ["admin@nexus.com", "85570961425", "password123", "Super Admin"],
+            ["officer@nexus.com", "85570961424", "password123", "Loan Officer"],
         ],
-        col_widths=[2.4, 2.0, 2.0],
+        col_widths=[2.0, 1.6, 1.4, 1.4],
     )
 
     doc.h1("2. Super Admin Dashboard")
@@ -361,18 +381,19 @@ def doc004(doc):
     doc.bullet("Outstanding balance and total volume")
     doc.bullet("Active customers and loan count")
     doc.bullet("Recent transaction history")
-    doc.bullet("Quick access to Apply Loan, Repay, Wallets, Support")
+    doc.bullet("Quick access to Apply Loan, Repay, Support")
 
     doc.h1("3. User Management")
     doc.p("Navigate to the Users section (Admin sidebar) to:")
     doc.bullet("View all registered users with search and pagination")
-    doc.bullet("Change user roles (Customer, Loan Officer, Super Admin)")
+    doc.bullet("Change user roles (Customer, Loan Officer, Admin, Super Admin)")
+    doc.bullet("Promote users to admin level via the roles dropdown")
     doc.bullet("Reset user passwords")
     doc.bullet("View user creation dates and last login")
 
     doc.h1("4. Loan Review Workflow")
     doc.h2("4.1 Viewing Applications")
-    doc.p("The Loans Ledger shows all loan applications with status, amount, applicant, and dates.")
+    doc.p("The Loans page shows all loan applications with status, amount, applicant, and dates.")
     doc.h2("4.2 Reviewing an Application")
     doc.bullet("Click on any loan to open the detail modal")
     doc.bullet("Review applicant information and financial details")
@@ -383,17 +404,39 @@ def doc004(doc):
     doc.bullet("Hold — keeps the application in review status")
 
     doc.h1("5. System Configuration")
-    doc.p("Super Admins can adjust platform settings:")
+    doc.p("Super Admins can adjust platform settings via the Settings page:")
     doc.bullet("Interest rates (monthly)")
     doc.bullet("Auto-underwrite threshold")
     doc.bullet("Platform name and branding")
     doc.bullet("Minimum and maximum loan amounts")
+    doc.bullet("Email Verification Required — toggle to enable/disable email verification for new users")
+    doc.bullet("Telegram Bot Token and Admin ID configuration")
+    doc.bullet("Brevo SMS API Key and Sender Name configuration")
 
-    doc.h1("6. Audit Logs")
+    doc.h1("6. Payment Reminders")
+    doc.p("Navigate to the Reminders page to configure automated payment reminders:")
+    doc.bullet("Per-interval reminders (e.g., 3 days before due date)")
+    doc.bullet("Overdue reminders (e.g., 1 day after missed payment)")
+    doc.bullet("Reminder scheduling — 9:00 AM Cambodia time daily")
+    doc.bullet("View reminder logs and history")
+    doc.bullet("Rule-based reminder settings with configurable intervals")
+
+    doc.h1("7. Broadcasts")
+    doc.p("Navigate to the Broadcasts page to send messages to all linked users:")
+    doc.bullet("Compose and send announcements to all Telegram-linked users")
+    doc.bullet("View broadcast history and delivery status")
+
+    doc.h1("8. Loan Management")
+    doc.p("Navigate to the Loan Management page to view and manage all loans:")
+    doc.bullet("View all loans with filters (status, applicant, amount)")
+    doc.bullet("Quick actions: approve, reject, hold from the list view")
+    doc.bullet("Export loan data")
+
+    doc.h1("9. Audit Logs")
     doc.p("Navigate to History Logs to view the complete audit trail. Every action — logins, "
           "loan changes, profile updates, password changes — is recorded with timestamps and user details.")
 
-    doc.h1("7. Telegram Bot Commands")
+    doc.h1("10. Telegram Bot Commands")
     doc.p("The following commands are available to Super Admins via the Telegram bot:")
     doc.table(
         ["Command", "Description"],
@@ -418,15 +461,16 @@ def doc004(doc):
 #  5. USER MANUAL — CUSTOMER
 # ═══════════════════════════════════════════════════════════════
 def doc005(doc):
-    doc.cover(version="1.0", date="August 2026", author="NDX Digital Support",
+    doc.cover(version="1.1", date="August 2026", author="NDX Digital Support",
               tags=["Customer Guide", "Registration", "Loan Application", "Payments"])
     doc.toc([
         ("1", "Getting Started"),
         ("2", "Creating an Account"),
-        ("3", "Applying for a Loan"),
-        ("4", "Making Payments"),
-        ("5", "Managing Your Profile"),
-        ("6", "Frequently Asked Questions"),
+        ("3", "Dashboard Overview"),
+        ("4", "Applying for a Loan"),
+        ("5", "Making Payments"),
+        ("6", "Managing Your Profile"),
+        ("7", "Frequently Asked Questions"),
     ])
     doc.h1("1. Getting Started")
     doc.p("NexusFinance is your digital lending platform. You can access it from any web browser "
@@ -436,68 +480,80 @@ def doc005(doc):
     doc.h2("2.1 Registration")
     doc.numbered("Go to https://nexusfinancefintech.vercel.app")
     doc.numbered("Click 'Register'")
-    doc.numbered("Enter your name, email, and password")
+    doc.numbered("Enter your name, phone number, and password")
     doc.numbered("Click 'Register'")
-    doc.numbered("Check your email for a 6-digit verification code")
+    doc.numbered("Check your Telegram bot message or SMS for a 6-digit verification code")
     doc.numbered("Enter the code in the verification form")
     doc.numbered("Your account is now active — you can log in")
+    doc.callout("Phone number is required",
+                "Use your phone number (e.g., 85570961423) to register. The OTP will be "
+                "sent via Telegram bot message or SMS. Email is optional and not required "
+                "for registration or login.", kind="tip")
 
     doc.h2("2.2 Login")
-    doc.numbered("Enter your email and password")
+    doc.numbered("Enter your phone number and password")
     doc.numbered("Click 'Login'")
     doc.numbered("You will be redirected to your dashboard")
-    doc.callout("Email not verified?",
-                "New accounts must verify their email before the first login. If your email "
-                "isn't verified yet, you'll be asked to enter the 6-digit code emailed to you "
-                "during registration — log in again once it's confirmed.",
-                kind="info")
-
     doc.callout("Forgot your password?",
-                "Click 'Forgot Password' on the login page. Enter your email, receive an OTP "
-                "code, verify it, then set a new password.", kind="info")
+                "Send /changepassword to the Telegram bot (@nexusfinancefintech_bot). "
+                "You'll receive an OTP via Telegram, then set a new password.", kind="info")
 
-    doc.h1("3. Applying for a Loan")
-    doc.h2("3.1 Start Application")
+    doc.h1("3. Dashboard Overview")
+    doc.p("The redesigned customer dashboard provides a quick overview of your account:")
+    doc.bullet("Balance card showing total outstanding amount")
+    doc.bullet("Loan progress indicator with repayment status")
+    doc.bullet("Due date statistics and next payment info")
+    doc.bullet("Full-width Recent History showing recent transactions and payments")
+
+    doc.h1("4. Applying for a Loan")
+    doc.h2("4.1 Start Application")
     doc.p("Click 'Apply for Loan' from the sidebar or dashboard.")
-    doc.h2("3.2 Fill in Details")
+    doc.h2("4.2 Fill in Details")
     doc.bullet("Personal Information (name, email, phone)")
     doc.bullet("Loan Type (SME Loan, Personal Loan, etc.)")
     doc.bullet("Loan Amount and Duration")
     doc.bullet("Purpose of the loan")
     doc.bullet("Monthly income information")
-    doc.h2("3.3 Submit")
+    doc.h2("4.3 Submit")
     doc.p("Review your details and click 'Submit Application'. Your application will be "
           "reviewed by a Loan Officer.")
 
-    doc.h1("4. Making Payments")
-    doc.h2("4.1 Loan Repayment (ABA PayWay Hosted Checkout)")
-    doc.p("Navigate to 'Loan Repayment' in the sidebar. The page shows your next installment "
+    doc.h1("5. Making Payments")
+    doc.h2("5.1 KHQR Payment Page")
+    doc.p("Navigate to 'KHQR Payment' in the sidebar. The page shows your next installment "
           "due and outstanding balance for your active loan.")
     doc.numbered("Choose a payment amount: next installment, full balance, or a custom amount")
     doc.numbered("Click 'Pay Now' — an ABA PayWay secure checkout page opens in a new tab")
     doc.numbered("Complete the payment with KHQR, ABA PAY, cards, or another supported method")
     doc.numbered("After payment you are returned to the success page and the dashboard updates automatically")
-    doc.p("You can also scan the KHQR code shown on the checkout page with any Bakong-compatible "
-          "banking app.")
 
-    doc.h2("4.2 View Transactions")
-    doc.p("Check 'Recent Payments' on the Loan Repayment page or 'History Logs' to see all "
-          "your past transactions and payments.")
+    doc.h2("5.2 View Transactions")
+    doc.p("Check 'Loans' in the sidebar to see your loan cards and transaction history. "
+          "The merged Loans + History page shows all your past transactions and payments.")
 
-    doc.h1("5. Managing Your Profile")
+    doc.h1("6. Managing Your Profile")
     doc.p("Navigate to 'Profile' in the sidebar to update your information:")
     doc.bullet("Name, email, and phone number")
     doc.bullet("Change your password (requires OTP verification)")
+    doc.bullet("Change your phone number (requires Telegram verification)")
     doc.bullet("View your role and account status")
 
-    doc.h1("6. Frequently Asked Questions")
+    doc.callout("Phone change verification",
+                "When you update your phone number, you'll see an amber notification prompting "
+                "you to verify via Telegram. Click 'Verify via Telegram' to complete the change.",
+                kind="info")
+
+    doc.h1("7. Frequently Asked Questions")
     doc.table(
         ["Question", "Answer"],
         [
             ["How long does loan approval take?", "Typically 1-3 business days after submission."],
             ["What payment methods are accepted?", "KHQR (Bakong) and ABA PayWay hosted checkout (KHQR, ABA PAY, cards)."],
             ["Can I apply for multiple loans?", "Check with your loan officer for policy details."],
-            ["How do I link my Telegram account?", "Send /link to the bot, then confirm with the code emailed to you (/confirm <code>)."],
+            ["How do I link my Telegram account?", "Open the bot chat and tap 'Share Phone Number' to link instantly."],
+            ["How do I change my password?", "Send /changepassword to the Telegram bot (@nexusfinancefintech_bot)."],
+            ["How do I change my phone number?", "Update your phone on the Profile page, then verify via Telegram."],
+            ["I don't have an email, can I still use the platform?", "Yes! Register with your phone number. All OTPs are sent via Telegram or SMS — no email needed."],
         ],
         col_widths=[2.4, 4.0],
     )
@@ -507,7 +563,7 @@ def doc005(doc):
 #  6. TELEGRAM BOT GUIDE
 # ═══════════════════════════════════════════════════════════════
 def doc006(doc):
-    doc.cover(version="1.0", date="August 2026", author="NDX Digital Support",
+    doc.cover(version="1.1", date="August 2026", author="NDX Digital Support",
               tags=["Telegram", "Bot", "Notifications", "Admin Commands"])
     doc.toc([
         ("1", "Overview"),
@@ -515,18 +571,21 @@ def doc006(doc):
         ("3", "User Commands"),
         ("4", "Admin Commands"),
         ("5", "Account Linking"),
-        ("6", "Notifications & Reminders"),
-        ("7", "Troubleshooting"),
+        ("6", "Password & Phone Management"),
+        ("7", "Notifications & Reminders"),
+        ("8", "Troubleshooting"),
     ])
     doc.h1("1. Overview")
     doc.p("The NexusFinance Telegram bot (@nexusfinancefintech_bot) provides real-time "
-          "notifications, payment reminders, and admin tools directly inside Telegram.")
+          "notifications, payment reminders, and admin tools directly inside Telegram. "
+          "Users can also link their account, change passwords, and verify phone changes "
+          "through the bot.")
 
     doc.h1("2. Getting Started")
     doc.numbered("Open Telegram and search for @nexusfinancefintech_bot")
     doc.numbered("Click 'Start' or send /start")
     doc.numbered("The bot will show available commands")
-    doc.numbered("Use /link to connect your Telegram account to NexusFinance")
+    doc.numbered("Tap 'Share Phone Number' to instantly link your account")
 
     doc.h1("3. User Commands")
     doc.table(
@@ -534,10 +593,12 @@ def doc006(doc):
         [
             ["/start", "Welcome message and quick actions"],
             ["/help", "Show all available commands"],
-            ["/link", "Link your Telegram account — emails a verification code"],
+            ["/link <email>", "Link your Telegram account — emails a verification code"],
             ["/confirm <code>", "Complete linking with the code sent to your email"],
             ["/unlink", "Unlink your Telegram account"],
             ["/status", "View your linked account and loan status"],
+            ["/changepassword", "Start password change flow — OTP sent via Telegram"],
+            ["Share Phone", "Tap button to share phone number for single-trip linkage"],
         ],
         col_widths=[1.8, 4.6],
     )
@@ -558,35 +619,59 @@ def doc006(doc):
     )
     doc.callout("Admin only",
                 "Admin commands (/stats, /loans, /users, /broadcast, /send) are restricted to "
-                "the configured admin Telegram ID.", kind="warn")
+                "the configured admin Telegram ID (set in Super Admin Settings).", kind="warn")
 
     doc.h1("5. Account Linking")
-    doc.h2("5.1 Linking")
+    doc.h2("5.1 Single-Trip Phone Linkage (Recommended)")
+    doc.numbered("Open the bot chat and tap 'Share Phone Number'")
+    doc.numbered("A WebApp sheet loads and prompts the native Telegram phone sharing popup")
+    doc.numbered("Once shared, the WebApp auto-closes and you return to the chat")
+    doc.numbered("The bot sends a 6-digit OTP code in the same response")
+    doc.numbered("Your account is now linked — no email required")
+
+    doc.h2("5.2 Email-Based Linking")
     doc.numbered("Send /link <your-email> to the bot")
     doc.numbered("A 6-digit verification code is sent to your registered email")
     doc.numbered("Send /confirm <code> to complete the link")
     doc.numbered("The code expires after 10 minutes — run /link again for a new one")
-    doc.p("Once linked, you will receive payment notifications and reminders.")
-    doc.h2("5.2 Unlinking")
+
+    doc.h2("5.3 Unlinking")
     doc.p("Send /unlink to disconnect your Telegram account from NexusFinance.")
-    doc.h2("5.3 Status Check")
+
+    doc.h2("5.4 Status Check")
     doc.p("Send /status to view your linked email and current loan status, including your "
           "monthly installment amount and next due date.")
 
-    doc.h1("6. Notifications & Reminders")
+    doc.h1("6. Password & Phone Management")
+    doc.h2("6.1 Password Change via Telegram")
+    doc.numbered("Send /changepassword to the bot")
+    doc.numbered("The bot sends a 6-digit OTP to your Telegram chat")
+    doc.numbered("Enter the OTP code when prompted")
+    doc.numbered("Enter your new password (min 6 characters)")
+    doc.numbered("Password is updated immediately")
+
+    doc.h2("6.2 Phone Number Change")
+    doc.numbered("Go to Profile on the website and update your phone number")
+    doc.numbered("An amber notification appears — click 'Verify via Telegram'")
+    doc.numbered("The bot sends a deep link to complete verification")
+    doc.numbered("Tap the link to verify and finalize the phone change")
+
+    doc.h1("7. Notifications & Reminders")
     doc.bullet("Payment confirmations — instant notification when a payment is received")
     doc.bullet("Daily reminders — scheduled at 9:00 AM Cambodia time (Asia/Phnom_Penh)")
     doc.bullet("Reminders are based on monthly installments (amortized at 5.4% APR), not the full loan amount")
     doc.bullet("New loan alerts — admin is notified when a new loan application is submitted")
+    doc.bullet("Configurable reminder rules — Super Admin can set per-interval and overdue reminders")
 
-    doc.h1("7. Troubleshooting")
+    doc.h1("8. Troubleshooting")
     doc.table(
         ["Problem", "Solution"],
         [
             ["Bot not responding", "Send /start to re-initialize"],
             ["409 Conflict error", "Only one bot instance can run — check Render logs"],
-            ["Not receiving notifications", "Use /link to connect your account first"],
-            ["Admin commands not working", "Verify your Telegram ID matches TELEGRAM_ADMIN_ID"],
+            ["Not receiving notifications", "Tap 'Share Phone Number' to link your account first"],
+            ["Admin commands not working", "Verify your Telegram ID matches the configured admin ID in Settings"],
+            ["Password change not working", "Ensure you're linked first, then send /changepassword"],
         ],
         col_widths=[2.4, 4.0],
     )
@@ -596,7 +681,7 @@ def doc006(doc):
 #  7. TECHNICAL ARCHITECTURE & DEPLOYMENT
 # ═══════════════════════════════════════════════════════════════
 def doc007(doc):
-    doc.cover(version="1.0", date="August 2026", author="NDX Digital Support",
+    doc.cover(version="1.1", date="August 2026", author="NDX Digital Support",
               tags=["Architecture", "Tech Stack", "Deployment", "DevOps"])
     doc.toc([
         ("1", "System Architecture"),
@@ -620,8 +705,8 @@ def doc007(doc):
         "                  Supabase    Telegram Bot\n"
         "                (PostgreSQL)     (polling)\n"
         "                         │\n"
-        "                    Brevo Email\n"
-        "                   (OTP delivery)"
+        "               Brevo Email + SMS\n"
+        "              (OTP & notification delivery)"
     )
 
     doc.h1("2. Technology Stack")
@@ -631,10 +716,10 @@ def doc007(doc):
             ["Frontend", "React 18, TypeScript, Vite, Tailwind CSS", "User interface"],
             ["Backend", "Node.js, Express, TypeScript", "REST API server"],
             ["Database", "Supabase (PostgreSQL)", "Data storage"],
-            ["Auth", "JWT + bcrypt + Brevo OTP", "Authentication"],
+            ["Auth", "JWT + bcrypt + Brevo OTP / Telegram OTP / SMS", "Authentication"],
             ["Hosting", "Vercel + Render", "Deployment"],
             ["Payments", "KHQR, ABA PayWay (Purchase API)", "Payment processing"],
-            ["Notifications", "Telegram Bot API, Brevo", "Messaging"],
+            ["Notifications", "Telegram Bot API, Brevo email, Brevo SMS", "Messaging"],
             ["Mobile", "Expo SDK 57", "Android app"],
         ],
         col_widths=[1.2, 2.6, 2.6],
@@ -656,9 +741,10 @@ def doc007(doc):
         "│   ├── otp.ts              # OTP generation/verification\n"
         "│   ├── khqr.ts             # KHQR QR generation\n"
         "│   ├── payway.ts           # ABA PayWay Purchase API + HMAC signing\n"
-        "│   └── sms.ts              # Twilio SMS\n"
+        "│   └── sms.ts              # Brevo SMS / Twilio SMS\n"
         "├── mobile/                 # Expo Android app\n"
         "├── supabase/migrations/    # Database migrations\n"
+        "├── tools/docgen/           # Documentation generator\n"
         "├── vercel.json             # Vercel rewrites to Render\n"
         "└── package.json"
     )
@@ -674,23 +760,30 @@ def doc007(doc):
             ["nexus_audit_logs", "id, action, description, user_id, metadata, created_at", "Audit trail"],
             ["nexus_tasks", "id, user_id, title, status, priority", "KYC and review tasks"],
             ["nexus_payway_transactions", "tran_id, email, amount, currency, status, apv, loan_id", "ABA PayWay payment records (persisted)"],
+            ["nexus_config", "key, value", "Platform configuration (email verification, Telegram, Brevo SMS)"],
+            ["nexus_reminder_settings", "id, interval_days, message_template, is_active", "Per-interval reminder rules"],
+            ["nexus_reminder_logs", "id, loan_id, user_id, setting_id, sent_at", "Reminder delivery history"],
+            ["nexus_notifications", "id, user_id, type, title, message, is_read, created_at", "In-app notifications"],
         ],
         col_widths=[1.8, 2.8, 1.8],
     )
 
     doc.h1("5. Frontend Architecture")
     doc.bullet("Single-page application (SPA) with React 18 and TypeScript")
-    doc.bullet("Three portals: Customer, Loan Officer, Super Admin")
+    doc.bullet("Four portals: Customer, Loan Officer, Admin, Super Admin")
     doc.bullet("Lazy-loaded route components for performance")
     doc.bullet("Design tokens in CSS custom properties (dark/light mode)")
     doc.bullet("Vercel proxies /api/* to the Render backend")
+    doc.bullet("Customer sidebar: Dashboard, Loans, KHQR Payment, Profile")
 
     doc.h1("6. Backend Architecture")
     doc.bullet("Express.js REST API with TypeScript")
-    doc.bullet("JWT authentication middleware with role checks")
+    doc.bullet("JWT authentication middleware with role checks (customer / loan-officer / admin / super-admin)")
     doc.bullet("Rate limiting on auth endpoints")
     doc.bullet("Cron job for daily payment reminders (9 AM Cambodia time)")
     doc.bullet("Telegram bot starts automatically with the server")
+    doc.bullet("SSE (Server-Sent Events) for real-time notifications")
+    doc.bullet("DB-first config: reads Brevo SMS, email verification toggle from nexus_config table")
 
     doc.h1("7. Deployment Pipeline")
     doc.table(
@@ -712,7 +805,7 @@ def doc007(doc):
             ["SUPABASE_SERVICE_ROLE", "Server-side Supabase access key"],
             ["BREVO_API_KEY", "Brevo transactional email API key"],
             ["TELEGRAM_BOT_TOKEN", "Telegram bot authentication token"],
-            ["TELEGRAM_ADMIN_ID", "Admin Telegram user ID"],
+            ["TELEGRAM_ADMIN_ID", "Admin Telegram user ID (configurable in Settings)"],
             ["JWT_SECRET", "Token signing secret"],
             ["PAYWAY_MERCHANT_ID", "ABA PayWay merchant ID"],
             ["PAYWAY_API_KEY", "ABA PayWay API key"],
@@ -722,6 +815,10 @@ def doc007(doc):
         ],
         col_widths=[2.4, 4.0],
     )
+    doc.callout("Note",
+                "Brevo SMS API key, sender name, and email verification toggle are stored in "
+                "the nexus_config database table, not environment variables. Super Admins can "
+                "configure these via the Settings page.", kind="info")
 
     doc.h1("9. Local Development")
     doc.code(
@@ -738,7 +835,7 @@ def doc007(doc):
 #  8. API & DATABASE REFERENCE
 # ═══════════════════════════════════════════════════════════════
 def doc008(doc):
-    doc.cover(version="1.0", date="August 2026", author="NDX Digital Support",
+    doc.cover(version="1.1", date="August 2026", author="NDX Digital Support",
               tags=["API Reference", "Endpoints", "Database Schema", "Developer Guide"])
     doc.toc([
         ("1", "API Overview"),
@@ -748,7 +845,9 @@ def doc008(doc):
         ("5", "Admin Endpoints"),
         ("6", "KHQR Endpoints"),
         ("7", "PayWay Endpoints"),
-        ("8", "Database Schema Detail"),
+        ("8", "Notification Endpoints"),
+        ("9", "Config & Reminder Endpoints"),
+        ("10", "Database Schema Detail"),
     ])
     doc.h1("1. API Overview")
     doc.p("Base URL: https://nexusfinance-lof3.onrender.com/api")
@@ -775,9 +874,9 @@ def doc008(doc):
         ["Field", "Type", "Required", "Description"],
         [
             ["name", "string", "Yes", "User's full name"],
-            ["email", "string", "Yes", "Valid email address"],
+            ["email", "string", "Yes", "Valid email address (or phone-only creates synthetic email)"],
             ["password", "string", "Yes", "Min 6 characters"],
-            ["phone", "string", "No", "Phone number"],
+            ["phone", "string", "No", "Phone number (required for phone-only registration)"],
         ],
         col_widths=[1.2, 1.0, 1.0, 3.2],
     )
@@ -788,7 +887,7 @@ def doc008(doc):
     doc.table(
         ["Field", "Type", "Required", "Description"],
         [
-            ["email", "string", "Yes", "Registered email"],
+            ["email", "string", "Yes", "Registered email or phone number"],
             ["password", "string", "Yes", "Account password"],
         ],
         col_widths=[1.2, 1.0, 1.0, 3.2],
@@ -818,6 +917,33 @@ def doc008(doc):
         col_widths=[1.2, 1.0, 1.0, 3.2],
     )
 
+    doc.h2("POST /api/auth/check-link")
+    doc.p("Check if a Telegram account is linked to a user. Accepts userId or email.")
+    doc.table(
+        ["Field", "Type", "Required", "Description"],
+        [
+            ["userId", "string", "Conditional", "User ID (required if email not provided)"],
+            ["email", "string", "Conditional", "Email (required if userId not provided)"],
+        ],
+        col_widths=[1.2, 1.0, 1.0, 3.2],
+    )
+
+    doc.h2("GET /api/auth/session")
+    doc.p("Get the current authenticated user's session info.")
+
+    doc.h2("POST /api/auth/phone-change-request")
+    doc.p("Request a phone number change. Returns a Telegram deep link for verification.")
+    doc.table(
+        ["Field", "Type", "Required", "Description"],
+        [
+            ["phone", "string", "Yes", "New phone number"],
+        ],
+        col_widths=[1.2, 1.0, 1.0, 3.2],
+    )
+
+    doc.h2("GET /api/auth/phone-change-status")
+    doc.p("Poll phone change verification status.")
+
     doc.h1("3. Loan Endpoints")
     doc.h2("GET /api/loans")
     doc.p("List all loans. Customers see only their own; admins see all.")
@@ -840,7 +966,7 @@ def doc008(doc):
     )
 
     doc.h2("PATCH /api/loans/:id")
-    doc.p("Update a loan status. Requires loan-officer or super-admin role.")
+    doc.p("Update a loan status. Requires loan-officer, admin, or super-admin role.")
     doc.table(
         ["Field", "Type", "Required"],
         [
@@ -849,7 +975,7 @@ def doc008(doc):
         col_widths=[2.0, 1.4, 1.4],
     )
     doc.p("Dedicated actions: PATCH /api/loans/:id/approve, /api/loans/:id/reject, "
-          "/api/loans/:id/hold — all restricted to loan-officer and super-admin.")
+          "/api/loans/:id/hold — all restricted to loan-officer, admin, and super-admin.")
 
     doc.h1("4. Transaction Endpoints")
     doc.h2("GET /api/transactions")
@@ -860,7 +986,7 @@ def doc008(doc):
     doc.p("Simulate a payment callback (for testing). Triggers Telegram notification.")
 
     doc.h1("5. Admin Endpoints")
-    doc.p("The following endpoints require a loan-officer or super-admin role:")
+    doc.p("The following endpoints require a loan-officer, admin, or super-admin role:")
     doc.table(
         ["Endpoint", "Method", "Description"],
         [
@@ -869,8 +995,12 @@ def doc008(doc):
             ["/api/audit/logs", "GET", "Audit log entries"],
             ["/api/config", "GET/PATCH", "Platform configuration"],
             ["/api/tasks", "GET", "KYC/review tasks"],
+            ["/api/notifications", "GET", "User notifications (paginated)"],
+            ["/api/broadcast", "POST", "Send broadcast message to all linked users"],
+            ["/api/reminders/settings", "GET/PATCH", "Payment reminder configuration"],
+            ["/api/reminders/logs", "GET", "Reminder delivery history"],
         ],
-        col_widths=[2.0, 1.0, 3.4],
+        col_widths=[2.2, 1.0, 3.2],
     )
 
     doc.h1("6. KHQR Endpoints")
@@ -901,7 +1031,7 @@ def doc008(doc):
             ["/api/payway/transactions", "GET", "List recent PayWay transactions from the database"],
             ["/api/payway/generate-qr", "POST", "Legacy endpoint; now delegates to the Purchase API"],
         ],
-        col_widths=[2.0, 1.0, 3.9],
+        col_widths=[2.2, 1.0, 3.2],
     )
     doc.p("Approved PayWay payments are written to nexus_payway_transactions and create a "
           "Repayment entry in nexus_transactions, plus an in-app and Telegram notification.")
@@ -912,19 +1042,45 @@ def doc008(doc):
           "skip_success_page). view_type and payment_gate are sent unsigned. Webhook callbacks are "
           "verified with the same hash order via the x-payway-hmac-sha512 header.")
 
-    doc.h1("8. Database Schema Detail")
+    doc.h1("8. Notification Endpoints")
+    doc.table(
+        ["Endpoint", "Method", "Description"],
+        [
+            ["/api/notifications", "GET", "List notifications for current user (paginated)"],
+            ["/api/notifications/:id/read", "PATCH", "Mark a notification as read"],
+            ["/api/notifications/read-all", "PATCH", "Mark all notifications as read"],
+            ["/api/sse", "GET", "SSE stream for real-time notifications (requires auth)"],
+        ],
+        col_widths=[2.4, 1.0, 3.0],
+    )
+
+    doc.h1("9. Config & Reminder Endpoints")
+    doc.table(
+        ["Endpoint", "Method", "Description"],
+        [
+            ["/api/config", "GET", "Get platform configuration (email verification, Telegram, etc.)"],
+            ["/api/config", "PATCH", "Update platform configuration (super-admin only)"],
+            ["/api/reminders/settings", "GET", "Get reminder interval settings"],
+            ["/api/reminders/settings", "PATCH", "Update reminder interval settings"],
+            ["/api/reminders/logs", "GET", "Get reminder delivery logs"],
+            ["/api/reminders/check", "POST", "Manually trigger reminder check (admin only)"],
+        ],
+        col_widths=[2.2, 1.0, 3.2],
+    )
+
+    doc.h1("10. Database Schema Detail")
     doc.h2("nexus_users")
     doc.table(
         ["Column", "Type", "Description"],
         [
             ["id", "SERIAL PK", "Auto-increment ID"],
             ["name", "TEXT", "User's full name"],
-            ["email", "TEXT UNIQUE", "Email address"],
+            ["email", "TEXT UNIQUE", "Email address (or synthetic for phone-only users)"],
             ["password", "TEXT", "Bcrypt password hash"],
-            ["role", "TEXT", "customer / loan-officer / super-admin"],
+            ["role", "TEXT", "customer / loan-officer / admin / super-admin"],
             ["phone", "TEXT", "Phone number"],
             ["telegram_chat_id", "BIGINT", "Telegram chat ID (if linked)"],
-            ["email_verified", "BOOLEAN", "Whether the email has been verified (blocks login when false)"],
+            ["email_verified", "BOOLEAN", "Whether the email has been verified (blocks login when false and email verification is enabled)"],
             ["otp_code", "TEXT", "Bcrypt hash of OTP"],
             ["otp_expires_at", "TIMESTAMPTZ", "OTP expiry time"],
             ["otp_verified_at", "TIMESTAMPTZ", "When OTP was verified"],
@@ -950,6 +1106,30 @@ def doc008(doc):
             ["monthly_income", "NUMERIC", "Applicant monthly income"],
             ["assigned_to", "INTEGER", "Assigned officer user ID"],
             ["created_at", "TIMESTAMPTZ", "Application date"],
+        ],
+        col_widths=[1.8, 1.4, 3.2],
+    )
+
+    doc.h2("nexus_config")
+    doc.table(
+        ["Column", "Type", "Description"],
+        [
+            ["key", "TEXT PK", "Configuration key (e.g., emailVerificationRequired, telegramBotToken)"],
+            ["value", "TEXT", "Configuration value"],
+            ["updated_at", "TIMESTAMPTZ", "Last update time"],
+        ],
+        col_widths=[1.8, 1.4, 3.2],
+    )
+
+    doc.h2("nexus_reminder_settings")
+    doc.table(
+        ["Column", "Type", "Description"],
+        [
+            ["id", "SERIAL PK", "Auto-increment ID"],
+            ["interval_days", "INTEGER", "Days before/after due date"],
+            ["message_template", "TEXT", "Reminder message template"],
+            ["is_active", "BOOLEAN", "Whether this rule is active"],
+            ["created_at", "TIMESTAMPTZ", "Creation time"],
         ],
         col_widths=[1.8, 1.4, 3.2],
     )
