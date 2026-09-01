@@ -16,7 +16,8 @@ import {
   Send,
   MonitorSmartphone,
   FileText,
-  Briefcase
+  Briefcase,
+  Zap
 } from 'lucide-react';
 import { showToast } from './Toast';
 import { API } from '../api';
@@ -102,87 +103,103 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [resetPassword, setResetPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
 
-  // 8 Main Features for the Circular 3D Orbit (Gentle Top-Angle Perspective)
+  // 8 Main Features for the Ultra-Premium Circular 3D Orbit
   const features3D = [
     {
       id: 'debt_collection',
       icon: ShieldCheck,
-      bgLight: 'bg-emerald-500 text-white shadow-emerald-500/30',
+      badgeTag: 'RECOVERY',
+      gradient: 'from-emerald-500 to-teal-500',
+      glowColor: 'rgba(16, 185, 129, 0.35)',
       titleEn: 'Bad Debt Collection',
       titleKh: 'ការទារបំណុលយឺតយ៉ាវ',
-      descEn: 'Recovery & Tracking',
+      descEn: 'Recovery & Automated Tracking',
       descKh: 'ការទារបំណុលស្វ័យប្រវត្តិ',
-      borderGlow: 'hover:border-emerald-500 hover:shadow-emerald-500/30',
+      borderGlow: 'hover:border-emerald-400 hover:shadow-emerald-500/25',
     },
     {
       id: 'org_structure',
       icon: Network,
-      bgLight: 'bg-teal-500 text-white shadow-teal-500/30',
+      badgeTag: 'ROLES',
+      gradient: 'from-teal-500 to-emerald-600',
+      glowColor: 'rgba(20, 184, 166, 0.35)',
       titleEn: 'Loan Org Structure Setup',
       titleKh: 'រចនាសម្ព័ន្ធស្ថាប័នឥណទាន',
-      descEn: 'Roles & Governance',
+      descEn: 'Role Governance & Matrix',
       descKh: 'បែងចែកតួនាទីស្ថាប័ន',
-      borderGlow: 'hover:border-teal-500 hover:shadow-teal-500/30',
+      borderGlow: 'hover:border-teal-400 hover:shadow-teal-500/25',
     },
     {
       id: 'digital_strategy',
       icon: Target,
-      bgLight: 'bg-cyan-500 text-white shadow-cyan-500/30',
+      badgeTag: 'CRM / ADS',
+      gradient: 'from-cyan-500 to-blue-500',
+      glowColor: 'rgba(6, 182, 212, 0.35)',
       titleEn: 'Lead Digital Strategy Setup',
       titleKh: 'យុទ្ធសាស្ត្រទាក់ទាញអតិថិជន',
-      descEn: 'Acquisition & CRM',
+      descEn: 'Acquisition Funnels & Ads',
       descKh: 'ទាក់ទាញអតិថិជន & CRM',
-      borderGlow: 'hover:border-cyan-500 hover:shadow-cyan-500/30',
+      borderGlow: 'hover:border-cyan-400 hover:shadow-cyan-500/25',
     },
     {
       id: 'payment_gateway',
       icon: QrCode,
-      bgLight: 'bg-sky-500 text-white shadow-sky-500/30',
+      badgeTag: 'KHQR',
+      gradient: 'from-sky-500 to-indigo-500',
+      glowColor: 'rgba(14, 165, 233, 0.35)',
       titleEn: 'Payment Gateway',
       titleKh: 'ច្រកទូទាត់ប្រាក់ឌីជីថល',
-      descEn: 'KHQR & Bakong Instant',
+      descEn: 'KHQR & Bakong Instant Pay',
       descKh: 'KHQR និង Bakong',
-      borderGlow: 'hover:border-sky-500 hover:shadow-sky-500/30',
+      borderGlow: 'hover:border-sky-400 hover:shadow-sky-500/25',
     },
     {
       id: 'broadcasting',
       icon: Send,
-      bgLight: 'bg-indigo-500 text-white shadow-indigo-500/30',
+      badgeTag: 'BOTS',
+      gradient: 'from-indigo-500 to-violet-500',
+      glowColor: 'rgba(99, 102, 241, 0.35)',
       titleEn: 'Broadcasting Setup',
       titleKh: 'ប្រព័ន្ធផ្ញើសារស្វ័យប្រវត្ត',
-      descEn: 'Telegram & SMS Bots',
+      descEn: 'Telegram & SMS Smart Alerts',
       descKh: 'Telegram & SMS Bots',
-      borderGlow: 'hover:border-indigo-500 hover:shadow-indigo-500/30',
+      borderGlow: 'hover:border-indigo-400 hover:shadow-indigo-500/25',
     },
     {
       id: 'loan_software',
       icon: MonitorSmartphone,
-      bgLight: 'bg-violet-500 text-white shadow-violet-500/30',
+      badgeTag: 'ERP',
+      gradient: 'from-violet-500 to-purple-500',
+      glowColor: 'rgba(139, 92, 246, 0.35)',
       titleEn: 'Loan Software for Web & App',
       titleKh: 'កម្មវិធីគ្រប់គ្រង Web & App',
-      descEn: 'Cloud Ledger & App',
+      descEn: 'Realtime Cloud Ledger & App',
       descKh: 'ប្រព័ន្ធ Web & App',
-      borderGlow: 'hover:border-violet-500 hover:shadow-violet-500/30',
+      borderGlow: 'hover:border-violet-400 hover:shadow-violet-500/25',
     },
     {
       id: 'loan_agreement',
       icon: FileText,
-      bgLight: 'bg-blue-500 text-white shadow-blue-500/30',
+      badgeTag: 'LEGAL',
+      gradient: 'from-blue-500 to-cyan-500',
+      glowColor: 'rgba(59, 130, 246, 0.35)',
       titleEn: 'Loan Agreement Setup',
       titleKh: 'កិច្ចសន្យាឥណទានខ្មែរ',
       descEn: '5-Page Legal Contracts',
       descKh: 'កិច្ចសន្យា ៥ ទំព័រ',
-      borderGlow: 'hover:border-blue-500 hover:shadow-blue-500/30',
+      borderGlow: 'hover:border-blue-400 hover:shadow-blue-500/25',
     },
     {
       id: 'biz_consultant',
       icon: Briefcase,
-      bgLight: 'bg-emerald-600 text-white shadow-emerald-600/30',
+      badgeTag: 'ADVISORY',
+      gradient: 'from-emerald-600 to-teal-600',
+      glowColor: 'rgba(5, 150, 105, 0.35)',
       titleEn: 'Loan Biz Consultant',
       titleKh: 'ការប្រឹក្សាយោបល់អាជីវកម្ម',
-      descEn: 'Advisory & Growth',
+      descEn: 'Strategy & Growth Consulting',
       descKh: 'យុទ្ធសាស្ត្រពង្រីកអាជីវកម្ម',
-      borderGlow: 'hover:border-emerald-600 hover:shadow-emerald-600/30',
+      borderGlow: 'hover:border-emerald-500 hover:shadow-emerald-600/25',
     },
   ];
 
@@ -599,15 +616,15 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   return (
     <div className="h-screen w-full relative bg-gradient-to-br from-[#f8fcfa] via-[#eef8f5] to-[#f0f6ff] text-slate-800 font-sans select-none overflow-hidden flex flex-col">
-      {/* Circular Orbit from a Gentle Top Perspective Keyframes */}
+      {/* Ultra-Premium Circular 3D Orbit Keyframes with Glowing Cyber Aura */}
       <style>{`
         .orbit-stage-top-view {
           perspective: 1200px;
-          perspective-origin: 50% 35%;
+          perspective-origin: 50% 32%;
         }
 
         .circular-orbiting-card {
-          animation: orbit-3d-circular-top 32s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+          animation: orbit-3d-circular-top 36s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
           will-change: transform, opacity;
         }
 
@@ -616,67 +633,68 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           animation-play-state: paused;
         }
 
-        /* Full Circular Ring with a gentle Top Perspective:
-           - Top Apex (Back): y = -105px, z = -150px (clearly ABOVE the core)
-           - Sides: x = ±230px, y = 0px
-           - Bottom Apex (Front): y = +105px, z = +150px (clearly BELOW the core, passing in front)
-        */
+        /* Orbiting 3D Ring Animation */
         @keyframes orbit-3d-circular-top {
           0% {
             /* RIGHT SIDE */
-            transform: translate3d(230px, 0px, 0px) scale(0.96);
-            opacity: 0.95;
+            transform: translate3d(245px, 0px, 0px) scale(0.98);
+            opacity: 0.96;
             z-index: 20;
           }
           12.5% {
             /* BOTTOM-RIGHT (FRONT) */
-            transform: translate3d(165px, 75px, 105px) scale(1.06);
+            transform: translate3d(175px, 85px, 115px) scale(1.08);
             opacity: 1;
             z-index: 35;
           }
           25% {
             /* BOTTOM APEX (FOREGROUND FRONT OF CORE) */
-            transform: translate3d(0px, 105px, 150px) scale(1.14);
+            transform: translate3d(0px, 118px, 165px) scale(1.16);
             opacity: 1;
             z-index: 45;
-            filter: drop-shadow(0 20px 25px rgba(16, 185, 129, 0.2));
           }
           37.5% {
             /* BOTTOM-LEFT (FRONT) */
-            transform: translate3d(-165px, 75px, 105px) scale(1.06);
+            transform: translate3d(-175px, 85px, 115px) scale(1.08);
             opacity: 1;
             z-index: 35;
           }
           50% {
             /* LEFT SIDE */
-            transform: translate3d(-230px, 0px, 0px) scale(0.96);
-            opacity: 0.95;
+            transform: translate3d(-245px, 0px, 0px) scale(0.98);
+            opacity: 0.96;
             z-index: 20;
           }
           62.5% {
             /* TOP-LEFT (BACK BEHIND CORE) */
-            transform: translate3d(-165px, -75px, -105px) scale(0.86);
-            opacity: 0.85;
+            transform: translate3d(-175px, -85px, -115px) scale(0.88);
+            opacity: 0.88;
             z-index: 5;
           }
           75% {
             /* TOP APEX (BACKGROUND ABOVE & BEHIND CORE) */
-            transform: translate3d(0px, -105px, -150px) scale(0.82);
-            opacity: 0.80;
+            transform: translate3d(0px, -118px, -165px) scale(0.84);
+            opacity: 0.82;
             z-index: 1;
           }
           87.5% {
             /* TOP-RIGHT (BACK BEHIND CORE) */
-            transform: translate3d(165px, -75px, -105px) scale(0.86);
-            opacity: 0.85;
+            transform: translate3d(175px, -85px, -115px) scale(0.88);
+            opacity: 0.88;
             z-index: 5;
           }
           100% {
             /* RETURN TO RIGHT SIDE */
-            transform: translate3d(230px, 0px, 0px) scale(0.96);
-            opacity: 0.95;
+            transform: translate3d(245px, 0px, 0px) scale(0.98);
+            opacity: 0.96;
             z-index: 20;
           }
+        }
+
+        @keyframes pulse-ring {
+          0% { transform: scale(0.92); opacity: 0.8; }
+          50% { transform: scale(1.08); opacity: 0.3; }
+          100% { transform: scale(0.92); opacity: 0.8; }
         }
 
         @keyframes pulse-glow {
@@ -693,6 +711,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           100% { transform: translateX(200%); }
         }
         
+        .anim-ring-pulse { animation: pulse-ring 6s ease-in-out infinite; }
         .anim-glow { animation: pulse-glow 8s ease-in-out infinite; }
         .anim-aurora { animation: aurora-spin 25s linear infinite; }
         .shimmer-btn:hover .shimmer-layer { animation: shimmer-sweep 1.2s ease-in-out infinite; }
@@ -781,7 +800,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: Open Circular 3D Orbit (Gentle Top Perspective View) */}
+            {/* LEFT COLUMN: Ultra-Sleek Circular 3D Orbit (Gentle Top Perspective View) */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-2 pr-2">
               
@@ -811,33 +830,41 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 </h1>
               </div>
 
-              {/* Circular 3D Stage (Gentle Top Perspective with Wide Open Ring) */}
-              <div className="orbit-stage-top-view relative w-full h-[450px] flex items-center justify-center select-none overflow-visible">
+              {/* Circular 3D Stage (Gentle Top Perspective with Polished Visual Elements) */}
+              <div className="orbit-stage-top-view relative w-full h-[470px] flex items-center justify-center select-none overflow-visible">
                 
-                {/* 3D Matching Circular Orbital Floor Guides */}
-                <div className="absolute w-[470px] h-[220px] rounded-[100%] border border-dashed border-emerald-400/30 pointer-events-none" />
-                <div className="absolute w-[450px] h-[200px] rounded-[100%] bg-gradient-to-b from-emerald-400/15 via-teal-400/5 to-cyan-400/15 blur-2xl pointer-events-none" />
+                {/* Dynamic Cyber Concentric Orbital Halo Guides */}
+                <div className="absolute w-[520px] h-[260px] rounded-[100%] border border-emerald-400/20 pointer-events-none anim-ring-pulse" />
+                <div className="absolute w-[490px] h-[235px] rounded-[100%] border-2 border-dashed border-emerald-500/35 pointer-events-none" />
+                <div className="absolute w-[460px] h-[210px] rounded-[100%] bg-gradient-to-b from-emerald-400/15 via-teal-400/10 to-cyan-400/15 blur-2xl pointer-events-none" />
 
-                {/* Central Nexus Core Hub (Centered at Z = 0) */}
-                <div className="absolute z-10 flex flex-col items-center justify-center p-4 bg-white/95 backdrop-blur-2xl rounded-3xl border border-emerald-300 shadow-2xl shadow-emerald-500/25 pointer-events-none select-none">
-                  <div className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-400 p-0.5 shadow-lg shadow-emerald-500/30">
-                    <div className="w-full h-full bg-white rounded-[13px] flex items-center justify-center">
-                      <span className="text-emerald-600 font-black text-xl tracking-tighter">N</span>
+                {/* Central Nexus Core Power Hub (Stationed at Z = 0) */}
+                <div className="absolute z-10 flex flex-col items-center justify-center p-4 bg-white/95 backdrop-blur-2xl rounded-3xl border-2 border-emerald-300 shadow-2xl shadow-emerald-500/30 pointer-events-none select-none transition-transform">
+                  
+                  {/* Glowing Core Engine Emblem */}
+                  <div className="relative flex items-center justify-center w-13 h-13 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-400 p-0.5 shadow-xl shadow-emerald-500/40">
+                    <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
+                      <span className="text-emerald-600 font-black text-2xl tracking-tighter">N</span>
                     </div>
-                    <span className="absolute -inset-1 rounded-2xl bg-emerald-400/30 blur-sm -z-10 anim-glow" />
+                    {/* Pulsing Core Rings */}
+                    <span className="absolute -inset-1.5 rounded-2xl bg-gradient-to-tr from-emerald-400 to-teal-300 opacity-40 blur-md -z-10 anim-glow" />
                   </div>
-                  <div className="text-center mt-1.5">
-                    <span className="text-[12px] font-black text-slate-900 tracking-tight block">Nexus Core</span>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-600 block">Fintech Hub</span>
+
+                  <div className="text-center mt-2">
+                    <span className="text-[12.5px] font-black text-slate-900 tracking-tight block">Nexus Core</span>
+                    <span className="text-[9px] font-extrabold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 mt-0.5 inline-block">
+                      Fintech Hub
+                    </span>
                   </div>
+
                 </div>
 
                 {/* 8 Feature Cards Revolving in a Wide Open Circular 3D Ring */}
                 <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
                   {features3D.map((feat, idx) => {
                     const Icon = feat.icon;
-                    // Stagger 8 cards evenly across the 32s circular orbit (4s each)
-                    const delaySeconds = (idx * -4);
+                    // Stagger 8 cards evenly across the 36s circular orbit (4.5s each)
+                    const delaySeconds = (idx * -4.5);
 
                     return (
                       <div
@@ -847,24 +874,36 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                           animationDelay: `${delaySeconds}s`,
                         }}
                       >
-                        <div className={`group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-3 shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-200 cursor-pointer flex items-center gap-3 w-[225px]`}>
+                        {/* Ultra-Modern Frosted Glass Card with Gradient Accent Border & Tech Badge */}
+                        <div className={`group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-3.5 shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-200 cursor-pointer flex items-center gap-3 w-[240px]`}>
                           
                           {/* 3D Glass Light Sheen */}
-                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/50 via-transparent to-emerald-50/20 pointer-events-none" />
 
-                          {/* Icon Badge */}
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-md ${feat.bgLight} group-hover:scale-110 transition-transform duration-200`}>
-                            <Icon className="w-4.5 h-4.5" />
+                          {/* Gradient Icon Squircle Badge with Ambient Glow */}
+                          <div 
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg bg-gradient-to-tr ${feat.gradient} text-white group-hover:scale-110 transition-transform duration-200`}
+                            style={{ boxShadow: `0 8px 16px -2px ${feat.glowColor}` }}
+                          >
+                            <Icon className="w-5 h-5 stroke-[2.2]" />
                           </div>
 
-                          {/* Title & Short Tag */}
-                          <div className="flex flex-col min-w-0 pr-1">
-                            <span className="text-[12px] font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug truncate">
-                              {isKhmer ? feat.titleKh : feat.titleEn}
-                            </span>
-                            <span className="text-[9.5px] font-semibold text-slate-400 group-hover:text-slate-600 transition-colors truncate mt-0.5">
-                              {isKhmer ? feat.descKh : feat.descEn}
-                            </span>
+                          {/* Title, Subtitle, & Tech Badge */}
+                          <div className="flex flex-col min-w-0 pr-1 flex-grow">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="text-[12.5px] font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug truncate">
+                                {isKhmer ? feat.titleKh : feat.titleEn}
+                              </span>
+                            </div>
+                            
+                            <div className="flex items-center justify-between gap-1 mt-0.5">
+                              <span className="text-[9.5px] font-semibold text-slate-500 group-hover:text-slate-700 transition-colors truncate">
+                                {isKhmer ? feat.descKh : feat.descEn}
+                              </span>
+                              <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 group-hover:bg-emerald-50 group-hover:text-emerald-700 transition-colors uppercase tracking-wider shrink-0">
+                                {feat.badgeTag}
+                              </span>
+                            </div>
                           </div>
 
                         </div>
