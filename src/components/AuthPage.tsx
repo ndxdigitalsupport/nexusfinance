@@ -1560,13 +1560,37 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       /* Content for Telegram */
                       <div className="space-y-4">
                         {!emailVerificationRequired ? (
-                          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
-                            <h4 className="text-[13px] font-bold text-slate-900 flex items-center gap-2">
-                              <span>🔗 Link Telegram to Activate Profile</span>
-                            </h4>
-                            <p className="text-[11.5px] text-slate-600 leading-relaxed font-medium">
-                              Press below to open our Telegram Bot and share your contact to activate instantly.
-                            </p>
+                          <div className="relative overflow-hidden bg-gradient-to-br from-sky-50/80 via-white to-blue-50/50 rounded-3xl p-5 border border-sky-100/90 shadow-sm text-center space-y-3.5">
+                            {/* Ambient Glow */}
+                            <div className="absolute -top-10 -right-10 w-36 h-36 bg-sky-400/15 rounded-full blur-2xl pointer-events-none" />
+                            
+                            {/* Hero Icon */}
+                            <div className="relative z-10 flex flex-col items-center">
+                              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#1c8ad4] to-[#36b8ff] text-white flex items-center justify-center shadow-lg shadow-sky-500/30 mb-2">
+                                <svg className="w-6.5 h-6.5" viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.52 2.77-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+                                </svg>
+                              </div>
+                              <h4 className="text-[14.5px] font-extrabold text-slate-900 tracking-tight">
+                                {isKhmer ? 'ភ្ជាប់ Telegram ដើម្បីដំណើរការគណនី' : 'Link Telegram to Activate Profile'}
+                              </h4>
+                              <p className="text-[12px] text-slate-500 font-medium max-w-xs mt-0.5 leading-relaxed">
+                                {isKhmer 
+                                  ? 'ចុចប៊ូតុងខាងក្រោមដើម្បីបើក Telegram Bot និងចែករំលែកលេខទូរស័ព្ទដើម្បីដំណើរការភ្លាមៗ' 
+                                  : 'Tap below to open our Telegram Bot and share your contact for 1-click instant activation.'}
+                              </p>
+                            </div>
+
+                            {/* Status Indicator */}
+                            <div className="relative z-10 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100/70 border border-sky-200/80 text-sky-800 text-[11px] font-bold">
+                              <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+                              </span>
+                              <span>{isKhmer ? 'កំពុងរង់ចាំការភ្ជាប់ Telegram...' : 'Listening for Telegram Link...'}</span>
+                            </div>
+
+                            {/* Action Button */}
                             <a
                               href={registeredUserId ? `https://t.me/nexusfinancefintech_bot?start=${registeredUserId}` : `https://t.me/nexusfinancefintech_bot`}
                               target="_blank"
@@ -1580,7 +1604,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                     const data = await res.json();
                                     if (data.linked) {
                                       clearInterval(pollInterval);
-                                      showToast('Telegram account linked and verified successfully!', 'success');
+                                      showToast(isKhmer ? 'គណនីត្រូវបានភ្ជាប់ Telegram ដោយជោគជ័យ!' : 'Telegram account linked and verified successfully!', 'success');
                                       if (data.token) onLoginSuccess(data.token);
                                       else { setView('login'); setRegisterOtpSent(false); setLoginVerifyEmail(''); }
                                     }
@@ -1588,9 +1612,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                                 }, 2000);
                                 setTimeout(() => clearInterval(pollInterval), 300000);
                               }}
-                              className="w-full bg-[#1c8ad4] hover:bg-[#197bc0] text-white font-bold text-[13.5px] py-3 rounded-2xl flex items-center justify-center gap-2 transition shadow-md cursor-pointer text-center"
+                              className="group relative z-10 w-full bg-gradient-to-r from-[#1c8ad4] via-[#229ED9] to-[#0088cc] hover:from-[#197bc0] hover:to-[#0077b5] text-white font-extrabold text-[14px] tracking-wide py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-[0_10px_25px_-5px_rgba(28,138,212,0.4)] hover:shadow-[0_14px_28px_-5px_rgba(28,138,212,0.55)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] transition-all cursor-pointer select-none text-center"
                             >
-                              💬 Open Telegram Bot
+                              <svg className="w-5 h-5 fill-current shrink-0 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.52 2.77-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+                              </svg>
+                              <span>{isKhmer ? 'បើក Telegram Bot ឥឡូវនេះ' : 'Open Telegram Bot'}</span>
+                              <ArrowRight className="w-4.5 h-4.5 group-hover:translate-x-1 transition-transform" />
                             </a>
                           </div>
                         ) : !tgOtpSent ? (
