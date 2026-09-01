@@ -591,7 +591,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   return (
     <div className="h-screen w-full relative bg-gradient-to-br from-[#f8fcfa] via-[#eef8f5] to-[#f0f6ff] text-slate-800 font-sans select-none overflow-hidden flex flex-col">
-      {/* Mathematically Smooth Trigonometric 3D Circular Orbit Keyframes */}
+      {/* 3D Planet & Trigonometric Orbit Keyframes */}
       <style>{`
         .orbit-stage-top-view {
           perspective: 1300px;
@@ -608,7 +608,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           animation-play-state: paused;
         }
 
-        /* 16 Trigonometric Harmonic Steps (Rx: 260px, Ry: 130px, Rz: 160px) for 100% Round Fluid Velocity */
+        /* 16 Trigonometric Harmonic Steps */
         @keyframes orbit-3d-perfect-round {
           0% {
             transform: translate3d(260px, 0px, 0px) scale(1.00);
@@ -697,6 +697,22 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           }
         }
 
+        /* 3D Planet Gyro Ring Rotations */
+        @keyframes planet-ring-spin-1 {
+          0% { transform: rotateX(68deg) rotateY(15deg) rotateZ(0deg); }
+          100% { transform: rotateX(68deg) rotateY(15deg) rotateZ(360deg); }
+        }
+
+        @keyframes planet-ring-spin-2 {
+          0% { transform: rotateX(-65deg) rotateY(-20deg) rotateZ(0deg); }
+          100% { transform: rotateX(-65deg) rotateY(-20deg) rotateZ(-360deg); }
+        }
+
+        @keyframes planet-float {
+          0%, 100% { transform: translateY(0px) scale(1); }
+          50% { transform: translateY(-6px) scale(1.02); }
+        }
+
         @keyframes pulse-ring {
           0% { transform: scale(0.92); opacity: 0.8; }
           50% { transform: scale(1.08); opacity: 0.3; }
@@ -704,8 +720,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         }
 
         @keyframes pulse-glow {
-          0%, 100% { opacity: 0.35; transform: scale(1); }
-          50% { opacity: 0.7; transform: scale(1.1); }
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.15); }
         }
         @keyframes aurora-spin {
           0% { transform: rotate(0deg) scale(1); }
@@ -717,6 +733,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           100% { transform: translateX(200%); }
         }
         
+        .anim-planet-core { animation: planet-float 6s ease-in-out infinite; }
+        .anim-planet-ring-1 { animation: planet-ring-spin-1 18s linear infinite; }
+        .anim-planet-ring-2 { animation: planet-ring-spin-2 24s linear infinite; }
         .anim-ring-pulse { animation: pulse-ring 6s ease-in-out infinite; }
         .anim-glow { animation: pulse-glow 8s ease-in-out infinite; }
         .anim-aurora { animation: aurora-spin 25s linear infinite; }
@@ -725,6 +744,15 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         .dot-matrix-light {
           background-image: radial-gradient(rgba(15, 23, 42, 0.05) 1.2px, transparent 1.2px);
           background-size: 26px 26px;
+        }
+
+        /* 3D Realistic Planet Radial Gradient */
+        .planet-sphere-3d {
+          background: radial-gradient(circle at 35% 28%, #6ee7b7 0%, #10b981 35%, #059669 68%, #064e3b 100%);
+          box-shadow: 
+            inset -10px -12px 25px rgba(2, 44, 34, 0.8),
+            inset 6px 8px 15px rgba(255, 255, 255, 0.7),
+            0 15px 35px -5px rgba(16, 185, 129, 0.45);
         }
       `}</style>
 
@@ -806,7 +834,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: Ultra-Smooth Circular 3D Orbit (Trigonometric Round Orbit) */}
+            {/* LEFT COLUMN: 3D Holographic Fintech Planet Core with Circular Orbit */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-2 pr-2">
               
@@ -836,7 +864,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 </h1>
               </div>
 
-              {/* Circular 3D Stage with Perfectly Round Orbit & Ambient Halo Guides */}
+              {/* Circular 3D Stage with 3D Planet Core */}
               <div className="orbit-stage-top-view relative w-full h-[470px] flex items-center justify-center select-none overflow-visible">
                 
                 {/* Dynamic Cyber Concentric Orbital Halo Guides */}
@@ -844,22 +872,44 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 <div className="absolute w-[530px] h-[255px] rounded-[100%] border-2 border-dashed border-emerald-500/35 pointer-events-none" />
                 <div className="absolute w-[500px] h-[230px] rounded-[100%] bg-gradient-to-b from-emerald-400/15 via-teal-400/10 to-cyan-400/15 blur-2xl pointer-events-none" />
 
-                {/* Central Nexus Core Power Hub (Stationed at Z = 0) */}
-                <div className="absolute z-10 flex flex-col items-center justify-center p-4 bg-white/95 backdrop-blur-2xl rounded-3xl border-2 border-emerald-300 shadow-2xl shadow-emerald-500/30 pointer-events-none select-none transition-transform">
+                {/* ========================================================= */}
+                {/* 3D HOLOGRAPHIC FINTECH PLANET (Stationed at Z = 0 Center) */}
+                {/* ========================================================= */}
+                <div className="absolute z-10 flex flex-col items-center justify-center pointer-events-none select-none anim-planet-core">
                   
-                  {/* Glowing Core Engine Emblem */}
-                  <div className="relative flex items-center justify-center w-13 h-13 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-400 p-0.5 shadow-xl shadow-emerald-500/40">
-                    <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
-                      <span className="text-emerald-600 font-black text-2xl tracking-tighter">N</span>
+                  {/* Planet Sphere with Atmospheric Aura */}
+                  <div className="relative w-28 h-28 flex items-center justify-center">
+                    
+                    {/* Atmospheric Corona Glow */}
+                    <div className="absolute -inset-4 rounded-full bg-gradient-to-tr from-emerald-400 via-teal-300 to-cyan-400 opacity-50 blur-xl anim-glow" />
+
+                    {/* Gyroscopic Planetary Orbit Ring 1 (Tilted Saturn Style) */}
+                    <div className="anim-planet-ring-1 absolute w-36 h-36 rounded-full border border-cyan-400/60 border-t-emerald-300 border-b-transparent shadow-xs" />
+
+                    {/* Gyroscopic Planetary Orbit Ring 2 (Counter-Rotating Angle) */}
+                    <div className="anim-planet-ring-2 absolute w-40 h-40 rounded-full border border-teal-300/40 border-l-cyan-300 border-r-transparent" />
+
+                    {/* 3D Shaded Planet Orb */}
+                    <div className="planet-sphere-3d relative w-24 h-24 rounded-full flex items-center justify-center overflow-hidden border border-emerald-300/40">
+                      
+                      {/* Top Light Dome Reflection */}
+                      <div className="absolute top-1 left-2 w-10 h-6 bg-white/45 rounded-full blur-[2px] transform -rotate-12 pointer-events-none" />
+
+                      {/* 3D Inner Glowing Core Letter 'N' */}
+                      <div className="relative z-10 flex items-center justify-center w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-xs border border-white/40 shadow-inner">
+                        <span className="text-white font-black text-2xl tracking-tighter drop-shadow-md">N</span>
+                      </div>
+
                     </div>
-                    {/* Pulsing Core Rings */}
-                    <span className="absolute -inset-1.5 rounded-2xl bg-gradient-to-tr from-emerald-400 to-teal-300 opacity-40 blur-md -z-10 anim-glow" />
+
                   </div>
 
-                  <div className="text-center mt-2">
-                    <span className="text-[12.5px] font-black text-slate-900 tracking-tight block">Nexus Core</span>
-                    <span className="text-[9px] font-extrabold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 mt-0.5 inline-block">
-                      Fintech Hub
+                  {/* Sleek Floating Glass Pod Badge */}
+                  <div className="mt-2.5 px-3 py-1 bg-white/90 backdrop-blur-md rounded-full border border-emerald-300/80 shadow-md shadow-emerald-500/20 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[11px] font-black text-slate-900 tracking-tight">Nexus Core</span>
+                    <span className="text-[8.5px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 ml-0.5">
+                      Hub
                     </span>
                   </div>
 
