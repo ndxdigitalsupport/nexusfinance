@@ -781,11 +781,11 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         {/* Global Navigation Header */}
         <header className="relative z-20 px-6 py-4 sm:px-12 flex justify-between items-center bg-white/50 backdrop-blur-md border-b border-slate-200/70 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-0.5 shadow-md shadow-emerald-500/20 flex items-center justify-center">
-              <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
-                <span className="text-emerald-600 font-black text-xl tracking-tighter">N</span>
-              </div>
-            </div>
+            <img 
+              src="/logo-nexus-finance.png" 
+              alt="Nexus Finance Logo" 
+              className="w-10 h-10 object-contain rounded-2xl shadow-md shadow-emerald-500/20"
+            />
             <div className="flex flex-col">
               <span className="font-sans text-[20px] tracking-tight flex items-center leading-none">
                 <span className="text-slate-900 font-extrabold">Nexus</span>
@@ -844,7 +844,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: 3D Holographic Planet with Nexus Core Hub Badge */}
+            {/* LEFT COLUMN: Clean Card-Only Hover Pause Around 3D Planet */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-1.5 pr-2">
               
@@ -858,16 +858,16 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 <h1 className="text-[32px] xl:text-[36px] font-black text-slate-900 tracking-tight leading-[1.15]">
                   {isKhmer ? (
                     <>
-                      ការផ្តល់ឥណទាន <br />
+                      ដំណោះស្រាយឥណទានសម័យថ្មី <br />
                       <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600">
-                        លឿន រហ័ស និងមានសុវត្ថិភាពខ្ពស់
+                        ស្វ័យប្រវត្ត លឿន និងមានសុវត្ថិភាពខ្ពស់
                       </span>
                     </>
                   ) : (
                     <>
-                      Smarter Lending. <br />
+                      Next-Gen Lending. <br />
                       <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600">
-                        Instant Approvals & Contracts.
+                        Automated, Compliant & Instant.
                       </span>
                     </>
                   )}
