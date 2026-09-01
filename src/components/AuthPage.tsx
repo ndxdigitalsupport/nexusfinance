@@ -16,7 +16,9 @@ import {
   Send,
   MonitorSmartphone,
   FileText,
-  Briefcase
+  Briefcase,
+  ChevronRight,
+  CheckCircle2
 } from 'lucide-react';
 import { showToast } from './Toast';
 import { API } from '../api';
@@ -102,7 +104,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [resetPassword, setResetPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
 
-  // 8 Main Features: Alternating and Interleaved Color Scheme
+  // 8 Main Features with rich popup details
   const features3D = [
     {
       id: 'debt_collection',
@@ -111,6 +113,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       glowColor: 'rgba(16, 185, 129, 0.35)',
       titleEn: 'Bad Debt Collection',
       titleKh: 'ការទារបំណុលយឺតយ៉ាវ',
+      descEn: 'Automated recovery workflows, multi-stage reminders via SMS & Telegram, and delinquent tracking.',
+      descKh: 'ប្រព័ន្ធស្វ័យប្រវត្តតាមដានការសងប្រាក់យឺតយ៉ាវ ផ្ញើសាររំលឹក និងគ្រប់គ្រងបំណុលទាន់ពេលវេលា។',
+      tagsEn: ['Auto Sweep', 'Telegram Alerts', 'Escalation Logs'],
+      tagsKh: ['រំលឹកស្វ័យប្រវត្ត', 'ផ្ញើសារ Telegram', 'តាមដានបំណុល'],
       borderGlow: 'hover:border-emerald-400 hover:shadow-emerald-500/25',
     },
     {
@@ -120,6 +126,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       glowColor: 'rgba(99, 102, 241, 0.35)',
       titleEn: 'Broadcasting Setup',
       titleKh: 'ប្រព័ន្ធផ្ញើសារស្វ័យប្រវត្ត',
+      descEn: 'Instant bulk messaging, transactional SMS, and Telegram notification pipeline with customizable templates.',
+      descKh: 'ប្រព័ន្ធផ្ញើសារជូនដំណឹងជាក្រុម តាមទូរស័ព្ទ SMS និង Telegram ដោយស្វ័យប្រវត្ត។',
+      tagsEn: ['Telegram Bot', 'Twilio SMS', 'Custom Templates'],
+      tagsKh: ['Telegram Bot', 'សារ SMS', 'ទម្រង់សារតាមចិត្ត'],
       borderGlow: 'hover:border-indigo-400 hover:shadow-indigo-500/25',
     },
     {
@@ -129,6 +139,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       glowColor: 'rgba(20, 184, 166, 0.35)',
       titleEn: 'Loan Org Structure Setup',
       titleKh: 'រចនាសម្ព័ន្ធស្ថាប័នឥណទាន',
+      descEn: 'Multi-tier role permissions, loan officer hierarchy, branch segregation, and action audit trails.',
+      descKh: 'រៀបចំឋានានុក្រមបុគ្គលិកឥណទាន កំណត់សិទ្ធិមន្ត្រីសាខា និងតាមដានសកម្មភាព។',
+      tagsEn: ['Role Hierarchy', 'Branch Access', 'Audit Logs'],
+      tagsKh: ['ឋានានុក្រមសិទ្ធិ', 'បែងចែកសាខា', 'ប្រវត្តិសកម្មភាព'],
       borderGlow: 'hover:border-teal-400 hover:shadow-teal-500/25',
     },
     {
@@ -138,6 +152,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       glowColor: 'rgba(59, 130, 246, 0.35)',
       titleEn: 'Loan Agreement Setup',
       titleKh: 'កិច្ចសន្យាឥណទានខ្មែរ',
+      descEn: 'Official Cambodian legal contracts, print-ready PDF generation, and auto-populated amortization annexes.',
+      descKh: 'បង្កើតកិច្ចសន្យាឥណទានភាសាខ្មែរត្រឹមត្រូវតាមច្បាប់ បោះពុម្ពភ្លាមៗ និងមានសុវត្ថិភាព។',
+      tagsEn: ['Khmer Legal Format', 'Auto Print / PDF', 'Amortization Annex'],
+      tagsKh: ['ទម្រង់ច្បាប់ខ្មែរ', 'បោះពុម្ព PDF ភ្លាមៗ', 'តារាងបង់ប្រាក់'],
       borderGlow: 'hover:border-blue-400 hover:shadow-blue-500/25',
     },
     {
@@ -147,6 +165,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       glowColor: 'rgba(5, 150, 105, 0.35)',
       titleEn: 'Loan Biz Consultant',
       titleKh: 'ការប្រឹក្សាយោបល់អាជីវកម្ម',
+      descEn: 'Financial portfolio advisory, risk mitigation strategy, and underwriting optimization consultation.',
+      descKh: 'ផ្តល់ការប្រឹក្សាយោបល់យុទ្ធសាស្ត្រឥណទាន គ្រប់គ្រងហានិភ័យ និងពង្រីកទំហំផលប័ត្រ។',
+      tagsEn: ['Portfolio Growth', 'Risk Modeling', 'Underwriting'],
+      tagsKh: ['ពង្រីកផលប័ត្រ', 'គ្រប់គ្រងហានិភ័យ', 'យុទ្ធសាស្ត្រ'],
       borderGlow: 'hover:border-emerald-500 hover:shadow-emerald-600/25',
     },
     {
@@ -156,6 +178,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       glowColor: 'rgba(139, 92, 246, 0.35)',
       titleEn: 'Loan Software for Web & App',
       titleKh: 'កម្មវិធីគ្រប់គ្រង Web & App',
+      descEn: 'Cloud-native loan management portal with real-time customer ledger, repayment schedules, and approvals.',
+      descKh: 'កម្មវិធីគ្រប់គ្រងឥណទានលើ Cloud ពេញលេញ ប្រើប្រាស់បានលើ Web និងទូរស័ព្ទដៃ។',
+      tagsEn: ['Cross-Platform', 'Live Ledger', 'Real-Time Sync'],
+      tagsKh: ['Web & App', 'ទិន្នន័យផ្ទាល់', 'ស៊ីសង្វាក់រហ័ស'],
       borderGlow: 'hover:border-violet-400 hover:shadow-violet-500/25',
     },
     {
@@ -165,6 +191,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       glowColor: 'rgba(6, 182, 212, 0.35)',
       titleEn: 'Lead Digital Strategy Setup',
       titleKh: 'យុទ្ធសាស្ត្រទាក់ទាញអតិថិជន',
+      descEn: 'Customer acquisition funnels, digital onboarding workflows, and automated credit scoring models.',
+      descKh: 'យុទ្ធសាស្ត្រទាក់ទាញអតិថិជនខ្ចីប្រាក់តាមឌីជីថល និងវាយតម្លៃពិន្ទុឥណទានស្វ័យប្រវត្ត។',
+      tagsEn: ['Lead Funnel', 'Digital Onboarding', 'Credit Scoring'],
+      tagsKh: ['ទាក់ទាញអតិថិជន', 'ចុះឈ្មោះឌីជីថល', 'ពិន្ទុឥណទាន'],
       borderGlow: 'hover:border-cyan-400 hover:shadow-cyan-500/25',
     },
     {
@@ -174,6 +204,10 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       glowColor: 'rgba(14, 165, 233, 0.35)',
       titleEn: 'Payment Gateway',
       titleKh: 'ច្រកទូទាត់ប្រាក់ឌីជីថល',
+      descEn: 'Bakong KHQR dynamic payment processing, instant repayment webhook reconciliation, and automated receipts.',
+      descKh: 'ទទួលការទូទាត់ប្រាក់តាម KHQR បាគង (Bakong) ភ្លាមៗ និងផ្ទៀងផ្ទាត់ស្វ័យប្រវត្ត។',
+      tagsEn: ['Bakong KHQR', 'Instant Webhook', 'Auto Receipt'],
+      tagsKh: ['បាគង KHQR', 'ទូទាត់ភ្លាមៗ', 'វិក្កយបត្រស្វ័យប្រវត្ត'],
       borderGlow: 'hover:border-sky-400 hover:shadow-sky-500/25',
     },
   ];
@@ -591,7 +625,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   return (
     <div className="h-screen w-full relative bg-gradient-to-br from-[#f8fcfa] via-[#eef8f5] to-[#f0f6ff] text-slate-800 font-sans select-none overflow-hidden flex flex-col">
-      {/* Precision Hover Pause on Card-Only Interaction */}
+      {/* Precision Hover Pause & Rich Interactive Tooltip Popover */}
       <style>{`
         .circular-orbiting-card {
           animation: orbit-harmonic-2d 32s linear infinite;
@@ -611,7 +645,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         }
 
         .circular-orbiting-card:hover .card-inner-box {
-          transform: scale(1.15);
+          transform: scale(1.12);
           opacity: 1 !important;
           background-color: #ffffff !important;
           box-shadow: 0 20px 35px -8px rgba(16, 185, 129, 0.35) !important;
@@ -778,7 +812,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       {/* 2. Scrollable Viewport Container */}
       <div className="absolute inset-0 overflow-y-auto w-full h-full flex flex-col z-10">
         
-        {/* Global Navigation Header */}
+        {/* Global Navigation Header with Official Brand Logo */}
         <header className="relative z-20 px-6 py-4 sm:px-12 flex justify-between items-center bg-white/50 backdrop-blur-md border-b border-slate-200/70 shadow-xs">
           <div className="flex items-center gap-3">
             <img 
@@ -844,7 +878,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: Clean Card-Only Hover Pause Around 3D Planet */}
+            {/* LEFT COLUMN: 3D Planet & Revolving Cards with Rich Detail Popups */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-1.5 pr-2">
               
@@ -925,28 +959,29 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                 </div>
 
-                {/* 8 Feature Cards Revolving with Interleaved Alternating Colors */}
+                {/* 8 Feature Cards Revolving with Interleaved Alternating Colors & Detail Popups */}
                 <div className="orbit-cards-container relative w-full h-full flex items-center justify-center pointer-events-none">
                   {features3D.map((feat, idx) => {
                     const Icon = feat.icon;
                     // Stagger 8 cards evenly across the 32s circular orbit (4.0s each)
                     const delaySeconds = (idx * -4.0);
+                    const tags = isKhmer ? feat.tagsKh : feat.tagsEn;
 
                     return (
                       <div
                         key={feat.id}
-                        className="circular-orbiting-card absolute"
+                        className="circular-orbiting-card group absolute"
                         style={{
                           animationDelay: `${delaySeconds}s`,
                         }}
                       >
-                        {/* Compact, Clean Frosted Glass Card */}
-                        <div className={`card-inner-box group relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-2 sm:p-2.5 shadow-lg hover:shadow-2xl transition-all duration-150 cursor-pointer flex items-center gap-2 w-[165px] sm:w-[172px]`}>
+                        {/* Compact Frosted Glass Revolving Card */}
+                        <div className={`card-inner-box relative bg-white/95 hover:bg-white backdrop-blur-2xl border border-slate-200/90 ${feat.borderGlow} rounded-2xl p-2 sm:p-2.5 shadow-lg hover:shadow-2xl transition-all duration-150 cursor-pointer flex items-center gap-2 w-[165px] sm:w-[172px]`}>
                           
                           {/* 3D Glass Light Sheen */}
                           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/50 via-transparent to-emerald-50/20 pointer-events-none" />
 
-                          {/* Gradient Icon Squircle Badge with Ambient Glow */}
+                          {/* Gradient Icon Squircle Badge */}
                           <div 
                             className={`w-7.5 h-7.5 rounded-xl flex items-center justify-center shrink-0 shadow-md bg-gradient-to-tr ${feat.gradient} text-white group-hover:scale-110 transition-transform duration-200`}
                             style={{ boxShadow: `0 5px 12px -2px ${feat.glowColor}` }}
@@ -954,7 +989,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                             <Icon className="w-4 h-4 stroke-[2.2]" />
                           </div>
 
-                          {/* Clean Main Title Only */}
+                          {/* Clean Main Title */}
                           <div className="flex flex-col min-w-0 pr-0.5 flex-grow">
                             <span className="text-[11px] sm:text-[11.5px] font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug truncate">
                               {isKhmer ? feat.titleKh : feat.titleEn}
@@ -962,6 +997,51 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                           </div>
 
                         </div>
+
+                        {/* ========================================================= */}
+                        {/* SLEEK GLASSMORPHIC HOVER DETAIL POPOVER */}
+                        {/* ========================================================= */}
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3.5 w-[265px] sm:w-[285px] p-3.5 rounded-2xl bg-slate-900/95 backdrop-blur-2xl border border-slate-700/80 shadow-2xl shadow-slate-950/60 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 pointer-events-none transition-all duration-200 ease-out z-[10000] text-left">
+                          
+                          {/* Top Header Row with Icon & Title */}
+                          <div className="flex items-center gap-2.5 mb-2 pb-2 border-b border-slate-800">
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center bg-gradient-to-tr ${feat.gradient} text-white shrink-0 shadow-xs`}>
+                              <Icon className="w-4 h-4 stroke-[2.2]" />
+                            </div>
+                            <div className="min-w-0 flex-grow">
+                              <h4 className="text-[12.5px] font-extrabold text-white leading-tight truncate">
+                                {isKhmer ? feat.titleKh : feat.titleEn}
+                              </h4>
+                              <span className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider flex items-center gap-1 mt-0.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                                {isKhmer ? 'មុខងារស្នូល' : 'Core Module'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Detailed Description */}
+                          <p className="text-[11.5px] text-slate-300 font-medium leading-relaxed mb-2.5">
+                            {isKhmer ? feat.descKh : feat.descEn}
+                          </p>
+
+                          {/* Feature Highlight Pills */}
+                          <div className="flex flex-wrap gap-1.5">
+                            {tags.map((tag, tIdx) => (
+                              <span 
+                                key={tIdx} 
+                                className="inline-flex items-center gap-1 text-[9.5px] font-bold text-slate-200 bg-slate-800/90 border border-slate-700/80 px-2 py-0.5 rounded-md"
+                              >
+                                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400 stroke-[2.5]" />
+                                <span>{tag}</span>
+                              </span>
+                            ))}
+                          </div>
+
+                          {/* Bottom Pointer Arrow Notch */}
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px w-0 h-0 border-x-6 border-x-transparent border-t-6 border-t-slate-900/95" />
+
+                        </div>
+
                       </div>
                     );
                   })}
