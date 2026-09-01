@@ -102,7 +102,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [resetPassword, setResetPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
 
-  // 8 Main Features for the 100% Hoverable Orbit
+  // 8 Main Features: Alternating and Interleaved Color Scheme (Green -> Violet -> Teal -> Blue -> Emerald -> Purple -> Cyan -> Sky)
   const features3D = [
     {
       id: 'debt_collection',
@@ -114,33 +114,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       borderGlow: 'hover:border-emerald-400 hover:shadow-emerald-500/25',
     },
     {
-      id: 'org_structure',
-      icon: Network,
-      gradient: 'from-teal-500 to-emerald-600',
-      glowColor: 'rgba(20, 184, 166, 0.35)',
-      titleEn: 'Loan Org Structure Setup',
-      titleKh: 'រចនាសម្ព័ន្ធស្ថាប័នឥណទាន',
-      borderGlow: 'hover:border-teal-400 hover:shadow-teal-500/25',
-    },
-    {
-      id: 'digital_strategy',
-      icon: Target,
-      gradient: 'from-cyan-500 to-blue-500',
-      glowColor: 'rgba(6, 182, 212, 0.35)',
-      titleEn: 'Lead Digital Strategy Setup',
-      titleKh: 'យុទ្ធសាស្ត្រទាក់ទាញអតិថិជន',
-      borderGlow: 'hover:border-cyan-400 hover:shadow-cyan-500/25',
-    },
-    {
-      id: 'payment_gateway',
-      icon: QrCode,
-      gradient: 'from-sky-500 to-indigo-500',
-      glowColor: 'rgba(14, 165, 233, 0.35)',
-      titleEn: 'Payment Gateway',
-      titleKh: 'ច្រកទូទាត់ប្រាក់ឌីជីថល',
-      borderGlow: 'hover:border-sky-400 hover:shadow-sky-500/25',
-    },
-    {
       id: 'broadcasting',
       icon: Send,
       gradient: 'from-indigo-500 to-violet-500',
@@ -150,13 +123,13 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       borderGlow: 'hover:border-indigo-400 hover:shadow-indigo-500/25',
     },
     {
-      id: 'loan_software',
-      icon: MonitorSmartphone,
-      gradient: 'from-violet-500 to-purple-500',
-      glowColor: 'rgba(139, 92, 246, 0.35)',
-      titleEn: 'Loan Software for Web & App',
-      titleKh: 'កម្មវិធីគ្រប់គ្រង Web & App',
-      borderGlow: 'hover:border-violet-400 hover:shadow-violet-500/25',
+      id: 'org_structure',
+      icon: Network,
+      gradient: 'from-teal-500 to-emerald-600',
+      glowColor: 'rgba(20, 184, 166, 0.35)',
+      titleEn: 'Loan Org Structure Setup',
+      titleKh: 'រចនាសម្ព័ន្ធស្ថាប័នឥណទាន',
+      borderGlow: 'hover:border-teal-400 hover:shadow-teal-500/25',
     },
     {
       id: 'loan_agreement',
@@ -175,6 +148,33 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       titleEn: 'Loan Biz Consultant',
       titleKh: 'ការប្រឹក្សាយោបល់អាជីវកម្ម',
       borderGlow: 'hover:border-emerald-500 hover:shadow-emerald-600/25',
+    },
+    {
+      id: 'loan_software',
+      icon: MonitorSmartphone,
+      gradient: 'from-violet-500 to-purple-500',
+      glowColor: 'rgba(139, 92, 246, 0.35)',
+      titleEn: 'Loan Software for Web & App',
+      titleKh: 'កម្មវិធីគ្រប់គ្រង Web & App',
+      borderGlow: 'hover:border-violet-400 hover:shadow-violet-500/25',
+    },
+    {
+      id: 'digital_strategy',
+      icon: Target,
+      gradient: 'from-cyan-500 to-blue-500',
+      glowColor: 'rgba(6, 182, 212, 0.35)',
+      titleEn: 'Lead Digital Strategy Setup',
+      titleKh: 'យុទ្ធសាស្ត្រទាក់ទាញអតិថិជន',
+      borderGlow: 'hover:border-cyan-400 hover:shadow-cyan-500/25',
+    },
+    {
+      id: 'payment_gateway',
+      icon: QrCode,
+      gradient: 'from-sky-500 to-indigo-500',
+      glowColor: 'rgba(14, 165, 233, 0.35)',
+      titleEn: 'Payment Gateway',
+      titleKh: 'ច្រកទូទាត់ប្រាក់ឌីជីថល',
+      borderGlow: 'hover:border-sky-400 hover:shadow-sky-500/25',
     },
   ];
 
@@ -591,7 +591,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   return (
     <div className="h-screen w-full relative bg-gradient-to-br from-[#f8fcfa] via-[#eef8f5] to-[#f0f6ff] text-slate-800 font-sans select-none overflow-hidden flex flex-col">
-      {/* 100% Reliable Hit-Testing Smooth Circular Orbit */}
+      {/* 100% Reliable Hit-Testing Smooth Circular Orbit with Alternating Colors */}
       <style>{`
         .orbit-stage-wrapper {
           position: relative;
@@ -848,7 +848,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: 100% Hoverable Orbit Around 3D Planet */}
+            {/* LEFT COLUMN: Harmoniously Interleaved Orbit Around 3D Planet */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-1.5 pr-2">
               
@@ -929,7 +929,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                 </div>
 
-                {/* 8 Feature Cards Revolving with Instantaneous Hover Response */}
+                {/* 8 Feature Cards Revolving with Interleaved Alternating Color Pattern */}
                 <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
                   {features3D.map((feat, idx) => {
                     const Icon = feat.icon;
