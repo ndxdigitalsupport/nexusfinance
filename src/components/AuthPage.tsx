@@ -844,7 +844,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
 
             {/* ========================================================================= */}
-            {/* LEFT COLUMN: Clean Card-Only Hover Pause Around 3D Planet */}
+            {/* LEFT COLUMN: Pure Clean 3D Planet Center (No Under-Text) */}
             {/* ========================================================================= */}
             <div className="lg:col-span-7 hidden lg:flex flex-col items-center justify-center space-y-1.5 pr-2">
               
@@ -874,7 +874,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 </h1>
               </div>
 
-              {/* Stage Container: Orbit keeps rotating freely unless cursor is on a card */}
+              {/* Stage Container */}
               <div className="relative w-full h-[460px] flex items-center justify-center select-none overflow-visible pointer-events-none">
                 
                 {/* Dynamic Cyber Concentric Orbital Halo Guides (Strictly pointer-events-none) */}
@@ -883,7 +883,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 <div className="absolute w-[450px] h-[240px] rounded-[100%] bg-gradient-to-b from-emerald-400/15 via-teal-400/10 to-cyan-400/15 blur-2xl pointer-events-none" />
 
                 {/* ========================================================= */}
-                {/* 3D HOLOGRAPHIC FINTECH PLANET (Center Hub, z-index: 15) */}
+                {/* 3D HOLOGRAPHIC FINTECH PLANET (Clean Pure Sphere, No Text) */}
                 {/* ========================================================= */}
                 <div className="absolute flex flex-col items-center justify-center pointer-events-none select-none anim-planet-core z-15">
                   
@@ -914,18 +914,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
                   </div>
 
-                  {/* Sleek Floating Glass Pod Badge */}
-                  <div className="mt-2 px-2.5 py-0.5 bg-white/90 backdrop-blur-md rounded-full border border-emerald-300/80 shadow-md shadow-emerald-500/20 flex items-center gap-1.5 pointer-events-none">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[10.5px] font-black text-slate-900 tracking-tight">Nexus Core</span>
-                    <span className="text-[8px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 ml-0.5">
-                      Hub
-                    </span>
-                  </div>
-
                 </div>
 
-                {/* 8 Feature Cards Revolving: Pauses only when cursor directly touches a card */}
+                {/* 8 Feature Cards Revolving with Interleaved Alternating Colors */}
                 <div className="orbit-cards-container relative w-full h-full flex items-center justify-center pointer-events-none">
                   {features3D.map((feat, idx) => {
                     const Icon = feat.icon;
