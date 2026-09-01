@@ -100,7 +100,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [registerOtpTimer, setRegisterOtpTimer] = useState(0);
 
   // Telegram/SMS verification states
-  const [verifyMethod, setVerifyMethod] = useState<'email' | 'telegram' | 'sms'>('email');
+  const [verifyMethod, setVerifyMethod] = useState<'email' | 'telegram' | 'sms'>('telegram');
   const [registeredUserId, setRegisteredUserId] = useState<number | null>(null);
   const [telegramLinked, setTelegramLinked] = useState<boolean | null>(null);
   const [tgOtpSent, setTgOtpSent] = useState(false);
@@ -399,8 +399,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           setRegisteredUserId(registerData.user.id);
         }
         setRegisterOtpSent(true);
-        setVerifyMethod('sms');
-        await sendRegisterSmsOtp(targetPhone);
+        setVerifyMethod('telegram');
+        checkTelegramLink(true);
       }
     } catch (err: any) {
       showToast(err?.message || 'Registration failed.', 'error');
@@ -1484,37 +1484,51 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       </p>
                     </div>
 
-                    <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200">
+                    <div className="flex bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80 gap-1 select-none">
+                      {/* 1. Telegram Tab (Shown First) */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange('telegram')}
+                        className={`flex-1 py-2 px-3 text-[12.5px] font-extrabold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${
+                          verifyMethod === 'telegram' 
+                            ? 'bg-white text-[#1c8ad4] shadow-sm border border-slate-200/90' 
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        <svg className="w-4 h-4 text-[#229ED9] shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.52 2.77-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+                        </svg>
+                        <span>Telegram</span>
+                      </button>
+
+                      {/* 2. SMS or Email Tab (Shown Second) */}
                       {emailVerificationRequired ? (
                         <button
                           type="button"
                           onClick={() => handleTabChange('email')}
-                          className={`flex-1 py-2 text-[12px] font-bold rounded-xl transition cursor-pointer ${
-                            verifyMethod === 'email' ? 'bg-white text-emerald-700 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900'
+                          className={`flex-1 py-2 px-3 text-[12.5px] font-extrabold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${
+                            verifyMethod === 'email' 
+                              ? 'bg-white text-emerald-700 shadow-sm border border-slate-200/90' 
+                              : 'text-slate-600 hover:text-slate-900'
                           }`}
                         >
-                          📧 Email
+                          <Mail className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>Email OTP</span>
                         </button>
                       ) : (
                         <button
                           type="button"
                           onClick={() => handleTabChange('sms')}
-                          className={`flex-1 py-2 text-[12px] font-bold rounded-xl transition cursor-pointer ${
-                            verifyMethod === 'sms' ? 'bg-white text-emerald-700 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900'
+                          className={`flex-1 py-2 px-3 text-[12.5px] font-extrabold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${
+                            verifyMethod === 'sms' 
+                              ? 'bg-white text-emerald-700 shadow-sm border border-slate-200/90' 
+                              : 'text-slate-600 hover:text-slate-900'
                           }`}
                         >
-                          💬 SMS OTP
+                          <Phone className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>SMS OTP</span>
                         </button>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => handleTabChange('telegram')}
-                        className={`flex-1 py-2 text-[12px] font-bold rounded-xl transition cursor-pointer ${
-                          verifyMethod === 'telegram' ? 'bg-white text-cyan-700 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900'
-                        }`}
-                      >
-                        📱 Telegram
-                      </button>
                     </div>
 
                     {verifyMethod === 'email' || verifyMethod === 'sms' ? (
