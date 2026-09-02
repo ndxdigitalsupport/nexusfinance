@@ -56,7 +56,7 @@ export const translations: Record<string, { en: string; kh: string }> = {
   
   // Dashboard Titles & Descriptions
   'super_admin_hub': { en: 'Super Admin Hub', kh: 'មជ្ឈមណ្ឌលអភិបាលជាន់ខ្ពស់' },
-  'super_admin_desc': { en: 'Executive overview, real-time ledger intelligence, and core platform analytics.', kh: 'ទិដ្ឋភាពទូទៅប្រតិបត្តិ ស្ថិតិសៀវភៅបញ្ជីផ្ទាល់ និងការវិភាគប្រព័ន្ធស្នូល។' },
+  'super_admin_desc': { en: 'Global ledger controls, parameters and auto-underwriting engines config.', kh: 'ការគ្រប់គ្រងសៀវភៅបញ្ជីសកល ដែនកំណត់ និងការកំណត់ម៉ាស៊ីនអនុម័តស្វ័យប្រវត្ត។' },
   
   // Stats Cards
   'total_volume': { en: 'Total Cash Disbursed', kh: 'ទឹកប្រាក់បានបើកផ្តល់សរុប' },
