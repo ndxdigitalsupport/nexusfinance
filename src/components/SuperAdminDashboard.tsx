@@ -74,61 +74,80 @@ export default function SuperAdminDashboard({
     <div className="space-y-8 animate-in fade-in duration-200 font-sans">
       
       {/* Title */}
-      <div>
-        <h2 className="text-[32px] md:text-[36px] font-sans font-extrabold text-[var(--text-primary)] tracking-tight">{t('super_admin_hub')}</h2>
-        <p className="text-[14.5px] text-[var(--text-secondary)] font-medium mt-0.5">{t('super_admin_desc')}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <h2 className="text-[28px] md:text-[34px] font-black text-[var(--text-primary)] tracking-tight font-sans">
+              {t('super_admin_hub')}
+            </h2>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 select-none">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Live Production
+            </span>
+          </div>
+          <p className="text-[13.5px] text-[var(--text-secondary)] font-medium mt-1">
+            {t('super_admin_desc')}
+          </p>
+        </div>
       </div>
 
       {/* Stats Cards metrics — shown only in dashboard view */}
-      {view === 'dashboard' && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 select-none">
-        {currentStatsItems.map((st, i) => {
-          const Icon = st.icon;
-          return (
-            <div
-              key={i}
-              onClick={() => setSelectedStat(st.id as any)}
-              className={`stagger-${i + 1} premium-card-dark rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden group cursor-pointer border border-transparent hover:border-[var(--accent)] hover:shadow-xl hover:shadow-black/5 hover:-translate-y-0.5 transition-all duration-300`}
-            >
-              <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-full transition-transform duration-300 group-hover:scale-110"
-                style={{ backgroundColor: 'var(--accent-muted)' }}
-              />
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <span className="text-[11px] font-bold uppercase tracking-wider max-w-[140px] leading-tight"
-                  style={{ color: 'var(--card-dark-text)' }}
-                >{st.label}</span>
-                <div className="p-2.5 rounded-xl" style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)' }}>
-                  <Icon className="w-5 h-5" />
+      {view === 'dashboard' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 select-none">
+          {currentStatsItems.map((st, i) => {
+            const Icon = st.icon;
+            return (
+              <div
+                key={i}
+                onClick={() => setSelectedStat(st.id as any)}
+                className={`stagger-${i + 1} bg-[var(--surface-card)] border border-[var(--border-primary)]/90 hover:border-[var(--accent)]/80 rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden group cursor-pointer shadow-xs hover:shadow-lg hover:shadow-black/5 hover:-translate-y-1 transition-all duration-300`}
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <span className="text-[12px] font-extrabold text-[var(--text-secondary)] tracking-wider uppercase">
+                    {st.label}
+                  </span>
+                  <div className="w-10 h-10 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border-primary)]/80 flex items-center justify-center text-[var(--accent)] group-hover:scale-105 group-hover:bg-[var(--accent)]/10 transition-all duration-300 shrink-0">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <span className="text-[26px] font-black font-mono block leading-tight text-[var(--text-primary)] tracking-tight">
+                    {st.value}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                      <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
+                      {st.change}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="relative z-10">
-                <span className="text-[24px] font-extrabold font-mono block leading-none tracking-tight animate-fade-in"
-                  style={{ color: 'var(--card-dark-text-bright)' }}
-                >{st.value}</span>
-                <span className="text-[11px] font-bold block mt-1.5 flex items-center gap-1"
-                  style={{ color: 'var(--accent)' }}
-                >
-                  <ArrowUpRight className="w-3.5 h-3.5" /> {st.change}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>}
+            );
+          })}
+        </div>
+      )}
 
       {view === 'dashboard' && (
         <div className="space-y-6">
-          {/* Row 2: Graph + System Info (KYC and Quick status) */}
+          {/* Row 2: Graph + System Info */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left: Recharts Area Chart (Spans 8) */}
             <div className="lg:col-span-8 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 space-y-4">
-              <div>
-                <h3 className="text-[17px] font-sans font-bold text-[var(--text-primary)] flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-[var(--accent)]" /> {t('portfolio_trend')}
-                </h3>
-                <p className="text-[12px] text-[var(--text-secondary)]">{t('portfolio_trend_desc')}</p>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <h3 className="text-[16px] font-sans font-bold text-[var(--text-primary)] flex items-center gap-2">
+                    <Activity className="w-4.5 h-4.5 text-[var(--accent)]" /> {t('portfolio_trend')}
+                  </h3>
+                  <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">{t('portfolio_trend_desc')}</p>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] font-bold bg-[var(--surface-secondary)] p-1 rounded-xl border border-[var(--border-primary)] select-none">
+                  <span className="px-2.5 py-1 bg-[var(--surface-card)] rounded-lg text-[var(--text-primary)] shadow-xs">6M Trend</span>
+                  <span className="px-2.5 py-1 text-[var(--text-secondary)]">1Y</span>
+                  <span className="px-2.5 py-1 text-[var(--text-secondary)]">All</span>
+                </div>
               </div>
               
-              <div className="h-[260px] w-full text-[12px] font-mono select-none">
+              <div className="h-[270px] w-full text-[12px] font-mono select-none pt-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={[
@@ -145,12 +164,12 @@ export default function SuperAdminDashboard({
                   >
                     <defs>
                       <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.25}/>
-                        <stop offset="95%" stopColor="var(--accent)" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.35}/>
+                        <stop offset="95%" stopColor="var(--accent)" stopOpacity={0.0}/>
                       </linearGradient>
                       <linearGradient id="colorPortfolio" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.25}/>
-                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.35}/>
+                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.0}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" vertical={false} />
@@ -162,15 +181,15 @@ export default function SuperAdminDashboard({
                         borderColor: 'var(--border-primary)',
                         borderRadius: '16px',
                         color: 'var(--text-primary)',
-                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1)',
+                        boxShadow: '0 12px 24px -4px rgba(0, 0, 0, 0.25)',
                         padding: '12px'
                       }} 
                       itemStyle={{ color: 'var(--text-primary)', padding: '2px 0' }}
                       labelStyle={{ fontWeight: 'bold', marginBottom: '4px', color: 'var(--text-secondary)' }}
                     />
                     <Legend verticalAlign="top" height={36} iconType="circle" />
-                    <Area type="monotone" name={t('total_volume')} dataKey="volume" stroke="var(--accent)" strokeWidth={3} fillOpacity={1} fill="url(#colorVolume)" activeDot={{ r: 6, stroke: 'var(--surface-card)', strokeWidth: 2 }} />
-                    <Area type="monotone" name={t('outstanding_portfolio')} dataKey="portfolio" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorPortfolio)" activeDot={{ r: 6, stroke: 'var(--surface-card)', strokeWidth: 2 }} />
+                    <Area type="monotone" name={t('total_volume')} dataKey="volume" stroke="var(--accent)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorVolume)" activeDot={{ r: 6, stroke: 'var(--surface-card)', strokeWidth: 2 }} />
+                    <Area type="monotone" name={t('outstanding_portfolio')} dataKey="portfolio" stroke="#3B82F6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPortfolio)" activeDot={{ r: 6, stroke: 'var(--surface-card)', strokeWidth: 2 }} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -179,55 +198,65 @@ export default function SuperAdminDashboard({
             {/* Right: Quick Action & System Health Info (Spans 4) */}
             <div className="lg:col-span-4 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 flex flex-col justify-between space-y-5">
               <div className="space-y-4">
-                <h3 className="text-[17px] font-sans font-bold text-[var(--text-primary)]">
-                  ⚙️ {t('system_health')}
-                </h3>
+                <div className="flex items-center justify-between border-b border-[var(--border-primary)] pb-3">
+                  <h3 className="text-[16px] font-sans font-bold text-[var(--text-primary)] flex items-center gap-2">
+                    <ShieldCheck className="w-4.5 h-4.5 text-emerald-500" />
+                    <span>{t('system_health')}</span>
+                  </h3>
+                  <span className="text-[11px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                    Online
+                  </span>
+                </div>
                 
-                <div className="space-y-3.5">
-                  <div className="flex items-center justify-between text-[13px] border-b border-[var(--border-primary)] pb-2.5">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-[13px] border-b border-[var(--border-primary)]/70 pb-2.5">
                     <span className="text-[var(--text-secondary)] font-medium">{t('sweep_schedule')}</span>
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold bg-green-500/10 text-green-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> {t('active')} ({config.reminder_time || '07:00'})
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      {t('active')} ({config.reminder_time || '00:00'})
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-[13px] border-b border-[var(--border-primary)] pb-2.5">
+                  <div className="flex items-center justify-between text-[13px] border-b border-[var(--border-primary)]/70 pb-2.5">
                     <span className="text-[var(--text-secondary)] font-medium">{t('bot_status')}</span>
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold bg-green-500/10 text-green-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> {t('live_linked')}
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-500/10 text-sky-600 border border-sky-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
+                      {t('live_linked')}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-[13px] border-b border-[var(--border-primary)] pb-2.5">
-                    <span className="text-[var(--text-secondary)] font-medium">Email Verification</span>
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${config.emailVerificationRequired !== false ? 'bg-green-500/10 text-green-400' : 'bg-gray-500/10 text-gray-400'}`}>
-                      {config.emailVerificationRequired !== false ? 'Enabled' : 'Disabled'}
+                  <div className="flex items-center justify-between text-[13px] border-b border-[var(--border-primary)]/70 pb-2.5">
+                    <span className="text-[var(--text-secondary)] font-medium">Underwriting Policy</span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                      100% Officer Review
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-[13px]">
-                    <span className="text-[var(--text-secondary)] font-medium">{t('auto_approve')}</span>
-                    <span className="font-mono font-bold text-[var(--text-primary)]">
-                      {formatCurrency(config.autoApproveLimit)}
+                    <span className="text-[var(--text-secondary)] font-medium">Email Verification</span>
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${config.emailVerificationRequired !== false ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-slate-500/10 text-slate-500 border border-slate-500/20'}`}>
+                      {config.emailVerificationRequired !== false ? 'Enabled' : 'Disabled'}
                     </span>
                   </div>
                 </div>
               </div>
 
               <div className="border-t border-[var(--border-primary)] pt-4 space-y-2 select-none">
-                <span className="text-[11px] uppercase tracking-wider font-bold text-[var(--text-tertiary)] block mb-2">{t('shortcuts')}</span>
+                <span className="text-[11px] uppercase tracking-wider font-extrabold text-[var(--text-tertiary)] block mb-2">
+                  {t('shortcuts')}
+                </span>
                 <div className="grid grid-cols-2 gap-2 text-[12px] font-bold text-center">
                   <button
                     onClick={() => setActiveMenu && setActiveMenu('reminders')}
-                    className="py-2.5 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer"
+                    className="py-2.5 px-3 rounded-xl border border-[var(--border-primary)] hover:border-[var(--accent)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    {t('reminders')}
+                    <span>🔔</span> {t('reminders')}
                   </button>
                   <button
                     onClick={() => setActiveMenu && setActiveMenu('broadcast')}
-                    className="py-2.5 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer"
+                    className="py-2.5 px-3 rounded-xl border border-[var(--border-primary)] hover:border-[var(--accent)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    {t('broadcast')}
+                    <span>📢</span> {t('broadcast')}
                   </button>
                 </div>
               </div>
@@ -238,33 +267,43 @@ export default function SuperAdminDashboard({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left: Recent Applications List */}
             <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 space-y-4">
-              <div>
-                <h3 className="text-[17px] font-sans font-bold text-[var(--text-primary)] flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-[var(--accent)]" /> {t('loan_review')}
-                </h3>
-                <p className="text-[12px] text-[var(--text-secondary)]">Recent loan applications and their current status.</p>
+              <div className="flex items-center justify-between border-b border-[var(--border-primary)] pb-3">
+                <div>
+                  <h3 className="text-[16px] font-sans font-bold text-[var(--text-primary)] flex items-center gap-2">
+                    <FileText className="w-4.5 h-4.5 text-[var(--accent)]" /> {t('loan_review')}
+                  </h3>
+                  <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">Recent customer applications awaiting officer action.</p>
+                </div>
+                <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-secondary)]">
+                  {applications.length} Total
+                </span>
               </div>
 
-              <div className="divide-y divide-[var(--border-primary)] text-[13px] max-h-[260px] overflow-y-auto pr-1">
+              <div className="divide-y divide-[var(--border-primary)] text-[13px] max-h-[280px] overflow-y-auto pr-1">
                 {applications.length === 0 ? (
-                  <p className="text-[var(--text-tertiary)] text-[13px] py-10 text-center bg-[var(--surface-secondary)]/10 rounded-xl">{t('no_applications')}</p>
+                  <p className="text-[var(--text-tertiary)] text-[13px] py-10 text-center bg-[var(--surface-secondary)]/30 rounded-xl">{t('no_applications')}</p>
                 ) : (
                   applications.slice(0, 5).map((app: any) => (
-                    <div key={app.id} className="py-3.5 flex justify-between items-center">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-[var(--text-primary)]">{app.applicantName}</span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-[var(--surface-tertiary)] text-[var(--text-secondary)]">#{app.id.startsWith('#') ? app.id.substring(1) : app.id}</span>
+                    <div key={app.id} className="py-3.5 flex justify-between items-center hover:bg-[var(--surface-secondary)]/30 px-2 rounded-xl transition">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/20 text-emerald-700 font-extrabold flex items-center justify-center text-[12.5px] shrink-0 border border-emerald-500/20">
+                          {app.initials || app.applicantName?.slice(0, 2).toUpperCase()}
                         </div>
-                        <span className="text-[11px] text-[var(--text-tertiary)] mt-0.5 block">{app.type} · Applied {new Date(app.date).toLocaleDateString()}</span>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-[var(--text-primary)]">{app.applicantName}</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-[var(--surface-tertiary)] text-[var(--text-secondary)]">#{app.id.startsWith('#') ? app.id.substring(1) : app.id}</span>
+                          </div>
+                          <span className="text-[11px] text-[var(--text-tertiary)] mt-0.5 block">{app.type} · {new Date(app.date).toLocaleDateString()}</span>
+                        </div>
                       </div>
                       <div className="text-right space-y-1">
-                        <span className="font-mono font-bold text-[var(--text-primary)] block">{formatCurrency(app.amount)}</span>
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold ${
-                          app.status === 'Approved' ? 'bg-green-500/10 text-green-400' :
-                          app.status === 'Rejected' ? 'bg-red-500/10 text-red-400' :
-                          app.status === 'Hold' ? 'bg-yellow-500/10 text-yellow-400' :
-                          'bg-blue-500/10 text-blue-400'
+                        <span className="font-mono font-black text-[var(--text-primary)] block text-[13.5px]">{formatCurrency(app.amount)}</span>
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold ${
+                          app.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' :
+                          app.status === 'Rejected' ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' :
+                          app.status === 'Hold' ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20' :
+                          'bg-blue-500/10 text-blue-600 border border-blue-500/20'
                         }`}>
                           {app.status}
                         </span>
@@ -277,23 +316,28 @@ export default function SuperAdminDashboard({
 
             {/* Right: Audit Logs */}
             <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 space-y-4">
-              <div>
-                <h3 className="text-[17px] font-sans font-bold text-[var(--text-primary)] flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-[var(--accent)]" /> {t('audit_trail')}
-                </h3>
-                <p className="text-[12px] text-[var(--text-secondary)]">{t('audit_trail_desc')}</p>
+              <div className="flex items-center justify-between border-b border-[var(--border-primary)] pb-3">
+                <div>
+                  <h3 className="text-[16px] font-sans font-bold text-[var(--text-primary)] flex items-center gap-2">
+                    <ShieldCheck className="w-4.5 h-4.5 text-emerald-500" /> {t('audit_trail')}
+                  </h3>
+                  <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">{t('audit_trail_desc')}</p>
+                </div>
+                <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-secondary)]">
+                  Live Log
+                </span>
               </div>
 
-              <div className="divide-y divide-[var(--border-primary)] text-[12.5px] max-h-[260px] overflow-y-auto pr-1">
+              <div className="divide-y divide-[var(--border-primary)] text-[12.5px] max-h-[280px] overflow-y-auto pr-1">
                 {auditLogs.length === 0 ? (
-                  <p className="text-[var(--text-tertiary)] text-[13px] py-10 text-center bg-[var(--surface-secondary)]/10 rounded-xl">{t('no_logs')}</p>
+                  <p className="text-[var(--text-tertiary)] text-[13px] py-10 text-center bg-[var(--surface-secondary)]/30 rounded-xl">{t('no_logs')}</p>
                 ) : (
                   auditLogs.slice(0, 4).map((log) => (
-                    <div key={log.id} className="py-3.5 space-y-1">
-                      <span className="text-[var(--text-primary)] font-bold block leading-tight">{formatAuditDetails(log.details)}</span>
-                      <div className="flex items-center justify-between text-[11px] text-[var(--text-tertiary)]">
-                        <span className="font-semibold text-[var(--text-secondary)]">{log.userEmail}</span>
-                        <span>{new Date(log.timestamp).toLocaleString()}</span>
+                    <div key={log.id} className="py-3 space-y-1 hover:bg-[var(--surface-secondary)]/30 px-2 rounded-xl transition">
+                      <span className="text-[var(--text-primary)] font-bold block leading-snug">{formatAuditDetails(log.details)}</span>
+                      <div className="flex items-center justify-between text-[11px] text-[var(--text-tertiary)] pt-0.5">
+                        <span className="font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-md">{log.userEmail}</span>
+                        <span className="font-mono">{new Date(log.timestamp).toLocaleString()}</span>
                       </div>
                     </div>
                   ))
