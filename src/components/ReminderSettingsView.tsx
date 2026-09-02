@@ -66,6 +66,8 @@ export default function ReminderSettingsView() {
 
   const [reminderTime, setReminderTime] = useState('07:00');
   const [savingTime, setSavingTime] = useState(false);
+  const debounceTimerRef = React.useRef<any>(null);
+  const lastSavedTimeRef = React.useRef<string>('07:00');
   const [logs, setLogs] = useState<ReminderLog[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [logsPage, setLogsPage] = useState(1);
@@ -78,15 +80,13 @@ export default function ReminderSettingsView() {
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const text = textarea.value;
-    const before = text.substring(0, start);
-    const after = text.substring(end, text.length);
 
-    const newValue = before + variable + after;
-    setMessageTemplate(newValue);
+    const newText = text.substring(0, start) + `{${variable}}` + text.substring(end);
+    setMessageTemplate(newText);
 
     setTimeout(() => {
       textarea.focus();
-      textarea.selectionStart = textarea.selectionEnd = start + variable.length;
+      textarea.setSelectionRange(start + variable.length + 2, start + variable.length + 2);
     }, 0);
   };
 
@@ -95,24 +95,44 @@ export default function ReminderSettingsView() {
       const config = await apiFetch('/config');
       if (config && config.reminder_time) {
         setReminderTime(config.reminder_time);
+        lastSavedTimeRef.current = config.reminder_time;
       }
     } catch {}
   };
 
-  const handleSaveReminderTime = async (newVal: string) => {
+  const triggerSaveTime = async (valToSave: string) => {
+    if (!valToSave || valToSave === lastSavedTimeRef.current) return;
     setSavingTime(true);
-    setReminderTime(newVal);
     try {
       await apiFetch('/config', {
         method: 'PATCH',
-        body: JSON.stringify({ reminder_time: newVal }),
+        body: JSON.stringify({ reminder_time: valToSave }),
       });
+      lastSavedTimeRef.current = valToSave;
       showToast('Daily reminder sweep time updated', 'success');
     } catch (e: any) {
       showToast(e.message || 'Failed to update sweep time', 'error');
     } finally {
       setSavingTime(false);
     }
+  };
+
+  const handleTimeChange = (newVal: string) => {
+    setReminderTime(newVal);
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    // Give user 1.5 seconds after typing digits to finish inputting before auto-saving
+    debounceTimerRef.current = setTimeout(() => {
+      triggerSaveTime(newVal);
+    }, 1500);
+  };
+
+  const handleTimeBlur = () => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    triggerSaveTime(reminderTime);
   };
 
   const fetchSettings = async () => {
@@ -317,8 +337,8 @@ export default function ReminderSettingsView() {
           <input
             type="time"
             value={reminderTime}
-            onChange={(e) => handleSaveReminderTime(e.target.value)}
-            disabled={savingTime}
+            onChange={(e) => handleTimeChange(e.target.value)}
+            onBlur={handleTimeBlur}
             className="bg-[var(--surface-secondary)] border border-[var(--border-primary)] px-3 py-1.5 rounded-lg text-[13.5px] font-mono focus:outline-none focus:border-[var(--accent)] transition-all cursor-pointer text-[var(--text-primary)]"
           />
           {savingTime && <span className="text-[12px] text-[var(--text-secondary)] animate-pulse">{t('saving')}</span>}
