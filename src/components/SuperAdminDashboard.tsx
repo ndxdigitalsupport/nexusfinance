@@ -312,68 +312,7 @@ export default function SuperAdminDashboard({
             <Settings2 className="w-5 h-5 text-[var(--text-primary)]" /> {t('system_parameters_adjustments')}
           </h3>
 
-          {/* Master Loan Underwriting Approval Policy Card */}
-          <div className="bg-[var(--surface-secondary)]/50 border border-[var(--border-primary)] rounded-2xl p-5 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-start sm:items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[var(--surface-card)] border border-[var(--border-primary)] flex items-center justify-center text-[var(--accent)] shadow-xs shrink-0 mt-0.5 sm:mt-0">
-                  <ShieldCheck className="w-5 h-5 text-emerald-500" />
-                </div>
-                <div>
-                  <h4 className="text-[14px] font-bold text-[var(--text-primary)]">{t('underwriting_mode')}</h4>
-                  <p className="text-[11.5px] text-[var(--text-secondary)] leading-tight mt-0.5">
-                    {editingConfig.enable_auto_approval
-                      ? t('enable_auto_approval_desc')
-                      : t('manual_approval_only_desc')}
-                  </p>
-                </div>
-              </div>
 
-              {/* Status Badge */}
-              <span className={`px-3 py-1 rounded-full text-[11px] font-extrabold flex items-center gap-1.5 shrink-0 self-start sm:self-auto select-none ${
-                editingConfig.enable_auto_approval
-                  ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
-                  : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-              }`}>
-                <span className={`w-2 h-2 rounded-full ${editingConfig.enable_auto_approval ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`} />
-                {editingConfig.enable_auto_approval ? 'Fast-Track Auto-Approval' : '100% Officer Approval Only'}
-              </span>
-            </div>
-
-            {/* Toggle Switch & Optional Threshold */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-[var(--border-primary)]">
-              <div className="flex items-center gap-2.5 select-none">
-                <input
-                  type="checkbox"
-                  id="enableAutoApprovalToggle"
-                  checked={!!editingConfig.enable_auto_approval}
-                  onChange={(e) => setEditingConfig((p) => ({ 
-                    ...p, 
-                    enable_auto_approval: e.target.checked,
-                    autoApproveLimit: e.target.checked ? (p.autoApproveLimit > 0 ? p.autoApproveLimit : 1000) : 0
-                  }))}
-                  className="w-4.5 h-4.5 text-[var(--accent)] focus:ring-[var(--accent)] border-[var(--border-primary)] rounded cursor-pointer"
-                />
-                <label htmlFor="enableAutoApprovalToggle" className="text-[13px] font-bold text-[var(--text-primary)] cursor-pointer">
-                  {t('enable_auto_approval_toggle')}
-                </label>
-              </div>
-
-              {editingConfig.enable_auto_approval && (
-                <div className="flex items-center gap-2">
-                  <label className="text-[12px] font-bold text-[var(--text-primary)] whitespace-nowrap">{t('auto_approval_limit')}:</label>
-                  <input
-                    type="number"
-                    step="500"
-                    min="100"
-                    value={editingConfig.autoApproveLimit}
-                    onChange={(e) => setEditingConfig((p) => ({ ...p, autoApproveLimit: parseFloat(e.target.value) || 0 }))}
-                    className="w-32 bg-[var(--surface-card)] border border-[var(--border-primary)] px-3 py-1.5 rounded-lg text-[13px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)] font-bold"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
