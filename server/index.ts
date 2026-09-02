@@ -1041,7 +1041,8 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
 
   const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
   const kycRequired = config ? config.kycRequired : true;
-  const autoApproveLimit = config ? config.autoApproveLimit : 5000;
+  const enableAutoApproval = config ? config.enable_auto_approval === true : false;
+  const autoApproveLimit = config ? (config.autoApproveLimit || 0) : 0;
   const maxLoanAmount = config ? config.maxLoanAmount : 500000;
 
   const loanAmount = amount || 2500;
@@ -1050,7 +1051,7 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
   }
 
   const score = creditScore || 700;
-  const shouldAutoApprove = loanAmount <= autoApproveLimit && score >= 700 && !kycRequired;
+  const shouldAutoApprove = enableAutoApproval && autoApproveLimit > 0 && loanAmount <= autoApproveLimit && score >= 700 && !kycRequired;
   const initialStatus = shouldAutoApprove ? 'Approved' : 'New';
 
   const { data: newLoan } = await db.from('nexus_loans').insert({

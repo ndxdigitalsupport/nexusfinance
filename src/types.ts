@@ -47,6 +47,7 @@ export interface PlatformConfig {
   maxLoanAmount: number; // e.g., 500000
   kycRequired: boolean;
   autoApproveLimit: number; // e.g., 2000
+  enable_auto_approval?: boolean;
   reminder_time?: string;
   telegram_admin_id?: string;
   enable_admin_reports?: boolean;
