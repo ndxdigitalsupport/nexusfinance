@@ -80,40 +80,40 @@ export default function SuperAdminDashboard({
       </div>
 
       {/* Stats Cards metrics — shown only in dashboard view */}
-      {view === 'dashboard' && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 select-none">
-        {currentStatsItems.map((st, i) => {
-          const Icon = st.icon;
-          return (
-            <div
-              key={i}
-              onClick={() => setSelectedStat(st.id as any)}
-              className={`stagger-${i + 1} premium-card-dark rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden group cursor-pointer border border-transparent hover:border-[var(--accent)] hover:shadow-xl hover:shadow-black/5 hover:-translate-y-0.5 transition-all duration-300`}
-            >
-              <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-full transition-transform duration-300 group-hover:scale-110"
-                style={{ backgroundColor: 'var(--accent-muted)' }}
-              />
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <span className="text-[11px] font-bold uppercase tracking-wider max-w-[140px] leading-tight"
-                  style={{ color: 'var(--card-dark-text)' }}
-                >{st.label}</span>
-                <div className="p-2.5 rounded-xl" style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)' }}>
-                  <Icon className="w-5 h-5" />
+      {view === 'dashboard' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 select-none">
+          {currentStatsItems.map((st, i) => {
+            const Icon = st.icon;
+            return (
+              <div
+                key={i}
+                onClick={() => setSelectedStat(st.id as any)}
+                className={`stagger-${i + 1} bg-[var(--surface-card)] border border-[var(--border-primary)] hover:border-[var(--accent)]/80 rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden group cursor-pointer shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200`}
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <span className="text-[12px] font-bold text-[var(--text-secondary)] tracking-wider uppercase">
+                    {st.label}
+                  </span>
+                  <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/10 text-[var(--accent)] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[26px] font-black font-mono block leading-tight text-[var(--text-primary)] tracking-tight">
+                    {st.value}
+                  </span>
+                  <div className="flex items-center gap-1.5 pt-0.5">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                      <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
+                      {st.change}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="relative z-10">
-                <span className="text-[24px] font-extrabold font-mono block leading-none tracking-tight animate-fade-in"
-                  style={{ color: 'var(--card-dark-text-bright)' }}
-                >{st.value}</span>
-                <span className="text-[11px] font-bold block mt-1.5 flex items-center gap-1"
-                  style={{ color: 'var(--accent)' }}
-                >
-                  <ArrowUpRight className="w-3.5 h-3.5" /> {st.change}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>}
+            );
+          })}
+        </div>
+      )}
 
       {view === 'dashboard' && (
         <div className="space-y-6">
@@ -128,7 +128,7 @@ export default function SuperAdminDashboard({
                 <p className="text-[12px] text-[var(--text-secondary)]">{t('portfolio_trend_desc')}</p>
               </div>
               
-              <div className="h-[260px] w-full text-[12px] font-mono select-none">
+              <div className="h-[260px] w-full text-[12px] select-none">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={[
@@ -169,8 +169,8 @@ export default function SuperAdminDashboard({
                       labelStyle={{ fontWeight: 'bold', marginBottom: '4px', color: 'var(--text-secondary)' }}
                     />
                     <Legend verticalAlign="top" height={36} iconType="circle" />
-                    <Area type="monotone" name={t('total_volume')} dataKey="volume" stroke="var(--accent)" strokeWidth={3} fillOpacity={1} fill="url(#colorVolume)" activeDot={{ r: 6, stroke: 'var(--surface-card)', strokeWidth: 2 }} />
-                    <Area type="monotone" name={t('outstanding_portfolio')} dataKey="portfolio" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorPortfolio)" activeDot={{ r: 6, stroke: 'var(--surface-card)', strokeWidth: 2 }} />
+                    <Area type="monotone" name={t('total_volume')} dataKey="volume" stroke="var(--accent)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorVolume)" activeDot={{ r: 6, stroke: 'var(--surface-card)', strokeWidth: 2 }} />
+                    <Area type="monotone" name={t('outstanding_portfolio')} dataKey="portfolio" stroke="#3B82F6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPortfolio)" activeDot={{ r: 6, stroke: 'var(--surface-card)', strokeWidth: 2 }} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -199,16 +199,16 @@ export default function SuperAdminDashboard({
                   </div>
 
                   <div className="flex items-center justify-between text-[13px] border-b border-[var(--border-primary)] pb-2.5">
-                    <span className="text-[var(--text-secondary)] font-medium">Email Verification</span>
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${config.emailVerificationRequired !== false ? 'bg-green-500/10 text-green-400' : 'bg-gray-500/10 text-gray-400'}`}>
-                      {config.emailVerificationRequired !== false ? 'Enabled' : 'Disabled'}
+                    <span className="text-[var(--text-secondary)] font-medium">Underwriting Policy</span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                      100% Officer Review
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-[13px]">
-                    <span className="text-[var(--text-secondary)] font-medium">{t('auto_approve')}</span>
-                    <span className="font-mono font-bold text-[var(--text-primary)]">
-                      {formatCurrency(config.autoApproveLimit)}
+                    <span className="text-[var(--text-secondary)] font-medium">Email Verification</span>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${config.emailVerificationRequired !== false ? 'bg-green-500/10 text-green-400' : 'bg-gray-500/10 text-gray-400'}`}>
+                      {config.emailVerificationRequired !== false ? 'Enabled' : 'Disabled'}
                     </span>
                   </div>
                 </div>
