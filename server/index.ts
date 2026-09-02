@@ -1306,7 +1306,7 @@ app.get('/api/config', authMiddleware, async (req, res) => {
   res.json(config || {});
 });
 
-app.patch('/api/config', authMiddleware, async (req, res) => {
+const handleUpdateConfig = async (req: any, res: any) => {
   if (req.user.role !== 'super-admin' && req.user.role !== 'admin') return res.status(403).json({ error: 'Admins only.' });
   
   const { data: currentConfig } = await db.from('nexus_config').select('*').eq('id', 1).single();
@@ -1337,7 +1337,10 @@ app.patch('/api/config', authMiddleware, async (req, res) => {
     scheduleReminderCron(config.reminder_time);
   }
   res.json(config || {});
-});
+};
+
+app.patch('/api/config', authMiddleware, handleUpdateConfig);
+app.post('/api/config', authMiddleware, handleUpdateConfig);
 
 // ── REMINDER SETTINGS & BROADCASTS ROUTES (Super Admin & Loan Officers) ──
 

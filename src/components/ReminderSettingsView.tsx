@@ -104,7 +104,7 @@ export default function ReminderSettingsView() {
     setReminderTime(newVal);
     try {
       await apiFetch('/config', {
-        method: 'POST',
+        method: 'PATCH',
         body: JSON.stringify({ reminder_time: newVal }),
       });
       showToast('Daily reminder sweep time updated', 'success');
