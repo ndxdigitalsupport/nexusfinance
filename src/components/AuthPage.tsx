@@ -1200,18 +1200,18 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
                             <div className="space-y-1.5">
                               <label className="block text-[11px] font-extrabold uppercase text-slate-600 tracking-wider">
                                 {emailVerificationRequired 
-                                  ? (isKhmer ? 'អ៊ីមែល ឬ លេខទូរស័ព្ទ' : 'Email or Phone Number') 
-                                  : (isKhmer ? 'លេខទូរស័ព្ទ' : 'Phone Number')}
+                                  ? (isKhmer ? 'ឈ្មោះ, អ៊ីមែល ឬ លេខទូរស័ព្ទ' : 'Username, Email, or Phone') 
+                                  : (isKhmer ? 'ឈ្មោះ ឬ លេខទូរស័ព្ទ' : 'Username or Phone Number')}
                               </label>
                               <div className="relative">
                                 <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
-                                  <Phone className="w-4.5 h-4.5" />
+                                  <User className="w-4.5 h-4.5" />
                                 </div>
                                 <input
                                   type="text"
                                   value={loginEmail}
                                   onChange={(e) => setLoginEmail(e.target.value)}
-                                  placeholder={emailVerificationRequired ? (isKhmer ? "លេខទូរស័ព្ទ ឬ អ៊ីមែល" : "Phone number or email") : (isKhmer ? "លេខទូរស័ព្ទ" : "Phone number")}
+                                  placeholder={emailVerificationRequired ? (isKhmer ? "ឈ្មោះ, អ៊ីមែល ឬ លេខទូរស័ព្ទ" : "Username, email, or phone") : (isKhmer ? "ឈ្មោះ ឬ លេខទូរស័ព្ទ" : "Username or phone number")}
                                   className="w-full rounded-2xl bg-slate-50/90 border border-slate-200 focus:bg-white pl-12 pr-4 py-3.5 text-[14px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all"
                                   required={view === 'login'}
                                 />
