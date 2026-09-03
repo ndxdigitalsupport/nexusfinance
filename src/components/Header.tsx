@@ -17,6 +17,8 @@ interface HeaderProps {
   onProfileClick?: () => void;
   onLogout?: () => void;
   onTenantChange?: (tenantId: string) => void;
+  selectedTenantId?: string;
+  tenants?: Tenant[];
 }
 
 export default function Header({
@@ -32,11 +34,17 @@ export default function Header({
   onProfileClick,
   onLogout,
   onTenantChange,
+  selectedTenantId: propSelectedTenantId,
+  tenants: propTenants,
 }: HeaderProps) {
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [selectedTenantId, setSelectedTenantId] = useState<string>(() => {
+  const [internalTenants, setInternalTenants] = useState<Tenant[]>([]);
+  const [internalSelectedTenantId, setInternalSelectedTenantId] = useState<string>(() => {
     return localStorage.getItem('nexus_selected_tenant_id') || 'all';
   });
+
+  const tenants = propTenants || internalTenants;
+  const selectedTenantId = propSelectedTenantId !== undefined ? propSelectedTenantId : internalSelectedTenantId;
+
   const [showTenantDropdown, setShowTenantDropdown] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
@@ -72,14 +80,14 @@ export default function Header({
 
   // Fetch tenants for super-admin switcher
   useEffect(() => {
-    if (currentPortal === 'super-admin') {
+    if (currentPortal === 'super-admin' && !propTenants) {
       apiFetch('/tenants')
         .then(data => {
-          if (Array.isArray(data)) setTenants(data);
+          if (Array.isArray(data)) setInternalTenants(data);
         })
         .catch(() => {});
     }
-  }, [currentPortal]);
+  }, [currentPortal, propTenants]);
 
   // SSE real-time notifications
   useEffect(() => {
@@ -166,7 +174,7 @@ export default function Header({
                     {/* All Tenants Option */}
                     <button
                       onClick={() => {
-                        setSelectedTenantId('all');
+                        setInternalSelectedTenantId('all');
                         localStorage.setItem('nexus_selected_tenant_id', 'all');
                         setShowTenantDropdown(false);
                         if (onTenantChange) onTenantChange('all');
@@ -190,7 +198,7 @@ export default function Header({
                         key={tenant.id}
                         onClick={() => {
                           const tidStr = String(tenant.id);
-                          setSelectedTenantId(tidStr);
+                          setInternalSelectedTenantId(tidStr);
                           localStorage.setItem('nexus_selected_tenant_id', tidStr);
                           setShowTenantDropdown(false);
                           if (onTenantChange) onTenantChange(tidStr);

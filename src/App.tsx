@@ -14,7 +14,7 @@ import Heading from './components/Heading';
 import Table from './components/Table';
 import LoansLedgerSection from './components/LoansLedgerSection';
 import ComplianceTasksSection from './components/ComplianceTasksSection';
-import { LoanApplication, Task, Transaction, PlatformConfig, PlatformStats, PortalType } from './types';
+import { LoanApplication, Task, Transaction, PlatformConfig, PlatformStats, PortalType, Tenant } from './types';
 import { DEFAULT_CONFIG, DEFAULT_STATS } from './data';
 import { API, apiFetch } from './api';
 import { downloadCSV } from './utils';
@@ -124,6 +124,11 @@ export default function App() {
 
   const [userData, setUserData] = useState<{ id: number; name: string; email: string; role: string; tenant_id: number; tenant_name: string; tenant_slug: string; tenant_plan: string; tenant_logo_url?: string | null } | null>(null);
 
+  const [selectedTenantId, setSelectedTenantId] = useState<string>(() => {
+    return localStorage.getItem('nexus_selected_tenant_id') || 'all';
+  });
+  const [tenantsList, setTenantsList] = useState<Tenant[]>([]);
+
   const portalUser = useMemo(() => userData || (() => {
     if (!token) return null;
     try {
@@ -141,6 +146,23 @@ export default function App() {
       };
     } catch { return null; }
   })(), [token, userData]);
+
+  // Compute active tenant branding for Super Admin
+  const activeTenantBranding = useMemo(() => {
+    if (currentPortal === 'super-admin') {
+      if (selectedTenantId === 'all') {
+        return { name: 'NexusFinance', logo: null };
+      }
+      const found = tenantsList.find(t => String(t.id) === selectedTenantId);
+      if (found) {
+        return { name: found.name, logo: found.logo_url || null };
+      }
+    }
+    return {
+      name: portalUser?.tenant_name || 'NexusFinance',
+      logo: portalUser?.tenant_logo_url || null,
+    };
+  }, [currentPortal, selectedTenantId, tenantsList, portalUser]);
 
   const [searchTermInvoice, setSearchTermInvoice] = useState('');
   const [selectedApplication, setSelectedApplication] = useState<LoanApplication | null>(null);
@@ -184,6 +206,17 @@ export default function App() {
     if (!token) return;
     refetchAll();
   }, [token]);
+
+  // Fetch tenants for super-admin portal
+  useEffect(() => {
+    if (token && (currentPortal === 'super-admin' || portalUser?.role === 'super-admin')) {
+      apiFetch('/tenants')
+        .then(data => {
+          if (Array.isArray(data)) setTenantsList(data);
+        })
+        .catch(() => {});
+    }
+  }, [token, currentPortal, portalUser?.role]);
 
   useEffect(() => {
     ['nexus_applications','nexus_tasks','nexus_transactions','nexus_outstanding_bal','nexus_config','nexus_stats','nexus_is_logged_in']
@@ -429,8 +462,8 @@ export default function App() {
         setActiveMenu={handleSetActiveMenu}
         onApplyForLoan={() => setIsApplyOpen(true)}
         onLogout={handleLogout}
-        tenantName={portalUser?.tenant_name}
-        tenantLogo={portalUser?.tenant_logo_url}
+        tenantName={activeTenantBranding.name}
+        tenantLogo={activeTenantBranding.logo}
       />
 
       <div className="md:pl-72 app-content min-h-screen flex flex-col">
@@ -445,7 +478,12 @@ export default function App() {
           userRole={portalUser?.role}
           onProfileClick={() => handleSetActiveMenu('profile')}
           onLogout={handleLogout}
-          onTenantChange={() => refetchAll()}
+          selectedTenantId={selectedTenantId}
+          tenants={tenantsList}
+          onTenantChange={(tid) => {
+            setSelectedTenantId(tid);
+            refetchAll();
+          }}
         />
 
         {/* Mobile Drawer */}
@@ -645,6 +683,7 @@ export default function App() {
           {currentPortal === 'super-admin' && (
             activeMenu === 'dashboard' ? (
               <SuperAdminDashboard
+                key={selectedTenantId}
                 config={config}
                 stats={stats}
                 auditLogs={auditLogs}
@@ -656,17 +695,18 @@ export default function App() {
             ) : activeMenu === 'tenants' ? (
               <TenantManagement />
             ) : activeMenu === 'users' ? (
-              <UsersView />
+              <UsersView key={selectedTenantId} />
             ) : activeMenu === 'audit' ? (
-              <AuditLogView />
+              <AuditLogView key={selectedTenantId} />
             ) : activeMenu === 'manage' ? (
-              <LoanManagement applications={applications} onRefresh={refetchAll} />
+              <LoanManagement key={selectedTenantId} applications={applications} onRefresh={refetchAll} />
             ) : activeMenu === 'reminders' ? (
-              <ReminderSettingsView />
+              <ReminderSettingsView key={selectedTenantId} />
             ) : activeMenu === 'broadcast' ? (
-              <BroadcastView />
+              <BroadcastView key={selectedTenantId} />
             ) : activeMenu === 'settings' ? (
               <SuperAdminDashboard
+                key={selectedTenantId}
                 config={config}
                 stats={stats}
                 auditLogs={auditLogs}

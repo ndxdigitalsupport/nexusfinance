@@ -57,7 +57,12 @@ const otpSessions = new Map<string, { phone: string; expiresAt: number; attempts
 
 app.set('trust proxy', 1);
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
-app.use(cors({ origin: corsOrigin, credentials: true }));
+app.use(cors({
+  origin: corsOrigin,
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant-Id', 'Cache-Control', 'Pragma'],
+  exposedHeaders: ['X-Tenant-Id'],
+}));
 app.use(cookieParser());
 app.use(express.json());
 
@@ -1318,10 +1323,22 @@ app.patch('/api/tasks/:id/complete', authMiddleware, async (req, res) => {
 
 // ── USER MANAGEMENT (Super Admin) ──────────────────────────
 
-app.get('/api/users', authMiddleware, async (req, res) => {
+app.get('/api/users', authMiddleware, async (req: any, res) => {
   if (req.user.role !== 'super-admin' && req.user.role !== 'admin') return res.status(403).json({ error: 'Admins only.' });
-  const tenantId = req.user.tenant_id || 1;
-  const { data: users } = await db.from('nexus_users').select('id, name, email, role, phone, telegram_chat_id').eq('tenant_id', tenantId);
+  
+  let query = db.from('nexus_users').select('id, name, email, role, phone, telegram_chat_id, tenant_id');
+  if (req.user.role === 'super-admin' && req.selectedTenantId === 'all') {
+    // Show all users across all organizations
+  } else if (req.user.role === 'super-admin' && req.selectedTenantId) {
+    query = query.eq('tenant_id', req.selectedTenantId);
+  } else if (req.user.role === 'super-admin' && req.query.tenantId) {
+    query = query.eq('tenant_id', parseInt(req.query.tenantId as string));
+  } else {
+    query = query.eq('tenant_id', req.user.tenant_id || 1);
+  }
+
+  const { data: users, error } = await query.order('id', { ascending: true });
+  if (error) return res.status(500).json({ error: error.message });
   res.json(users || []);
 });
 

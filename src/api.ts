@@ -4,7 +4,15 @@ export const API = import.meta.env.VITE_API_URL
 export async function apiFetch(path: string, options?: RequestInit) {
   const token = localStorage.getItem('nexus_token');
   const selectedTenant = localStorage.getItem('nexus_selected_tenant_id');
-  const res = await fetch(`${API}${path}`, {
+
+  // Build target URL: append tenantId query param if a specific tenant is selected
+  let url = `${API}${path}`;
+  if (selectedTenant) {
+    const separator = url.includes('?') ? '&' : '?';
+    url += `${separator}tenantId=${encodeURIComponent(selectedTenant)}`;
+  }
+
+  const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
