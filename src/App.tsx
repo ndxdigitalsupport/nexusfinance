@@ -717,7 +717,7 @@ export default function App() {
                 />
               )
             ) : activeMenu === 'users' ? (
-              <UsersView key={selectedTenantId} />
+              <UsersView key={selectedTenantId} userRole={portalUser?.role} />
             ) : activeMenu === 'audit' ? (
               <AuditLogView key={selectedTenantId} />
             ) : activeMenu === 'manage' ? (
