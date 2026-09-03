@@ -1382,10 +1382,16 @@ app.post('/api/users', authMiddleware, requireRole('super-admin', 'admin'), asyn
         return res.status(400).json({ error: 'An account with this email already exists.' });
       }
     } else {
-      // Auto-generate identifier from name or random tag (e.g. kako_admin@nexus.local)
-      const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const randTag = Math.random().toString(36).substring(2, 6);
-      finalEmail = `${cleanName || 'user'}_${randTag}@nexus.local`;
+      // Auto-generate clean email with @gmail.com
+      const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '') || 'user';
+      let candidate = `${cleanName}@gmail.com`;
+      const { data: existingCandidate } = await db.from('nexus_users').select('id').eq('email', candidate).maybeSingle();
+      if (existingCandidate) {
+        // If exact name is taken, add a clean increment
+        const randNum = Math.floor(100 + Math.random() * 900);
+        candidate = `${cleanName}${randNum}@gmail.com`;
+      }
+      finalEmail = candidate;
     }
 
     // Format phone if provided
