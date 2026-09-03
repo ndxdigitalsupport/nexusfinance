@@ -421,20 +421,15 @@ export default function ReminderSettingsView() {
         <div>
           <div className="flex items-center gap-3">
             <h2 className="text-[28px] font-black text-[var(--text-primary)] font-sans tracking-tight">
-              {t('custom_reminders')} & {t('delinquent_tracker')}
+              {t('custom_reminders')}
             </h2>
-            {delinquentLoans.length > 0 && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-rose-500/10 text-rose-500 border border-rose-500/20 animate-pulse">
-                {delinquentLoans.length} Overdue
-              </span>
-            )}
           </div>
           <p className="text-[13.5px] text-[var(--text-secondary)] mt-0.5">{t('custom_reminders_desc')}</p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => { fetchSettings(); fetchOverdueLoans(); fetchLogs(); }}
+            onClick={() => { fetchSettings(); fetchLogs(); }}
             className="p-2.5 rounded-xl border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] transition cursor-pointer"
             title="Refresh"
           >
@@ -450,43 +445,7 @@ export default function ReminderSettingsView() {
         </div>
       </div>
 
-      {/* Sub-Tab Navigation */}
-      <div className="flex items-center gap-2 border-b border-[var(--border-primary)] pb-2">
-        <button
-          onClick={() => setActiveTab('rules')}
-          className={`px-4 py-2 rounded-xl text-[13px] font-bold transition flex items-center gap-2 cursor-pointer ${
-            activeTab === 'rules'
-              ? 'bg-[var(--accent)] text-[#0F171C] shadow-xs'
-              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]'
-          }`}
-        >
-          <Clock className="w-4 h-4" />
-          <span>{t('rules_tab')}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('delinquent')}
-          className={`px-4 py-2 rounded-xl text-[13px] font-bold transition flex items-center gap-2 cursor-pointer relative ${
-            activeTab === 'delinquent'
-              ? 'bg-[var(--accent)] text-[#0F171C] shadow-xs'
-              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]'
-          }`}
-        >
-          <ShieldAlert className="w-4 h-4" />
-          <span>{t('delinquent_tracker')}</span>
-          {delinquentLoans.length > 0 && (
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-              activeTab === 'delinquent' ? 'bg-black/20 text-[#0F171C]' : 'bg-rose-500 text-white'
-            }`}>
-              {delinquentLoans.length}
-            </span>
-          )}
-        </button>
-      </div>
-
-      {/* TAB 1: RULES & COLLECTION POLICY */}
-      {activeTab === 'rules' && (
-        <div className="space-y-6">
+      <div className="space-y-6">
           {/* Unified Collection & Late Penalty Policy Matrix Card */}
           <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 space-y-4 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-primary)] pb-3">
@@ -724,181 +683,6 @@ export default function ReminderSettingsView() {
             )}
           </div>
         </div>
-      )}
-
-      {/* TAB 2: LIVE DELINQUENT DEBT RECOVERY TRACKER */}
-      {activeTab === 'delinquent' && (
-        <div className="space-y-6">
-          {/* Traffic-Light Summary Metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-[var(--surface-card)] border border-amber-500/30 rounded-2xl p-5 shadow-xs flex items-center justify-between">
-              <div>
-                <span className="text-[12px] font-extrabold text-amber-500 uppercase tracking-wider block">
-                  {t('mild_risk')}
-                </span>
-                <span className="text-[26px] font-black font-mono text-[var(--text-primary)] mt-1 block">
-                  {delinquentSummary?.mildCount || 0} Loans
-                </span>
-                <span className="text-[11px] text-[var(--text-secondary)] mt-0.5 block">Automated reminders active</span>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold text-[18px]">
-                🟡
-              </div>
-            </div>
-
-            <div className="bg-[var(--surface-card)] border border-orange-500/30 rounded-2xl p-5 shadow-xs flex items-center justify-between">
-              <div>
-                <span className="text-[12px] font-extrabold text-orange-500 uppercase tracking-wider block">
-                  {t('medium_risk')}
-                </span>
-                <span className="text-[26px] font-black font-mono text-[var(--text-primary)] mt-1 block">
-                  {delinquentSummary?.mediumCount || 0} Loans
-                </span>
-                <span className="text-[11px] text-[var(--text-secondary)] mt-0.5 block">Officer call recommended</span>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold text-[18px]">
-                🟠
-              </div>
-            </div>
-
-            <div className="bg-[var(--surface-card)] border border-rose-500/30 rounded-2xl p-5 shadow-xs flex items-center justify-between">
-              <div>
-                <span className="text-[12px] font-extrabold text-rose-500 uppercase tracking-wider block">
-                  {t('severe_risk')}
-                </span>
-                <span className="text-[26px] font-black font-mono text-[var(--text-primary)] mt-1 block">
-                  {delinquentSummary?.severeCount || 0} Loans
-                </span>
-                <span className="text-[11px] text-[var(--text-secondary)] mt-0.5 block">Default / Legal escalation</span>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center font-bold text-[18px]">
-                🔴
-              </div>
-            </div>
-          </div>
-
-          {/* Delinquent Loans Table */}
-          <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden shadow-xs">
-            <div className="px-6 py-4 border-b border-[var(--border-primary)] flex items-center justify-between flex-wrap gap-2">
-              <div>
-                <h3 className="text-[15px] font-bold text-[var(--text-primary)] flex items-center gap-2">
-                  <ShieldAlert className="w-4.5 h-4.5 text-rose-500" /> Overdue Borrowers & Collection Action Queue
-                </h3>
-                <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">
-                  Total Recoverable: <span className="font-mono font-bold text-[var(--text-primary)]">{formatCurrency(delinquentSummary?.totalRecoverable || 0)}</span> (Includes {formatCurrency(delinquentSummary?.totalPenaltiesAccrued || 0)} late penalties)
-                </p>
-              </div>
-
-              <span className="text-[11.5px] font-bold px-3 py-1 rounded-full bg-[var(--surface-secondary)] text-[var(--text-secondary)] border border-[var(--border-primary)]">
-                Grace Period: {gracePeriodDays} Days · Fine: ${latePenaltyDaily}/day
-              </span>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-[13.5px] text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/50 select-none">
-                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)]">Borrower & Contact</th>
-                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)]">Reference</th>
-                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)] text-center">Days Overdue</th>
-                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)] text-right">Base Installment</th>
-                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)] text-right">Late Penalty</th>
-                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)] text-right">Total Owed</th>
-                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)] text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--border-primary)]">
-                  {loadingDelinquent ? (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-[var(--text-secondary)]">Loading delinquent accounts...</td>
-                    </tr>
-                  ) : paginatedDelinquent.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-emerald-600">
-                        <div className="max-w-sm mx-auto space-y-2">
-                          <span className="text-[28px] block">🎉</span>
-                          <span className="font-bold block text-[15px]">Zero Delinquent Loans!</span>
-                          <p className="text-[12px] text-[var(--text-secondary)]">All active loan installments are currently on time.</p>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    paginatedDelinquent.map((l) => (
-                      <tr key={l.loanId} className="hover:bg-[var(--surface-secondary)]/30 transition">
-                        <td className="px-6 py-4">
-                          <span className="font-bold text-[var(--text-primary)] block">{l.applicantName}</span>
-                          <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[var(--text-tertiary)]">
-                            <span>{l.applicantEmail}</span>
-                            {l.phone && <span>· 📞 {l.phone}</span>}
-                            <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
-                              l.telegramLinked ? 'bg-sky-500/10 text-sky-600' : 'bg-gray-500/10 text-gray-500'
-                            }`}>
-                              {l.telegramLinked ? 'Telegram Linked' : 'No Telegram'}
-                            </span>
-                          </div>
-                        </td>
-
-                        <td className="px-6 py-4">
-                          <span className="font-mono font-bold text-[var(--text-primary)]">#{l.loanId.startsWith('#') ? l.loanId.substring(1) : l.loanId}</span>
-                          <span className="text-[11px] text-[var(--text-tertiary)] block">{l.loanType}</span>
-                        </td>
-
-                        <td className="px-6 py-4 text-center">
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-mono font-extrabold ${
-                            l.riskLevel === 'severe' ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' :
-                            l.riskLevel === 'medium' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' :
-                            'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                          }`}>
-                            <AlertTriangle className="w-3 h-3" />
-                            {l.daysOverdue} Days Late
-                          </span>
-                        </td>
-
-                        <td className="px-6 py-4 text-right font-mono font-bold text-[var(--text-primary)]">
-                          {formatCurrency(l.monthlyPayment * l.overdueInstallmentsCount)}
-                        </td>
-
-                        <td className="px-6 py-4 text-right font-mono font-bold text-amber-500">
-                          +{formatCurrency(l.penaltyFee)}
-                        </td>
-
-                        <td className="px-6 py-4 text-right">
-                          <span className="font-mono font-black text-rose-500 text-[14px] block">
-                            {formatCurrency(l.totalDue)}
-                          </span>
-                        </td>
-
-                        <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => handleNudge(l.loanId)}
-                            disabled={nudgingLoanId === l.loanId}
-                            className="inline-flex items-center gap-1.5 bg-[var(--accent)] hover:brightness-105 text-[#0F171C] text-[12px] font-bold px-3 py-1.5 rounded-lg transition shadow-xs cursor-pointer disabled:opacity-50"
-                          >
-                            <Send className="w-3.5 h-3.5" />
-                            {nudgingLoanId === l.loanId ? t('nudging') : t('nudge_btn')}
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {totalDelinquentPages > 1 && (
-              <div className="p-4 border-t border-[var(--border-primary)]">
-                <Pagination
-                  currentPage={delinquentPage}
-                  totalPages={totalDelinquentPages}
-                  totalItems={delinquentLoans.length}
-                  itemsPerPage={delinquentPerPage}
-                  onPageChange={setDelinquentPage}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* CREATE / EDIT MODAL */}
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} maxWidth="max-w-4xl">

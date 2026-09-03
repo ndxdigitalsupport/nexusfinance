@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown, QrCode, Mail, HelpCircle as HelpIcon, Download, FileText, Calculator, Bell, Megaphone } from 'lucide-react';
+import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown, QrCode, Mail, HelpCircle as HelpIcon, Download, FileText, Calculator, Bell, Megaphone, AlertTriangle } from 'lucide-react';
 import AuthPage from './components/AuthPage';
 import Toast, { showToast } from './components/Toast';
 import Sidebar from './components/Sidebar';
@@ -36,6 +36,7 @@ const LoanManagement = lazy(() => import('./components/LoanManagement'));
 const SupportView = lazy(() => import('./components/SupportView'));
 const UsersView = lazy(() => import('./components/UsersView'));
 const OfficerRepaymentsView = lazy(() => import('./components/OfficerRepaymentsView'));
+const OfficerCollectionsView = lazy(() => import('./components/OfficerCollectionsView'));
 const ReminderSettingsView = lazy(() => import('./components/ReminderSettingsView'));
 const ReportsView = lazy(() => import('./components/ReportsView'));
 const AmortizationScheduleModal = lazy(() => import('./components/AmortizationScheduleModal'));
@@ -478,7 +479,11 @@ export default function App() {
                 <p className="text-[10px] font-bold uppercase tracking-widest px-3 pb-2 pt-1" style={{ color: 'var(--sidebar-text-muted)' }}>{t('menu')}</p>
                 {(() => {
                   const items = currentPortal === 'loan-officer'
-                    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'repayments', label: t('repayments_checklist'), icon: ClipboardList }]
+                    ? [
+                        { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
+                        { id: 'repayments', label: t('repayments_checklist'), icon: ClipboardList },
+                        { id: 'collections', label: t('collections'), icon: AlertTriangle }
+                      ]
                     : currentPortal === 'super-admin'
                     ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]
                     : [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'loans', label: t('loans'), icon: Landmark }, { id: 'khqr', label: t('khqr_payment'), icon: QrCode }];
@@ -602,6 +607,8 @@ export default function App() {
               <LoanManagement applications={applications} onRefresh={refetchAll} />
             ) : activeMenu === 'repayments' ? (
               <OfficerRepaymentsView loans={applications} onRefresh={refetchAll} onViewSchedule={setViewingScheduleLoan} />
+            ) : activeMenu === 'collections' ? (
+              <OfficerCollectionsView />
             ) : activeMenu.startsWith('report_') ? (
               <ReportsView activeReport={activeMenu} loans={applications} transactions={transactions} onViewSchedule={setViewingScheduleLoan} />
             ) : null

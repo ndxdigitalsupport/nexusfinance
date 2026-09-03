@@ -320,6 +320,7 @@ export const translations: Record<string, { en: string; kh: string }> = {
   'template_vars_helper': { en: 'Template Variables Helper', kh: 'ជំនួយការប្រើប្រាស់អថេរគំរូសារ' },
 
   // Debt Collection & Delinquent Tracker
+  'collections': { en: 'Debt Collections', kh: 'ការទារបំណុលហួសកំណត់' },
   'delinquent_tracker': { en: 'Delinquent Debt Tracker', kh: 'ការតាមដានបំណុលហួសកំណត់' },
   'collection_policy': { en: 'Collection & Late Penalty Policy', kh: 'គោលការណ៍ទារបំណុល & ពិន័យយឺតយ៉ាវ' },
   'grace_period': { en: 'Grace Period (Days)', kh: 'រយៈពេលអនុគ្រោះ (ថ្ងៃ)' },
