@@ -2513,6 +2513,118 @@ app.get('/api/payway/transactions', authMiddleware, async (req, res) => {
   }
 });
 
+// ── TENANT MANAGEMENT (Super Admin only) ──────────────────
+
+// List all tenants (super-admin only)
+app.get('/api/tenants', authMiddleware, requireRole('super-admin'), async (req, res) => {
+  const { data: tenants, error } = await db.from('nexus_tenants').select('*').order('id', { ascending: true });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(tenants || []);
+});
+
+// Create a new tenant (super-admin only)
+app.post('/api/tenants', authMiddleware, requireRole('super-admin'), async (req, res) => {
+  const { name, slug, plan, max_users, max_loans } = req.body;
+  if (!name || !slug) return res.status(400).json({ error: 'name and slug are required.' });
+  
+  const { data: existing } = await db.from('nexus_tenants').select('id').eq('slug', slug).maybeSingle();
+  if (existing) return res.status(400).json({ error: 'Slug already taken.' });
+
+  const { data: tenant, error } = await db.from('nexus_tenants').insert({
+    name,
+    slug,
+    plan: plan || 'basic',
+    max_users: max_users || 50,
+    max_loans: max_loans || 500,
+  }).select().single();
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  await db.from('nexus_config').insert({
+    tenant_id: tenant.id,
+    baseInterestRate: 5.4,
+    maxLoanAmount: 500000,
+    kycRequired: true,
+    autoApproveLimit: 5000,
+  });
+
+  const defaultReminders = [
+    { name: '7 Days Before', days_before: 7, message_template: 'Reminder: Your loan installment is due in 7 days.', channel: 'both', is_active: true, tenant_id: tenant.id },
+    { name: '3 Days Before', days_before: 3, message_template: 'Reminder: Your loan installment is due in 3 days.', channel: 'both', is_active: true, tenant_id: tenant.id },
+    { name: '1 Day Before', days_before: 1, message_template: 'Reminder: Your loan installment is due tomorrow.', channel: 'both', is_active: true, tenant_id: tenant.id },
+    { name: 'Due Today', days_before: 0, message_template: 'Your loan installment is due today.', channel: 'both', is_active: true, tenant_id: tenant.id },
+  ];
+  await db.from('nexus_reminder_settings').insert(defaultReminders);
+
+  logAudit('tenant-created', `Tenant "${name}" (${slug}) created`, req.user);
+  res.status(201).json(tenant);
+});
+
+// Get tenant details (super-admin or tenant admin)
+app.get('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'), async (req, res) => {
+  const tenantId = parseInt(req.params.id);
+  if (req.user.role !== 'super-admin' && req.user.tenant_id !== tenantId) {
+    return res.status(403).json({ error: 'Access denied.' });
+  }
+  const { data: tenant, error } = await db.from('nexus_tenants').select('*').eq('id', tenantId).maybeSingle();
+  if (error || !tenant) return res.status(404).json({ error: 'Tenant not found.' });
+  res.json(tenant);
+});
+
+// Update tenant (super-admin only)
+app.patch('/api/tenants/:id', authMiddleware, requireRole('super-admin'), async (req, res) => {
+  const tenantId = parseInt(req.params.id);
+  const { name, slug, plan, max_users, max_loans, is_active, logo_url } = req.body;
+  
+  const updateData: any = {};
+  if (name !== undefined) updateData.name = name;
+  if (slug !== undefined) updateData.slug = slug;
+  if (plan !== undefined) updateData.plan = plan;
+  if (max_users !== undefined) updateData.max_users = max_users;
+  if (max_loans !== undefined) updateData.max_loans = max_loans;
+  if (is_active !== undefined) updateData.is_active = is_active;
+  if (logo_url !== undefined) updateData.logo_url = logo_url;
+  updateData.updated_at = new Date().toISOString();
+
+  const { data: tenant, error } = await db.from('nexus_tenants').update(updateData).eq('id', tenantId).select().single();
+  if (error) return res.status(500).json({ error: error.message });
+  
+  logAudit('tenant-updated', `Tenant ${tenantId} updated: ${JSON.stringify(updateData)}`, req.user);
+  res.json(tenant);
+});
+
+// Delete tenant (super-admin only, soft-deactivate)
+app.delete('/api/tenants/:id', authMiddleware, requireRole('super-admin'), async (req, res) => {
+  const tenantId = parseInt(req.params.id);
+  if (tenantId === 1) return res.status(400).json({ error: 'Cannot delete the default tenant.' });
+  
+  const { error } = await db.from('nexus_tenants').update({ is_active: false }).eq('id', tenantId);
+  if (error) return res.status(500).json({ error: error.message });
+  
+  logAudit('tenant-deactivated', `Tenant ${tenantId} deactivated`, req.user);
+  res.json({ ok: true, message: 'Tenant deactivated.' });
+});
+
+// Get tenant stats (super-admin only)
+app.get('/api/tenants/:id/stats', authMiddleware, requireRole('super-admin'), async (req, res) => {
+  const tenantId = parseInt(req.params.id);
+  
+  const [usersResult, loansResult, txResult] = await Promise.all([
+    db.from('nexus_users').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+    db.from('nexus_loans').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+    db.from('nexus_transactions').select('amount').eq('tenant_id', tenantId),
+  ]);
+
+  const totalVolume = (txResult.data || []).reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount) || 0), 0);
+
+  res.json({
+    tenant_id: tenantId,
+    total_users: usersResult.count || 0,
+    total_loans: loansResult.count || 0,
+    total_volume: totalVolume,
+  });
+});
+
 // ── PRODUCTION: serve frontend build ─────────────────────────
 
 if (process.env.NODE_ENV === 'production') {
@@ -2653,122 +2765,6 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'ad
   logAudit('payment_chase', `Sent payment chase reminder (Telegram: ${sentTelegram}, Email: ${sentEmail}, SMS: ${sentSMS}) to customer ${loan.applicantEmail}`, req.user);
 
   res.json({ success: true, message: 'Chase reminder notifications dispatched successfully.' });
-});
-
-// ── TENANT MANAGEMENT (Super Admin only) ──────────────────
-
-// List all tenants (super-admin only)
-app.get('/api/tenants', authMiddleware, requireRole('super-admin'), async (req, res) => {
-  const { data: tenants, error } = await db.from('nexus_tenants').select('*').order('id', { ascending: true });
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(tenants || []);
-});
-
-// Create a new tenant (super-admin only)
-app.post('/api/tenants', authMiddleware, requireRole('super-admin'), async (req, res) => {
-  const { name, slug, plan, max_users, max_loans } = req.body;
-  if (!name || !slug) return res.status(400).json({ error: 'name and slug are required.' });
-  
-  // Check slug uniqueness
-  const { data: existing } = await db.from('nexus_tenants').select('id').eq('slug', slug).maybeSingle();
-  if (existing) return res.status(400).json({ error: 'Slug already taken.' });
-
-  const { data: tenant, error } = await db.from('nexus_tenants').insert({
-    name,
-    slug,
-    plan: plan || 'basic',
-    max_users: max_users || 50,
-    max_loans: max_loans || 500,
-  }).select().single();
-
-  if (error) return res.status(500).json({ error: error.message });
-
-  // Create default config for the tenant
-  await db.from('nexus_config').insert({
-    tenant_id: tenant.id,
-    baseInterestRate: 5.4,
-    maxLoanAmount: 500000,
-    kycRequired: true,
-    autoApproveLimit: 5000,
-  });
-
-  // Create default reminder settings for the tenant
-  const defaultReminders = [
-    { name: '7 Days Before', days_before: 7, message_template: 'Reminder: Your loan installment is due in 7 days.', channel: 'both', is_active: true, tenant_id: tenant.id },
-    { name: '3 Days Before', days_before: 3, message_template: 'Reminder: Your loan installment is due in 3 days.', channel: 'both', is_active: true, tenant_id: tenant.id },
-    { name: '1 Day Before', days_before: 1, message_template: 'Reminder: Your loan installment is due tomorrow.', channel: 'both', is_active: true, tenant_id: tenant.id },
-    { name: 'Due Today', days_before: 0, message_template: 'Your loan installment is due today.', channel: 'both', is_active: true, tenant_id: tenant.id },
-  ];
-  await db.from('nexus_reminder_settings').insert(defaultReminders);
-
-  logAudit('tenant-created', `Tenant "${name}" (${slug}) created`, req.user);
-  res.status(201).json(tenant);
-});
-
-// Get tenant details (super-admin or tenant admin)
-app.get('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'), async (req, res) => {
-  const tenantId = parseInt(req.params.id);
-  // Non-super-admins can only see their own tenant
-  if (req.user.role !== 'super-admin' && req.user.tenant_id !== tenantId) {
-    return res.status(403).json({ error: 'Access denied.' });
-  }
-  const { data: tenant, error } = await db.from('nexus_tenants').select('*').eq('id', tenantId).maybeSingle();
-  if (error || !tenant) return res.status(404).json({ error: 'Tenant not found.' });
-  res.json(tenant);
-});
-
-// Update tenant (super-admin only)
-app.patch('/api/tenants/:id', authMiddleware, requireRole('super-admin'), async (req, res) => {
-  const tenantId = parseInt(req.params.id);
-  const { name, slug, plan, max_users, max_loans, is_active, logo_url } = req.body;
-  
-  const updateData: any = {};
-  if (name !== undefined) updateData.name = name;
-  if (slug !== undefined) updateData.slug = slug;
-  if (plan !== undefined) updateData.plan = plan;
-  if (max_users !== undefined) updateData.max_users = max_users;
-  if (max_loans !== undefined) updateData.max_loans = max_loans;
-  if (is_active !== undefined) updateData.is_active = is_active;
-  if (logo_url !== undefined) updateData.logo_url = logo_url;
-  updateData.updated_at = new Date().toISOString();
-
-  const { data: tenant, error } = await db.from('nexus_tenants').update(updateData).eq('id', tenantId).select().single();
-  if (error) return res.status(500).json({ error: error.message });
-  
-  logAudit('tenant-updated', `Tenant ${tenantId} updated: ${JSON.stringify(updateData)}`, req.user);
-  res.json(tenant);
-});
-
-// Delete tenant (super-admin only, soft-deactivate)
-app.delete('/api/tenants/:id', authMiddleware, requireRole('super-admin'), async (req, res) => {
-  const tenantId = parseInt(req.params.id);
-  if (tenantId === 1) return res.status(400).json({ error: 'Cannot delete the default tenant.' });
-  
-  const { error } = await db.from('nexus_tenants').update({ is_active: false }).eq('id', tenantId);
-  if (error) return res.status(500).json({ error: error.message });
-  
-  logAudit('tenant-deactivated', `Tenant ${tenantId} deactivated`, req.user);
-  res.json({ ok: true, message: 'Tenant deactivated.' });
-});
-
-// Get tenant stats (super-admin only)
-app.get('/api/tenants/:id/stats', authMiddleware, requireRole('super-admin'), async (req, res) => {
-  const tenantId = parseInt(req.params.id);
-  
-  const [usersResult, loansResult, txResult] = await Promise.all([
-    db.from('nexus_users').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-    db.from('nexus_loans').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-    db.from('nexus_transactions').select('amount').eq('tenant_id', tenantId),
-  ]);
-
-  const totalVolume = (txResult.data || []).reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount) || 0), 0);
-
-  res.json({
-    tenant_id: tenantId,
-    total_users: usersResult.count || 0,
-    total_loans: loansResult.count || 0,
-    total_volume: totalVolume,
-  });
 });
 
 // ── 404 catch-all ────────────────────────────────────────────
