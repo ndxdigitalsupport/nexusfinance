@@ -312,24 +312,32 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Identifier and password are required.' });
     }
 
-    let query = db.from('nexus_users').select('*');
+    let dbUser: any = null;
     if (loginIdentifier.includes('@')) {
-      query = query.eq('email', normalizeEmail(loginIdentifier));
+      const { data } = await db.from('nexus_users').select('*').eq('email', normalizeEmail(loginIdentifier)).maybeSingle();
+      dbUser = data;
     } else {
+      // First check if it matches a phone number
       let normalizedPhone = loginIdentifier.replace(/\D/g, '');
       if (normalizedPhone.startsWith('0')) {
         normalizedPhone = '855' + normalizedPhone.substring(1);
       }
-      if (!normalizedPhone.startsWith('855') && normalizedPhone.length <= 9) {
+      if (!normalizedPhone.startsWith('855') && normalizedPhone.length <= 9 && normalizedPhone.length > 0) {
         normalizedPhone = '855' + normalizedPhone;
       }
       const finalPhone = '+' + normalizedPhone;
-      query = query.eq('phone', finalPhone);
+      const { data: phoneUser } = await db.from('nexus_users').select('*').eq('phone', finalPhone).maybeSingle();
+      if (phoneUser) {
+        dbUser = phoneUser;
+      } else {
+        // Fallback: match by username / name (case-insensitive)
+        const { data: nameUser } = await db.from('nexus_users').select('*').ilike('name', loginIdentifier.trim()).maybeSingle();
+        dbUser = nameUser;
+      }
     }
 
-    const { data: dbUser } = await query.maybeSingle();
     if (!dbUser) {
-      return res.status(401).json({ error: 'Invalid email/phone or password.' });
+      return res.status(401).json({ error: 'Invalid username/email/phone or password.' });
     }
 
     const isValid = await bcrypt.compare(password, dbUser.password || '');
@@ -1346,8 +1354,8 @@ app.get('/api/users', authMiddleware, async (req: any, res) => {
 app.post('/api/users', authMiddleware, requireRole('super-admin', 'admin'), async (req: any, res) => {
   try {
     const { name, email, password, phone, role, tenant_id } = req.body;
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Name, email, and password are required.' });
+    if (!name || !password) {
+      return res.status(400).json({ error: 'Name and password are required.' });
     }
     if (password.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters.' });
@@ -1365,28 +1373,50 @@ app.post('/api/users', authMiddleware, requireRole('super-admin', 'admin'), asyn
       targetTenantId = parseInt(tenant_id) || targetTenantId;
     }
 
-    const normalized = normalizeEmail(email);
-    const { data: existing } = await db.from('nexus_users').select('id').eq('email', normalized).maybeSingle();
-    if (existing) {
-      return res.status(400).json({ error: 'An account with this email already exists.' });
+    // If email is provided, normalize it; otherwise generate a clean user identifier
+    let finalEmail = '';
+    if (email && email.trim()) {
+      finalEmail = normalizeEmail(email);
+      const { data: existing } = await db.from('nexus_users').select('id').eq('email', finalEmail).maybeSingle();
+      if (existing) {
+        return res.status(400).json({ error: 'An account with this email already exists.' });
+      }
+    } else {
+      // Auto-generate identifier from name or random tag (e.g. kako_admin@nexus.local)
+      const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const randTag = Math.random().toString(36).substring(2, 6);
+      finalEmail = `${cleanName || 'user'}_${randTag}@nexus.local`;
+    }
+
+    // Format phone if provided
+    let finalPhone: string | null = null;
+    if (phone && phone.trim()) {
+      let normalizedPhone = phone.replace(/\D/g, '');
+      if (normalizedPhone.startsWith('0')) {
+        normalizedPhone = '855' + normalizedPhone.substring(1);
+      }
+      if (!normalizedPhone.startsWith('855') && normalizedPhone.length <= 9) {
+        normalizedPhone = '855' + normalizedPhone;
+      }
+      finalPhone = '+' + normalizedPhone;
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const { data: newUser, error: insertError } = await db.from('nexus_users').insert({
       name,
-      email: normalized,
+      email: finalEmail,
       password: hashedPassword,
-      phone: phone || null,
+      phone: finalPhone,
       role: assignedRole,
       tenant_id: targetTenantId,
-      email_verified: true, // Pre-verified by administrator
+      email_verified: true, // Created by admin, ready to login
     }).select('id, name, email, role, phone, tenant_id').single();
 
     if (insertError || !newUser) {
       return res.status(500).json({ error: insertError?.message || 'Failed to create user.' });
     }
 
-    logAudit('user-created-by-admin', `User ${name} (${normalized}) created with role ${assignedRole} under tenant #${targetTenantId}`, req.user);
+    logAudit('user-created-by-admin', `User ${name} (${finalEmail}) created with role ${assignedRole} under tenant #${targetTenantId}`, req.user);
     res.status(201).json(newUser);
   } catch (err: any) {
     console.error('Create user error:', err);

@@ -97,21 +97,21 @@ export default function UsersView() {
 
   const handleCreateOfficer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newName || !newEmail || !newPassword) return showToast('All required fields must be filled', 'error');
+    if (!newName || !newPassword) return showToast('Name and password are required', 'error');
     setCreating(true);
     try {
-      await apiFetch('/users', {
+      const created = await apiFetch('/users', {
         method: 'POST',
         body: JSON.stringify({
           name: newName,
-          email: newEmail,
+          email: newEmail.trim() || undefined,
           password: newPassword,
-          phone: newPhone || undefined,
+          phone: newPhone.trim() || undefined,
           role: newRole,
           tenant_id: parseInt(newTenantId) || 1,
         })
       });
-      showToast(`User created successfully under ${tenants.find(t => String(t.id) === newTenantId)?.name || 'Organization'}`, 'success');
+      showToast(`User "${created.name}" created! Login ID: ${created.email}`, 'success');
       setShowCreate(false);
       setNewName(''); setNewEmail(''); setNewPhone(''); setNewPassword('');
       await fetchUsers();
@@ -170,10 +170,10 @@ export default function UsersView() {
         <form onSubmit={handleCreateOfficer} className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
           <h3 className="font-bold text-[var(--text-primary)] mb-4">Create Team Member / User</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <input value={newName} onChange={e => setNewName(e.target.value)} placeholder={t('full_name')} required className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[var(--accent)] bg-[var(--surface-primary)] text-[var(--text-primary)]" />
-            <input value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder={t('email_header')} type="email" required className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[var(--accent)] bg-[var(--surface-primary)] text-[var(--text-primary)]" />
-            <input value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder="Phone number (optional)" className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[var(--accent)] bg-[var(--surface-primary)] text-[var(--text-primary)]" />
-            <input value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder={t('password_placeholder')} type="password" required className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[var(--accent)] bg-[var(--surface-primary)] text-[var(--text-primary)]" />
+            <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Full Name / Username" required className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[var(--accent)] bg-[var(--surface-primary)] text-[var(--text-primary)]" />
+            <input value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="Email (optional — can verify later)" type="email" className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[var(--accent)] bg-[var(--surface-primary)] text-[var(--text-primary)]" />
+            <input value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder="Phone number (optional — can verify later)" className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[var(--accent)] bg-[var(--surface-primary)] text-[var(--text-primary)]" />
+            <input value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Password (min 6 chars)" type="password" required className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[var(--accent)] bg-[var(--surface-primary)] text-[var(--text-primary)]" />
             
             {/* Role selection */}
             <select
