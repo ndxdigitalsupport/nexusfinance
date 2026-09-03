@@ -458,6 +458,7 @@ export default function App() {
       <>
       <Sidebar
         currentPortal={currentPortal}
+        userRole={portalUser?.role}
         activeMenu={activeMenu}
         setActiveMenu={handleSetActiveMenu}
         onApplyForLoan={() => setIsApplyOpen(true)}
@@ -522,15 +523,23 @@ export default function App() {
               )}
 
               <div className="px-3 py-3 space-y-0.5">
-                <p className="text-[10px] font-bold uppercase tracking-widest px-3 pb-2 pt-1" style={{ color: 'var(--sidebar-text-muted)' }}>{t('menu')}</p>
                 {(() => {
+                  const isSuperAdmin = portalUser?.role === 'super-admin';
                   const items = currentPortal === 'loan-officer'
                     ? [
                         { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
                         { id: 'repayments', label: t('repayments_checklist'), icon: ClipboardList }
                       ]
                     : currentPortal === 'super-admin'
-                    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'tenants', label: t('tenants'), icon: Building2 }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]
+                    ? [
+                        { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
+                        ...(isSuperAdmin ? [{ id: 'tenants', label: t('tenants'), icon: Building2 }] : []),
+                        { id: 'users', label: t('users'), icon: Users },
+                        { id: 'reminders', label: t('reminders'), icon: Bell },
+                        { id: 'broadcast', label: t('broadcast'), icon: Megaphone },
+                        { id: 'audit', label: t('audit'), icon: ClipboardList },
+                        { id: 'settings', label: t('settings'), icon: Settings }
+                      ]
                     : [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'loans', label: t('loans'), icon: Landmark }, { id: 'khqr', label: t('khqr_payment'), icon: QrCode }];
                   return items.map((item) => {
                     const Icon = item.icon;
@@ -693,7 +702,20 @@ export default function App() {
                 setActiveMenu={handleSetActiveMenu}
               />
             ) : activeMenu === 'tenants' ? (
-              <TenantManagement />
+              portalUser?.role === 'super-admin' ? (
+                <TenantManagement />
+              ) : (
+                <SuperAdminDashboard
+                  key={selectedTenantId}
+                  config={config}
+                  stats={stats}
+                  auditLogs={auditLogs}
+                  onUpdateConfig={handleUpdateConfig}
+                  view="dashboard"
+                  applications={applications}
+                  setActiveMenu={handleSetActiveMenu}
+                />
+              )
             ) : activeMenu === 'users' ? (
               <UsersView key={selectedTenantId} />
             ) : activeMenu === 'audit' ? (
