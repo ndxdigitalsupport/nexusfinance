@@ -39,16 +39,17 @@ export default function TenantManagement() {
   useEffect(() => { fetchTenants(); }, []);
 
   const handleCreate = async () => {
-    if (!formName || !formSlug) {
-      showToast('Name and slug are required', 'error');
+    if (!formName) {
+      showToast('Organization name is required', 'error');
       return;
     }
+    const autoSlug = formName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     try {
       await apiFetch('/tenants', {
         method: 'POST',
         body: JSON.stringify({
           name: formName,
-          slug: formSlug,
+          slug: autoSlug,
           plan: formPlan,
           max_users: formMaxUsers,
           max_loans: formMaxLoans,
@@ -244,17 +245,12 @@ export default function TenantManagement() {
                 />
               </div>
 
-              {!editingTenant && (
+              {!editingTenant && formName && (
                 <div>
-                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Slug (URL-friendly ID)</label>
-                  <input
-                    type="text"
-                    value={formSlug}
-                    onChange={e => setFormSlug(e.target.value.replace(/[^a-z0-9-]/g, ''))}
-                    className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2"
-                    style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
-                    placeholder="e.g. khmer-micro"
-                  />
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Slug (auto-generated)</label>
+                  <div className="w-full px-3 py-2.5 rounded-xl text-sm border" style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-secondary)' }}>
+                    /{formName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}
+                  </div>
                 </div>
               )}
 
