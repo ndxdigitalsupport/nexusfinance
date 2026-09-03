@@ -154,9 +154,15 @@ export default function UsersView() {
   return (
     <div className="animate-in fade-in duration-200">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-[28px] font-extrabold text-[var(--text-primary)]">{t('user_management')}</h2>
-        <button onClick={() => setShowCreate(!showCreate)} className="flex items-center gap-2 bg-[var(--sidebar-bg)] hover:brightness-125 text-white text-[13px] font-bold px-4 py-2.5 rounded-lg transition cursor-pointer">
-          <PlusCircle className="w-4 h-4" /> {showCreate ? 'Cancel' : t('create_loan_officer')}
+        <div>
+          <h2 className="text-[28px] font-extrabold text-[var(--text-primary)]">{t('user_management')}</h2>
+          <p className="text-[13px] text-[var(--text-tertiary)] mt-0.5">Manage users, officers, and organization admins across institutions.</p>
+        </div>
+        <button
+          onClick={() => setShowCreate(!showCreate)}
+          className="flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] text-[13.5px] font-bold px-4.5 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
+        >
+          <PlusCircle className="w-4.5 h-4.5" /> {showCreate ? 'Cancel' : '+ Add Member / User'}
         </button>
       </div>
 
