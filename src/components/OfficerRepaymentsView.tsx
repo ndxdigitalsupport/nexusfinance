@@ -13,10 +13,13 @@ import {
   Download, 
   Printer, 
   FileText, 
-  X,
   Phone,
   RefreshCw,
-  Sparkles
+  Sparkles,
+  TrendingDown,
+  UserCheck,
+  Zap,
+  ExternalLink
 } from 'lucide-react';
 import { LoanApplication } from '../types';
 import { apiFetch } from '../api';
@@ -59,13 +62,13 @@ export default function OfficerRepaymentsView({ loans, onRefresh, onViewSchedule
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Live Overdue API Data (for accurate late penalty and aging days)
+  // Live Overdue API Data
   const [delinquentMap, setDelinquentMap] = useState<Record<string, DelinquentDetails>>({});
   const [summary, setSummary] = useState<any>(null);
   const [loadingDelinquent, setLoadingDelinquent] = useState(false);
   const [riskFilter, setRiskFilter] = useState<'all' | 'mild' | 'medium' | 'severe'>('all');
 
-  const itemsPerPage = 6;
+  const itemsPerPage = 8;
 
   const fetchDelinquentData = async () => {
     setLoadingDelinquent(true);
@@ -205,11 +208,9 @@ export default function OfficerRepaymentsView({ loans, onRefresh, onViewSchedule
       l.repaymentStatus || 'On Time'
     ]);
 
-    const csvContent = [headers.join('\t'), ...rows.map(r => r.join('\t'))].join('\n');
     const excelHtml = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
       <head>
-        <!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Active Repayments</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
         <meta http-equiv="content-type" content="text/plain; charset=UTF-8"/>
       </head>
       <body>
@@ -300,349 +301,429 @@ export default function OfficerRepaymentsView({ loans, onRefresh, onViewSchedule
     printWindow.document.close();
   };
 
-  const overdueCount = activeLoans.filter(l => l.repaymentStatus === 'Overdue').length;
+  const overdueLoansList = activeLoans.filter(l => l.repaymentStatus === 'Overdue');
+  const overdueCount = overdueLoansList.length;
   const onTimeCount = activeLoans.filter(l => l.repaymentStatus === 'On Time').length;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-300 pb-12">
       
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500/10 text-rose-500 uppercase tracking-wider">
-            Repayment & Collection Control
-          </span>
-          <h2 className="text-[28px] font-extrabold text-[var(--text-primary)] tracking-tight mt-1">
-            Repayments & Debt Collections
-          </h2>
-          <p className="text-[13px] text-[var(--text-secondary)] font-medium mt-0.5">
-            Unified installment monitoring, real-time late penalty calculations, and instant borrower collection nudges.
-          </p>
-        </div>
+      {/* Premium Hero Banner / Header */}
+      <div className="relative overflow-hidden rounded-[24px] bg-gradient-to-br from-[var(--surface-card)] via-[var(--surface-secondary)] to-[var(--surface-card)] border border-[var(--border-primary)] p-6 sm:p-7 shadow-xs">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-[var(--accent)]/10 to-transparent rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-[var(--accent)]/15 text-[#0F171C] dark:text-[var(--accent)] border border-[var(--accent)]/30">
+                <ShieldAlert className="w-3.5 h-3.5 text-[var(--accent)]" />
+                Repayment & Collections Hub
+              </span>
+              {overdueCount > 0 && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20 animate-pulse">
+                  {overdueCount} Overdue Follow-ups
+                </span>
+              )}
+            </div>
 
-        <button
-          onClick={() => { onRefresh(); fetchDelinquentData(); }}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer self-start sm:self-auto font-bold text-[13px]"
-        >
-          <RefreshCw className={`w-4 h-4 ${loadingDelinquent ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
-        </button>
+            <h2 className="text-[26px] sm:text-[30px] font-black text-[var(--text-primary)] font-heading tracking-tight leading-tight">
+              Repayments & Debt Recovery
+            </h2>
+            <p className="text-[13.5px] text-[var(--text-secondary)] font-normal leading-relaxed">
+              Real-time installment monitoring, automated penalty ledger, and instant borrower collection nudges.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2.5 self-start sm:self-center">
+            <button
+              onClick={() => { onRefresh(); fetchDelinquentData(); }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-primary)] bg-[var(--surface-card)]/80 hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition shadow-xs cursor-pointer font-bold text-[13px] backdrop-blur-md"
+            >
+              <RefreshCw className={`w-4 h-4 ${loadingDelinquent ? 'animate-spin text-[var(--accent)]' : ''}`} />
+              <span>Sync Status</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Notifications Toast */}
+      {/* Notifications Toast / Alert */}
       {successMessage && (
-        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-xl p-4 flex items-start gap-3 shadow-sm select-none">
+        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl p-4 flex items-start gap-3 shadow-xs select-none backdrop-blur-sm animate-in fade-in">
           <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
           <span className="text-[13px] font-bold leading-normal">{successMessage}</span>
         </div>
       )}
       {errorMessage && (
-        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-xl p-4 flex items-start gap-3 shadow-sm select-none">
+        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-2xl p-4 flex items-start gap-3 shadow-xs select-none backdrop-blur-sm animate-in fade-in">
           <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" />
           <span className="text-[13px] font-bold leading-normal">{errorMessage}</span>
         </div>
       )}
 
-      {/* When viewing Overdue & Collections: Show Traffic-Light Aging Cards */}
+      {/* Traffic-Light Aging Cards (Appears when viewing Overdue tab, or always available as quick filters) */}
       {activeTab === 'overdue' && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-in fade-in duration-200">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          {/* Mild */}
           <div 
             onClick={() => { setRiskFilter(riskFilter === 'mild' ? 'all' : 'mild'); setCurrentPage(1); }}
-            className={`bg-[var(--surface-card)] border rounded-2xl p-4 shadow-xs flex items-center justify-between cursor-pointer transition ${
-              riskFilter === 'mild' ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-amber-500/30 hover:border-amber-500/60'
+            className={`group relative overflow-hidden rounded-2xl p-5 cursor-pointer transition-all duration-200 border ${
+              riskFilter === 'mild' 
+                ? 'bg-amber-500/[0.08] border-amber-500 ring-2 ring-amber-500/20 shadow-md scale-[1.01]' 
+                : 'bg-[var(--surface-card)] border-[var(--border-primary)] hover:border-amber-500/50 shadow-xs hover:shadow-sm'
             }`}
           >
-            <div>
-              <span className="text-[11px] font-extrabold text-amber-500 uppercase tracking-wider block">
-                {t('mild_risk')}
-              </span>
-              <span className="text-[24px] font-black font-mono text-[var(--text-primary)] mt-0.5 block">
-                {summary?.mildCount || 0} Loans
-              </span>
-              <span className="text-[11px] text-[var(--text-secondary)] mt-0.5 block">Automated reminders running</span>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold text-[18px]">
-              🟡
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-extrabold text-amber-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                  {t('mild_risk')}
+                </span>
+                <div className="text-[28px] font-black font-mono text-[var(--text-primary)] mt-1.5 tracking-tight">
+                  {summary?.mildCount || 0} <span className="text-[14px] font-sans font-bold text-[var(--text-tertiary)]">Loans</span>
+                </div>
+                <p className="text-[11.5px] text-[var(--text-secondary)] mt-1 font-medium">Automated daily sweeps</p>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center font-black text-[20px] group-hover:scale-110 transition-transform">
+                🟡
+              </div>
             </div>
           </div>
 
+          {/* Medium */}
           <div 
             onClick={() => { setRiskFilter(riskFilter === 'medium' ? 'all' : 'medium'); setCurrentPage(1); }}
-            className={`bg-[var(--surface-card)] border rounded-2xl p-4 shadow-xs flex items-center justify-between cursor-pointer transition ${
-              riskFilter === 'medium' ? 'border-orange-500 ring-2 ring-orange-500/20' : 'border-orange-500/30 hover:border-orange-500/60'
+            className={`group relative overflow-hidden rounded-2xl p-5 cursor-pointer transition-all duration-200 border ${
+              riskFilter === 'medium' 
+                ? 'bg-orange-500/[0.08] border-orange-500 ring-2 ring-orange-500/20 shadow-md scale-[1.01]' 
+                : 'bg-[var(--surface-card)] border-[var(--border-primary)] hover:border-orange-500/50 shadow-xs hover:shadow-sm'
             }`}
           >
-            <div>
-              <span className="text-[11px] font-extrabold text-orange-500 uppercase tracking-wider block">
-                {t('medium_risk')}
-              </span>
-              <span className="text-[24px] font-black font-mono text-[var(--text-primary)] mt-0.5 block">
-                {summary?.mediumCount || 0} Loans
-              </span>
-              <span className="text-[11px] text-[var(--text-secondary)] mt-0.5 block">Call required</span>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold text-[18px]">
-              🟠
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-extrabold text-orange-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+                  {t('medium_risk')}
+                </span>
+                <div className="text-[28px] font-black font-mono text-[var(--text-primary)] mt-1.5 tracking-tight">
+                  {summary?.mediumCount || 0} <span className="text-[14px] font-sans font-bold text-[var(--text-tertiary)]">Loans</span>
+                </div>
+                <p className="text-[11.5px] text-[var(--text-secondary)] mt-1 font-medium">Direct phone call required</p>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-500 flex items-center justify-center font-black text-[20px] group-hover:scale-110 transition-transform">
+                🟠
+              </div>
             </div>
           </div>
 
+          {/* Severe */}
           <div 
             onClick={() => { setRiskFilter(riskFilter === 'severe' ? 'all' : 'severe'); setCurrentPage(1); }}
-            className={`bg-[var(--surface-card)] border rounded-2xl p-4 shadow-xs flex items-center justify-between cursor-pointer transition ${
-              riskFilter === 'severe' ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-rose-500/30 hover:border-rose-500/60'
+            className={`group relative overflow-hidden rounded-2xl p-5 cursor-pointer transition-all duration-200 border ${
+              riskFilter === 'severe' 
+                ? 'bg-rose-500/[0.08] border-rose-500 ring-2 ring-rose-500/20 shadow-md scale-[1.01]' 
+                : 'bg-[var(--surface-card)] border-[var(--border-primary)] hover:border-rose-500/50 shadow-xs hover:shadow-sm'
             }`}
           >
-            <div>
-              <span className="text-[11px] font-extrabold text-rose-500 uppercase tracking-wider block">
-                {t('severe_risk')}
-              </span>
-              <span className="text-[24px] font-black font-mono text-[var(--text-primary)] mt-0.5 block">
-                {summary?.severeCount || 0} Loans
-              </span>
-              <span className="text-[11px] text-[var(--text-secondary)] mt-0.5 block">Default / Legal escalation</span>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center font-bold text-[18px]">
-              🔴
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-extrabold text-rose-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                  {t('severe_risk')}
+                </span>
+                <div className="text-[28px] font-black font-mono text-[var(--text-primary)] mt-1.5 tracking-tight">
+                  {summary?.severeCount || 0} <span className="text-[14px] font-sans font-bold text-[var(--text-tertiary)]">Loans</span>
+                </div>
+                <p className="text-[11.5px] text-[var(--text-secondary)] mt-1 font-medium">Default notice & legal alert</p>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center font-black text-[20px] group-hover:scale-110 transition-transform">
+                🔴
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Controls Bar: Search & Tabs */}
-      <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+      {/* Control Bar: Modern Pill Tabs, Search, & Export */}
+      <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between bg-[var(--surface-card)] border border-[var(--border-primary)] p-2.5 sm:p-3 rounded-2xl shadow-xs">
         
-        {/* Tab switchers */}
-        <div className="bg-[var(--surface-secondary)] p-1 rounded-xl border border-[var(--border-primary)] flex gap-1 select-none flex-1 max-w-lg">
+        {/* Rounded Pill Segmented Tabs */}
+        <div className="flex items-center gap-1.5 p-1 bg-[var(--surface-secondary)] rounded-xl select-none overflow-x-auto">
           <button
             onClick={() => { setActiveTab('all'); setRiskFilter('all'); setCurrentPage(1); }}
-            className={`flex-1 text-center py-2 text-[12.5px] font-bold rounded-lg transition-all cursor-pointer ${
+            className={`px-4 py-2 rounded-lg text-[13px] font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
               activeTab === 'all'
-                ? 'bg-[var(--surface-card)] text-[var(--text-primary)] shadow-sm border border-[var(--border-primary)]'
+                ? 'bg-[var(--surface-card)] text-[var(--text-primary)] shadow-xs border border-[var(--border-primary)]'
                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
-            All Active ({activeLoans.length})
+            <span>All Active</span>
+            <span className="px-1.5 py-0.2 rounded-md bg-[var(--border-primary)] text-[11px] font-mono text-[var(--text-secondary)]">
+              {activeLoans.length}
+            </span>
           </button>
 
           <button
             onClick={() => { setActiveTab('ontime'); setRiskFilter('all'); setCurrentPage(1); }}
-            className={`flex-1 text-center py-2 text-[12.5px] font-bold rounded-lg transition-all cursor-pointer ${
+            className={`px-4 py-2 rounded-lg text-[13px] font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
               activeTab === 'ontime'
-                ? 'bg-emerald-500 text-white shadow-sm border border-emerald-600'
+                ? 'bg-emerald-500 text-white shadow-xs'
                 : 'text-emerald-600 hover:bg-emerald-500/10'
             }`}
           >
-            On Track ({onTimeCount})
+            <span>On Track</span>
+            <span className={`px-1.5 py-0.2 rounded-md text-[11px] font-mono ${
+              activeTab === 'ontime' ? 'bg-emerald-700/50 text-white' : 'bg-emerald-500/10 text-emerald-600'
+            }`}>
+              {onTimeCount}
+            </span>
           </button>
 
           <button
             onClick={() => { setActiveTab('overdue'); setCurrentPage(1); }}
-            className={`flex-1 text-center py-2 text-[12.5px] font-bold rounded-lg transition-all cursor-pointer relative ${
+            className={`px-4 py-2 rounded-lg text-[13px] font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
               activeTab === 'overdue'
-                ? 'bg-rose-500 text-white shadow-sm border border-rose-600'
+                ? 'bg-rose-500 text-white shadow-xs'
                 : 'text-rose-500 hover:bg-rose-500/10'
             }`}
           >
-            Overdue & Collections ({overdueCount})
+            <span>Overdue & Collections</span>
+            {overdueCount > 0 && (
+              <span className={`px-1.5 py-0.2 rounded-md text-[11px] font-mono font-black ${
+                activeTab === 'overdue' ? 'bg-rose-700/50 text-white' : 'bg-rose-500 text-white'
+              }`}>
+                {overdueCount}
+              </span>
+            )}
           </button>
         </div>
 
-        {/* Search & Export Group */}
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-          {/* Local Search input */}
-          <div className="relative w-full md:w-64">
-            <Search className="w-4.5 h-4.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
+        {/* Search & Export Buttons */}
+        <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
             <input
               type="text"
-              placeholder="Search active accounts..."
+              placeholder="Search borrower, ID..."
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="w-full bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl py-2.5 pl-10 pr-4 text-[13px] leading-tight focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/10 transition shadow-sm placeholder:text-[var(--text-tertiary)]"
+              className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl py-2 pl-9 pr-3 text-[13px] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/10 transition placeholder:text-[var(--text-tertiary)]"
             />
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={exportToExcel}
-              className="px-3 py-2 bg-[var(--surface-secondary)] border border-[var(--border-primary)] hover:border-[var(--accent)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-xl font-bold text-[12.5px] transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              className="px-3 py-2 bg-[var(--surface-secondary)] border border-[var(--border-primary)] hover:border-emerald-500/40 text-[var(--text-secondary)] hover:text-emerald-600 rounded-xl font-bold text-[12.5px] transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
               title="Download Excel Spreadsheet"
             >
-              <Download className="w-4 h-4 text-emerald-500" />
+              <Download className="w-3.5 h-3.5 text-emerald-500" />
               <span>Excel</span>
             </button>
             <button
               onClick={exportToPDF}
-              className="px-3 py-2 bg-[var(--surface-secondary)] border border-[var(--border-primary)] hover:border-[var(--accent)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-xl font-bold text-[12.5px] transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              className="px-3 py-2 bg-[var(--surface-secondary)] border border-[var(--border-primary)] hover:border-sky-500/40 text-[var(--text-secondary)] hover:text-sky-600 rounded-xl font-bold text-[12.5px] transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
               title="Print PDF Summary"
             >
-              <Printer className="w-4 h-4 text-sky-500" />
+              <Printer className="w-3.5 h-3.5 text-sky-500" />
               <span>PDF</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main Repayments / Collection Ledger Container */}
-      <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl shadow-xs overflow-hidden">
+      {/* Main Table Ledger Card */}
+      <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-[22px] shadow-xs overflow-hidden">
         
-        {/* Table Head */}
-        <div className="hidden sm:grid grid-cols-12 px-6 py-4 border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/40 font-bold select-none text-[11px] text-[var(--text-secondary)] uppercase tracking-wider">
-          <div className="col-span-3">Customer / Reference</div>
-          <div className="col-span-2 text-right">Repayment / Mo</div>
-          <div className="col-span-2 text-center">Next Payment / Due</div>
-          <div className="col-span-2 text-center">Status</div>
-          <div className="col-span-3 text-center">Actions</div>
-        </div>
-
-        {/* Rows */}
-        <div className="divide-y divide-[var(--border-secondary)] select-none">
-          {paginatedLoans.length > 0 ? (
-            paginatedLoans.map((loan) => {
-              const isOverdue = loan.repaymentStatus === 'Overdue';
-              const monthly = loan.monthlyPayment || 0;
-              const overdueCount = loan.overdueCount || 0;
-              const delinquentInfo = delinquentMap[loan.id];
-              
-              return (
-                <div 
-                  key={loan.id}
-                  className={`flex flex-col sm:grid sm:grid-cols-12 px-6 py-5 gap-3 sm:gap-0 items-start sm:items-center hover:bg-[var(--surface-secondary)]/20 transition ${
-                    isOverdue ? 'bg-rose-500/[0.02]' : ''
-                  }`}
-                >
+        {/* Table Container */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/60 text-[11px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider select-none">
+                <th className="px-6 py-4">Customer & Contact</th>
+                <th className="px-6 py-4">Reference</th>
+                <th className="px-6 py-4 text-right">Repayment / Mo</th>
+                <th className="px-6 py-4 text-center">Due / Schedule</th>
+                <th className="px-6 py-4 text-center">Status</th>
+                <th className="px-6 py-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--border-primary)]/60 text-[13.5px]">
+              {paginatedLoans.length > 0 ? (
+                paginatedLoans.map((loan) => {
+                  const isOverdue = loan.repaymentStatus === 'Overdue';
+                  const monthly = loan.monthlyPayment || 0;
+                  const overdueCount = loan.overdueCount || 0;
+                  const delinquentInfo = delinquentMap[loan.id];
                   
-                  {/* Customer / Reference */}
-                  <div className="col-span-3 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[var(--accent)]/10 to-[var(--accent)]/5 text-[var(--accent)] flex items-center justify-center text-[14px] font-extrabold shadow-sm shrink-0">
-                      {loan.initials}
-                    </div>
-                    <div>
-                      <div className="text-[14.5px] text-[var(--text-primary)] font-bold">{loan.applicantName}</div>
-                      <div className="text-[11.5px] text-[var(--text-secondary)] font-medium mt-0.5">
-                        ID: {loan.id} <span className="text-[var(--text-tertiary)]">•</span> {loan.type}
-                      </div>
-                      {delinquentInfo?.phone && (
-                        <a 
-                          href={`tel:${delinquentInfo.phone}`}
-                          className="inline-flex items-center gap-1 text-[11px] text-[var(--text-tertiary)] hover:text-[var(--accent)] font-mono mt-0.5"
-                        >
-                          <Phone className="w-3 h-3" /> {delinquentInfo.phone}
-                        </a>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Repayment per Month */}
-                  <div className="col-span-2 text-left sm:text-right ml-13 sm:ml-0">
-                    <div className="text-[14.5px] text-[var(--text-primary)] font-bold font-mono">
-                      {formatCurrency(monthly)}
-                    </div>
-                    {isOverdue && delinquentInfo?.penaltyFee ? (
-                      <div className="text-[11px] text-amber-500 font-bold mt-0.5">
-                        +{formatCurrency(delinquentInfo.penaltyFee)} late fee
-                      </div>
-                    ) : (
-                      <div className="text-[11.5px] text-[var(--text-tertiary)] font-semibold mt-0.5">
-                        of {formatCurrency(loan.amount)} total
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Next Payment Date / Days Late */}
-                  <div className="col-span-2 text-left sm:text-center ml-13 sm:ml-0">
-                    <div className="text-[13.5px] text-[var(--text-primary)] font-semibold flex items-center justify-start sm:justify-center gap-1.5">
-                      <Calendar className="w-4 h-4 text-[var(--text-tertiary)]" />
-                      {formatDate(loan.nextPaymentDate || null)}
-                    </div>
-                    {isOverdue && (
-                      <div className="mt-1">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono font-extrabold ${
-                          (delinquentInfo?.daysOverdue || 0) >= 30 ? 'bg-rose-500/10 text-rose-500' :
-                          (delinquentInfo?.daysOverdue || 0) >= 15 ? 'bg-orange-500/10 text-orange-500' :
-                          'bg-amber-500/10 text-amber-500'
-                        }`}>
-                          <AlertTriangle className="w-3 h-3" />
-                          {delinquentInfo ? `${delinquentInfo.daysOverdue}d late` : `${overdueCount} overdue`}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Status chip */}
-                  <div className="col-span-2 text-left sm:text-center ml-13 sm:ml-0 flex justify-start sm:justify-center items-center">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold uppercase tracking-wider ${
-                      isOverdue 
-                        ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' 
-                        : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                    }`}>
-                      {isOverdue ? 'Overdue' : 'On Track'}
-                    </span>
-                  </div>
-
-                  {/* Action Buttons: Schedule + 1-Click Send Nudge */}
-                  <div className="col-span-3 flex flex-row gap-2 justify-start sm:justify-center items-center ml-13 sm:ml-0 w-full">
-                    <button
-                      onClick={() => onViewSchedule(loan)}
-                      className="px-2.5 py-1.5 bg-[var(--surface-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] hover:bg-[var(--surface-card)] transition text-[12px] font-bold rounded-lg cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
-                      title="View Repayment Schedule"
+                  return (
+                    <tr 
+                      key={loan.id}
+                      className={`hover:bg-[var(--surface-secondary)]/40 transition-colors duration-150 ${
+                        isOverdue ? 'bg-rose-500/[0.015]' : ''
+                      }`}
                     >
-                      <Printer className="w-3.5 h-3.5 text-[var(--accent)]" />
-                      <span>Schedule</span>
-                    </button>
+                      {/* Customer & Phone */}
+                      <td className="px-6 py-4.5">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-[13.5px] font-black shrink-0 border ${
+                            isOverdue 
+                              ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' 
+                              : 'bg-[var(--accent)]/15 text-[#0F171C] dark:text-[var(--accent)] border-[var(--accent)]/30'
+                          }`}>
+                            {loan.initials}
+                          </div>
+                          <div>
+                            <span className="font-extrabold text-[var(--text-primary)] block leading-snug">
+                              {loan.applicantName}
+                            </span>
+                            <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[11.5px]">
+                              <span className="text-[var(--text-tertiary)]">{loan.applicantEmail}</span>
+                              {delinquentInfo?.phone && (
+                                <a 
+                                  href={`tel:${delinquentInfo.phone}`}
+                                  className="inline-flex items-center gap-1 font-mono font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
+                                  title="Call Borrower"
+                                >
+                                  <Phone className="w-3 h-3 text-[var(--accent)]" />
+                                  <span>{delinquentInfo.phone}</span>
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
 
-                    {isOverdue ? (
-                      <button
-                        onClick={() => handleSendNudge(loan)}
-                        disabled={nudgingLoanId === loan.id}
-                        className="inline-flex items-center gap-1.5 bg-[var(--accent)] hover:brightness-105 text-[#0F171C] text-[12px] font-bold px-3 py-1.5 rounded-lg transition shadow-xs cursor-pointer disabled:opacity-50"
-                        title="Send Instant Collection Nudge via Telegram and In-App"
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        <span>{nudgingLoanId === loan.id ? 'Sending...' : 'Send Nudge'}</span>
-                      </button>
-                    ) : (
-                      <span className="text-[11.5px] text-emerald-600 font-bold uppercase tracking-wider px-2 py-1 rounded bg-emerald-500/5">
-                        Good Standing
-                      </span>
-                    )}
-                  </div>
+                      {/* Loan Reference ID & Type */}
+                      <td className="px-6 py-4.5">
+                        <span className="font-mono font-bold text-[var(--text-primary)] text-[13px] block">
+                          #{loan.id.startsWith('#') ? loan.id.substring(1) : loan.id}
+                        </span>
+                        <span className="text-[11.5px] text-[var(--text-tertiary)] font-medium block mt-0.5">
+                          {loan.type}
+                        </span>
+                      </td>
 
-                </div>
-              );
-            })
-          ) : (
-            <div className="p-12 text-center text-[var(--text-secondary)] font-medium">
-              No active repayment schedules found under this category.
-            </div>
-          )}
+                      {/* Monthly Repayment & Penalty */}
+                      <td className="px-6 py-4.5 text-right">
+                        <span className="font-mono font-black text-[var(--text-primary)] text-[14.5px] block">
+                          {formatCurrency(monthly)}
+                        </span>
+                        {isOverdue && delinquentInfo?.penaltyFee ? (
+                          <span className="inline-block text-[11px] font-mono font-extrabold text-amber-500 bg-amber-500/10 px-1.5 py-0.2 rounded mt-0.5">
+                            +{formatCurrency(delinquentInfo.penaltyFee)} late fee
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-[var(--text-tertiary)] font-medium block mt-0.5">
+                            of {formatCurrency(loan.amount)} total
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Due Date & Overdue Days Tag */}
+                      <td className="px-6 py-4.5 text-center">
+                        <div className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--text-primary)]">
+                          <Calendar className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+                          <span>{formatDate(loan.nextPaymentDate || null)}</span>
+                        </div>
+                        {isOverdue && (
+                          <div className="mt-1">
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-extrabold ${
+                              (delinquentInfo?.daysOverdue || 0) >= 30 ? 'bg-rose-500/15 text-rose-500 border border-rose-500/30' :
+                              (delinquentInfo?.daysOverdue || 0) >= 15 ? 'bg-orange-500/15 text-orange-500 border border-orange-500/30' :
+                              'bg-amber-500/15 text-amber-500 border border-amber-500/30'
+                            }`}>
+                              <AlertTriangle className="w-3 h-3" />
+                              {delinquentInfo ? `${delinquentInfo.daysOverdue}d late` : `${overdueCount} overdue`}
+                            </span>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Status Chip */}
+                      <td className="px-6 py-4.5 text-center">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-extrabold uppercase tracking-wider ${
+                          isOverdue 
+                            ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' 
+                            : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${isOverdue ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+                          {isOverdue ? 'Overdue' : 'On Track'}
+                        </span>
+                      </td>
+
+                      {/* Actions: Schedule & Send Nudge */}
+                      <td className="px-6 py-4.5 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => onViewSchedule(loan)}
+                            className="px-3 py-1.5 bg-[var(--surface-secondary)] hover:bg-[var(--surface-card)] border border-[var(--border-primary)] hover:border-[var(--accent)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition text-[12px] font-bold rounded-xl cursor-pointer flex items-center gap-1.5 shadow-xs"
+                            title="View Installment Schedule"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-[var(--accent)]" />
+                            <span>Schedule</span>
+                          </button>
+
+                          {isOverdue && (
+                            <button
+                              onClick={() => handleSendNudge(loan)}
+                              disabled={nudgingLoanId === loan.id}
+                              className="inline-flex items-center gap-1.5 bg-[var(--accent)] hover:brightness-105 active:scale-97 text-[#0F171C] text-[12px] font-bold px-3.5 py-1.5 rounded-xl transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                              title="Dispatch instant collection notification via Telegram and In-App"
+                            >
+                              <Send className="w-3.5 h-3.5" />
+                              <span>{nudgingLoanId === loan.id ? 'Sending...' : 'Send Nudge'}</span>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={6} className="px-6 py-16 text-center text-[var(--text-secondary)]">
+                    <div className="max-w-xs mx-auto space-y-2">
+                      <span className="text-[32px] block">✨</span>
+                      <span className="font-bold text-[15px] text-[var(--text-primary)] block">No matching schedules</span>
+                      <p className="text-[12.5px] text-[var(--text-tertiary)]">
+                        Try adjusting your search criteria or switching tabs.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
-        {/* Pagination HUD */}
+        {/* Modern Pagination Footer */}
         {filteredLoans.length > 0 && (
-          <div className="bg-[var(--surface-secondary)]/40 px-6 py-4 border-t border-[var(--border-primary)] flex justify-between items-center select-none">
-            <span className="text-[12.5px] font-semibold text-[var(--text-secondary)]">
-              Showing {startIdx}-{endIdx} of {filteredLoans.length} schedules
+          <div className="bg-[var(--surface-secondary)]/50 px-6 py-4 border-t border-[var(--border-primary)] flex flex-col sm:flex-row justify-between items-center gap-3 select-none">
+            <span className="text-[12.5px] font-medium text-[var(--text-secondary)]">
+              Showing <span className="font-bold text-[var(--text-primary)]">{startIdx}</span> to <span className="font-bold text-[var(--text-primary)]">{endIdx}</span> of <span className="font-bold text-[var(--text-primary)]">{filteredLoans.length}</span> loans
             </span>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((p) => p - 1)}
-                className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-primary)] rounded-lg transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                className="px-3 py-1.5 rounded-xl border border-[var(--border-primary)] bg-[var(--surface-card)] text-[12.5px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent)] transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer flex items-center gap-1 shadow-xs"
               >
-                <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
+                <ChevronLeft className="w-4 h-4" />
+                <span>Prev</span>
               </button>
               
-              <span className="text-[12.5px] font-bold text-[var(--text-primary)] tracking-wide">
-                Page {currentPage} of {totalPages}
+              <span className="px-3 py-1.5 rounded-xl bg-[var(--surface-card)] border border-[var(--border-primary)] text-[12px] font-mono font-bold text-[var(--text-primary)] shadow-xs">
+                {currentPage} / {totalPages}
               </span>
 
               <button
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage((p) => p + 1)}
-                className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-primary)] rounded-lg transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                className="px-3 py-1.5 rounded-xl border border-[var(--border-primary)] bg-[var(--surface-card)] text-[12.5px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent)] transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer flex items-center gap-1 shadow-xs"
               >
-                <ChevronRight className="w-5 h-5 stroke-[2.5]" />
+                <span>Next</span>
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
