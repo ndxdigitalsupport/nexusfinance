@@ -110,7 +110,23 @@ export default function SuperAdminDashboard({
       setCurrentTenant(updated);
       setTenantSavedMsg(true);
       showToast('Organization branding & Bakong details updated!', 'success');
-      setTimeout(() => setTenantSavedMsg(false), 2500);
+      // If user profile belongs to this tenant, sync tenant branding immediately
+      const savedUserStr = localStorage.getItem('nexus_user');
+      if (savedUserStr) {
+        try {
+          const userObj = JSON.parse(savedUserStr);
+          if (userObj.tenant_id === currentTenant.id) {
+            userObj.tenant_name = updated.name;
+            userObj.tenant_logo_url = updated.logo_url;
+            localStorage.setItem('nexus_user', JSON.stringify(userObj));
+          }
+        } catch { /* ignored */ }
+      }
+      setTimeout(() => {
+        setTenantSavedMsg(false);
+        // Soft reload to apply branding across the entire portal immediately
+        window.location.reload();
+      }, 1000);
     } catch (err: any) {
       showToast(err.message || 'Failed to update organization details', 'error');
     } finally {
@@ -420,11 +436,11 @@ export default function SuperAdminDashboard({
                     )}
                   </div>
 
-                  {/* Upload button & direct URL input */}
-                  <div className="flex-1 flex gap-2">
-                    <label className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-[var(--border-primary)] bg-[var(--surface-primary)] hover:bg-[var(--surface-secondary)] hover:border-[var(--accent)] text-[13px] font-bold text-[var(--text-primary)] transition-all cursor-pointer shadow-2xs shrink-0">
+                  {/* Upload button & clean status */}
+                  <div className="flex-1 flex items-center gap-2">
+                    <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-primary)] bg-[var(--surface-primary)] hover:bg-[var(--surface-secondary)] hover:border-[var(--accent)] text-[13px] font-bold text-[var(--text-primary)] transition-all cursor-pointer shadow-2xs shrink-0">
                       <Upload className="w-4 h-4 text-[var(--accent)]" />
-                      <span>Upload Image</span>
+                      <span>{tenantLogoUrl ? 'Change Image' : 'Upload Image'}</span>
                       <input
                         type="file"
                         accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif"
@@ -441,7 +457,7 @@ export default function SuperAdminDashboard({
                               const base64 = uploadEvent.target?.result as string;
                               if (base64) {
                                 setTenantLogoUrl(base64);
-                                showToast('Logo image loaded!', 'success');
+                                showToast('Logo image selected! Click "Update Organization Profile" below to save.', 'success');
                               }
                             };
                             reader.readAsDataURL(file);
@@ -450,23 +466,27 @@ export default function SuperAdminDashboard({
                       />
                     </label>
 
-                    <input
-                      type="text"
-                      value={tenantLogoUrl.startsWith('data:') ? 'Image uploaded (Base64)' : tenantLogoUrl}
-                      onChange={(e) => setTenantLogoUrl(e.target.value)}
-                      placeholder="Or paste image URL (https://...)"
-                      className="flex-1 bg-[var(--surface-secondary)] border border-[var(--border-primary)] px-3 py-2 rounded-xl text-[13px] focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)] min-w-0"
-                    />
-
-                    {tenantLogoUrl && (
-                      <button
-                        type="button"
-                        onClick={() => setTenantLogoUrl('')}
-                        className="px-2.5 py-2 rounded-xl border border-[var(--border-primary)] text-[11px] font-bold text-[var(--text-tertiary)] hover:text-rose-500 hover:border-rose-300 transition-colors cursor-pointer bg-[var(--surface-primary)]"
-                        title="Remove Logo"
-                      >
-                        Remove
-                      </button>
+                    {tenantLogoUrl ? (
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="text-[12px] font-medium text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl truncate">
+                          ✓ Image ready to save
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setTenantLogoUrl('')}
+                          className="px-3 py-1.5 rounded-xl border border-[var(--border-primary)] text-[11px] font-bold text-rose-500 hover:bg-rose-500/10 hover:border-rose-300 transition-colors cursor-pointer bg-[var(--surface-primary)] shrink-0"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <input
+                        type="url"
+                        value={tenantLogoUrl}
+                        onChange={(e) => setTenantLogoUrl(e.target.value)}
+                        placeholder="Or paste external image URL..."
+                        className="flex-1 bg-[var(--surface-secondary)] border border-[var(--border-primary)] px-3 py-2 rounded-xl text-[13px] focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)] min-w-0"
+                      />
                     )}
                   </div>
                 </div>
