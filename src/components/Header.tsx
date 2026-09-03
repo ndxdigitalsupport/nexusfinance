@@ -144,8 +144,8 @@ export default function Header({
 
         {/* Action Tray */}
         <div className="flex items-center gap-2 relative ml-auto">
-          {/* Tenant Switcher (Super Admin Only) */}
-          {currentPortal === 'super-admin' && (
+          {/* Tenant Switcher (Root Super Admin Only) */}
+          {currentPortal === 'super-admin' && userRole === 'super-admin' && (
             <div className="relative">
               <button
                 onClick={() => setShowTenantDropdown(!showTenantDropdown)}

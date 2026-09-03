@@ -703,7 +703,7 @@ export default function App() {
               />
             ) : activeMenu === 'tenants' ? (
               portalUser?.role === 'super-admin' ? (
-                <TenantManagement />
+                <TenantManagement selectedTenantId={selectedTenantId} />
               ) : (
                 <SuperAdminDashboard
                   key={selectedTenantId}

@@ -80,7 +80,11 @@ export default function Sidebar({ currentPortal, userRole, activeMenu, setActive
           <p className="text-[10px] font-bold uppercase tracking-wider mt-0.5"
             style={{ color: s('sidebar-header-sub') }}
           >
-            {currentPortal === 'loan-officer' ? 'Corporate Portal' : currentPortal === 'super-admin' ? 'Super Admin' : 'Client Hub'}
+            {currentPortal === 'loan-officer'
+              ? 'Corporate Portal'
+              : currentPortal === 'super-admin'
+              ? (userRole === 'super-admin' ? 'Super Admin' : 'Admin Portal')
+              : 'Client Hub'}
           </p>
         </div>
       </div>

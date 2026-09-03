@@ -5,7 +5,11 @@ import { showToast } from './Toast';
 import { downloadCSV } from '../utils';
 import type { Tenant, TenantStats } from '../types';
 
-export default function TenantManagement() {
+interface TenantManagementProps {
+  selectedTenantId?: string;
+}
+
+export default function TenantManagement({ selectedTenantId }: TenantManagementProps = {}) {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -193,8 +197,13 @@ export default function TenantManagement() {
       </div>
 
       {/* Tenant Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {tenants.map(tenant => {
+      {(() => {
+        const visibleTenants = (selectedTenantId && selectedTenantId !== 'all')
+          ? tenants.filter(t => String(t.id) === selectedTenantId)
+          : tenants;
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {visibleTenants.map(tenant => {
           const stats = tenantStats[tenant.id];
           return (
             <div
@@ -270,6 +279,8 @@ export default function TenantManagement() {
           );
         })}
       </div>
+      );
+    })()}
 
       {/* Create/Edit Modal */}
       {(showCreate || editingTenant) && (
