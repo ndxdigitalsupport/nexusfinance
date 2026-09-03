@@ -30,6 +30,8 @@ export default function UsersView({ userRole }: UsersViewProps = {}) {
   const [userPage, setUserPage] = useState(1);
   const [roleDropdownId, setRoleDropdownId] = useState<number | null>(null);
   const [tenantDropdownId, setTenantDropdownId] = useState<number | null>(null);
+  const [showCreateRoleDropdown, setShowCreateRoleDropdown] = useState(false);
+  const [showCreateTenantDropdown, setShowCreateTenantDropdown] = useState(false);
   const [resetPwUserId, setResetPwUserId] = useState<number | null>(null);
   const [resetPwPassword, setResetPwPassword] = useState('');
   const [resettingPw, setResettingPw] = useState(false);
@@ -39,6 +41,8 @@ export default function UsersView({ userRole }: UsersViewProps = {}) {
       const target = e.target as HTMLElement;
       if (!target.closest('.role-dropdown-wrapper')) setRoleDropdownId(null);
       if (!target.closest('.tenant-dropdown-wrapper')) setTenantDropdownId(null);
+      if (!target.closest('.create-role-dropdown-wrapper')) setShowCreateRoleDropdown(false);
+      if (!target.closest('.create-tenant-dropdown-wrapper')) setShowCreateTenantDropdown(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -178,35 +182,78 @@ export default function UsersView({ userRole }: UsersViewProps = {}) {
             <input value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder="Phone number (optional — can verify later)" className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[var(--accent)] bg-[var(--surface-primary)] text-[var(--text-primary)]" />
             <input value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Password (min 6 chars)" type="password" required className="border border-[var(--border-primary)] rounded-lg px-4 py-2.5 text-[14px] focus:outline-none focus:border-[var(--accent)] bg-[var(--surface-primary)] text-[var(--text-primary)]" />
             
-            {/* Role selection */}
-            <div className="relative">
-              <select
-                value={newRole}
-                onChange={e => setNewRole(e.target.value)}
-                className="w-full appearance-none border border-[var(--border-primary)] rounded-xl px-4 py-2.5 text-[14px] font-semibold focus:outline-none focus:border-[var(--accent)] bg-[var(--surface-primary)] text-[var(--text-primary)] cursor-pointer pr-10"
+            {/* Custom Role selection */}
+            <div className="relative create-role-dropdown-wrapper">
+              <button
+                type="button"
+                onClick={() => setShowCreateRoleDropdown(!showCreateRoleDropdown)}
+                className="w-full flex items-center justify-between border border-[var(--border-primary)] rounded-xl px-4 py-2.5 text-[14px] font-semibold bg-[var(--surface-primary)] text-[var(--text-primary)] hover:border-[var(--accent)] transition-all cursor-pointer"
               >
-                <option value="loan-officer">Loan Officer</option>
-                <option value="admin">Organization Admin</option>
-                <option value="customer">Customer</option>
-              </select>
-              <ChevronDown className="w-4 h-4 text-[var(--text-tertiary)] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[var(--accent)]" />
+                  <span>{getRoleLabel(newRole)}</span>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-[var(--text-tertiary)] transition-transform duration-150 ${showCreateRoleDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showCreateRoleDropdown && (
+                <div className="absolute left-0 top-full mt-1.5 w-full bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl shadow-2xl shadow-black/10 z-50 py-1.5 overflow-hidden animate-dropdown-enter backdrop-blur-xl">
+                  <div className="px-3.5 py-1.5 text-[10.5px] uppercase font-bold text-[var(--text-tertiary)] border-b border-[var(--border-primary)]">
+                    Select Role
+                  </div>
+                  {['loan-officer', 'admin', 'customer'].map(r => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => { setNewRole(r); setShowCreateRoleDropdown(false); }}
+                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-left cursor-pointer transition-colors duration-100 hover:bg-[var(--surface-secondary)] ${r === newRole ? 'bg-[#f0fdfa] font-bold text-[#0d9488]' : 'font-medium text-[var(--text-primary)]'}`}
+                    >
+                      <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${r === newRole ? 'border-[#0d9488] bg-[#0d9488]' : 'border-[#cbd5e1]'}`}>
+                        {r === newRole && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      </span>
+                      <span>{getRoleLabel(r)}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Tenant assignment selection (only if super-admin or multiple tenants) */}
+            {/* Custom Tenant assignment selection */}
             {userRole === 'super-admin' ? (
-              <div className="relative">
-                <select
-                  value={newTenantId}
-                  onChange={e => setNewTenantId(e.target.value)}
-                  className="w-full appearance-none border border-[var(--border-primary)] rounded-xl px-4 py-2.5 text-[14px] font-semibold focus:outline-none focus:border-[var(--accent)] bg-[var(--surface-primary)] text-[var(--text-primary)] cursor-pointer pr-10"
+              <div className="relative create-tenant-dropdown-wrapper">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateTenantDropdown(!showCreateTenantDropdown)}
+                  className="w-full flex items-center justify-between border border-[var(--border-primary)] rounded-xl px-4 py-2.5 text-[14px] font-semibold bg-[var(--surface-primary)] text-[var(--text-primary)] hover:border-[var(--accent)] transition-all cursor-pointer"
                 >
-                  {tenants.map(t => (
-                    <option key={t.id} value={String(t.id)}>
-                      🏢 {t.name} (#{t.id})
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="w-4 h-4 text-[var(--text-tertiary)] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <div className="flex items-center gap-2 truncate">
+                    <Building2 className="w-4 h-4 text-[var(--accent)] shrink-0" />
+                    <span className="truncate">{tenants.find(t => String(t.id) === newTenantId)?.name || `Tenant #${newTenantId}`}</span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-[var(--text-tertiary)] shrink-0 transition-transform duration-150 ${showCreateTenantDropdown ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showCreateTenantDropdown && (
+                  <div className="absolute left-0 top-full mt-1.5 w-full bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl shadow-2xl shadow-black/10 z-50 py-1.5 max-h-56 overflow-y-auto animate-dropdown-enter backdrop-blur-xl">
+                    <div className="px-3.5 py-1.5 text-[10.5px] uppercase font-bold text-[var(--text-tertiary)] border-b border-[var(--border-primary)]">
+                      Assign to Organization
+                    </div>
+                    {tenants.map(t => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => { setNewTenantId(String(t.id)); setShowCreateTenantDropdown(false); }}
+                        className={`w-full flex items-center justify-between px-3.5 py-2.5 text-[12.5px] text-left cursor-pointer transition-colors hover:bg-[var(--surface-secondary)] ${String(t.id) === newTenantId ? 'font-bold text-[var(--accent)] bg-[var(--accent)]/10' : 'text-[var(--text-primary)]'}`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Building2 className="w-3.5 h-3.5 opacity-60 shrink-0" />
+                          <span className="truncate">{t.name}</span>
+                        </div>
+                        {String(t.id) === newTenantId && <span className="w-2 h-2 rounded-full bg-[var(--accent)]" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-primary)] bg-[var(--surface-secondary)]/50 text-[13.5px] font-semibold text-[var(--text-secondary)]">
