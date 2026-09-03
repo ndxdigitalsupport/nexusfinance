@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Building2, Users, Landmark, Settings, Trash2, Edit2, X, Check, Download, QrCode } from 'lucide-react';
+import { Plus, Building2, Users, Landmark, Settings, Trash2, Edit2, X, Check, Download, QrCode, Upload } from 'lucide-react';
 import { apiFetch } from '../api';
 import { showToast } from './Toast';
 import { downloadCSV } from '../utils';
@@ -318,25 +318,62 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
               )}
 
               <div>
-                <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Logo URL (White-labeling)</label>
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    value={formLogoUrl}
-                    onChange={e => setFormLogoUrl(e.target.value)}
-                    className="flex-1 px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2"
-                    style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
-                    placeholder="https://example.com/logo.png"
-                  />
-                  {formLogoUrl && (
-                    <div className="w-10 h-10 rounded-xl border border-[var(--border-primary)] flex items-center justify-center p-1 bg-white overflow-hidden shrink-0">
+                <label className="block text-xs font-semibold mb-1.5 flex items-center justify-between" style={{ color: 'var(--text-secondary)' }}>
+                  <span>Logo (White-labeling)</span>
+                  <span className="text-[10px] text-[var(--text-tertiary)]">PNG, JPG, SVG, WebP</span>
+                </label>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl border border-[var(--border-primary)] flex items-center justify-center p-1 bg-white overflow-hidden shrink-0">
+                    {formLogoUrl ? (
                       <img src={formLogoUrl} alt="Preview" className="w-full h-full object-contain" onError={(e) => { (e.target as any).style.display = 'none'; }} />
-                    </div>
+                    ) : (
+                      <Building2 className="w-5 h-5 text-[var(--accent)]" />
+                    )}
+                  </div>
+
+                  <label className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--border-primary)] bg-[var(--surface-primary)] hover:border-[var(--accent)] text-xs font-bold text-[var(--text-primary)] cursor-pointer shrink-0 transition-all">
+                    <Upload className="w-3.5 h-3.5 text-[var(--accent)]" />
+                    <span>Upload</span>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 2 * 1024 * 1024) return showToast('Image must be under 2MB', 'error');
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            if (ev.target?.result) {
+                              setFormLogoUrl(ev.target.result as string);
+                              showToast('Logo image loaded!', 'success');
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </label>
+
+                  <input
+                    type="text"
+                    value={formLogoUrl.startsWith('data:') ? 'Image uploaded (Base64)' : formLogoUrl}
+                    onChange={e => setFormLogoUrl(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-xl text-xs border outline-none focus:ring-2 min-w-0"
+                    style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
+                    placeholder="Or paste URL"
+                  />
+
+                  {formLogoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setFormLogoUrl('')}
+                      className="px-2 py-1.5 text-[11px] font-bold text-rose-500 hover:underline"
+                    >
+                      Clear
+                    </button>
                   )}
                 </div>
-                <p className="text-[11px] mt-1" style={{ color: 'var(--text-tertiary)' }}>
-                  Square or horizontal transparent PNG/SVG recommended.
-                </p>
               </div>
 
               <div>

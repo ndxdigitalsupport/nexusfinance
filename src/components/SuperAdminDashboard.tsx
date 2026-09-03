@@ -11,7 +11,8 @@ import {
   FileText,
   Building2,
   QrCode,
-  Check
+  Check,
+  Upload
 } from 'lucide-react';
 import { PlatformConfig, PlatformStats, Tenant } from '../types';
 import Modal from './Modal';
@@ -405,20 +406,69 @@ export default function SuperAdminDashboard({
               </div>
 
               <div>
-                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Custom Logo URL (White-labeling)</label>
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    value={tenantLogoUrl}
-                    onChange={(e) => setTenantLogoUrl(e.target.value)}
-                    placeholder="https://example.com/logo.png"
-                    className="flex-1 bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
-                  />
-                  {tenantLogoUrl && (
-                    <div className="w-11 h-11 rounded-lg border border-[var(--border-primary)] bg-white flex items-center justify-center p-1 shrink-0 overflow-hidden">
-                      <img src={tenantLogoUrl} alt="Preview" className="w-full h-full object-contain" onError={(e) => { (e.target as any).style.display = 'none'; }} />
-                    </div>
-                  )}
+                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5 flex items-center justify-between">
+                  <span>Custom Logo (White-labeling)</span>
+                  <span className="text-[11px] font-medium text-[var(--text-tertiary)]">PNG, JPG, SVG, WebP</span>
+                </label>
+                <div className="flex items-center gap-3">
+                  {/* Image Preview thumbnail */}
+                  <div className="w-12 h-12 rounded-xl border border-[var(--border-primary)] bg-white flex items-center justify-center p-1 shrink-0 overflow-hidden shadow-2xs">
+                    {tenantLogoUrl ? (
+                      <img src={tenantLogoUrl} alt="Logo Preview" className="w-full h-full object-contain" onError={(e) => { (e.target as any).style.display = 'none'; }} />
+                    ) : (
+                      <Building2 className="w-6 h-6 text-[var(--accent)]" />
+                    )}
+                  </div>
+
+                  {/* Upload button & direct URL input */}
+                  <div className="flex-1 flex gap-2">
+                    <label className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-[var(--border-primary)] bg-[var(--surface-primary)] hover:bg-[var(--surface-secondary)] hover:border-[var(--accent)] text-[13px] font-bold text-[var(--text-primary)] transition-all cursor-pointer shadow-2xs shrink-0">
+                      <Upload className="w-4 h-4 text-[var(--accent)]" />
+                      <span>Upload Image</span>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (file.size > 2 * 1024 * 1024) {
+                              showToast('Image must be under 2MB', 'error');
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = (uploadEvent) => {
+                              const base64 = uploadEvent.target?.result as string;
+                              if (base64) {
+                                setTenantLogoUrl(base64);
+                                showToast('Logo image loaded!', 'success');
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+
+                    <input
+                      type="text"
+                      value={tenantLogoUrl.startsWith('data:') ? 'Image uploaded (Base64)' : tenantLogoUrl}
+                      onChange={(e) => setTenantLogoUrl(e.target.value)}
+                      placeholder="Or paste image URL (https://...)"
+                      className="flex-1 bg-[var(--surface-secondary)] border border-[var(--border-primary)] px-3 py-2 rounded-xl text-[13px] focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)] min-w-0"
+                    />
+
+                    {tenantLogoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setTenantLogoUrl('')}
+                        className="px-2.5 py-2 rounded-xl border border-[var(--border-primary)] text-[11px] font-bold text-[var(--text-tertiary)] hover:text-rose-500 hover:border-rose-300 transition-colors cursor-pointer bg-[var(--surface-primary)]"
+                        title="Remove Logo"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
