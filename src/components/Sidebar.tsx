@@ -24,8 +24,7 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
   const menuItems = currentPortal === 'loan-officer'
     ? [
         { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
-        { id: 'repayments', label: t('repayments_checklist'), icon: ClipboardList },
-        { id: 'collections', label: t('collections'), icon: AlertTriangle }
+        { id: 'repayments', label: t('repayments_checklist'), icon: ClipboardList }
       ]
     : currentPortal === 'super-admin'
     ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]

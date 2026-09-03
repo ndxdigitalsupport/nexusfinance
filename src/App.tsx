@@ -36,7 +36,6 @@ const LoanManagement = lazy(() => import('./components/LoanManagement'));
 const SupportView = lazy(() => import('./components/SupportView'));
 const UsersView = lazy(() => import('./components/UsersView'));
 const OfficerRepaymentsView = lazy(() => import('./components/OfficerRepaymentsView'));
-const OfficerCollectionsView = lazy(() => import('./components/OfficerCollectionsView'));
 const ReminderSettingsView = lazy(() => import('./components/ReminderSettingsView'));
 const ReportsView = lazy(() => import('./components/ReportsView'));
 const AmortizationScheduleModal = lazy(() => import('./components/AmortizationScheduleModal'));
@@ -481,8 +480,7 @@ export default function App() {
                   const items = currentPortal === 'loan-officer'
                     ? [
                         { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
-                        { id: 'repayments', label: t('repayments_checklist'), icon: ClipboardList },
-                        { id: 'collections', label: t('collections'), icon: AlertTriangle }
+                        { id: 'repayments', label: t('repayments_checklist'), icon: ClipboardList }
                       ]
                     : currentPortal === 'super-admin'
                     ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]
@@ -607,8 +605,6 @@ export default function App() {
               <LoanManagement applications={applications} onRefresh={refetchAll} />
             ) : activeMenu === 'repayments' ? (
               <OfficerRepaymentsView loans={applications} onRefresh={refetchAll} onViewSchedule={setViewingScheduleLoan} />
-            ) : activeMenu === 'collections' ? (
-              <OfficerCollectionsView />
             ) : activeMenu.startsWith('report_') ? (
               <ReportsView activeReport={activeMenu} loans={applications} transactions={transactions} onViewSchedule={setViewingScheduleLoan} />
             ) : null
