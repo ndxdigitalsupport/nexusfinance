@@ -27,7 +27,7 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
         { id: 'repayments', label: t('repayments_checklist'), icon: ClipboardList }
       ]
     : currentPortal === 'super-admin'
-    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'tenants', label: 'Tenants', icon: Building2 }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]
+    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'tenants', label: t('tenants'), icon: Building2 }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]
     : [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'loans', label: t('loans'), icon: Landmark }, { id: 'khqr', label: t('khqr_payment'), icon: QrCode }];
 
   const bottomItems = [

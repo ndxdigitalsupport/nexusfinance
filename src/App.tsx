@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown, QrCode, Mail, HelpCircle as HelpIcon, Download, FileText, Calculator, Bell, Megaphone, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, ArrowUpDown, X, LayoutDashboard, Landmark, CheckSquare, Settings, Users, HelpCircle, LogOut, User, PlusCircle, ClipboardList, ChevronDown, QrCode, Mail, HelpCircle as HelpIcon, Download, FileText, Calculator, Bell, Megaphone, AlertTriangle, Building2 } from 'lucide-react';
 import AuthPage from './components/AuthPage';
 import Toast, { showToast } from './components/Toast';
 import Sidebar from './components/Sidebar';
@@ -488,7 +488,7 @@ export default function App() {
                         { id: 'repayments', label: t('repayments_checklist'), icon: ClipboardList }
                       ]
                     : currentPortal === 'super-admin'
-                    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'tenants', label: 'Tenants', icon: Landmark }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]
+                    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'tenants', label: t('tenants'), icon: Building2 }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]
                     : [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'loans', label: t('loans'), icon: Landmark }, { id: 'khqr', label: t('khqr_payment'), icon: QrCode }];
                   return items.map((item) => {
                     const Icon = item.icon;
