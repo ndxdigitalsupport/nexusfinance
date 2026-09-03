@@ -153,8 +153,10 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
     return;
   }
 
-  // Fetch config for grace period and late penalty calculations (scoped to tenant)
+  // Fetch config and tenant for reminders
   const { data: config } = await db.from('nexus_config').select('*').eq('tenant_id', tid).maybeSingle();
+  const { data: tenant } = await db.from('nexus_tenants').select('name').eq('id', tid).maybeSingle();
+  const tenantName = tenant?.name || 'NexusFinance';
   const gracePeriod = config?.grace_period_days !== undefined ? Number(config.grace_period_days) : 3;
   const latePenaltyDaily = config?.late_penalty_daily !== undefined ? Number(config.late_penalty_daily) : 0;
 
@@ -209,7 +211,7 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
         const penaltyFee = penaltyDays * latePenaltyDaily;
         const totalDue = monthly + penaltyFee;
 
-        // Render message
+        // Render message with tenant context
         const cleanLoanId = String(loan.id).startsWith('#') ? String(loan.id).substring(1) : String(loan.id);
         const vars = {
           loan_id: cleanLoanId,
@@ -220,7 +222,8 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
           customer_name: loan.applicantName,
           penalty_fee: `$${penaltyFee.toFixed(0)}`,
           total_due: `$${totalDue.toFixed(0)}`,
-          grace_period: String(gracePeriod)
+          grace_period: String(gracePeriod),
+          tenant_name: tenantName
         };
 
         const renderedMessage = renderTemplate(setting.message_template, vars);
@@ -724,7 +727,7 @@ You can also link automatically by sharing your phone number using the button be
 
     const { data: user } = await db
       .from('nexus_users')
-      .select('id, name, email, telegram_chat_id')
+      .select('id, name, email, telegram_chat_id, tenant_id')
       .eq('email', pending.email)
       .maybeSingle();
 
@@ -750,8 +753,13 @@ You can also link automatically by sharing your phone number using the button be
     }
 
     linkCodes.delete(chatId);
+    
+    // Look up tenant name
+    const { data: userTenant } = await db.from('nexus_tenants').select('name').eq('id', user.tenant_id || 1).maybeSingle();
+    const institution = userTenant?.name || 'NexusFinance';
+
     bot.sendMessage(chatId,
-      `✅ *Account linked successfully!*\n\nWelcome, *${user.name}*! You'll now receive payment reminders and updates here.`,
+      `✅ *Account linked successfully!*\n\nWelcome, *${user.name}* to *${institution}*! You'll now receive payment reminders and notifications directly here.`,
       customerMenu()
     );
   });

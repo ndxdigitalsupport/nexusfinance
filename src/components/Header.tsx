@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Menu, X, User, LogOut, Layers, Sun, Moon, DollarSign } from 'lucide-react';
-import { PortalType } from '../types';
+import { Search, Bell, Menu, X, User, LogOut, Layers, Sun, Moon, DollarSign, Building2, ChevronDown } from 'lucide-react';
+import { PortalType, Tenant } from '../types';
 import { API, apiFetch } from '../api';
 import { useCurrency } from '../context/CurrencyContext';
 
@@ -16,6 +16,7 @@ interface HeaderProps {
   userRole?: string;
   onProfileClick?: () => void;
   onLogout?: () => void;
+  onTenantChange?: (tenantId: string) => void;
 }
 
 export default function Header({
@@ -30,7 +31,13 @@ export default function Header({
   userRole,
   onProfileClick,
   onLogout,
+  onTenantChange,
 }: HeaderProps) {
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [selectedTenantId, setSelectedTenantId] = useState<string>(() => {
+    return localStorage.getItem('nexus_selected_tenant_id') || 'all';
+  });
+  const [showTenantDropdown, setShowTenantDropdown] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -62,6 +69,17 @@ export default function Header({
     const interval = setInterval(poll, 15000);
     return () => clearInterval(interval);
   }, []);
+
+  // Fetch tenants for super-admin switcher
+  useEffect(() => {
+    if (currentPortal === 'super-admin') {
+      apiFetch('/tenants')
+        .then(data => {
+          if (Array.isArray(data)) setTenants(data);
+        })
+        .catch(() => {});
+    }
+  }, [currentPortal]);
 
   // SSE real-time notifications
   useEffect(() => {
@@ -118,6 +136,88 @@ export default function Header({
 
         {/* Action Tray */}
         <div className="flex items-center gap-2 relative ml-auto">
+          {/* Tenant Switcher (Super Admin Only) */}
+          {currentPortal === 'super-admin' && (
+            <div className="relative">
+              <button
+                onClick={() => setShowTenantDropdown(!showTenantDropdown)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--border-primary)] bg-[var(--surface-secondary)]/70 hover:bg-[var(--surface-secondary)] text-[12px] font-bold transition-all cursor-pointer shadow-xs"
+                title="Switch Organization / Tenant"
+              >
+                <div className="w-5 h-5 rounded-md bg-[var(--accent)]/15 text-[var(--accent)] flex items-center justify-center shrink-0">
+                  <Building2 className="w-3.5 h-3.5" />
+                </div>
+                <span className="max-w-[130px] truncate text-[var(--text-primary)]">
+                  {selectedTenantId === 'all'
+                    ? 'All Tenants'
+                    : (tenants.find(t => String(t.id) === selectedTenantId)?.name || `Tenant #${selectedTenantId}`)}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-[var(--text-tertiary)] shrink-0" />
+              </button>
+
+              {showTenantDropdown && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowTenantDropdown(false)} />
+                  <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-56 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl shadow-xl py-1.5 z-50 animate-dropdown-enter backdrop-blur-xl">
+                    <div className="px-3 py-1.5 border-b border-[var(--border-primary)] text-[10.5px] font-extrabold uppercase tracking-wider text-[var(--text-tertiary)]">
+                      Organization Scope
+                    </div>
+                    
+                    {/* All Tenants Option */}
+                    <button
+                      onClick={() => {
+                        setSelectedTenantId('all');
+                        localStorage.setItem('nexus_selected_tenant_id', 'all');
+                        setShowTenantDropdown(false);
+                        if (onTenantChange) onTenantChange('all');
+                      }}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 text-[12.5px] font-semibold text-left transition-colors cursor-pointer ${
+                        selectedTenantId === 'all'
+                          ? 'bg-[var(--accent)]/15 text-[var(--accent)] font-bold'
+                          : 'text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4 opacity-70" />
+                        <span>All Organizations</span>
+                      </div>
+                      {selectedTenantId === 'all' && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />}
+                    </button>
+
+                    {/* Specific Tenants */}
+                    {tenants.map((tenant) => (
+                      <button
+                        key={tenant.id}
+                        onClick={() => {
+                          const tidStr = String(tenant.id);
+                          setSelectedTenantId(tidStr);
+                          localStorage.setItem('nexus_selected_tenant_id', tidStr);
+                          setShowTenantDropdown(false);
+                          if (onTenantChange) onTenantChange(tidStr);
+                        }}
+                        className={`w-full flex items-center justify-between px-3.5 py-2.5 text-[12.5px] font-semibold text-left transition-colors cursor-pointer ${
+                          selectedTenantId === String(tenant.id)
+                            ? 'bg-[var(--accent)]/15 text-[var(--accent)] font-bold'
+                            : 'text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          {tenant.logo_url ? (
+                            <img src={tenant.logo_url} alt="" className="w-4 h-4 rounded-xs object-contain" />
+                          ) : (
+                            <Building2 className="w-4 h-4 opacity-70 shrink-0" />
+                          )}
+                          <span className="truncate">{tenant.name}</span>
+                        </div>
+                        {selectedTenantId === String(tenant.id) && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           {/* Dark Mode Toggle */}
           <button
             onClick={toggleDarkMode}

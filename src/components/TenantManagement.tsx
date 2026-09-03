@@ -14,6 +14,7 @@ export default function TenantManagement() {
   // Form state
   const [formName, setFormName] = useState('');
   const [formSlug, setFormSlug] = useState('');
+  const [formLogoUrl, setFormLogoUrl] = useState('');
   const [formPlan, setFormPlan] = useState('basic');
   const [formMaxUsers, setFormMaxUsers] = useState(50);
   const [formMaxLoans, setFormMaxLoans] = useState(500);
@@ -50,6 +51,7 @@ export default function TenantManagement() {
         body: JSON.stringify({
           name: formName,
           slug: autoSlug,
+          logo_url: formLogoUrl.trim() || undefined,
           plan: formPlan,
           max_users: formMaxUsers,
           max_loans: formMaxLoans,
@@ -71,6 +73,7 @@ export default function TenantManagement() {
         method: 'PATCH',
         body: JSON.stringify({
           name: formName,
+          logo_url: formLogoUrl.trim() || '',
           plan: formPlan,
           max_users: formMaxUsers,
           max_loans: formMaxLoans,
@@ -99,6 +102,7 @@ export default function TenantManagement() {
   const resetForm = () => {
     setFormName('');
     setFormSlug('');
+    setFormLogoUrl('');
     setFormPlan('basic');
     setFormMaxUsers(50);
     setFormMaxLoans(500);
@@ -107,6 +111,7 @@ export default function TenantManagement() {
   const startEdit = (tenant: Tenant) => {
     setEditingTenant(tenant);
     setFormName(tenant.name);
+    setFormLogoUrl(tenant.logo_url || '');
     setFormPlan(tenant.plan);
     setFormMaxUsers(tenant.max_users);
     setFormMaxLoans(tenant.max_loans);
@@ -160,8 +165,12 @@ export default function TenantManagement() {
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--accent-muted)' }}>
-                    <Building2 className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden border border-[var(--border-primary)]" style={{ backgroundColor: 'var(--surface-secondary)' }}>
+                    {tenant.logo_url ? (
+                      <img src={tenant.logo_url} alt={tenant.name} className="w-full h-full object-contain p-1" />
+                    ) : (
+                      <Building2 className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                    )}
                   </div>
                   <div>
                     <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{tenant.name}</h3>
@@ -248,11 +257,33 @@ export default function TenantManagement() {
               {!editingTenant && formName && (
                 <div>
                   <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Slug (auto-generated)</label>
-                  <div className="w-full px-3 py-2.5 rounded-xl text-sm border" style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-secondary)' }}>
+                  <div className="w-full px-3 py-2.5 rounded-xl text-sm border font-mono" style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-secondary)' }}>
                     /{formName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}
                   </div>
                 </div>
               )}
+
+              <div>
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Logo URL (White-labeling)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={formLogoUrl}
+                    onChange={e => setFormLogoUrl(e.target.value)}
+                    className="flex-1 px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2"
+                    style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
+                    placeholder="https://example.com/logo.png"
+                  />
+                  {formLogoUrl && (
+                    <div className="w-10 h-10 rounded-xl border border-[var(--border-primary)] flex items-center justify-center p-1 bg-white overflow-hidden shrink-0">
+                      <img src={formLogoUrl} alt="Preview" className="w-full h-full object-contain" onError={(e) => { (e.target as any).style.display = 'none'; }} />
+                    </div>
+                  )}
+                </div>
+                <p className="text-[11px] mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                  Square or horizontal transparent PNG/SVG recommended.
+                </p>
+              </div>
 
               <div>
                 <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Plan</label>

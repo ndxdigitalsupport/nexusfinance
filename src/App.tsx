@@ -122,7 +122,7 @@ export default function App() {
   const [config, setConfig] = useState<PlatformConfig>(DEFAULT_CONFIG);
   const [stats, setStats] = useState<PlatformStats>(DEFAULT_STATS);
 
-  const [userData, setUserData] = useState<{ id: number; name: string; email: string; role: string; tenant_id: number; tenant_name: string; tenant_slug: string; tenant_plan: string } | null>(null);
+  const [userData, setUserData] = useState<{ id: number; name: string; email: string; role: string; tenant_id: number; tenant_name: string; tenant_slug: string; tenant_plan: string; tenant_logo_url?: string | null } | null>(null);
 
   const portalUser = useMemo(() => userData || (() => {
     if (!token) return null;
@@ -137,6 +137,7 @@ export default function App() {
         tenant_name: 'Default',
         tenant_slug: 'default',
         tenant_plan: 'founding',
+        tenant_logo_url: null,
       };
     } catch { return null; }
   })(), [token, userData]);
@@ -428,6 +429,8 @@ export default function App() {
         setActiveMenu={handleSetActiveMenu}
         onApplyForLoan={() => setIsApplyOpen(true)}
         onLogout={handleLogout}
+        tenantName={portalUser?.tenant_name}
+        tenantLogo={portalUser?.tenant_logo_url}
       />
 
       <div className="md:pl-72 app-content min-h-screen flex flex-col">
@@ -442,6 +445,7 @@ export default function App() {
           userRole={portalUser?.role}
           onProfileClick={() => handleSetActiveMenu('profile')}
           onLogout={handleLogout}
+          onTenantChange={() => refetchAll()}
         />
 
         {/* Mobile Drawer */}

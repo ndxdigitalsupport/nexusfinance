@@ -225,6 +225,19 @@ function authMiddleware(req: any, res: any, next: any) {
   }
   try {
     req.user = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+    // Allow super-admins to dynamically switch tenant context via X-Tenant-Id header or ?tenantId= query param
+    if (req.user?.role === 'super-admin') {
+      const customTenant = req.headers['x-tenant-id'] || req.query.tenantId;
+      if (customTenant && customTenant !== 'all') {
+        const parsedTid = parseInt(String(customTenant), 10);
+        if (!isNaN(parsedTid)) {
+          req.user.tenant_id = parsedTid;
+          req.selectedTenantId = parsedTid;
+        }
+      } else if (customTenant === 'all') {
+        req.selectedTenantId = 'all';
+      }
+    }
     next();
   } catch {
     return res.status(403).json({ error: 'Invalid or expired token.' });
@@ -732,9 +745,15 @@ app.patch('/api/auth/password', authMiddleware, async (req, res) => {
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
   const { data: user } = await db.from('nexus_users').select('id, name, email, role, phone, tenant_id').eq('id', req.user.id).maybeSingle();
   if (!user) return res.status(404).json({ error: 'User not found.' });
-  // Fetch tenant name
-  const { data: tenant } = await db.from('nexus_tenants').select('name, slug, plan').eq('id', user.tenant_id || 1).maybeSingle();
-  res.json({ ...user, tenant_name: tenant?.name || 'Default', tenant_slug: tenant?.slug || 'default', tenant_plan: tenant?.plan || 'founding' });
+  // Fetch tenant info
+  const { data: tenant } = await db.from('nexus_tenants').select('name, slug, plan, logo_url').eq('id', user.tenant_id || 1).maybeSingle();
+  res.json({
+    ...user,
+    tenant_name: tenant?.name || 'Default',
+    tenant_slug: tenant?.slug || 'default',
+    tenant_plan: tenant?.plan || 'founding',
+    tenant_logo_url: tenant?.logo_url || null,
+  });
 });
 
 app.patch('/api/auth/profile', authMiddleware, async (req, res) => {
@@ -1019,12 +1038,16 @@ app.get('/api/loans/:id/schedule', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/loans', authMiddleware, async (req, res) => {
+app.get('/api/loans', authMiddleware, async (req: any, res) => {
   let query = db.from('nexus_loans').select('*');
-  // Scope by tenant (super-admin can override via query param)
-  if (req.user.role === 'super-admin' && req.query.tenantId) {
+  // Scope by tenant (super-admin can select specific tenant or view 'all')
+  if (req.user.role === 'super-admin' && req.selectedTenantId === 'all') {
+    // Show all loans across all tenants
+  } else if (req.user.role === 'super-admin' && req.selectedTenantId) {
+    query = query.eq('tenant_id', req.selectedTenantId);
+  } else if (req.user.role === 'super-admin' && req.query.tenantId) {
     query = query.eq('tenant_id', parseInt(req.query.tenantId as string));
-  } else if (req.user.role !== 'super-admin' || !req.query.tenantId) {
+  } else {
     query = query.eq('tenant_id', req.user.tenant_id || 1);
   }
   if (req.user.role === 'customer') {
@@ -1749,22 +1772,19 @@ app.post('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'admin',
 
 // ── STATS ROUTES ────────────────────────────────────────────
 
-app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
+app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req: any, res) => {
+  const isAll = req.user.role === 'super-admin' && req.selectedTenantId === 'all';
   const tenantId = req.user.tenant_id || 1;
-  // Fetch transactions (scoped to tenant)
-  const { data: txs } = await db
-    .from('nexus_transactions')
-    .select('id, title, date, amount, type, userId, nexus_users(name, email, phone)')
-    .eq('tenant_id', tenantId)
-    .order('id', { ascending: false });
 
-  // Fetch all customers (scoped to tenant)
-  const { data: customers } = await db
-    .from('nexus_users')
-    .select('id, name, email, phone')
-    .eq('role', 'customer')
-    .eq('tenant_id', tenantId)
-    .order('name', { ascending: true });
+  // Fetch transactions
+  let txsQuery = db.from('nexus_transactions').select('id, title, date, amount, type, userId, nexus_users(name, email, phone)');
+  if (!isAll) txsQuery = txsQuery.eq('tenant_id', tenantId);
+  const { data: txs } = await txsQuery.order('id', { ascending: false });
+
+  // Fetch customers
+  let custQuery = db.from('nexus_users').select('id, name, email, phone').eq('role', 'customer');
+  if (!isAll) custQuery = custQuery.eq('tenant_id', tenantId);
+  const { data: customers } = await custQuery.order('name', { ascending: true });
 
   const { data: config } = await db.from('nexus_config').select('baseInterestRate').eq('tenant_id', tenantId).maybeSingle();
   const rate = config ? Number(config.baseInterestRate) : 5.4;

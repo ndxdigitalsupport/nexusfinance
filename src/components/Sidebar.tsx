@@ -10,11 +10,13 @@ interface SidebarProps {
   setActiveMenu: (menu: string) => void;
   onApplyForLoan: () => void;
   onLogout: () => void;
+  tenantName?: string;
+  tenantLogo?: string | null;
 }
 
 const s = (name: string) => `var(--${name})`;
 
-export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onApplyForLoan, onLogout }: SidebarProps) {
+export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onApplyForLoan, onLogout, tenantName, tenantLogo }: SidebarProps) {
   const { t } = useCurrency();
   const [reportsOpen, setReportsOpen] = useState(true);
   const [expensesOpen, setExpensesOpen] = useState(false);
@@ -44,13 +46,25 @@ export default function Sidebar({ currentPortal, activeMenu, setActiveMenu, onAp
       <div className="px-6 py-6 flex items-center gap-3.5 border-b transition-colors duration-200"
         style={{ borderColor: s('sidebar-border') }}
       >
-        <Logo size={38} variant="light" />
-        <div>
-          <h1 className="text-[17px] tracking-tight leading-tight flex items-center"
+        {tenantLogo ? (
+          <div className="w-[38px] h-[38px] rounded-xl overflow-hidden bg-white flex items-center justify-center p-1 border border-[var(--border-primary)] shrink-0">
+            <img src={tenantLogo} alt={tenantName || 'Logo'} className="w-full h-full object-contain" />
+          </div>
+        ) : (
+          <Logo size={38} variant="light" />
+        )}
+        <div className="min-w-0">
+          <h1 className="text-[17px] tracking-tight leading-tight truncate flex items-center"
             style={{ color: s('sidebar-header-text') }}
           >
-            <span className="font-extrabold">Nexus</span>
-            <span className="font-light" style={{ color: s('sidebar-header-muted') }}>finance</span>
+            {tenantName && tenantName !== 'Default' && tenantName !== 'NexusFinance Default' ? (
+              <span className="font-extrabold truncate">{tenantName}</span>
+            ) : (
+              <>
+                <span className="font-extrabold">Nexus</span>
+                <span className="font-light" style={{ color: s('sidebar-header-muted') }}>finance</span>
+              </>
+            )}
           </h1>
           <p className="text-[10px] font-bold uppercase tracking-wider mt-0.5"
             style={{ color: s('sidebar-header-sub') }}

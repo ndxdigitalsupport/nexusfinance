@@ -522,7 +522,7 @@ export default function OfficerRepaymentsView({ loans, onRefresh, onViewSchedule
           </button>
 
           <button
-            onClick={() => { setActiveTab('overdue'); setRiskFilter('all'); setCurrentPage(1); }}
+            onClick={() => { setActiveTab('overdue'); setCurrentPage(1); }}
             className={`px-4 py-2 rounded-lg text-[13px] font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
               activeTab === 'overdue'
                 ? 'bg-rose-500 text-white shadow-xs'
@@ -539,19 +539,6 @@ export default function OfficerRepaymentsView({ loans, onRefresh, onViewSchedule
             )}
           </button>
         </div>
-
-        {/* Active Filter Indicator Badge */}
-        {activeTab === 'overdue' && riskFilter !== 'all' && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[12px] font-bold text-amber-600 dark:text-amber-400">
-            <span>Filtered by: <span className="uppercase">{riskFilter}</span> risk</span>
-            <button
-              onClick={() => { setRiskFilter('all'); setCurrentPage(1); }}
-              className="text-xs text-rose-500 hover:underline cursor-pointer ml-1 font-extrabold"
-            >
-              ✕ Clear Filter
-            </button>
-          </div>
-        )}
 
         {/* Search & Export Buttons */}
         <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
@@ -739,25 +726,10 @@ export default function OfficerRepaymentsView({ loans, onRefresh, onViewSchedule
                 <tr>
                   <td colSpan={6} className="px-6 py-16 text-center text-[var(--text-secondary)]">
                     <div className="max-w-xs mx-auto space-y-2">
-                      <span className="text-[32px] block">
-                        {riskFilter !== 'all' ? '🔍' : '✨'}
-                      </span>
-                      <span className="font-bold text-[15px] text-[var(--text-primary)] block">
-                        {riskFilter !== 'all'
-                          ? `No loans in ${riskFilter.toUpperCase()} risk bucket`
-                          : 'No matching schedules'}
-                      </span>
+                      <span className="text-[32px] block">✨</span>
+                      <span className="font-bold text-[15px] text-[var(--text-primary)] block">No matching schedules</span>
                       <p className="text-[12.5px] text-[var(--text-tertiary)]">
-                        {riskFilter !== 'all' ? (
-                          <button
-                            onClick={() => { setRiskFilter('all'); setCurrentPage(1); }}
-                            className="text-[var(--accent)] hover:underline font-bold cursor-pointer"
-                          >
-                            View all {overdueCount} overdue loan{overdueCount !== 1 ? 's' : ''}
-                          </button>
-                        ) : (
-                          'Try adjusting your search criteria or switching tabs.'
-                        )}
+                        Try adjusting your search criteria or switching tabs.
                       </p>
                     </div>
                   </td>
