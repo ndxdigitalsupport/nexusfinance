@@ -38,7 +38,8 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
       apiFetch('/config'),
     ]).then(([meData, configData]) => {
       setName(meData.name || '');
-      setEmail(meData.email || '');
+      const userEmail = (meData.email && !meData.email.endsWith('@nexus.local')) ? meData.email : '';
+      setEmail(userEmail);
       setPhone(meData.phone || '');
       setOriginalPhone(meData.phone || '');
       setShowEmail(configData?.emailVerificationRequired !== false);
@@ -191,13 +192,15 @@ export default function ProfilePage({ token, user, onProfileUpdate }: ProfilePag
             {/* Detail list items */}
             <div className="p-8 pt-0 relative border-t border-[var(--border-primary)]/50 mt-auto space-y-4 text-left">
               {showEmail && (
-                <div className={`flex items-center gap-3 ${showEmail ? '' : 'pt-6'}`}>
+                <div className="flex items-center gap-3 pt-6">
                   <div className="w-8 h-8 rounded-xl bg-[var(--surface-secondary)] flex items-center justify-center shrink-0 border border-[var(--border-secondary)]">
                     <Mail className="w-4 h-4 text-[var(--text-secondary)]" />
                   </div>
                   <div className="overflow-hidden w-full">
                     <span className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] block tracking-wider leading-none">{t('your_email_address')}</span>
-                    <span className="text-[13px] text-[var(--text-primary)] font-medium block truncate font-mono mt-0.5" title={email}>{email}</span>
+                    <span className={`text-[13px] font-medium block truncate mt-0.5 ${(email && !email.endsWith('@nexus.local')) ? 'text-[var(--text-primary)] font-mono' : 'text-[var(--text-tertiary)] italic'}`} title={email || 'No email linked'}>
+                      {(email && !email.endsWith('@nexus.local')) ? email : 'No email linked'}
+                    </span>
                   </div>
                 </div>
               )}

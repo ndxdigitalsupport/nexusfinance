@@ -1238,7 +1238,7 @@ ${lines.join('\n')}`,
         }
 
         // Update user with phone and link chat ID, set otp_verified_at to mark fully verified!
-        const emailPattern = `${phoneDigits}@nexus.local`;
+        const emailToKeep = (dbUser.email && !dbUser.email.endsWith('@nexus.local')) ? dbUser.email : null;
         const { error: updateError } = await db
           .from('nexus_users')
           .update({
@@ -1246,7 +1246,7 @@ ${lines.join('\n')}`,
             telegram_chat_id: String(chatId),
             otp_verified_at: new Date().toISOString(),
             email_verified: true,
-            email: emailPattern
+            email: emailToKeep
           })
           .eq('id', dbUser.id);
 

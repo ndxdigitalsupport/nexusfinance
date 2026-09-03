@@ -294,7 +294,13 @@ export default function UsersView({ userRole }: UsersViewProps = {}) {
               {paginatedUsers.map((u) => (
                   <tr key={u.id} className="text-[14px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]/50 transition-colors bg-[var(--surface-card)]">
                     <td className="px-5 py-3.5 font-bold">{u.name}</td>
-                    <td className="px-5 py-3.5 text-[var(--text-secondary)] text-[13px] font-mono">{u.email}</td>
+                    <td className="px-5 py-3.5 text-[var(--text-secondary)] text-[13px]">
+                      {(u.email && !u.email.endsWith('@nexus.local')) ? (
+                        <span className="font-mono">{u.email}</span>
+                      ) : (
+                        <span className="text-[var(--text-tertiary)] font-sans">-</span>
+                      )}
+                    </td>
                     <td className="px-5 py-3.5 text-[var(--text-secondary)] text-[13px]">{u.phone || '-'}</td>
                     <td className="px-5 py-3.5">
                       {userRole === 'super-admin' ? (

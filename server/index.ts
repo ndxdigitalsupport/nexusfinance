@@ -1373,25 +1373,14 @@ app.post('/api/users', authMiddleware, requireRole('super-admin', 'admin'), asyn
       targetTenantId = parseInt(tenant_id) || targetTenantId;
     }
 
-    // If email is provided, normalize it; otherwise generate a clean user identifier
-    let finalEmail = '';
+    // If email is provided, normalize it; otherwise leave as null
+    let finalEmail: string | null = null;
     if (email && email.trim()) {
       finalEmail = normalizeEmail(email);
       const { data: existing } = await db.from('nexus_users').select('id').eq('email', finalEmail).maybeSingle();
       if (existing) {
         return res.status(400).json({ error: 'An account with this email already exists.' });
       }
-    } else {
-      // Auto-generate clean email with @gmail.com
-      const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '') || 'user';
-      let candidate = `${cleanName}@gmail.com`;
-      const { data: existingCandidate } = await db.from('nexus_users').select('id').eq('email', candidate).maybeSingle();
-      if (existingCandidate) {
-        // If exact name is taken, add a clean increment
-        const randNum = Math.floor(100 + Math.random() * 900);
-        candidate = `${cleanName}${randNum}@gmail.com`;
-      }
-      finalEmail = candidate;
     }
 
     // Format phone if provided
@@ -2157,29 +2146,17 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 6 characters.' });
     }
 
-    if (!email) {
-      if (phone) {
-        let normalizedPhone = phone.replace(/\D/g, '');
-        if (normalizedPhone.startsWith('0')) {
-          normalizedPhone = '855' + normalizedPhone.substring(1);
+    let finalEmail: string | null = null;
+    if (email && email.trim()) {
+      finalEmail = normalizeEmail(email);
+      const { data: existing } = await db.from('nexus_users').select('id, email_verified').eq('email', finalEmail).maybeSingle();
+      if (existing) {
+        if (existing.email_verified === false) {
+          // Silently delete the unverified stale registration
+          await db.from('nexus_users').delete().eq('id', existing.id);
+        } else {
+          return res.status(400).json({ error: 'An account with this email already exists.' });
         }
-        if (!normalizedPhone.startsWith('855') && normalizedPhone.length <= 9) {
-          normalizedPhone = '855' + normalizedPhone;
-        }
-        email = `${normalizedPhone}@nexus.local`;
-      } else {
-        const randId = Math.random().toString(36).substring(2, 10);
-        email = `pending_${randId}@nexus.local`;
-      }
-    }
-
-    const { data: existing } = await db.from('nexus_users').select('id, email_verified').eq('email', email).maybeSingle();
-    if (existing) {
-      if (existing.email_verified === false) {
-        // Silently delete the unverified stale registration
-        await db.from('nexus_users').delete().eq('id', existing.id);
-      } else {
-        return res.status(400).json({ error: 'An account with this email already exists.' });
       }
     }
 
@@ -2208,7 +2185,11 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const { data: newUser } = await db.from('nexus_users').insert({
-      name, email, password: hashedPassword, role: 'customer', phone: finalPhone || null,
+      name,
+      email: finalEmail,
+      password: hashedPassword,
+      role: 'customer',
+      phone: finalPhone || null,
       email_verified: false,
       tenant_id: tenantId,
     }).select('id, name, email, role').single();
