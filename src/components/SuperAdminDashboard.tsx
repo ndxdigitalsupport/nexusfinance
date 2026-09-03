@@ -8,10 +8,15 @@ import {
   Users,
   FileCheck2,
   TrendingUp,
-  FileText
+  FileText,
+  Building2,
+  QrCode,
+  Check
 } from 'lucide-react';
-import { PlatformConfig, PlatformStats } from '../types';
+import { PlatformConfig, PlatformStats, Tenant } from '../types';
 import Modal from './Modal';
+import { apiFetch } from '../api';
+import { showToast } from './Toast';
 import { 
   AreaChart, 
   Area, 
@@ -52,9 +57,65 @@ export default function SuperAdminDashboard({
   const [selectedStat, setSelectedStat] = useState<'volume' | 'customers' | 'outstanding' | 'yields' | null>(null);
   const { t, formatCurrency, formatCurrencyShort } = useCurrency();
 
+  // Tenant self-management state
+  const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
+  const [tenantName, setTenantName] = useState('');
+  const [tenantLogoUrl, setTenantLogoUrl] = useState('');
+  const [tenantBakongId, setTenantBakongId] = useState('');
+  const [tenantMerchantName, setTenantMerchantName] = useState('');
+  const [savingTenant, setSavingTenant] = useState(false);
+  const [tenantSavedMsg, setTenantSavedMsg] = useState(false);
+
   useEffect(() => {
     setEditingConfig({ ...config });
   }, [config]);
+
+  useEffect(() => {
+    const fetchCurrentTenant = async () => {
+      try {
+        const savedId = localStorage.getItem('nexus_selected_tenant_id');
+        const tenants: Tenant[] = await apiFetch('/tenants');
+        if (Array.isArray(tenants) && tenants.length > 0) {
+          const matched = (savedId && savedId !== 'all')
+            ? tenants.find(t => String(t.id) === savedId) || tenants[0]
+            : tenants[0];
+          setCurrentTenant(matched);
+          setTenantName(matched.name || '');
+          setTenantLogoUrl(matched.logo_url || '');
+          setTenantBakongId(matched.bakong_account_id || '');
+          setTenantMerchantName(matched.merchant_name || '');
+        }
+      } catch { /* ignored */ }
+    };
+    if (view === 'settings') {
+      fetchCurrentTenant();
+    }
+  }, [view]);
+
+  const handleTenantSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentTenant) return;
+    setSavingTenant(true);
+    try {
+      const updated = await apiFetch(`/tenants/${currentTenant.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          name: tenantName,
+          logo_url: tenantLogoUrl.trim() || '',
+          bakong_account_id: tenantBakongId.trim() || '',
+          merchant_name: tenantMerchantName.trim() || '',
+        }),
+      });
+      setCurrentTenant(updated);
+      setTenantSavedMsg(true);
+      showToast('Organization branding & Bakong details updated!', 'success');
+      setTimeout(() => setTenantSavedMsg(false), 2500);
+    } catch (err: any) {
+      showToast(err.message || 'Failed to update organization details', 'error');
+    } finally {
+      setSavingTenant(false);
+    }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -314,6 +375,97 @@ export default function SuperAdminDashboard({
 
       {view === 'settings' && <div className="space-y-6">
         
+        {/* Organization Profile & White-labeling (Available to both Super Admin and Tenant Admin) */}
+        {currentTenant && (
+          <form onSubmit={handleTenantSave} className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 sm:p-8 space-y-5">
+            <div className="border-b border-[var(--border-primary)] pb-3 flex items-center justify-between">
+              <div>
+                <h3 className="text-[18px] font-sans font-bold text-[var(--text-primary)] flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-[var(--accent)]" /> Organization Profile & Branding
+                </h3>
+                <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">
+                  Configure white-label appearance and Bakong merchant credentials for <strong className="text-[var(--text-primary)]">{currentTenant.name}</strong> (#{currentTenant.id}).
+                </p>
+              </div>
+              <span className="text-[11px] font-bold uppercase px-2.5 py-1 rounded-full bg-[var(--accent)]/15 text-[var(--accent)]">
+                {currentTenant.plan} Plan
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Institution Name</label>
+                <input
+                  type="text"
+                  value={tenantName}
+                  onChange={(e) => setTenantName(e.target.value)}
+                  placeholder="e.g. Kako Microfinance"
+                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Custom Logo URL (White-labeling)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={tenantLogoUrl}
+                    onChange={(e) => setTenantLogoUrl(e.target.value)}
+                    placeholder="https://example.com/logo.png"
+                    className="flex-1 bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
+                  />
+                  {tenantLogoUrl && (
+                    <div className="w-11 h-11 rounded-lg border border-[var(--border-primary)] bg-white flex items-center justify-center p-1 shrink-0 overflow-hidden">
+                      <img src={tenantLogoUrl} alt="Preview" className="w-full h-full object-contain" onError={(e) => { (e.target as any).style.display = 'none'; }} />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5 flex items-center gap-1.5">
+                  <QrCode className="w-3.5 h-3.5 text-[var(--accent)]" /> Bakong Account ID
+                </label>
+                <input
+                  type="text"
+                  value={tenantBakongId}
+                  onChange={(e) => setTenantBakongId(e.target.value)}
+                  placeholder="e.g. kako_finance@devb"
+                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
+                />
+                <p className="text-[11px] text-[var(--text-tertiary)] mt-1">KHQR payments will be credited directly to this Bakong merchant ID.</p>
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Merchant Name (displayed on KHQR)</label>
+                <input
+                  type="text"
+                  value={tenantMerchantName}
+                  onChange={(e) => setTenantMerchantName(e.target.value)}
+                  placeholder="e.g. Kako Finance Co., Ltd"
+                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
+                />
+                <p className="text-[11px] text-[var(--text-tertiary)] mt-1">Shown in the Bakong / mobile banking app when customers scan the QR code.</p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-[var(--border-primary)]">
+              {tenantSavedMsg ? (
+                <span className="text-[13px] font-bold text-emerald-500 flex items-center gap-1.5 animate-in fade-in">
+                  <Check className="w-4 h-4" /> Organization settings saved successfully!
+                </span>
+              ) : <div />}
+              <button
+                type="submit"
+                disabled={savingTenant}
+                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-primary)] font-bold text-[13.5px] px-6 py-2.5 rounded-lg transition cursor-pointer disabled:opacity-50 flex items-center gap-2"
+              >
+                {savingTenant ? 'Saving...' : 'Update Organization Profile'}
+              </button>
+            </div>
+          </form>
+        )}
+
         {/* Form panel configuring parameters */}
         <form onSubmit={handleSave} className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-6 sm:p-8 space-y-6">
           <h3 className="text-[18px] font-sans font-bold text-[var(--text-primary)] border-b pb-2 flex items-center gap-2">

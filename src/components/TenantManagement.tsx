@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Building2, Users, Landmark, Settings, Trash2, Edit2, X, Check } from 'lucide-react';
+import { Plus, Building2, Users, Landmark, Settings, Trash2, Edit2, X, Check, Download, QrCode } from 'lucide-react';
 import { apiFetch } from '../api';
 import { showToast } from './Toast';
+import { downloadCSV } from '../utils';
 import type { Tenant, TenantStats } from '../types';
 
 export default function TenantManagement() {
@@ -18,6 +19,8 @@ export default function TenantManagement() {
   const [formPlan, setFormPlan] = useState('basic');
   const [formMaxUsers, setFormMaxUsers] = useState(50);
   const [formMaxLoans, setFormMaxLoans] = useState(500);
+  const [formBakongAccountId, setFormBakongAccountId] = useState('');
+  const [formMerchantName, setFormMerchantName] = useState('');
 
   const fetchTenants = async () => {
     try {
@@ -55,6 +58,8 @@ export default function TenantManagement() {
           plan: formPlan,
           max_users: formMaxUsers,
           max_loans: formMaxLoans,
+          bakong_account_id: formBakongAccountId.trim() || undefined,
+          merchant_name: formMerchantName.trim() || undefined,
         }),
       });
       showToast('Tenant created successfully', 'success');
@@ -77,6 +82,8 @@ export default function TenantManagement() {
           plan: formPlan,
           max_users: formMaxUsers,
           max_loans: formMaxLoans,
+          bakong_account_id: formBakongAccountId.trim() || '',
+          merchant_name: formMerchantName.trim() || '',
         }),
       });
       showToast('Tenant updated successfully', 'success');
@@ -86,6 +93,28 @@ export default function TenantManagement() {
     } catch (err: any) {
       showToast(err.message || 'Failed to update tenant', 'error');
     }
+  };
+
+  const handleExportReport = () => {
+    if (!tenants.length) return;
+    const reportData = tenants.map(t => {
+      const st = tenantStats[t.id];
+      return {
+        'Tenant ID': t.id,
+        'Organization Name': t.name,
+        'Slug': t.slug,
+        'Plan': t.plan,
+        'Status': t.is_active ? 'Active' : 'Inactive',
+        'Total Users': st?.total_users || 0,
+        'Total Loans': st?.total_loans || 0,
+        'Total Volume (USD)': st?.total_volume || 0,
+        'Bakong Account': t.bakong_account_id || 'Global Platform',
+        'Merchant Name': t.merchant_name || t.name,
+        'Created Date': new Date(t.created_at).toLocaleDateString(),
+      };
+    });
+    downloadCSV(reportData, `nexus_organizations_report_${new Date().toISOString().slice(0,10)}.csv`);
+    showToast('Organizations report exported successfully', 'success');
   };
 
   const handleDeactivate = async (tenant: Tenant) => {
@@ -106,6 +135,8 @@ export default function TenantManagement() {
     setFormPlan('basic');
     setFormMaxUsers(50);
     setFormMaxLoans(500);
+    setFormBakongAccountId('');
+    setFormMerchantName('');
   };
 
   const startEdit = (tenant: Tenant) => {
@@ -115,6 +146,8 @@ export default function TenantManagement() {
     setFormPlan(tenant.plan);
     setFormMaxUsers(tenant.max_users);
     setFormMaxLoans(tenant.max_loans);
+    setFormBakongAccountId(tenant.bakong_account_id || '');
+    setFormMerchantName(tenant.merchant_name || '');
   };
 
   const planColors: Record<string, string> = {
@@ -140,13 +173,23 @@ export default function TenantManagement() {
           <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Tenant Management</h2>
           <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Manage subscribing organizations</p>
         </div>
-        <button
-          onClick={() => { resetForm(); setShowCreate(true); }}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white cursor-pointer"
-          style={{ backgroundColor: 'var(--accent)' }}
-        >
-          <Plus className="w-4 h-4" /> Add Tenant
-        </button>
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={handleExportReport}
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-semibold border cursor-pointer hover:bg-[var(--surface-secondary)] transition-colors"
+            style={{ borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }}
+            title="Download CSV performance summary"
+          >
+            <Download className="w-4 h-4 text-[var(--accent)]" /> Export Report
+          </button>
+          <button
+            onClick={() => { resetForm(); setShowCreate(true); }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white cursor-pointer"
+            style={{ backgroundColor: 'var(--accent)' }}
+          >
+            <Plus className="w-4 h-4" /> Add Tenant
+          </button>
+        </div>
       </div>
 
       {/* Tenant Cards */}
@@ -319,6 +362,35 @@ export default function TenantManagement() {
                     onChange={e => setFormMaxLoans(parseInt(e.target.value) || 500)}
                     className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2"
                     style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
+                  />
+                </div>
+              </div>
+
+              {/* KHQR & Bakong Routing */}
+              <div className="pt-2 border-t border-[var(--border-primary)] space-y-3">
+                <p className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-[var(--accent)]">
+                  <QrCode className="w-3.5 h-3.5" /> KHQR Bakong Merchant Routing
+                </p>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Bakong Account ID</label>
+                  <input
+                    type="text"
+                    value={formBakongAccountId}
+                    onChange={e => setFormBakongAccountId(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2"
+                    style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
+                    placeholder="e.g. yourbank@bakong"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Merchant Name</label>
+                  <input
+                    type="text"
+                    value={formMerchantName}
+                    onChange={e => setFormMerchantName(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2"
+                    style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
+                    placeholder="e.g. Kako Finance Co., Ltd"
                   />
                 </div>
               </div>

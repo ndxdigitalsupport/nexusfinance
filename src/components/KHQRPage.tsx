@@ -38,6 +38,7 @@ export default function KHQRPage() {
   const [deeplink, setDeeplink] = useState<string | null>(null);
   const [currentTranId, setCurrentTranId] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'APPROVED' | null>(null);
+  const [merchantName, setMerchantName] = useState<string>('ndxdigitalsupport');
 
   const approvedTransactions = useMemo(() => {
     return transactions.filter((tx: any) => tx.status === 'APPROVED');
@@ -147,6 +148,7 @@ export default function KHQRPage() {
         setQrImage(data.qrImage);
         setDeeplink(data.abapayDeeplink);
         setCurrentTranId(data.tranId);
+        if (data.merchantName) setMerchantName(data.merchantName);
       } catch (e: any) {
         console.error('Auto QR generation error:', e);
         setPaymentStatus(null);
@@ -349,8 +351,8 @@ export default function KHQRPage() {
                   </div>
 
                   {/* Merchant Name */}
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mt-4">
-                    ndxdigitalsupport
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mt-4 px-2 text-center truncate max-w-[240px]">
+                    {merchantName}
                   </p>
 
                   {/* Price tag */}

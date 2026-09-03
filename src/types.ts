@@ -13,6 +13,8 @@ export interface Tenant {
   max_users: number;
   max_loans: number;
   config: Record<string, any>;
+  bakong_account_id?: string;
+  merchant_name?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;

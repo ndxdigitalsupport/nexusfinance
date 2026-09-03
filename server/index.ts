@@ -1342,6 +1342,58 @@ app.get('/api/users', authMiddleware, async (req: any, res) => {
   res.json(users || []);
 });
 
+// Admin creates user directly under an organization
+app.post('/api/users', authMiddleware, requireRole('super-admin', 'admin'), async (req: any, res) => {
+  try {
+    const { name, email, password, phone, role, tenant_id } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Name, email, and password are required.' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    }
+
+    const assignedRole = role || 'loan-officer';
+    const allowedRoles = ['customer', 'loan-officer', 'admin'];
+    if (req.user.role === 'super-admin') allowedRoles.push('super-admin');
+    if (!allowedRoles.includes(assignedRole)) {
+      return res.status(400).json({ error: 'Invalid or unauthorized role.' });
+    }
+
+    let targetTenantId = req.user.tenant_id || 1;
+    if (req.user.role === 'super-admin' && tenant_id) {
+      targetTenantId = parseInt(tenant_id) || targetTenantId;
+    }
+
+    const normalized = normalizeEmail(email);
+    const { data: existing } = await db.from('nexus_users').select('id').eq('email', normalized).maybeSingle();
+    if (existing) {
+      return res.status(400).json({ error: 'An account with this email already exists.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const { data: newUser, error: insertError } = await db.from('nexus_users').insert({
+      name,
+      email: normalized,
+      password: hashedPassword,
+      phone: phone || null,
+      role: assignedRole,
+      tenant_id: targetTenantId,
+      email_verified: true, // Pre-verified by administrator
+    }).select('id, name, email, role, phone, tenant_id').single();
+
+    if (insertError || !newUser) {
+      return res.status(500).json({ error: insertError?.message || 'Failed to create user.' });
+    }
+
+    logAudit('user-created-by-admin', `User ${name} (${normalized}) created with role ${assignedRole} under tenant #${targetTenantId}`, req.user);
+    res.status(201).json(newUser);
+  } catch (err: any) {
+    console.error('Create user error:', err);
+    res.status(500).json({ error: err.message || 'Internal server error.' });
+  }
+});
+
 app.patch('/api/users/:id/role', authMiddleware, async (req, res) => {
   if (req.user.role !== 'super-admin' && req.user.role !== 'admin') return res.status(403).json({ error: 'Admins only.' });
   const allowedRoles = ['customer', 'loan-officer', 'admin', 'super-admin'];
@@ -1367,6 +1419,23 @@ app.patch('/api/users/:id/reset-password', authMiddleware, async (req, res) => {
   logAudit('password-reset', `${user.name} (${user.email}) password reset by admin`, req.user);
   notifyUser(user.id, 'Your password has been reset by an administrator.');
   res.json({ message: 'Password reset successfully.' });
+});
+
+app.patch('/api/users/:id/tenant', authMiddleware, requireRole('super-admin'), async (req, res) => {
+  const { tenant_id } = req.body;
+  const tid = parseInt(tenant_id);
+  if (isNaN(tid)) return res.status(400).json({ error: 'Valid tenant_id is required.' });
+
+  const { data: tenant } = await db.from('nexus_tenants').select('id, name').eq('id', tid).maybeSingle();
+  if (!tenant) return res.status(404).json({ error: 'Tenant not found.' });
+
+  const { data: user } = await db.from('nexus_users').select('id, name, email, tenant_id').eq('id', parseInt(req.params.id)).single();
+  if (!user) return res.status(404).json({ error: 'User not found.' });
+
+  await db.from('nexus_users').update({ tenant_id: tid }).eq('id', user.id);
+  logAudit('user-tenant-reassigned', `${user.name} (${user.email}) moved to organization "${tenant.name}" (#${tid})`, req.user);
+  notifyUser(user.id, `You have been reassigned to organization "${tenant.name}".`);
+  res.json({ id: user.id, tenant_id: tid, tenant_name: tenant.name });
 });
 
 // ── CONFIG ROUTES (Super Admin) ─────────────────────────────
@@ -2370,6 +2439,15 @@ app.post('/api/payway/generate-qr', authMiddleware, async (req, res) => {
       userId = u?.id ?? null;
     }
 
+    const tenantId = req.user?.tenant_id || 1;
+    let tenantMerchantName = 'ndxdigitalsupport';
+    try {
+      const { data: tenant } = await db.from('nexus_tenants').select('merchant_name, name, bakong_account_id').eq('id', tenantId).maybeSingle();
+      if (tenant) {
+        tenantMerchantName = tenant.merchant_name || tenant.name || tenantMerchantName;
+      }
+    } catch { /* ignored */ }
+
     try {
       await db.from('nexus_payway_transactions').insert({
         tran_id: result.tranId,
@@ -2379,13 +2457,16 @@ app.post('/api/payway/generate-qr', authMiddleware, async (req, res) => {
         status: 'PENDING',
         loan_id: loanId ? String(loanId) : null,
         user_id: userId,
-        tenant_id: req.user?.tenant_id || 1,
+        tenant_id: tenantId,
       }).select().single();
     } catch (err) {
       console.error('PayWay insert failed:', err);
     }
 
-    res.json(result);
+    res.json({
+      ...result,
+      merchantName: tenantMerchantName,
+    });
   } catch (err: any) {
     console.error('PayWay generateQR error:', err.message || err);
     res.status(500).json({ error: err.message || 'Failed to create payment' });
@@ -2552,9 +2633,13 @@ app.get('/api/payway/transactions', authMiddleware, async (req, res) => {
 
 // ── TENANT MANAGEMENT (Super Admin only) ──────────────────
 
-// List all tenants (super-admin only)
-app.get('/api/tenants', authMiddleware, requireRole('super-admin'), async (req, res) => {
-  const { data: tenants, error } = await db.from('nexus_tenants').select('*').order('id', { ascending: true });
+// List tenants (super-admin gets all, tenant admin gets their own)
+app.get('/api/tenants', authMiddleware, requireRole('super-admin', 'admin'), async (req, res) => {
+  let query = db.from('nexus_tenants').select('*');
+  if (req.user.role !== 'super-admin') {
+    query = query.eq('id', req.user.tenant_id || 1);
+  }
+  const { data: tenants, error } = await query.order('id', { ascending: true });
   if (error) return res.status(500).json({ error: error.message });
   res.json(tenants || []);
 });
@@ -2608,19 +2693,31 @@ app.get('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'),
   res.json(tenant);
 });
 
-// Update tenant (super-admin only)
-app.patch('/api/tenants/:id', authMiddleware, requireRole('super-admin'), async (req, res) => {
+// Update tenant (super-admin or tenant admin for their own organization)
+app.patch('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'), async (req, res) => {
   const tenantId = parseInt(req.params.id);
-  const { name, slug, plan, max_users, max_loans, is_active, logo_url } = req.body;
+  const isSuperAdmin = req.user.role === 'super-admin';
+  
+  if (!isSuperAdmin && req.user.tenant_id !== tenantId) {
+    return res.status(403).json({ error: 'You can only update your own organization.' });
+  }
+
+  const { name, slug, plan, max_users, max_loans, is_active, logo_url, bakong_account_id, merchant_name } = req.body;
   
   const updateData: any = {};
   if (name !== undefined) updateData.name = name;
-  if (slug !== undefined) updateData.slug = slug;
-  if (plan !== undefined) updateData.plan = plan;
-  if (max_users !== undefined) updateData.max_users = max_users;
-  if (max_loans !== undefined) updateData.max_loans = max_loans;
-  if (is_active !== undefined) updateData.is_active = is_active;
   if (logo_url !== undefined) updateData.logo_url = logo_url;
+  if (bakong_account_id !== undefined) updateData.bakong_account_id = bakong_account_id;
+  if (merchant_name !== undefined) updateData.merchant_name = merchant_name;
+
+  // Plan and limit controls restricted to super-admin
+  if (isSuperAdmin) {
+    if (slug !== undefined) updateData.slug = slug;
+    if (plan !== undefined) updateData.plan = plan;
+    if (max_users !== undefined) updateData.max_users = max_users;
+    if (max_loans !== undefined) updateData.max_loans = max_loans;
+    if (is_active !== undefined) updateData.is_active = is_active;
+  }
   updateData.updated_at = new Date().toISOString();
 
   const { data: tenant, error } = await db.from('nexus_tenants').update(updateData).eq('id', tenantId).select().single();
