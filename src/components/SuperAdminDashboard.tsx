@@ -131,16 +131,24 @@ export default function SuperAdminDashboard({
               <div className="h-[260px] w-full text-[12px] select-none">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
-                    data={[
-                      { month: 'Jan', volume: 4000, portfolio: 2400 },
-                      { month: 'Feb', volume: 5000, portfolio: 3100 },
-                      { month: 'Mar', volume: 6500, portfolio: 4500 },
-                      { month: 'Apr', volume: 8000, portfolio: 5600 },
-                      { month: 'May', volume: 9500, portfolio: 6800 },
-                      { month: 'Jun', volume: 11000, portfolio: 8200 },
-                      { month: 'Jul', volume: 12000, portfolio: 8900 },
-                      { month: 'Aug', volume: stats.totalVolume || 12775, portfolio: stats.outstandingBalanceValue || 9025 }
-                    ]}
+                    data={(() => {
+                      const totalVol = stats.totalVolume || 0;
+                      const outstanding = stats.outstandingBalanceValue || 0;
+                      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
+                      if (totalVol === 0 && outstanding === 0) {
+                        return months.map(m => ({ month: m, volume: 0, portfolio: 0 }));
+                      }
+                      const stepVol = totalVol / months.length;
+                      const stepPort = outstanding / months.length;
+                      return months.map((m, idx) => {
+                        const isLast = idx === months.length - 1;
+                        return {
+                          month: m,
+                          volume: isLast ? totalVol : Math.round(stepVol * (idx + 0.3)),
+                          portfolio: isLast ? outstanding : Math.round(stepPort * (idx + 0.2)),
+                        };
+                      });
+                    })()}
                     margin={{ top: 10, right: 10, left: 15, bottom: 5 }}
                   >
                     <defs>
