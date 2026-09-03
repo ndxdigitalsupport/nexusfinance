@@ -502,14 +502,6 @@ export default function ReminderSettingsView() {
 
               <div className="flex items-center gap-2">
                 {savingPolicy && <span className="text-[11.5px] font-bold text-emerald-500 animate-pulse">{t('saving')}</span>}
-                <button
-                  onClick={handleLoadStandardPresets}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] hover:border-[var(--accent)] text-[12px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--surface-secondary)] transition cursor-pointer"
-                  title="Load pre-built 3-tier rules"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                  <span>{t('load_standard_presets')}</span>
-                </button>
               </div>
             </div>
 
