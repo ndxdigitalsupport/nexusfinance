@@ -60,7 +60,8 @@ export interface PlatformConfig {
   vonage_api_key?: string;
   vonage_api_secret?: string;
   vonage_from_number?: string;
-  custom_sms_url?: string;
+  grace_period_days?: number;
+  late_penalty_daily?: number;
   emailVerificationRequired?: boolean;
 }
 

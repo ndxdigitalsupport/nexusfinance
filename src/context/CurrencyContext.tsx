@@ -318,6 +318,21 @@ export const translations: Record<string, { en: string; kh: string }> = {
   'trigger_days_before': { en: 'Trigger (Days before due)', kh: 'លក្ខខណ្ឌដំណើរការ (ចំនួនថ្ងៃមុនថ្ងៃកំណត់)' },
   'message_template_label': { en: 'Message Template', kh: 'ទម្រង់គំរូសារ' },
   'template_vars_helper': { en: 'Template Variables Helper', kh: 'ជំនួយការប្រើប្រាស់អថេរគំរូសារ' },
+
+  // Debt Collection & Delinquent Tracker
+  'delinquent_tracker': { en: 'Delinquent Debt Tracker', kh: 'ការតាមដានបំណុលហួសកំណត់' },
+  'collection_policy': { en: 'Collection & Late Penalty Policy', kh: 'គោលការណ៍ទារបំណុល & ពិន័យយឺតយ៉ាវ' },
+  'grace_period': { en: 'Grace Period (Days)', kh: 'រយៈពេលអនុគ្រោះ (ថ្ងៃ)' },
+  'grace_period_desc': { en: 'Buffer days before late penalties begin', kh: 'ចំនួនថ្ងៃអនុគ្រោះមុនពេលចាប់ផ្តើមគិតប្រាក់ពិន័យ' },
+  'late_penalty_daily': { en: 'Daily Late Fee ($/day)', kh: 'ប្រាក់ពិន័យប្រចាំថ្ងៃ ($/ថ្ងៃ)' },
+  'late_penalty_daily_desc': { en: 'Accrues daily after grace period expires', kh: 'កើនឡើងជារៀងរាល់ថ្ងៃបន្ទាប់ពីរយៈពេលអនុគ្រោះផុតកំណត់' },
+  'load_standard_presets': { en: 'Load 3 Standard Rules', kh: 'ផ្ទុកច្បាប់ស្តង់ដារ ៣' },
+  'rules_tab': { en: 'Automated Rules & Sweep', kh: 'ច្បាប់ស្វ័យប្រវត្ត & ស្កែន' },
+  'nudge_btn': { en: 'Send Nudge', kh: 'ផ្ញើសារដាស់តឿន' },
+  'nudging': { en: 'Nudging...', kh: 'កំពុងផ្ញើ...' },
+  'mild_risk': { en: '1–15 Days (Mild)', kh: '១–១៥ ថ្ងៃ (ស្រាល)' },
+  'medium_risk': { en: '16–30 Days (Medium)', kh: '១៦–៣០ ថ្ងៃ (មធ្យម)' },
+  'severe_risk': { en: '30+ Days (High Risk)', kh: '៣០+ ថ្ងៃ (ហានិភ័យខ្ពស់)' },
   'click_insert_vars': { en: 'Click to Insert Variables', kh: 'ចុចដើម្បីបញ្ចូលអថេរ' },
   'enable_rule_immediately': { en: 'Enable this reminder rule immediately', kh: 'បើកដំណើរការច្បាប់រំលឹកនេះភ្លាមៗ' },
 

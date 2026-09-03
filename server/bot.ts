@@ -150,6 +150,11 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
     return;
   }
 
+  // Fetch config for grace period and late penalty calculations
+  const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).maybeSingle();
+  const gracePeriod = config?.grace_period_days !== undefined ? Number(config.grace_period_days) : 3;
+  const latePenaltyDaily = config?.late_penalty_daily !== undefined ? Number(config.late_penalty_daily) : 0;
+
   let remindersSent = 0;
   let usersNotified = 0;
 
@@ -195,6 +200,12 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
 
         if (!isMatch) continue;
 
+        // Calculate late penalty fee
+        const overdueDays = Math.max(0, -days);
+        const penaltyDays = Math.max(0, overdueDays - gracePeriod);
+        const penaltyFee = penaltyDays * latePenaltyDaily;
+        const totalDue = monthly + penaltyFee;
+
         // Render message
         const cleanLoanId = String(loan.id).startsWith('#') ? String(loan.id).substring(1) : String(loan.id);
         const vars = {
@@ -203,7 +214,10 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
           due_date: formatDate(due.toISOString()),
           days_remaining: String(days),
           days_overdue: String(Math.abs(days)),
-          customer_name: loan.applicantName
+          customer_name: loan.applicantName,
+          penalty_fee: `$${penaltyFee.toFixed(0)}`,
+          total_due: `$${totalDue.toFixed(0)}`,
+          grace_period: String(gracePeriod)
         };
 
         const renderedMessage = renderTemplate(setting.message_template, vars);
@@ -1305,4 +1319,4 @@ You can now log in using your phone number and password on the website!`,
 }
 
 export default bot;
-export { sendPaymentReminders, sendPaymentConfirmation };
+export { sendPaymentReminders, sendPaymentConfirmation, bot };

@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, Trash2, Edit, Bell, RefreshCw, HelpCircle, Clock } from 'lucide-react';
+import { 
+  PlusCircle, 
+  Trash2, 
+  Edit, 
+  RefreshCw, 
+  HelpCircle, 
+  Clock, 
+  ShieldAlert, 
+  Send, 
+  DollarSign, 
+  ShieldCheck, 
+  Sparkles,
+  AlertTriangle,
+  FileCheck2
+} from 'lucide-react';
 import { apiFetch } from '../api';
 import { showToast } from './Toast';
 import Modal from './Modal';
@@ -30,12 +44,35 @@ interface ReminderLog {
   created_at: string;
 }
 
+interface DelinquentLoan {
+  loanId: string;
+  applicantName: string;
+  applicantEmail: string;
+  phone: string | null;
+  telegramLinked: boolean;
+  telegramChatId: string | null;
+  loanAmount: number;
+  loanType: string;
+  monthlyPayment: number;
+  overdueInstallmentsCount: number;
+  daysOverdue: number;
+  oldestDueDate: string;
+  penaltyFee: number;
+  totalDue: number;
+  riskLevel: 'mild' | 'medium' | 'severe';
+  gracePeriodDays: number;
+  latePenaltyDaily: number;
+}
+
 export default function ReminderSettingsView() {
-  const { t } = useCurrency();
+  const { t, formatCurrency } = useCurrency();
   const [settings, setSettings] = useState<ReminderSetting[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+
+  // Active Tab
+  const [activeTab, setActiveTab] = useState<'rules' | 'delinquent'>('rules');
 
   // Form fields
   const [name, setName] = useState('');
@@ -64,10 +101,22 @@ export default function ReminderSettingsView() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const [reminderTime, setReminderTime] = useState('07:00');
-  const [savingTime, setSavingTime] = useState(false);
+  // Policy Settings
+  const [reminderTime, setReminderTime] = useState('00:00');
+  const [gracePeriodDays, setGracePeriodDays] = useState(3);
+  const [latePenaltyDaily, setLatePenaltyDaily] = useState(1);
+  const [savingPolicy, setSavingPolicy] = useState(false);
   const debounceTimerRef = React.useRef<any>(null);
-  const lastSavedTimeRef = React.useRef<string>('07:00');
+
+  // Delinquent Accounts
+  const [delinquentLoans, setDelinquentLoans] = useState<DelinquentLoan[]>([]);
+  const [delinquentSummary, setDelinquentSummary] = useState<any>(null);
+  const [loadingDelinquent, setLoadingDelinquent] = useState(false);
+  const [nudgingLoanId, setNudgingLoanId] = useState<string | null>(null);
+  const [delinquentPage, setDelinquentPage] = useState(1);
+  const delinquentPerPage = 8;
+
+  // Logs
   const [logs, setLogs] = useState<ReminderLog[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [logsPage, setLogsPage] = useState(1);
@@ -93,46 +142,38 @@ export default function ReminderSettingsView() {
   const fetchConfig = async () => {
     try {
       const config = await apiFetch('/config');
-      if (config && config.reminder_time) {
-        setReminderTime(config.reminder_time);
-        lastSavedTimeRef.current = config.reminder_time;
+      if (config) {
+        if (config.reminder_time) setReminderTime(config.reminder_time);
+        if (config.grace_period_days !== undefined) setGracePeriodDays(Number(config.grace_period_days));
+        if (config.late_penalty_daily !== undefined) setLatePenaltyDaily(Number(config.late_penalty_daily));
       }
     } catch {}
   };
 
-  const triggerSaveTime = async (valToSave: string) => {
-    if (!valToSave || valToSave === lastSavedTimeRef.current) return;
-    setSavingTime(true);
+  const triggerSavePolicy = async (updates: Record<string, any>) => {
+    setSavingPolicy(true);
     try {
       await apiFetch('/config', {
         method: 'PATCH',
-        body: JSON.stringify({ reminder_time: valToSave }),
+        body: JSON.stringify(updates),
       });
-      lastSavedTimeRef.current = valToSave;
-      showToast('Daily reminder sweep time updated', 'success');
+      showToast('Collection policy updated', 'success');
     } catch (e: any) {
-      showToast(e.message || 'Failed to update sweep time', 'error');
+      showToast(e.message || 'Failed to update collection policy', 'error');
     } finally {
-      setSavingTime(false);
+      setSavingPolicy(false);
     }
   };
 
-  const handleTimeChange = (newVal: string) => {
-    setReminderTime(newVal);
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-    // Give user 1.5 seconds after typing digits to finish inputting before auto-saving
+  const handlePolicyChange = (field: 'reminder_time' | 'grace_period_days' | 'late_penalty_daily', val: any) => {
+    if (field === 'reminder_time') setReminderTime(val);
+    if (field === 'grace_period_days') setGracePeriodDays(Number(val));
+    if (field === 'late_penalty_daily') setLatePenaltyDaily(Number(val));
+
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
-      triggerSaveTime(newVal);
+      triggerSavePolicy({ [field]: val });
     }, 1500);
-  };
-
-  const handleTimeBlur = () => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-    triggerSaveTime(reminderTime);
   };
 
   const fetchSettings = async () => {
@@ -146,29 +187,100 @@ export default function ReminderSettingsView() {
     }
   };
 
+  const fetchOverdueLoans = async () => {
+    setLoadingDelinquent(true);
+    try {
+      const data = await apiFetch('/loans/overdue');
+      setDelinquentLoans(data.delinquentLoans || []);
+      setDelinquentSummary(data.summary || null);
+    } catch {
+      // silently handle
+    } finally {
+      setLoadingDelinquent(false);
+    }
+  };
+
+  const handleNudge = async (loanId: string) => {
+    setNudgingLoanId(loanId);
+    try {
+      const res = await apiFetch(`/loans/${encodeURIComponent(loanId)}/nudge`, {
+        method: 'POST',
+        body: JSON.stringify({ channel: 'both' })
+      });
+      showToast(res.message || `Nudge sent for loan ${loanId}`, 'success');
+      fetchOverdueLoans();
+    } catch (e: any) {
+      showToast(e.message || 'Failed to send nudge', 'error');
+    } finally {
+      setNudgingLoanId(null);
+    }
+  };
+
+  const handleLoadStandardPresets = async () => {
+    if (!window.confirm('This will load the 3 standard microfinance collection rules (Pre-Due, Due Date, and Overdue Notice). Proceed?')) return;
+    try {
+      const presets = [
+        {
+          name: 'Stage 1: Pre-Due Reminder (3 Days Before)',
+          days_before: 3,
+          channel: 'both',
+          is_active: true,
+          message_template: '📅 *Upcoming Payment Reminder* — NexusFinance\n\nDear {customer_name},\nYour monthly installment of *{amount}* for Loan #{loan_id} is due on *{due_date}* ({days_remaining} days remaining).\n\nPlease prepare your payment to maintain a good credit record.'
+        },
+        {
+          name: 'Stage 2: Due Date Notice (Today)',
+          days_before: 0,
+          channel: 'both',
+          is_active: true,
+          message_template: '🔔 *Payment Due Today* — NexusFinance\n\nDear {customer_name},\nYour installment of *{amount}* for Loan #{loan_id} is *due today* ({due_date}).\n\nPlease scan your KHQR to complete your payment before midnight to avoid late penalty fees.'
+        },
+        {
+          name: 'Stage 3: Overdue Escalation Notice',
+          days_before: -1,
+          channel: 'both',
+          is_active: true,
+          message_template: '⚠️ *URGENT OVERDUE NOTICE* — NexusFinance\n\nDear {customer_name},\nYour payment for Loan #{loan_id} is *{days_overdue} days overdue*.\n\n• Base Installment: *{amount}*\n• Accrued Late Penalty: *{penalty_fee}*\n• *Total Due: {total_due}*\n\nPlease settle your payment immediately to avoid further legal escalation.'
+        }
+      ];
+
+      for (const p of presets) {
+        await apiFetch('/reminder-settings', {
+          method: 'POST',
+          body: JSON.stringify(p)
+        });
+      }
+
+      showToast('Standard 3-tier microfinance rules loaded!', 'success');
+      fetchSettings();
+    } catch (e: any) {
+      showToast(e.message || 'Failed to load standard preset rules', 'error');
+    }
+  };
+
   const fetchLogs = async () => {
     setLoadingLogs(true);
     try {
       const data = await apiFetch('/reminder-logs');
       setLogs(data || []);
     } catch {
-      showToast('Failed to load reminder execution logs', 'error');
+      // silently handle
     } finally {
       setLoadingLogs(false);
     }
   };
 
   useEffect(() => {
-    fetchSettings();
     fetchConfig();
+    fetchSettings();
     fetchLogs();
+    fetchOverdueLoans();
   }, []);
 
   const openCreateModal = () => {
     setEditingId(null);
     setName('');
-    setDaysBefore(1);
-    setMessageTemplate('Dear {customer_name}, this is a friendly reminder that your payment of {amount} for Loan #{loan_id} is due on {due_date}. ({days_remaining} days remaining). Thank you!');
+    setDaysBefore(3);
+    setMessageTemplate('📅 *Payment Reminder* — NexusFinance\n\nDear {customer_name},\nYour loan repayment of *{amount}* for #{loan_id} is due on *{due_date}* ({days_remaining} days remaining).\n\nThank you for choosing NexusFinance.');
     setChannel('both');
     setIsActive(true);
     setShowModal(true);
@@ -188,24 +300,20 @@ export default function ReminderSettingsView() {
     if (!window.confirm('Are you sure you want to delete this reminder rule?')) return;
     try {
       await apiFetch(`/reminder-settings/${id}`, { method: 'DELETE' });
-      showToast('Reminder rule deleted successfully');
+      showToast('Reminder rule deleted');
       fetchSettings();
     } catch (e: any) {
-      showToast(e.message || 'Failed to delete reminder setting', 'error');
+      showToast(e.message || 'Failed to delete rule', 'error');
     }
   };
 
-  const toggleSettingActive = async (s: ReminderSetting) => {
+  const handleToggleActive = async (s: ReminderSetting) => {
     const newVal = !s.is_active;
     setSettings(prev => prev.map(item => item.id === s.id ? { ...item, is_active: newVal } : item));
     try {
       await apiFetch(`/reminder-settings/${s.id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         body: JSON.stringify({
-          name: s.name,
-          days_before: s.days_before,
-          message_template: s.message_template,
-          channel: s.channel,
           is_active: newVal
         })
       });
@@ -227,7 +335,7 @@ export default function ReminderSettingsView() {
       const payload = { name, days_before: daysBefore, message_template: messageTemplate, channel, is_active: isActive };
       if (editingId) {
         await apiFetch(`/reminder-settings/${editingId}`, {
-          method: 'PUT',
+          method: 'PATCH',
           body: JSON.stringify(payload)
         });
         showToast('Reminder rule updated successfully');
@@ -260,7 +368,10 @@ export default function ReminderSettingsView() {
       due_date: formattedDueDate,
       days_remaining: String(Math.max(0, days)),
       days_overdue: String(Math.max(0, -days)),
-      customer_name: 'Somchai V.'
+      customer_name: 'Somchai V.',
+      penalty_fee: '$4.00',
+      total_due: '$1,254',
+      grace_period: String(gracePeriodDays)
     };
     let preview = template;
     Object.entries(vars).forEach(([key, val]) => {
@@ -291,6 +402,9 @@ export default function ReminderSettingsView() {
   const totalPages = Math.ceil(settings.length / itemsPerPage) || 1;
   const paginatedSettings = settings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  const totalDelinquentPages = Math.ceil(delinquentLoans.length / delinquentPerPage) || 1;
+  const paginatedDelinquent = delinquentLoans.slice((delinquentPage - 1) * delinquentPerPage, delinquentPage * delinquentPerPage);
+
   const totalLogsPages = Math.ceil(logs.length / logsPerPage) || 1;
   const paginatedLogs = logs.slice((logsPage - 1) * logsPerPage, logsPage * logsPerPage);
 
@@ -302,232 +416,499 @@ export default function ReminderSettingsView() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="flex items-center justify-between">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-[28px] font-extrabold text-[var(--text-primary)]">{t('custom_reminders')}</h2>
-          <p className="text-[13.5px] text-[var(--text-secondary)]">{t('custom_reminders_desc')}</p>
+          <div className="flex items-center gap-3">
+            <h2 className="text-[28px] font-black text-[var(--text-primary)] font-sans tracking-tight">
+              {t('custom_reminders')} & {t('delinquent_tracker')}
+            </h2>
+            {delinquentLoans.length > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-rose-500/10 text-rose-500 border border-rose-500/20 animate-pulse">
+                {delinquentLoans.length} Overdue
+              </span>
+            )}
+          </div>
+          <p className="text-[13.5px] text-[var(--text-secondary)] mt-0.5">{t('custom_reminders_desc')}</p>
         </div>
-        <div className="flex gap-2">
+
+        <div className="flex items-center gap-2">
           <button
-            onClick={fetchSettings}
-            className="p-2.5 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] transition cursor-pointer"
+            onClick={() => { fetchSettings(); fetchOverdueLoans(); fetchLogs(); }}
+            className="p-2.5 rounded-xl border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] transition cursor-pointer"
             title="Refresh"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
+          
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-2 bg-[var(--accent)] hover:brightness-105 text-[#0F171C] text-[13.5px] font-bold px-4.5 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-[var(--accent)]/10 cursor-pointer"
+            className="flex items-center gap-2 bg-[var(--accent)] hover:brightness-105 text-[#0F171C] text-[13px] font-bold px-4 py-2.5 rounded-xl transition-all duration-200 shadow-xs cursor-pointer"
           >
-            <PlusCircle className="w-4.5 h-4.5" /> {t('create_reminder_rule')}
+            <PlusCircle className="w-4 h-4" /> {t('create_reminder_rule')}
           </button>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-4.5">
-        <div className="flex items-center gap-2.5">
-          <Clock className="w-5 h-5 text-[var(--accent)]" />
-          <div>
-            <h4 className="text-[13.5px] font-bold text-[var(--text-primary)]">{t('automated_sweep_schedule')}</h4>
-            <p className="text-[12px] text-[var(--text-secondary)]">{t('sweep_schedule_desc')}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <label className="text-[13px] font-bold text-[var(--text-primary)]">{t('trigger_time_label')}</label>
-          <input
-            type="time"
-            value={reminderTime}
-            onChange={(e) => handleTimeChange(e.target.value)}
-            onBlur={handleTimeBlur}
-            className="bg-[var(--surface-secondary)] border border-[var(--border-primary)] px-3 py-1.5 rounded-lg text-[13.5px] font-mono focus:outline-none focus:border-[var(--accent)] transition-all cursor-pointer text-[var(--text-primary)]"
-          />
-          {savingTime && <span className="text-[12px] text-[var(--text-secondary)] animate-pulse">{t('saving')}</span>}
-        </div>
+      {/* Sub-Tab Navigation */}
+      <div className="flex items-center gap-2 border-b border-[var(--border-primary)] pb-2">
+        <button
+          onClick={() => setActiveTab('rules')}
+          className={`px-4 py-2 rounded-xl text-[13px] font-bold transition flex items-center gap-2 cursor-pointer ${
+            activeTab === 'rules'
+              ? 'bg-[var(--accent)] text-[#0F171C] shadow-xs'
+              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]'
+          }`}
+        >
+          <Clock className="w-4 h-4" />
+          <span>{t('rules_tab')}</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('delinquent')}
+          className={`px-4 py-2 rounded-xl text-[13px] font-bold transition flex items-center gap-2 cursor-pointer relative ${
+            activeTab === 'delinquent'
+              ? 'bg-[var(--accent)] text-[#0F171C] shadow-xs'
+              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]'
+          }`}
+        >
+          <ShieldAlert className="w-4 h-4" />
+          <span>{t('delinquent_tracker')}</span>
+          {delinquentLoans.length > 0 && (
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+              activeTab === 'delinquent' ? 'bg-black/20 text-[#0F171C]' : 'bg-rose-500 text-white'
+            }`}>
+              {delinquentLoans.length}
+            </span>
+          )}
+        </button>
       </div>
 
-      <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-[13.5px] text-left border-collapse">
-            <thead>
-              <tr className="border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/50 select-none">
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">{t('rule_name_header')}</th>
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-center">{t('days_relative_to_due')}</th>
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">{t('delivery_channels')}</th>
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-center">{t('active_status_header')}</th>
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-right">{t('actions_header')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border-primary)]">
-              {paginatedSettings.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-[var(--text-tertiary)] bg-[var(--surface-card)]">
-                    {t('no_reminder_rules')}
-                  </td>
-                </tr>
-              ) : (
-                paginatedSettings.map((setting) => (
-                  <tr key={setting.id} className="hover:bg-[var(--surface-secondary)]/20 transition-colors">
-                    <td className="px-6 py-4.5">
-                      <span className="font-extrabold text-[var(--text-primary)] block">{setting.name}</span>
-                      <span className="text-[11px] text-[var(--text-tertiary)] block mt-0.5">{getTemplateExcerpt(setting.message_template)}</span>
-                    </td>
-                    <td className="px-6 py-4.5 text-center font-mono text-[12.5px] font-bold">
-                      {setting.days_before > 0 ? (
-                        <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                          +{setting.days_before} {t('days_label')}
-                        </span>
-                      ) : setting.days_before === 0 ? (
-                        <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                          {t('due_date')}
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-500 border border-rose-500/20">
-                          {Math.abs(setting.days_before)} {t('days_overdue_label')}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4.5">
-                      <span className={`px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider border ${
-                        setting.channel === 'telegram' ? 'bg-[#0088cc]/10 text-[#0088cc] border-[#0088cc]/20' :
-                        setting.channel === 'in_app' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                        'bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/20'
-                      }`}>
-                        {getChannelText(setting.channel)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4.5 text-center">
-                      <button
-                        onClick={() => toggleSettingActive(setting)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold cursor-pointer transition ${setting.is_active ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-[var(--surface-secondary)] text-[var(--text-tertiary)] border border-[var(--border-primary)]'}`}
-                      >
-                        <span className={`w-2 h-2 rounded-full ${setting.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}`}></span>
-                        {setting.is_active ? t('active_status') : t('disabled_status')}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4.5 text-right space-x-2">
-                      <button
-                        onClick={() => openEditModal(setting)}
-                        className="p-1.5 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer"
-                        title="Edit Rule"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(setting.id)}
-                        className="p-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/10 text-red-400 transition cursor-pointer"
-                        title="Delete Rule"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
+      {/* TAB 1: RULES & COLLECTION POLICY */}
+      {activeTab === 'rules' && (
+        <div className="space-y-6">
+          {/* Unified Collection & Late Penalty Policy Matrix Card */}
+          <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl p-5 space-y-4 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-primary)] pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                  <ShieldCheck className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <h4 className="text-[14px] font-bold text-[var(--text-primary)]">{t('collection_policy')}</h4>
+                  <p className="text-[11.5px] text-[var(--text-secondary)]">Automated sweep timing, grace period buffer, and daily penalty calculation.</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {savingPolicy && <span className="text-[11.5px] font-bold text-emerald-500 animate-pulse">{t('saving')}</span>}
+                <button
+                  onClick={handleLoadStandardPresets}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] hover:border-[var(--accent)] text-[12px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--surface-secondary)] transition cursor-pointer"
+                  title="Load pre-built 3-tier rules"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>{t('load_standard_presets')}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Daily Sweep Time */}
+              <div className="bg-[var(--surface-secondary)]/50 border border-[var(--border-primary)] rounded-xl p-3.5 space-y-1">
+                <label className="text-[12px] font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-[var(--accent)]" /> {t('trigger_time_label')}
+                </label>
+                <p className="text-[10.5px] text-[var(--text-tertiary)] leading-tight">{t('sweep_schedule_desc')}</p>
+                <input
+                  type="time"
+                  value={reminderTime}
+                  onChange={(e) => handlePolicyChange('reminder_time', e.target.value)}
+                  className="w-full bg-[var(--surface-card)] border border-[var(--border-primary)] px-3 py-1.5 rounded-lg text-[13.5px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)] mt-1.5 font-bold"
+                />
+              </div>
+
+              {/* Grace Period */}
+              <div className="bg-[var(--surface-secondary)]/50 border border-[var(--border-primary)] rounded-xl p-3.5 space-y-1">
+                <label className="text-[12px] font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> {t('grace_period')}
+                </label>
+                <p className="text-[10.5px] text-[var(--text-tertiary)] leading-tight">{t('grace_period_desc')}</p>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <input
+                    type="number"
+                    min="0"
+                    max="30"
+                    value={gracePeriodDays}
+                    onChange={(e) => handlePolicyChange('grace_period_days', e.target.value)}
+                    className="w-full bg-[var(--surface-card)] border border-[var(--border-primary)] px-3 py-1.5 rounded-lg text-[13.5px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)] font-bold"
+                  />
+                  <span className="text-[12px] font-bold text-[var(--text-secondary)] whitespace-nowrap">Days</span>
+                </div>
+              </div>
+
+              {/* Daily Late Penalty Fee */}
+              <div className="bg-[var(--surface-secondary)]/50 border border-[var(--border-primary)] rounded-xl p-3.5 space-y-1">
+                <label className="text-[12px] font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                  <DollarSign className="w-3.5 h-3.5 text-amber-500" /> {t('late_penalty_daily')}
+                </label>
+                <p className="text-[10.5px] text-[var(--text-tertiary)] leading-tight">{t('late_penalty_daily_desc')}</p>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={latePenaltyDaily}
+                    onChange={(e) => handlePolicyChange('late_penalty_daily', e.target.value)}
+                    className="w-full bg-[var(--surface-card)] border border-[var(--border-primary)] px-3 py-1.5 rounded-lg text-[13.5px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)] font-bold"
+                  />
+                  <span className="text-[12px] font-bold text-[var(--text-secondary)] whitespace-nowrap">/ day</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Active Reminder Rules Table */}
+          <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden shadow-xs">
+            <div className="px-6 py-4 border-b border-[var(--border-primary)] flex items-center justify-between">
+              <h3 className="text-[15px] font-bold text-[var(--text-primary)] flex items-center gap-2">
+                <Clock className="w-4 h-4 text-[var(--accent)]" /> {t('automated_sweep_schedule')} ({settings.length})
+              </h3>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13.5px] text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/50 select-none">
+                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)]">{t('rule_name_header')}</th>
+                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)] text-center">{t('days_relative_to_due')}</th>
+                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)]">{t('delivery_channels')}</th>
+                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)] text-center">{t('active_status_header')}</th>
+                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)] text-right">{t('actions_header')}</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        {totalPages > 1 && (
-          <div className="p-4 border-t border-[var(--border-primary)] bg-[var(--surface-card)]">
-            <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={settings.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
-          </div>
-        )}
-      </div>
+                </thead>
+                <tbody className="divide-y divide-[var(--border-primary)]">
+                  {paginatedSettings.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center text-[var(--text-secondary)]">
+                        <div className="max-w-sm mx-auto space-y-3">
+                          <p className="text-[13px]">{t('no_reminder_rules')}</p>
+                          <button
+                            onClick={handleLoadStandardPresets}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--accent)] text-[#0F171C] text-[12.5px] font-bold shadow-xs cursor-pointer"
+                          >
+                            <Sparkles className="w-4 h-4" /> Load 3 Standard Microfinance Rules
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedSettings.map((s) => (
+                      <tr key={s.id} className="hover:bg-[var(--surface-secondary)]/30 transition">
+                        <td className="px-6 py-4">
+                          <span className="font-bold text-[var(--text-primary)] block">{s.name}</span>
+                          <span className="text-[11.5px] text-[var(--text-tertiary)] font-mono block mt-0.5">{getTemplateExcerpt(s.message_template)}</span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-mono font-bold ${
+                            s.days_before > 0 ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' :
+                            s.days_before === 0 ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' :
+                            'bg-red-500/10 text-red-500 border border-red-500/20'
+                          }`}>
+                            {s.days_before > 0 ? `${s.days_before} ${t('days_label')} before` :
+                             s.days_before === 0 ? 'Due Date' :
+                             `${Math.abs(s.days_before)} ${t('days_overdue_label')}`}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-[12px] font-bold text-[var(--text-secondary)]">{getChannelText(s.channel)}</span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <button
+                            onClick={() => handleToggleActive(s)}
+                            className={`px-3 py-1 rounded-full text-[11px] font-bold cursor-pointer transition ${
+                              s.is_active ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-slate-500/10 text-slate-500 border border-slate-500/20'
+                            }`}
+                          >
+                            {s.is_active ? '● Active' : '○ Inactive'}
+                          </button>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => openEditModal(s)}
+                              className="p-1.5 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer"
+                              title="Edit"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(s.id)}
+                              className="p-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/10 text-red-400 transition cursor-pointer"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-      <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden shadow-xs space-y-4 p-6 sm:p-8">
-        <div className="flex items-center justify-between border-b border-[var(--border-primary)] pb-4">
-          <div>
-            <h3 className="text-[18px] font-sans font-bold text-[var(--text-primary)] flex items-center gap-2">
-              <Bell className="w-5 h-5 text-[var(--accent)]" /> {t('sent_reminders_history') || 'Sent Reminders History'}
-            </h3>
-            <p className="text-[13px] text-[var(--text-secondary)]">Live log of automated relative payment notifications dispatched to customers.</p>
+            {totalPages > 1 && (
+              <div className="p-4 border-t border-[var(--border-primary)]">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={settings.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
           </div>
-          <button
-            onClick={fetchLogs}
-            disabled={loadingLogs}
-            className="p-2 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] transition cursor-pointer bg-[var(--surface-secondary)]"
-            title="Refresh logs"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-[var(--text-secondary)] ${loadingLogs ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-[13.5px] text-left border-collapse">
-            <thead>
-              <tr className="border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/50 select-none">
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">{t('time_header')}</th>
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">{t('customer_role')}</th>
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">Loan ID</th>
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)]">Rule Match</th>
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-center">{t('delivery_channels')}</th>
-                <th className="px-6 py-4 font-bold text-[var(--text-primary)] text-center">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedLogs.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-center text-[var(--text-tertiary)] py-8 font-medium">
-                    No reminder logs recorded yet. Daily sweeps will generate histories.
-                  </td>
-                </tr>
-              ) : (
-                paginatedLogs.map((l) => (
-                  <tr key={l.id} className="border-b border-[var(--border-primary)] hover:bg-[var(--surface-secondary)]/20 transition-all">
-                    <td className="px-6 py-4 font-mono text-[var(--text-secondary)]">
-                      {new Date(l.created_at).toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                        hour12: true
-                      })}
-                    </td>
-                    <td className="px-6 py-4 font-bold text-[var(--text-primary)]">{l.customer_name}</td>
-                    <td className="px-6 py-4 font-mono text-[var(--text-secondary)]">#{l.loan_id.startsWith('#') ? l.loan_id.substring(1) : l.loan_id}</td>
-                    <td className="px-6 py-4 font-medium text-[var(--text-primary)]">{l.rule_name}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-[11.5px] font-bold block w-fit mx-auto ${
-                        l.channel === 'telegram' ? 'bg-[#229ED9]/10 text-[#229ED9]' :
-                        l.channel === 'in_app' ? 'bg-[#F59E0B]/10 text-[#F59E0B]' :
-                        'bg-[#10B981]/10 text-[#10B981]'
-                      }`}>
-                        {l.channel === 'telegram' ? 'TELEGRAM' : l.channel === 'in_app' ? 'IN-APP' : 'TELEGRAM & IN-APP'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      {l.status === 'success' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-bold bg-green-500/10 text-green-400">
-                          ✓ Sent Successfully
-                        </span>
-                      ) : (
-                        <span 
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-bold bg-red-500/10 text-red-400 cursor-help"
-                          title={l.error_message || 'Unknown error'}
-                        >
-                          ✗ Failed
-                        </span>
-                      )}
-                    </td>
+          {/* Dispatch Logs */}
+          <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden shadow-xs">
+            <div className="px-6 py-4 border-b border-[var(--border-primary)] flex items-center justify-between">
+              <h3 className="text-[15px] font-bold text-[var(--text-primary)] flex items-center gap-2">
+                <FileCheck2 className="w-4 h-4 text-emerald-500" /> Dispatch History Logs ({logs.length})
+              </h3>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13px] text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/50 select-none">
+                    <th className="px-6 py-3 font-bold text-[var(--text-primary)]">Timestamp</th>
+                    <th className="px-6 py-3 font-bold text-[var(--text-primary)]">Customer / Loan</th>
+                    <th className="px-6 py-3 font-bold text-[var(--text-primary)]">Rule</th>
+                    <th className="px-6 py-3 font-bold text-[var(--text-primary)] text-center">Status</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        {totalLogsPages > 1 && (
-          <div className="p-4 border-t border-[var(--border-primary)] bg-[var(--surface-card)]">
-            <Pagination
-              currentPage={logsPage}
-              totalPages={totalLogsPages}
-              totalItems={logs.length}
-              itemsPerPage={logsPerPage}
-              onPageChange={setLogsPage}
-            />
-          </div>
-        )}
-      </div>
+                </thead>
+                <tbody className="divide-y divide-[var(--border-primary)]">
+                  {paginatedLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-8 text-center text-[var(--text-secondary)]">No dispatch logs recorded yet.</td>
+                    </tr>
+                  ) : (
+                    paginatedLogs.map((l) => (
+                      <tr key={l.id} className="hover:bg-[var(--surface-secondary)]/30 transition">
+                        <td className="px-6 py-3 font-mono text-[11.5px] text-[var(--text-tertiary)]">
+                          {new Date(l.created_at).toLocaleString()}
+                        </td>
+                        <td className="px-6 py-3">
+                          <span className="font-bold text-[var(--text-primary)]">{l.customer_name}</span>
+                          <span className="text-[11px] font-mono text-[var(--text-tertiary)] block">Loan #{l.loan_id}</span>
+                        </td>
+                        <td className="px-6 py-3 font-medium text-[var(--text-secondary)]">{l.rule_name}</td>
+                        <td className="px-6 py-3 text-center">
+                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10.5px] font-bold ${
+                            l.status === 'success' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-500'
+                          }`}>
+                            {l.status === 'success' ? '✓ Sent' : '✗ Failed'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
 
+            {totalLogsPages > 1 && (
+              <div className="p-4 border-t border-[var(--border-primary)]">
+                <Pagination
+                  currentPage={logsPage}
+                  totalPages={totalLogsPages}
+                  totalItems={logs.length}
+                  itemsPerPage={logsPerPage}
+                  onPageChange={setLogsPage}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: LIVE DELINQUENT DEBT RECOVERY TRACKER */}
+      {activeTab === 'delinquent' && (
+        <div className="space-y-6">
+          {/* Traffic-Light Summary Metrics */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-[var(--surface-card)] border border-amber-500/30 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+              <div>
+                <span className="text-[12px] font-extrabold text-amber-500 uppercase tracking-wider block">
+                  {t('mild_risk')}
+                </span>
+                <span className="text-[26px] font-black font-mono text-[var(--text-primary)] mt-1 block">
+                  {delinquentSummary?.mildCount || 0} Loans
+                </span>
+                <span className="text-[11px] text-[var(--text-secondary)] mt-0.5 block">Automated reminders active</span>
+              </div>
+              <div className="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold text-[18px]">
+                🟡
+              </div>
+            </div>
+
+            <div className="bg-[var(--surface-card)] border border-orange-500/30 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+              <div>
+                <span className="text-[12px] font-extrabold text-orange-500 uppercase tracking-wider block">
+                  {t('medium_risk')}
+                </span>
+                <span className="text-[26px] font-black font-mono text-[var(--text-primary)] mt-1 block">
+                  {delinquentSummary?.mediumCount || 0} Loans
+                </span>
+                <span className="text-[11px] text-[var(--text-secondary)] mt-0.5 block">Officer call recommended</span>
+              </div>
+              <div className="w-11 h-11 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold text-[18px]">
+                🟠
+              </div>
+            </div>
+
+            <div className="bg-[var(--surface-card)] border border-rose-500/30 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+              <div>
+                <span className="text-[12px] font-extrabold text-rose-500 uppercase tracking-wider block">
+                  {t('severe_risk')}
+                </span>
+                <span className="text-[26px] font-black font-mono text-[var(--text-primary)] mt-1 block">
+                  {delinquentSummary?.severeCount || 0} Loans
+                </span>
+                <span className="text-[11px] text-[var(--text-secondary)] mt-0.5 block">Default / Legal escalation</span>
+              </div>
+              <div className="w-11 h-11 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center font-bold text-[18px]">
+                🔴
+              </div>
+            </div>
+          </div>
+
+          {/* Delinquent Loans Table */}
+          <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-2xl overflow-hidden shadow-xs">
+            <div className="px-6 py-4 border-b border-[var(--border-primary)] flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 className="text-[15px] font-bold text-[var(--text-primary)] flex items-center gap-2">
+                  <ShieldAlert className="w-4.5 h-4.5 text-rose-500" /> Overdue Borrowers & Collection Action Queue
+                </h3>
+                <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">
+                  Total Recoverable: <span className="font-mono font-bold text-[var(--text-primary)]">{formatCurrency(delinquentSummary?.totalRecoverable || 0)}</span> (Includes {formatCurrency(delinquentSummary?.totalPenaltiesAccrued || 0)} late penalties)
+                </p>
+              </div>
+
+              <span className="text-[11.5px] font-bold px-3 py-1 rounded-full bg-[var(--surface-secondary)] text-[var(--text-secondary)] border border-[var(--border-primary)]">
+                Grace Period: {gracePeriodDays} Days · Fine: ${latePenaltyDaily}/day
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13.5px] text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]/50 select-none">
+                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)]">Borrower & Contact</th>
+                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)]">Reference</th>
+                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)] text-center">Days Overdue</th>
+                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)] text-right">Base Installment</th>
+                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)] text-right">Late Penalty</th>
+                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)] text-right">Total Owed</th>
+                    <th className="px-6 py-3.5 font-bold text-[var(--text-primary)] text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--border-primary)]">
+                  {loadingDelinquent ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-12 text-center text-[var(--text-secondary)]">Loading delinquent accounts...</td>
+                    </tr>
+                  ) : paginatedDelinquent.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-12 text-center text-emerald-600">
+                        <div className="max-w-sm mx-auto space-y-2">
+                          <span className="text-[28px] block">🎉</span>
+                          <span className="font-bold block text-[15px]">Zero Delinquent Loans!</span>
+                          <p className="text-[12px] text-[var(--text-secondary)]">All active loan installments are currently on time.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedDelinquent.map((l) => (
+                      <tr key={l.loanId} className="hover:bg-[var(--surface-secondary)]/30 transition">
+                        <td className="px-6 py-4">
+                          <span className="font-bold text-[var(--text-primary)] block">{l.applicantName}</span>
+                          <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[var(--text-tertiary)]">
+                            <span>{l.applicantEmail}</span>
+                            {l.phone && <span>· 📞 {l.phone}</span>}
+                            <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
+                              l.telegramLinked ? 'bg-sky-500/10 text-sky-600' : 'bg-gray-500/10 text-gray-500'
+                            }`}>
+                              {l.telegramLinked ? 'Telegram Linked' : 'No Telegram'}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="px-6 py-4">
+                          <span className="font-mono font-bold text-[var(--text-primary)]">#{l.loanId.startsWith('#') ? l.loanId.substring(1) : l.loanId}</span>
+                          <span className="text-[11px] text-[var(--text-tertiary)] block">{l.loanType}</span>
+                        </td>
+
+                        <td className="px-6 py-4 text-center">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-mono font-extrabold ${
+                            l.riskLevel === 'severe' ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' :
+                            l.riskLevel === 'medium' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' :
+                            'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                          }`}>
+                            <AlertTriangle className="w-3 h-3" />
+                            {l.daysOverdue} Days Late
+                          </span>
+                        </td>
+
+                        <td className="px-6 py-4 text-right font-mono font-bold text-[var(--text-primary)]">
+                          {formatCurrency(l.monthlyPayment * l.overdueInstallmentsCount)}
+                        </td>
+
+                        <td className="px-6 py-4 text-right font-mono font-bold text-amber-500">
+                          +{formatCurrency(l.penaltyFee)}
+                        </td>
+
+                        <td className="px-6 py-4 text-right">
+                          <span className="font-mono font-black text-rose-500 text-[14px] block">
+                            {formatCurrency(l.totalDue)}
+                          </span>
+                        </td>
+
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => handleNudge(l.loanId)}
+                            disabled={nudgingLoanId === l.loanId}
+                            className="inline-flex items-center gap-1.5 bg-[var(--accent)] hover:brightness-105 text-[#0F171C] text-[12px] font-bold px-3 py-1.5 rounded-lg transition shadow-xs cursor-pointer disabled:opacity-50"
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                            {nudgingLoanId === l.loanId ? t('nudging') : t('nudge_btn')}
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {totalDelinquentPages > 1 && (
+              <div className="p-4 border-t border-[var(--border-primary)]">
+                <Pagination
+                  currentPage={delinquentPage}
+                  totalPages={totalDelinquentPages}
+                  totalItems={delinquentLoans.length}
+                  itemsPerPage={delinquentPerPage}
+                  onPageChange={setDelinquentPage}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* CREATE / EDIT MODAL */}
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} maxWidth="max-w-4xl">
         <form onSubmit={handleSubmit} className="p-6 md:p-8 font-sans space-y-6">
           <div className="flex justify-between items-start border-b border-[var(--border-primary)] pb-4">
@@ -610,7 +991,7 @@ export default function ReminderSettingsView() {
               <div>
                 <label className="block text-[12.5px] font-bold text-[var(--text-primary)] mb-1.5 flex justify-between">
                   <span>{t('message_template_label')}</span>
-                  <span className="text-[10.5px] text-[var(--accent)] flex items-center gap-0.5 cursor-help" title="Placeholders list: {loan_id}, {amount}, {due_date}, {days_remaining}, {days_overdue}, {customer_name}">
+                  <span className="text-[10.5px] text-[var(--accent)] flex items-center gap-0.5 cursor-help" title="Placeholders list: {loan_id}, {amount}, {due_date}, {days_remaining}, {days_overdue}, {customer_name}, {penalty_fee}, {total_due}">
                     <HelpCircle className="w-3.5 h-3.5" /> {t('template_vars_helper')}
                   </span>
                 </label>
@@ -630,11 +1011,13 @@ export default function ReminderSettingsView() {
                 <div className="flex flex-wrap gap-2">
                   {[
                     { token: '{loan_id}', desc: 'Loan ID' },
-                    { token: '{amount}', desc: 'Payment Amount' },
+                    { token: '{amount}', desc: 'Monthly Payment' },
                     { token: '{due_date}', desc: 'Due Date' },
-                    { token: '{days_remaining}', desc: 'Days Remaining' },
-                    { token: '{days_overdue}', desc: 'Days Overdue' },
-                    { token: '{customer_name}', desc: 'Client Name' }
+                    { token: '{days_remaining}', desc: 'Days Left' },
+                    { token: '{days_overdue}', desc: 'Days Late' },
+                    { token: '{customer_name}', desc: 'Client Name' },
+                    { token: '{penalty_fee}', desc: 'Late Penalty' },
+                    { token: '{total_due}', desc: 'Total Owed' }
                   ].map(v => (
                     <button
                       key={v.token}
@@ -649,115 +1032,91 @@ export default function ReminderSettingsView() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 select-none pt-2">
+              <div className="flex items-center gap-2 pt-2">
                 <input
                   type="checkbox"
-                  id="is_active"
+                  id="isActiveToggle"
                   checked={isActive}
                   onChange={e => setIsActive(e.target.checked)}
                   className="w-4.5 h-4.5 text-[var(--accent)] focus:ring-[var(--accent)] border-[var(--border-primary)] rounded cursor-pointer"
                 />
-                <label htmlFor="is_active" className="text-[13px] font-bold text-[var(--text-primary)] cursor-pointer">
+                <label htmlFor="isActiveToggle" className="text-[13px] font-bold text-[var(--text-primary)] cursor-pointer">
                   {t('enable_rule_immediately')}
                 </label>
               </div>
             </div>
 
-            {/* Right Column: Premium Live Preview */}
-            <div className="md:col-span-5 space-y-4">
-              <div className="flex justify-between items-center border-b border-[var(--border-primary)] pb-2 select-none">
-                <span className="text-[12.5px] font-bold text-[var(--text-primary)] uppercase tracking-wider">Live Preview</span>
-                <div className="flex bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-0.5 rounded-lg">
-                  {['telegram', 'in_app'].map((mode) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      onClick={() => setPreviewMode(mode as any)}
-                      className={`px-3 py-1 text-[11px] font-bold rounded-md capitalize cursor-pointer transition ${previewMode === mode ? 'bg-[var(--surface-card)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'}`}
-                    >
-                      {mode.replace('_', ' ')}
-                    </button>
-                  ))}
+            {/* Right Column: Live Mockup Preview */}
+            <div className="md:col-span-5 bg-[var(--surface-secondary)]/60 border border-[var(--border-primary)] rounded-2xl p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-[var(--border-primary)] pb-3">
+                <span className="text-[12px] font-bold text-[var(--text-primary)] uppercase tracking-wider">Live Mockup Preview</span>
+                <div className="flex bg-[var(--surface-card)] rounded-lg p-0.5 border border-[var(--border-primary)] text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewMode('telegram')}
+                    className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${previewMode === 'telegram' ? 'bg-[var(--accent)] text-[#0F171C]' : 'text-[var(--text-secondary)]'}`}
+                  >
+                    Telegram
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewMode('in_app')}
+                    className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${previewMode === 'in_app' ? 'bg-[var(--accent)] text-[#0F171C]' : 'text-[var(--text-secondary)]'}`}
+                  >
+                    In-App
+                  </button>
                 </div>
               </div>
-              {previewMode === 'telegram' ? (
-                /* Telegram Chat Bubble Preview */
-                <div className="rounded-xl overflow-hidden border border-[#203040] bg-[#0e1621] flex flex-col min-h-[340px] font-sans">
-                  {/* Telegram Top Bar */}
-                  <div className="bg-[#17212b] px-4 py-2.5 flex items-center gap-3 border-b border-[#101921] select-none shrink-0">
-                    <svg className="w-5 h-5 text-[#5288c1] cursor-pointer" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[13.5px] font-bold text-white leading-tight">NexusFinance Bot</div>
-                      <div className="text-[11px] text-[#5288c1] leading-none">bot</div>
-                    </div>
-                    <svg className="w-5 h-5 text-[#6c7883]" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
-                  </div>
 
-                  {/* Chat message thread area */}
-                  <div className="flex-1 bg-[#0e1621] p-4 flex flex-col justify-end relative select-none">
-                    
-                    <div className="flex items-end gap-2.5">
-                      {/* Telegram Bot Avatar */}
-                      <div className="w-8 h-8 rounded-full bg-[#5288c1] flex items-center justify-center text-white font-extrabold text-[12px] shrink-0">
-                        NF
-                      </div>
-                      
-                      {/* Chat Bubble */}
-                      <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-[#182533] border border-[#203040] p-3 text-[13px] text-[#f5f5f5] space-y-1 relative shadow-sm">
-                        <div 
-                          className="whitespace-pre-wrap break-words leading-relaxed text-[#e5edee] font-sans text-[13px]"
-                          dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(renderPreview(messageTemplate)) }}
-                        />
-                        
-                        <div className="pt-2">
-                          <span className="w-full bg-[#24374d] hover:bg-[#2b425c] border border-[#3b5473] text-[#5288c1] font-bold py-2 rounded-lg text-center flex items-center justify-center gap-1.5 select-none pointer-events-none transition block text-[12px]">
-                            🚀 Open NexusFinance
-                          </span>
-                        </div>
-                      </div>
+              {previewMode === 'telegram' ? (
+                <div className="bg-[#17212B] rounded-xl p-4 text-white text-[13px] space-y-3 font-sans shadow-lg border border-slate-700/50">
+                  <div className="flex items-center gap-2 border-b border-slate-700/60 pb-2">
+                    <div className="w-7 h-7 rounded-full bg-[var(--accent)] text-[#0F171C] font-black flex items-center justify-center text-[11px]">
+                      NF
+                    </div>
+                    <div>
+                      <span className="font-bold text-[12px] block leading-none">NexusFinance Bot</span>
+                      <span className="text-[10px] text-slate-400">bot</span>
+                    </div>
+                  </div>
+                  <div
+                    className="leading-relaxed whitespace-pre-wrap text-[12.5px] text-slate-100"
+                    dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(renderPreview(messageTemplate)) }}
+                  />
+                  <div className="pt-2">
+                    <div className="w-full bg-[#2B5278] text-white py-2 rounded-lg text-center font-bold text-[12px] cursor-pointer shadow-xs">
+                      📱 Open NexusFinance & Pay KHQR
                     </div>
                   </div>
                 </div>
               ) : (
-                /* In-App Notification preview */
-                <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--surface-secondary)]/30 p-4 min-h-[340px] flex flex-col justify-start">
-                  <span className="text-[10px] font-bold text-[var(--text-tertiary)] uppercase tracking-wider block mb-3 select-none">In-App Notification Banner</span>
-                  
-                  <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] p-4 rounded-xl shadow-md flex items-start gap-3 hover:scale-[1.02] transition duration-150 relative">
-                    <div className="w-9 h-9 rounded-xl bg-[var(--accent)]/10 text-[var(--accent)] flex items-center justify-center shrink-0 select-none">
-                      <Bell className="w-4.5 h-4.5" />
-                    </div>
-                    
-                    <div className="space-y-1 flex-1">
-                      <div className="flex justify-between items-baseline select-none">
-                        <span className="text-[12.5px] font-extrabold text-[var(--text-primary)]">System Alert</span>
-                        <span className="text-[10px] text-[var(--text-tertiary)] font-medium">Just now</span>
-                      </div>
-                      <div 
-                        className="text-[13px] text-[var(--text-secondary)] whitespace-pre-wrap leading-relaxed font-sans"
-                        dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(renderPreview(messageTemplate)) }}
-                      />
-                    </div>
+                <div className="bg-[var(--surface-card)] border border-[var(--border-primary)] rounded-xl p-4 text-[13px] space-y-2 shadow-xs">
+                  <div className="flex items-center gap-2 text-[var(--accent)]">
+                    <Clock className="w-4 h-4" />
+                    <span className="font-bold text-[12px]">In-App Alert</span>
                   </div>
+                  <p className="text-[var(--text-primary)] text-[12.5px] leading-relaxed">
+                    {renderPreview(messageTemplate).replace(/[\*_`]/g, '')}
+                  </p>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-6 border-t border-[var(--border-primary)]">
+          <div className="flex justify-end gap-3 pt-4 border-t border-[var(--border-primary)]">
             <button
               type="button"
               onClick={() => setShowModal(false)}
-              className="px-5 py-2.5 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] font-bold text-[13.5px] cursor-pointer bg-[var(--surface-secondary)]"
+              className="px-5 py-2.5 rounded-xl border border-[var(--border-primary)] text-[13.5px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2.5 rounded-lg bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] font-bold text-[13.5px] cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-[var(--accent)] text-[#0F171C] text-[13.5px] font-bold hover:brightness-105 transition shadow-xs cursor-pointer disabled:opacity-50"
             >
-              {submitting ? t('saving') : t('save_selection')}
+              {submitting ? 'Saving...' : editingId ? 'Update Rule' : 'Create Rule'}
             </button>
           </div>
         </form>

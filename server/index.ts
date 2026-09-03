@@ -1414,6 +1414,185 @@ app.get('/api/reminder-logs', authMiddleware, async (req, res) => {
   res.json(logs || []);
 });
 
+// ── DELINQUENT DEBT & OVERDUE RECOVERY ENDPOINTS ──
+
+app.get('/api/loans/overdue', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
+  try {
+    const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).maybeSingle();
+    const gracePeriod = config?.grace_period_days !== undefined ? Number(config.grace_period_days) : 3;
+    const latePenaltyDaily = config?.late_penalty_daily !== undefined ? Number(config.late_penalty_daily) : 0;
+
+    const { data: loans, error } = await db
+      .from('nexus_loans')
+      .select('*')
+      .in('status', ['approved', 'Approved', 'active', 'Active', 'disbursed', 'Disbursed'])
+      .order('date', { ascending: false });
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const delinquentLoans: any[] = [];
+
+    for (const loan of loans || []) {
+      const amount = Number(loan.amount) || 0;
+      const duration = Number(loan.durationMonths) || 1;
+      const monthly = calculateMonthlyPayment(amount, duration);
+      
+      const start = new Date(loan.date);
+      let worstDaysOverdue = 0;
+      let oldestOverdueDate: Date | null = null;
+      let overdueCount = 0;
+
+      for (let m = 1; m <= duration; m++) {
+        const d = new Date(start);
+        d.setMonth(d.getMonth() + m);
+        d.setHours(0, 0, 0, 0);
+
+        const diffTime = d.getTime() - now.getTime();
+        const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (days < 0) {
+          overdueCount++;
+          const daysLate = Math.abs(days);
+          if (daysLate > worstDaysOverdue) {
+            worstDaysOverdue = daysLate;
+            oldestOverdueDate = d;
+          }
+        }
+      }
+
+      if (overdueCount > 0 && oldestOverdueDate) {
+        // Fetch borrower contact & telegram info
+        const { data: user } = await db
+          .from('nexus_users')
+          .select('id, name, email, phone, telegram_chat_id')
+          .eq('email', loan.applicantEmail)
+          .maybeSingle();
+
+        const penaltyDays = Math.max(0, worstDaysOverdue - gracePeriod);
+        const penaltyFee = penaltyDays * latePenaltyDaily;
+        const totalDue = (monthly * overdueCount) + penaltyFee;
+
+        let riskLevel: 'mild' | 'medium' | 'severe' = 'mild';
+        if (worstDaysOverdue >= 30) riskLevel = 'severe';
+        else if (worstDaysOverdue >= 15) riskLevel = 'medium';
+
+        delinquentLoans.push({
+          loanId: loan.id,
+          applicantName: loan.applicantName,
+          applicantEmail: loan.applicantEmail,
+          phone: user?.phone || null,
+          telegramLinked: !!user?.telegram_chat_id,
+          telegramChatId: user?.telegram_chat_id || null,
+          loanAmount: amount,
+          loanType: loan.type,
+          monthlyPayment: monthly,
+          overdueInstallmentsCount: overdueCount,
+          daysOverdue: worstDaysOverdue,
+          oldestDueDate: oldestOverdueDate.toISOString(),
+          penaltyFee,
+          totalDue,
+          riskLevel,
+          gracePeriodDays: gracePeriod,
+          latePenaltyDaily
+        });
+      }
+    }
+
+    // Sort by worst days overdue descending
+    delinquentLoans.sort((a, b) => b.daysOverdue - a.daysOverdue);
+
+    res.json({
+      delinquentLoans,
+      summary: {
+        totalOverdueLoans: delinquentLoans.length,
+        totalOverduePrincipal: delinquentLoans.reduce((sum, l) => sum + (l.monthlyPayment * l.overdueInstallmentsCount), 0),
+        totalPenaltiesAccrued: delinquentLoans.reduce((sum, l) => sum + l.penaltyFee, 0),
+        totalRecoverable: delinquentLoans.reduce((sum, l) => sum + l.totalDue, 0),
+        mildCount: delinquentLoans.filter(l => l.riskLevel === 'mild').length,
+        mediumCount: delinquentLoans.filter(l => l.riskLevel === 'medium').length,
+        severeCount: delinquentLoans.filter(l => l.riskLevel === 'severe').length,
+      }
+    });
+  } catch (err: any) {
+    console.error('Error fetching overdue loans:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/loans/:id/nudge', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
+  try {
+    const loanId = req.params.id;
+    const { channel = 'both' } = req.body;
+
+    const { data: loan } = await db.from('nexus_loans').select('*').eq('id', loanId).single();
+    if (!loan) return res.status(404).json({ error: 'Loan not found.' });
+
+    const { data: user } = await db.from('nexus_users').select('id, name, email, phone, telegram_chat_id').eq('email', loan.applicantEmail).single();
+    if (!user) return res.status(404).json({ error: 'Borrower user not found.' });
+
+    const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).maybeSingle();
+    const gracePeriod = config?.grace_period_days !== undefined ? Number(config.grace_period_days) : 3;
+    const latePenaltyDaily = config?.late_penalty_daily !== undefined ? Number(config.late_penalty_daily) : 0;
+
+    const amount = Number(loan.amount) || 0;
+    const duration = Number(loan.durationMonths) || 1;
+    const monthly = calculateMonthlyPayment(amount, duration);
+    const start = new Date(loan.date);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    let worstDaysOverdue = 0;
+    for (let m = 1; m <= duration; m++) {
+      const d = new Date(start);
+      d.setMonth(d.getMonth() + m);
+      d.setHours(0, 0, 0, 0);
+      const diffTime = d.getTime() - now.getTime();
+      const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (days < 0) {
+        worstDaysOverdue = Math.max(worstDaysOverdue, Math.abs(days));
+      }
+    }
+
+    const penaltyDays = Math.max(0, worstDaysOverdue - gracePeriod);
+    const penaltyFee = penaltyDays * latePenaltyDaily;
+    const totalDue = monthly + penaltyFee;
+
+    const cleanId = String(loan.id).startsWith('#') ? String(loan.id).substring(1) : String(loan.id);
+    const message = `⚠️ *URGENT PAYMENT NOTICE* — NexusFinance\n\nDear ${loan.applicantName},\nYour installment for Loan #${cleanId} is *${worstDaysOverdue} days overdue*.\n\n• Monthly Installment: *$${monthly.toFixed(0)}*\n• Late Penalty Fee: *$${penaltyFee.toFixed(0)}*\n• *Total Due: $${totalDue.toFixed(0)}*\n\nPlease settle your payment immediately to avoid further legal or credit score escalation.`;
+
+    let sentTelegram = false;
+    let sentInApp = false;
+
+    if ((channel === 'telegram' || channel === 'both') && user.telegram_chat_id) {
+      try {
+        const { bot } = await import('./bot.js');
+        if (bot) {
+          await bot.sendMessage(user.telegram_chat_id, message, {
+            parse_mode: 'Markdown',
+            reply_markup: { inline_keyboard: [[{ text: '📱 Open NexusFinance & Pay KHQR', url: `https://nexusfinancefintech.vercel.app` }]] }
+          });
+          sentTelegram = true;
+        }
+      } catch (err) {
+        console.error('Failed to send nudge via Telegram:', err);
+      }
+    }
+
+    if (channel === 'in_app' || channel === 'both') {
+      notifyUser(user.id, `URGENT: Your loan #${cleanId} is ${worstDaysOverdue} days overdue ($${totalDue.toFixed(0)} due).`);
+      sentInApp = true;
+    }
+
+    logAudit('loan-nudged', `Manual collection nudge sent to ${loan.applicantName} for loan ${loan.id} (${worstDaysOverdue}d late)`, req.user);
+    res.json({ ok: true, sentTelegram, sentInApp, message: 'Collection reminder nudge dispatched.' });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.get('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
   const { data: broadcasts } = await db
     .from('nexus_broadcasts')
