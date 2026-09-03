@@ -1,11 +1,8 @@
--- NexusFinance: Multi-Tenancy Migration (v2 - resilient)
+-- NexusFinance: Multi-Tenancy Migration
 -- Adds tenant_id to all tables for SaaS multi-tenant support
 -- Run this in Supabase SQL Editor
 
--- ============================================================
 -- 1. CREATE NEW TABLES
--- ============================================================
-
 CREATE TABLE IF NOT EXISTS nexus_tenants (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
@@ -33,203 +30,86 @@ CREATE TABLE IF NOT EXISTS nexus_tenant_members (
 CREATE INDEX IF NOT EXISTS idx_tenant_members_user_id ON nexus_tenant_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_tenant_members_tenant_id ON nexus_tenant_members(tenant_id);
 
--- ============================================================
--- 2. ADD tenant_id TO EXISTING TABLES (only if table exists)
--- ============================================================
-
+-- 2. ADD tenant_id TO EXISTING TABLES
 DO $$
-DECLARE
-  tbl TEXT;
+DECLARE tbl TEXT;
 BEGIN
-  FOR tbl IN
-    SELECT unnest(ARRAY[
-      'nexus_users', 'nexus_loans', 'nexus_transactions', 'nexus_tasks',
-      'nexus_config', 'nexus_audit_logs', 'nexus_notifications',
-      'nexus_khqr_transactions', 'nexus_documents', 'nexus_payway_transactions',
-      'nexus_reminder_settings', 'nexus_broadcasts', 'nexus_reminder_logs',
-      'nexus_installments'
-    ])
-  LOOP
+  FOR tbl IN SELECT unnest(ARRAY[
+    'nexus_users','nexus_loans','nexus_transactions','nexus_tasks',
+    'nexus_config','nexus_audit_logs','nexus_notifications',
+    'nexus_khqr_transactions','nexus_documents','nexus_payway_transactions',
+    'nexus_reminder_settings','nexus_broadcasts','nexus_reminder_logs',
+    'nexus_installments'
+  ]) LOOP
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = tbl) THEN
       EXECUTE format('ALTER TABLE %I ADD COLUMN IF NOT EXISTS tenant_id INT REFERENCES nexus_tenants(id)', tbl);
     END IF;
   END LOOP;
 END $$;
 
--- ============================================================
--- 3. CREATE DEFAULT TENANT (tenant #1)
--- ============================================================
-
+-- 3. CREATE DEFAULT TENANT
 INSERT INTO nexus_tenants (id, name, slug, plan, max_users, max_loans)
 VALUES (1, 'Default Organization', 'default', 'founding', 999, 999)
 ON CONFLICT (id) DO NOTHING;
-
 SELECT setval('nexus_tenants_id_seq', GREATEST((SELECT MAX(id) FROM nexus_tenants), 1));
 
--- ============================================================
--- 4. BACKFILL ALL EXISTING ROWS TO TENANT #1
--- ============================================================
-
+-- 4. BACKFILL ALL ROWS TO TENANT #1
 DO $$
-DECLARE
-  tbl TEXT;
+DECLARE tbl TEXT;
 BEGIN
-  FOR tbl IN
-    SELECT unnest(ARRAY[
-      'nexus_users', 'nexus_loans', 'nexus_transactions', 'nexus_tasks',
-      'nexus_config', 'nexus_audit_logs', 'nexus_notifications',
-      'nexus_khqr_transactions', 'nexus_documents', 'nexus_payway_transactions',
-      'nexus_reminder_settings', 'nexus_broadcasts', 'nexus_reminder_logs',
-      'nexus_installments'
-    ])
-  LOOP
+  FOR tbl IN SELECT unnest(ARRAY[
+    'nexus_users','nexus_loans','nexus_transactions','nexus_tasks',
+    'nexus_config','nexus_audit_logs','nexus_notifications',
+    'nexus_khqr_transactions','nexus_documents','nexus_payway_transactions',
+    'nexus_reminder_settings','nexus_broadcasts','nexus_reminder_logs',
+    'nexus_installments'
+  ]) LOOP
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = tbl) THEN
       EXECUTE format('UPDATE %I SET tenant_id = 1 WHERE tenant_id IS NULL', tbl);
     END IF;
   END LOOP;
 END $$;
 
--- ============================================================
--- 5. MAKE tenant_id NOT NULL (after backfill, only if table exists)
--- ============================================================
-
+-- 5. MAKE tenant_id NOT NULL
 DO $$
-DECLARE
-  tbl TEXT;
+DECLARE tbl TEXT;
 BEGIN
-  FOR tbl IN
-    SELECT unnest(ARRAY[
-      'nexus_users', 'nexus_loans', 'nexus_transactions', 'nexus_tasks',
-      'nexus_config', 'nexus_audit_logs', 'nexus_notifications',
-      'nexus_khqr_transactions', 'nexus_documents', 'nexus_payway_transactions',
-      'nexus_reminder_settings', 'nexus_broadcasts', 'nexus_reminder_logs',
-      'nexus_installments'
-    ])
-  LOOP
+  FOR tbl IN SELECT unnest(ARRAY[
+    'nexus_users','nexus_loans','nexus_transactions','nexus_tasks',
+    'nexus_config','nexus_audit_logs','nexus_notifications',
+    'nexus_khqr_transactions','nexus_documents','nexus_payway_transactions',
+    'nexus_reminder_settings','nexus_broadcasts','nexus_reminder_logs',
+    'nexus_installments'
+  ]) LOOP
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = tbl) THEN
       EXECUTE format('ALTER TABLE %I ALTER COLUMN tenant_id SET NOT NULL', tbl);
     END IF;
   END LOOP;
 END $$;
 
--- ============================================================
 -- 6. REMOVE nexus_config SINGLETON CONSTRAINT
--- ============================================================
-
 DO $$
 BEGIN
-  IF EXISTS (
-    SELECT 1 FROM pg_constraint
-    WHERE conname = 'nexus_config_id_check'
-    AND conrelid = 'nexus_config'::regclass
-  ) THEN
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'nexus_config_id_check' AND conrelid = 'nexus_config'::regclass) THEN
     ALTER TABLE nexus_config DROP CONSTRAINT nexus_config_id_check;
   END IF;
 END $$;
 
--- ============================================================
--- 7. ADD INDEXES (only if table exists)
--- ============================================================
-
+-- 7. ADD INDEXES
 DO $$
-DECLARE
-  tbl TEXT;
+DECLARE tbl TEXT;
 BEGIN
-  FOR tbl IN
-    SELECT unnest(ARRAY[
-      'nexus_users', 'nexus_loans', 'nexus_transactions', 'nexus_tasks',
-      'nexus_config', 'nexus_audit_logs', 'nexus_notifications',
-      'nexus_khqr_transactions', 'nexus_documents', 'nexus_payway_transactions',
-      'nexus_reminder_settings', 'nexus_broadcasts', 'nexus_reminder_logs',
-      'nexus_installments'
-    ])
-  LOOP
+  FOR tbl IN SELECT unnest(ARRAY[
+    'nexus_users','nexus_loans','nexus_transactions','nexus_tasks',
+    'nexus_config','nexus_audit_logs','nexus_notifications',
+    'nexus_khqr_transactions','nexus_documents','nexus_payway_transactions',
+    'nexus_reminder_settings','nexus_broadcasts','nexus_reminder_logs',
+    'nexus_installments'
+  ]) LOOP
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = tbl) THEN
       EXECUTE format('CREATE INDEX IF NOT EXISTS idx_%s_tenant_id ON %I(tenant_id)', tbl, tbl);
     END IF;
   END LOOP;
 END $$;
 
--- ============================================================
--- 8. ENABLE ROW-LEVEL SECURITY (only if table exists)
--- ============================================================
-
-DO $$
-DECLARE
-  tbl TEXT;
-BEGIN
-  FOR tbl IN
-    SELECT unnest(ARRAY[
-      'nexus_users', 'nexus_loans', 'nexus_transactions', 'nexus_tasks',
-      'nexus_config', 'nexus_audit_logs', 'nexus_notifications',
-      'nexus_khqr_transactions', 'nexus_documents', 'nexus_payway_transactions',
-      'nexus_reminder_settings', 'nexus_broadcasts', 'nexus_reminder_logs',
-      'nexus_installments', 'nexus_tenants', 'nexus_tenant_members'
-    ])
-  LOOP
-    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = tbl) THEN
-      EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', tbl);
-      EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', tbl);
-    END IF;
-  END LOOP;
-END $$;
-
--- ============================================================
--- 9. CREATE RLS POLICIES (only if table exists)
--- ============================================================
-
--- Tenant policies
-DO $$
-BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'nexus_tenants') THEN
-    DROP POLICY IF EXISTS "tenant_isolation" ON nexus_tenants;
-    CREATE POLICY "tenant_isolation" ON nexus_tenants
-      FOR ALL USING (
-        (auth.jwt() ->> 'role') = 'super-admin'
-        OR id = (auth.jwt() ->> 'tenant_id')::int
-      );
-  END IF;
-END $$;
-
-DO $$
-BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'nexus_tenant_members') THEN
-    DROP POLICY IF EXISTS "tenant_members_isolation" ON nexus_tenant_members;
-    CREATE POLICY "tenant_members_isolation" ON nexus_tenant_members
-      FOR ALL USING (
-        (auth.jwt() ->> 'role') = 'super-admin'
-        OR tenant_id = (auth.jwt() ->> 'tenant_id')::int
-      );
-  END IF;
-END $$;
-
--- Data table policies
-DO $$
-DECLARE
-  tbl TEXT;
-BEGIN
-  FOR tbl IN
-    SELECT unnest(ARRAY[
-      'nexus_users', 'nexus_loans', 'nexus_transactions', 'nexus_tasks',
-      'nexus_config', 'nexus_audit_logs', 'nexus_notifications',
-      'nexus_khqr_transactions', 'nexus_documents', 'nexus_payway_transactions',
-      'nexus_reminder_settings', 'nexus_broadcasts', 'nexus_reminder_logs',
-      'nexus_installments'
-    ])
-  LOOP
-    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = tbl) THEN
-      EXECUTE format('DROP POLICY IF EXISTS "tenant_isolation" ON %I', tbl);
-      EXECUTE format(
-        'CREATE POLICY "tenant_isolation" ON %I
-         FOR ALL USING (
-           (auth.jwt() ->> ''role'') = ''super-admin''
-           OR tenant_id = (auth.jwt() ->> ''tenant_id'')::int
-         )', tbl
-      );
-    END IF;
-  END LOOP;
-END $$;
-
--- ============================================================
--- DONE
--- ============================================================
+-- DONE (no RLS — tenant isolation handled by backend queries)
