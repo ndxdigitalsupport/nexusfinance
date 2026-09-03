@@ -40,6 +40,7 @@ const ReminderSettingsView = lazy(() => import('./components/ReminderSettingsVie
 const ReportsView = lazy(() => import('./components/ReportsView'));
 const AmortizationScheduleModal = lazy(() => import('./components/AmortizationScheduleModal'));
 const BroadcastView = lazy(() => import('./components/BroadcastView'));
+const TenantManagement = lazy(() => import('./components/TenantManagement'));
 const TgSharePhone = lazy(() => import('./components/TgSharePhone'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./components/TermsOfService'));
@@ -121,7 +122,7 @@ export default function App() {
   const [config, setConfig] = useState<PlatformConfig>(DEFAULT_CONFIG);
   const [stats, setStats] = useState<PlatformStats>(DEFAULT_STATS);
 
-  const [userData, setUserData] = useState<{ id: number; name: string; email: string; role: string } | null>(null);
+  const [userData, setUserData] = useState<{ id: number; name: string; email: string; role: string; tenant_id: number; tenant_name: string; tenant_slug: string; tenant_plan: string } | null>(null);
 
   const portalUser = useMemo(() => userData || (() => {
     if (!token) return null;
@@ -132,6 +133,10 @@ export default function App() {
         name: (payload as any).name || 'User',
         email: (payload as any).email || '',
         role: (payload as any).role || 'customer',
+        tenant_id: (payload as any).tenant_id || 1,
+        tenant_name: 'Default',
+        tenant_slug: 'default',
+        tenant_plan: 'founding',
       };
     } catch { return null; }
   })(), [token, userData]);
@@ -483,7 +488,7 @@ export default function App() {
                         { id: 'repayments', label: t('repayments_checklist'), icon: ClipboardList }
                       ]
                     : currentPortal === 'super-admin'
-                    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]
+                    ? [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'tenants', label: 'Tenants', icon: Landmark }, { id: 'users', label: t('users'), icon: Users }, { id: 'reminders', label: t('reminders'), icon: Bell }, { id: 'broadcast', label: t('broadcast'), icon: Megaphone }, { id: 'audit', label: t('audit'), icon: ClipboardList }, { id: 'settings', label: t('settings'), icon: Settings }]
                     : [{ id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard }, { id: 'loans', label: t('loans'), icon: Landmark }, { id: 'khqr', label: t('khqr_payment'), icon: QrCode }];
                   return items.map((item) => {
                     const Icon = item.icon;
@@ -644,6 +649,8 @@ export default function App() {
                 applications={applications}
                 setActiveMenu={handleSetActiveMenu}
               />
+            ) : activeMenu === 'tenants' ? (
+              <TenantManagement />
             ) : activeMenu === 'users' ? (
               <UsersView />
             ) : activeMenu === 'audit' ? (

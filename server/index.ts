@@ -29,7 +29,8 @@ dotenv.config();
 declare global {
   namespace Express {
     interface Request {
-      user?: { id: number; email: string; name: string; role: string };
+      user?: { id: number; email: string; name: string; role: string; tenant_id: number };
+      tenantId?: number;
     }
   }
 }
@@ -69,12 +70,12 @@ app.use((req, res, next) => {
 });
 
 function logAudit(action: string, details: string, user: any) {
-  db.from('nexus_audit_logs').insert({ action, details, userId: user.id, userEmail: user.email }).then(null, (err) => console.error('logAudit failed:', err));
+  db.from('nexus_audit_logs').insert({ action, details, userId: user.id, userEmail: user.email, tenant_id: user.tenant_id || 1 }).then(null, (err) => console.error('logAudit failed:', err));
 }
 
-let notifyUser = function(userId: number, text: string) {
+let notifyUser = function(userId: number, text: string, tenantId?: number) {
   const time = new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Phnom_Penh', hour: '2-digit', minute: '2-digit', hour12: false });
-  db.from('nexus_notifications').insert({ userId, text, time }).then(null, (err) => console.error('notifyUser failed:', err));
+  db.from('nexus_notifications').insert({ userId, text, time, tenant_id: tenantId || 1 }).then(null, (err) => console.error('notifyUser failed:', err));
   sendTelegramNotificationToUser(userId, text);
 };
 
@@ -93,8 +94,9 @@ async function sendTelegramNotificationToUser(userId: number, text: string) {
 }
 
 async function notifyAdminOfNewLoan(loan: any) {
+  const tenantId = loan.tenant_id || 1;
   try {
-    const { data: config } = await db.from('nexus_config').select('telegram_admin_id').eq('id', 1).single();
+    const { data: config } = await db.from('nexus_config').select('telegram_admin_id').eq('tenant_id', tenantId).maybeSingle();
     if (config && config.telegram_admin_id && bot) {
       const adminChatId = parseInt(config.telegram_admin_id, 10);
       if (adminChatId) {
@@ -124,7 +126,7 @@ async function notifyAdminOfNewLoan(loan: any) {
   }
 
   try {
-    const { data: staff } = await db.from('nexus_users').select('name, email').in('role', ['super-admin', 'loan-officer']);
+    const { data: staff } = await db.from('nexus_users').select('name, email').in('role', ['super-admin', 'loan-officer']).eq('tenant_id', tenantId);
     if (staff && staff.length > 0) {
       const isApproved = loan.status === 'Approved' || loan.status === 'approved';
       const statusText = isApproved ? 'Auto-Approved & Disbursed' : 'Pending Underwriting Review';
@@ -239,14 +241,48 @@ function requireRole(...roles: string[]) {
   };
 }
 
+// Tenant guard — extracts tenant_id from JWT and attaches to req
+// Must run AFTER authMiddleware for protected routes
+function tenantMiddleware(req: any, res: any, next: any) {
+  // Skip for auth endpoints (login, register, OTP, etc.)
+  if (req.path.startsWith('/api/auth/')) return next();
+  // Skip for diag
+  if (req.path === '/api/diag') return next();
+  // Skip for support
+  if (req.path === '/api/support/message') return next();
+  // Skip for SMS send (uses its own config lookup)
+  if (req.path === '/api/sms/send') return next();
+  
+  if (!req.user) return next();
+  
+  const tenantId = req.user.tenant_id;
+  if (!tenantId) {
+    return res.status(403).json({ error: 'No tenant context. Please log in again.' });
+  }
+  
+  req.tenantId = tenantId;
+  next();
+}
+
+// Super-admin tenant guard — allows super-admins to access all tenants
+function requireSuperAdminOrTenant(req: any, res: any, next: any) {
+  if (req.user?.role === 'super-admin') {
+    // Super-admin can override tenant via query param (for tenant switching)
+    req.tenantId = parseInt(req.query.tenantId as string) || req.user.tenant_id;
+    return next();
+  }
+  req.tenantId = req.user?.tenant_id;
+  next();
+}
+
 function normalizeEmail(raw: string): string {
   return String(raw || '').trim().toLowerCase();
 }
 
 // ── AUTH ROUTES ────────────────────────────────────────────
 
-function generateToken(user: { id: number; email: string; name: string; role: string; }) {
-  return jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
+function generateToken(user: { id: number; email: string; name: string; role: string; tenant_id: number; }) {
+  return jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role, tenant_id: user.tenant_id }, JWT_SECRET, { expiresIn: '24h' });
 }
 
 // Login with email + password (bcrypt verified against database)
@@ -290,9 +326,9 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
       });
     }
 
-    const token = generateToken({ id: dbUser.id, email: dbUser.email, name: dbUser.name, role: dbUser.role });
-    logAudit('login', `User ${dbUser.email} logged in`, { id: dbUser.id, email: dbUser.email, name: dbUser.name, role: dbUser.role });
-    res.json({ token, user: { id: dbUser.id, name: dbUser.name, email: dbUser.email, role: dbUser.role } });
+    const token = generateToken({ id: dbUser.id, email: dbUser.email, name: dbUser.name, role: dbUser.role, tenant_id: dbUser.tenant_id });
+    logAudit('login', `User ${dbUser.email} logged in`, { id: dbUser.id, email: dbUser.email, name: dbUser.name, role: dbUser.role, tenant_id: dbUser.tenant_id });
+    res.json({ token, user: { id: dbUser.id, name: dbUser.name, email: dbUser.email, role: dbUser.role, tenant_id: dbUser.tenant_id } });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Internal server error.' });
@@ -307,15 +343,17 @@ app.post('/api/auth/session', authLimiter, async (req, res) => {
 
     let { data: dbUser } = await db.from('nexus_users').select('*').eq('email', email).maybeSingle();
     if (!dbUser) {
+      // Assign to default tenant (id=1)
       const { data: newUser } = await db.from('nexus_users').insert({
         name: name || email.split('@')[0],
         email, role: 'customer', phone: '',
+        tenant_id: 1,
       }).select().single();
       dbUser = newUser;
     }
 
-    const token = generateToken({ id: dbUser!.id, email: dbUser!.email, name: dbUser!.name, role: dbUser!.role });
-    res.json({ token, user: { id: dbUser!.id, name: dbUser!.name, email: dbUser!.email, role: dbUser!.role } });
+    const token = generateToken({ id: dbUser!.id, email: dbUser!.email, name: dbUser!.name, role: dbUser!.role, tenant_id: dbUser!.tenant_id || 1 });
+    res.json({ token, user: { id: dbUser!.id, name: dbUser!.name, email: dbUser!.email, role: dbUser!.role, tenant_id: dbUser!.tenant_id || 1 } });
   } catch (err) {
     console.error('Session exchange error:', err);
     res.status(500).json({ error: 'Internal server error.' });
@@ -395,7 +433,7 @@ app.get('/api/auth/check-link', async (req, res) => {
     const linked = !!user?.telegram_chat_id;
 
     if (linked && userId && user) {
-      const token = generateToken({ id: user.id, email: user.email, name: user.name, role: user.role });
+      const token = generateToken({ id: user.id, email: user.email, name: user.name, role: user.role, tenant_id: user.tenant_id || 1 });
       return res.json({ linked: true, token });
     }
 
@@ -451,7 +489,7 @@ const sendOtpHandler = async (req: express.Request, res: express.Response) => {
     } else {
       // SMS channel (Twilio fallback/sandbox log)
       try {
-        const { data: smsConfig } = await db.from('nexus_config').select('*').eq('id', 1).single();
+        const { data: smsConfig } = await db.from('nexus_config').select('*').eq('tenant_id', 1).maybeSingle();
         await withTimeout(sendSMS(finalPhone, `Your NexusFinance verification code is: ${code}. It expires in 5 minutes.`, smsConfig), 2500);
       } catch (smsErr) {
         console.error('Failed to send SMS OTP code:', smsErr);
@@ -692,9 +730,11 @@ app.patch('/api/auth/password', authMiddleware, async (req, res) => {
 });
 
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
-  const { data: user } = await db.from('nexus_users').select('id, name, email, role, phone').eq('id', req.user.id).maybeSingle();
+  const { data: user } = await db.from('nexus_users').select('id, name, email, role, phone, tenant_id').eq('id', req.user.id).maybeSingle();
   if (!user) return res.status(404).json({ error: 'User not found.' });
-  res.json(user);
+  // Fetch tenant name
+  const { data: tenant } = await db.from('nexus_tenants').select('name, slug, plan').eq('id', user.tenant_id || 1).maybeSingle();
+  res.json({ ...user, tenant_name: tenant?.name || 'Default', tenant_slug: tenant?.slug || 'default', tenant_plan: tenant?.plan || 'founding' });
 });
 
 app.patch('/api/auth/profile', authMiddleware, async (req, res) => {
@@ -923,13 +963,14 @@ app.get('/api/auth/google/callback', async (req, res) => {
         role: 'customer',
       phone: '',
       email_verified: true,
+      tenant_id: 1,
       }).select().single();
       dbUser = newUser;
     }
 
     // Generate JWT
     const token = jwt.sign(
-      { id: dbUser!.id, email: dbUser!.email, name: dbUser!.name, role: dbUser!.role },
+      { id: dbUser!.id, email: dbUser!.email, name: dbUser!.name, role: dbUser!.role, tenant_id: dbUser!.tenant_id || 1 },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
@@ -947,7 +988,7 @@ app.get('/api/auth/google/callback', async (req, res) => {
 app.post('/api/sms/send', authMiddleware, async (req, res) => {
   const { to, text } = req.body;
   if (!to || !text) return res.status(400).json({ error: 'Phone number and text are required.' });
-  const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
+  const { data: config } = await db.from('nexus_config').select('*').eq('tenant_id', req.user?.tenant_id || 1).maybeSingle();
   const result = await sendSMS(to, text, config);
   if (result.success) {
     await logAudit('sms_sent', `SMS sent to ${to}`, req.user);
@@ -980,6 +1021,12 @@ app.get('/api/loans/:id/schedule', authMiddleware, async (req, res) => {
 
 app.get('/api/loans', authMiddleware, async (req, res) => {
   let query = db.from('nexus_loans').select('*');
+  // Scope by tenant (super-admin can override via query param)
+  if (req.user.role === 'super-admin' && req.query.tenantId) {
+    query = query.eq('tenant_id', parseInt(req.query.tenantId as string));
+  } else if (req.user.role !== 'super-admin' || !req.query.tenantId) {
+    query = query.eq('tenant_id', req.user.tenant_id || 1);
+  }
   if (req.user.role === 'customer') {
     query = query.eq('user_id', req.user.id);
   }
@@ -1039,7 +1086,7 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
   const { applicantName, applicantEmail, initials, amount, type, purpose, creditScore, monthlyIncome, durationMonths } = req.body;
   const loanId = '#77' + Math.floor(1000 + Math.random() * 9000);
 
-  const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
+  const { data: config } = await db.from('nexus_config').select('*').eq('tenant_id', req.user.tenant_id || 1).maybeSingle();
   const maxLoanAmount = config ? config.maxLoanAmount : 500000;
 
   const loanAmount = amount || 2500;
@@ -1050,6 +1097,7 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
   const { data: newLoan } = await db.from('nexus_loans').insert({
     id: loanId,
     user_id: req.user.id,
+    tenant_id: req.user.tenant_id || 1,
     applicantName: applicantName || req.user.name,
     applicantEmail: applicantEmail || req.user.email,
     initials: initials || req.user.name.split(' ').map(n => n[0]).join('').toUpperCase(),
@@ -1070,7 +1118,7 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
     ? taskTypes 
     : taskTypes.filter(t => t !== 'KYC Verification Call');
   
-  const { data: existingTasks } = await db.from('nexus_tasks').select('id');
+  const { data: existingTasks } = await db.from('nexus_tasks').select('id').eq('tenant_id', req.user.tenant_id || 1);
   await db.from('nexus_tasks').insert({
     id: 't' + Date.now().toString().slice(-6),
     title: allowedTasks[(existingTasks?.length || 0) % allowedTasks.length],
@@ -1078,6 +1126,7 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
     regarding: `${newLoan.type} Loan ${newLoan.id}`,
     time: new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Phnom_Penh', hour: '2-digit', minute: '2-digit', hour12: false }),
     completed: false,
+    tenant_id: req.user.tenant_id || 1,
   });
 
   dispatchWebhook('loan.created', { loanId: newLoan.id, applicant: newLoan.applicantName, amount: newLoan.amount, type: newLoan.type });
@@ -1125,7 +1174,8 @@ app.patch('/api/loans/:id/approve', authMiddleware, requireRole('loan-officer', 
         interest_amount: interestPerMonth,
         total_payment: currentPayment,
         remaining_balance: balance,
-        status: 'unpaid'
+        status: 'unpaid',
+        tenant_id: loan.tenant_id || req.user.tenant_id || 1,
       });
     }
     
@@ -1146,6 +1196,7 @@ app.patch('/api/loans/:id/approve', authMiddleware, requireRole('loan-officer', 
       amount: loan.amount,
       type: 'Loan Disbursement',
       userId: applicantUser.id,
+      tenant_id: loan.tenant_id || req.user.tenant_id || 1,
     });
     notifyUser(applicantUser.id, `Your loan ${loan.id} has been approved — $${loan.amount.toLocaleString()} disbursed.`);
     const tmpl = emailTemplates.loanApproved(applicantUser.name, loan.id, loan.amount);
@@ -1181,7 +1232,7 @@ app.patch('/api/loans/:id/hold', authMiddleware, requireRole('loan-officer', 'ad
 // ── TRANSACTION ROUTES ──────────────────────────────────────
 
 app.get('/api/transactions', authMiddleware, async (req, res) => {
-  const { data: txs } = await db.from('nexus_transactions').select('*').eq('userId', req.user.id).order('id', { ascending: false });
+  const { data: txs } = await db.from('nexus_transactions').select('*').eq('userId', req.user.id).eq('tenant_id', req.user.tenant_id || 1).order('id', { ascending: false });
   res.json(txs || []);
 });
 
@@ -1194,6 +1245,7 @@ app.post('/api/transactions/repay', authMiddleware, async (req, res) => {
     amount: -Math.abs(amount),
     type: 'Repayment',
     userId: req.user.id,
+    tenant_id: req.user.tenant_id || 1,
   };
   const { data: tx } = await db.from('nexus_transactions').insert(newTx).select().single();
   res.status(201).json(tx);
@@ -1208,6 +1260,7 @@ app.post('/api/transactions/disburse', authMiddleware, async (req, res) => {
     amount: Math.abs(amount),
     type: 'Loan Disbursement',
     userId: req.user.id,
+    tenant_id: req.user.tenant_id || 1,
   };
   const { data: tx } = await db.from('nexus_transactions').insert(newTx).select().single();
   res.status(201).json(tx);
@@ -1216,7 +1269,8 @@ app.post('/api/transactions/disburse', authMiddleware, async (req, res) => {
 // ── TASK ROUTES ─────────────────────────────────────────────
 
 app.get('/api/tasks', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
-  const { data: tasks } = await db.from('nexus_tasks').select('*');
+  const tenantId = req.user.tenant_id || 1;
+  const { data: tasks } = await db.from('nexus_tasks').select('*').eq('tenant_id', tenantId);
   res.json(tasks || []);
 });
 
@@ -1243,7 +1297,8 @@ app.patch('/api/tasks/:id/complete', authMiddleware, async (req, res) => {
 
 app.get('/api/users', authMiddleware, async (req, res) => {
   if (req.user.role !== 'super-admin' && req.user.role !== 'admin') return res.status(403).json({ error: 'Admins only.' });
-  const { data: users } = await db.from('nexus_users').select('id, name, email, role, phone, telegram_chat_id');
+  const tenantId = req.user.tenant_id || 1;
+  const { data: users } = await db.from('nexus_users').select('id, name, email, role, phone, telegram_chat_id').eq('tenant_id', tenantId);
   res.json(users || []);
 });
 
@@ -1277,22 +1332,24 @@ app.patch('/api/users/:id/reset-password', authMiddleware, async (req, res) => {
 // ── CONFIG ROUTES (Super Admin) ─────────────────────────────
 
 app.get('/api/config', authMiddleware, async (req, res) => {
-  const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
+  const tenantId = req.user?.tenant_id || 1;
+  const { data: config } = await db.from('nexus_config').select('*').eq('tenant_id', tenantId).maybeSingle();
   res.json(config || {});
 });
 
 const handleUpdateConfig = async (req: any, res: any) => {
   if (req.user.role !== 'super-admin' && req.user.role !== 'admin') return res.status(403).json({ error: 'Admins only.' });
+  const tenantId = req.user.tenant_id || 1;
   
-  const { data: currentConfig } = await db.from('nexus_config').select('*').eq('id', 1).single();
-  const updatePayload: any = {};
+  const { data: currentConfig } = await db.from('nexus_config').select('*').eq('tenant_id', tenantId).maybeSingle();
+  const updatePayload: any = { tenant_id: tenantId };
   for (const key of Object.keys(req.body)) {
     if (currentConfig && key in currentConfig) {
       updatePayload[key] = req.body[key];
     }
   }
 
-  const { error } = await db.from('nexus_config').update(updatePayload).eq('id', 1);
+  const { error } = await db.from('nexus_config').update(updatePayload).eq('tenant_id', tenantId);
   if (error) {
     console.error('Error updating config:', error);
     return res.status(500).json({ error: error.message });
@@ -1300,6 +1357,7 @@ const handleUpdateConfig = async (req: any, res: any) => {
 
   const changeDetails: any = {};
   for (const key of Object.keys(updatePayload)) {
+    if (key === 'tenant_id') continue;
     changeDetails[key] = {
       from: currentConfig ? currentConfig[key] : null,
       to: updatePayload[key]
@@ -1307,7 +1365,7 @@ const handleUpdateConfig = async (req: any, res: any) => {
   }
 
   logAudit('config-updated', `Platform config updated: ${JSON.stringify(changeDetails)}`, req.user);
-  const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
+  const { data: config } = await db.from('nexus_config').select('*').eq('tenant_id', tenantId).maybeSingle();
   if (config && config.reminder_time) {
     scheduleReminderCron(config.reminder_time);
   }
@@ -1320,9 +1378,11 @@ app.post('/api/config', authMiddleware, handleUpdateConfig);
 // ── REMINDER SETTINGS & BROADCASTS ROUTES (Super Admin & Loan Officers) ──
 
 app.get('/api/reminder-settings', authMiddleware, async (req, res) => {
+  const tenantId = req.user?.tenant_id || 1;
   const { data: settings } = await db
     .from('nexus_reminder_settings')
     .select('*')
+    .eq('tenant_id', tenantId)
     .order('days_before', { ascending: false });
   res.json(settings || []);
 });
@@ -1339,7 +1399,8 @@ app.post('/api/reminder-settings', authMiddleware, requireRole('super-admin', 'a
       days_before: parseInt(days_before) || 0,
       message_template,
       channel: channel || 'both',
-      is_active: is_active !== false
+      is_active: is_active !== false,
+      tenant_id: req.user.tenant_id || 1,
     })
     .select('*')
     .single();
@@ -1406,9 +1467,11 @@ app.get('/api/test-reminders', authMiddleware, requireRole('super-admin', 'admin
 });
 
 app.get('/api/reminder-logs', authMiddleware, async (req, res) => {
+  const tenantId = req.user?.tenant_id || 1;
   const { data: logs } = await db
     .from('nexus_reminder_logs')
     .select('*')
+    .eq('tenant_id', tenantId)
     .order('created_at', { ascending: false })
     .limit(100);
   res.json(logs || []);
@@ -1418,13 +1481,15 @@ app.get('/api/reminder-logs', authMiddleware, async (req, res) => {
 
 app.get('/api/loans/overdue', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
   try {
-    const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).maybeSingle();
+    const tenantId = req.user.tenant_id || 1;
+    const { data: config } = await db.from('nexus_config').select('*').eq('tenant_id', tenantId).maybeSingle();
     const gracePeriod = config?.grace_period_days !== undefined ? Number(config.grace_period_days) : 3;
     const latePenaltyDaily = config?.late_penalty_daily !== undefined ? Number(config.late_penalty_daily) : 0;
 
     const { data: loans, error } = await db
       .from('nexus_loans')
       .select('*')
+      .eq('tenant_id', tenantId)
       .in('status', ['approved', 'Approved', 'active', 'Active', 'disbursed', 'Disbursed'])
       .order('date', { ascending: false });
 
@@ -1533,7 +1598,7 @@ app.post('/api/loans/:id/nudge', authMiddleware, requireRole('loan-officer', 'ad
     const { data: user } = await db.from('nexus_users').select('id, name, email, phone, telegram_chat_id').eq('email', loan.applicantEmail).single();
     if (!user) return res.status(404).json({ error: 'Borrower user not found.' });
 
-    const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).maybeSingle();
+    const { data: config } = await db.from('nexus_config').select('*').eq('tenant_id', req.user.tenant_id || 1).maybeSingle();
     const gracePeriod = config?.grace_period_days !== undefined ? Number(config.grace_period_days) : 3;
     const latePenaltyDaily = config?.late_penalty_daily !== undefined ? Number(config.late_penalty_daily) : 0;
 
@@ -1582,7 +1647,7 @@ app.post('/api/loans/:id/nudge', authMiddleware, requireRole('loan-officer', 'ad
     }
 
     if (channel === 'in_app' || channel === 'both') {
-      notifyUser(user.id, `URGENT: Your loan #${cleanId} is ${worstDaysOverdue} days overdue ($${totalDue.toFixed(0)} due).`);
+      notifyUser(user.id, `URGENT: Your loan #${cleanId} is ${worstDaysOverdue} days overdue ($${totalDue.toFixed(0)} due).`, req.user.tenant_id || 1);
       sentInApp = true;
     }
 
@@ -1594,9 +1659,11 @@ app.post('/api/loans/:id/nudge', authMiddleware, requireRole('loan-officer', 'ad
 });
 
 app.get('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
+  const tenantId = req.user.tenant_id || 1;
   const { data: broadcasts } = await db
     .from('nexus_broadcasts')
     .select('*, sender:sent_by(name, email)')
+    .eq('tenant_id', tenantId)
     .order('id', { ascending: false });
   res.json(broadcasts || []);
 });
@@ -1608,8 +1675,9 @@ app.post('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'admin',
   const activeChannel = channel || 'both';
   const activeTarget = target || 'all';
 
-  // 1. Fetch matching users
-  let query = db.from('nexus_users').select('id, name, email, role, telegram_chat_id');
+  // 1. Fetch matching users (scoped to tenant)
+  const tenantId = req.user.tenant_id || 1;
+  let query = db.from('nexus_users').select('id, name, email, role, telegram_chat_id').eq('tenant_id', tenantId);
   if (activeTarget === 'linked') {
     query = query.not('telegram_chat_id', 'is', null);
   } else if (activeTarget.startsWith('role:')) {
@@ -1668,7 +1736,8 @@ app.post('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'admin',
       target: activeTarget,
       sent_by: req.user.id,
       sent_count: sentCount,
-      failed_count: failedCount
+      failed_count: failedCount,
+      tenant_id: tenantId,
     })
     .select('*, sender:sent_by(name, email)')
     .single();
@@ -1681,20 +1750,23 @@ app.post('/api/broadcasts', authMiddleware, requireRole('loan-officer', 'admin',
 // ── STATS ROUTES ────────────────────────────────────────────
 
 app.get('/api/stats', authMiddleware, requireRole('loan-officer', 'admin', 'super-admin'), async (req, res) => {
-  // Fetch transactions and join with users to get name/email
+  const tenantId = req.user.tenant_id || 1;
+  // Fetch transactions (scoped to tenant)
   const { data: txs } = await db
     .from('nexus_transactions')
     .select('id, title, date, amount, type, userId, nexus_users(name, email, phone)')
+    .eq('tenant_id', tenantId)
     .order('id', { ascending: false });
 
-  // Fetch all customers
+  // Fetch all customers (scoped to tenant)
   const { data: customers } = await db
     .from('nexus_users')
     .select('id, name, email, phone')
     .eq('role', 'customer')
+    .eq('tenant_id', tenantId)
     .order('name', { ascending: true });
 
-  const { data: config } = await db.from('nexus_config').select('baseInterestRate').eq('id', 1).single();
+  const { data: config } = await db.from('nexus_config').select('baseInterestRate').eq('tenant_id', tenantId).maybeSingle();
   const rate = config ? Number(config.baseInterestRate) : 5.4;
   const rateMultiplier = rate / 100;
 
@@ -1899,7 +1971,8 @@ notifyUser = (userId: number, text: string) => {
 setNotifyUserCallback(notifyUser);
 
 app.get('/api/diag', async (req, res) => {
-  const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).single();
+  const tenantId = req.user?.tenant_id || 1;
+  const { data: config } = await db.from('nexus_config').select('*').eq('tenant_id', tenantId).maybeSingle();
   res.json({
     supabaseUrl: process.env.SUPABASE_URL,
     localTime: new Date().toISOString(),
@@ -1911,7 +1984,8 @@ app.get('/api/diag', async (req, res) => {
 
 app.get('/api/audit/logs', authMiddleware, async (req, res) => {
   if (req.user.role !== 'super-admin' && req.user.role !== 'admin') return res.json([]);
-  const { data: logs } = await db.from('nexus_audit_logs').select('*').order('id', { ascending: false }).limit(100);
+  const tenantId = req.user.tenant_id || 1;
+  const { data: logs } = await db.from('nexus_audit_logs').select('*').eq('tenant_id', tenantId).order('id', { ascending: false }).limit(100);
   res.json(logs || []);
 });
 
@@ -1923,7 +1997,8 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
   try {
     const { name, password } = req.body;
     const phone = req.body.phone || '';
-    const { data: config } = await db.from('nexus_config').select('emailVerificationRequired').eq('id', 1).single();
+    const tenantId = req.body.tenant_id || 1; // Default to tenant 1
+    const { data: config } = await db.from('nexus_config').select('emailVerificationRequired').eq('tenant_id', tenantId).maybeSingle();
     const isEmailVerificationRequired = config ? config.emailVerificationRequired !== false : true;
 
     let email = req.body.email ? normalizeEmail(req.body.email) : '';
@@ -1993,6 +2068,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     const { data: newUser } = await db.from('nexus_users').insert({
       name, email, password: hashedPassword, role: 'customer', phone: finalPhone || null,
       email_verified: false,
+      tenant_id: tenantId,
     }).select('id, name, email, role').single();
     if (!newUser) return res.status(500).json({ error: 'Failed to create account.' });
 
@@ -2206,6 +2282,7 @@ async function recordPaidPayment(tranId: string, apv?: string) {
         amount: -Math.abs(amount),
         type: 'Repayment',
         userId: user.id,
+        tenant_id: stored.tenant_id || 1,
       });
       notifyUser(user.id, `Payment of $${amount.toLocaleString()} received. Thank you!`);
       if (user.telegram_chat_id) {
@@ -2265,6 +2342,7 @@ app.post('/api/payway/generate-qr', authMiddleware, async (req, res) => {
         status: 'PENDING',
         loan_id: loanId ? String(loanId) : null,
         user_id: userId,
+        tenant_id: req.user?.tenant_id || 1,
       }).select().single();
     } catch (err) {
       console.error('PayWay insert failed:', err);
@@ -2359,6 +2437,7 @@ app.post('/api/payway/purchase', async (req, res) => {
         status: 'PENDING',
         loan_id: loanId ? String(loanId) : null,
         user_id: userId,
+        tenant_id: req.user?.tenant_id || 1,
       }).select().single();
     } catch (err) {
       console.error('PayWay purchase insert failed:', err);
@@ -2545,7 +2624,7 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'ad
     (async () => {
       try {
         if (user.phone) {
-          const { data: smsConfig } = await db.from('nexus_config').select('*').eq('id', 1).single();
+          const { data: smsConfig } = await db.from('nexus_config').select('*').eq('tenant_id', req.user.tenant_id || 1).maybeSingle();
           await withTimeout(sendSMS(user.phone, plainText, smsConfig));
           sentSMS = true;
         }
@@ -2562,7 +2641,8 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'ad
           userId: user.id,
           text,
           time,
-          unread: true
+          unread: true,
+          tenant_id: req.user.tenant_id || 1,
         });
       } catch (e) {
         console.error('Failed to create in-app notice:', e);
@@ -2573,6 +2653,122 @@ app.post('/api/loans/:id/chase', authMiddleware, requireRole('loan-officer', 'ad
   logAudit('payment_chase', `Sent payment chase reminder (Telegram: ${sentTelegram}, Email: ${sentEmail}, SMS: ${sentSMS}) to customer ${loan.applicantEmail}`, req.user);
 
   res.json({ success: true, message: 'Chase reminder notifications dispatched successfully.' });
+});
+
+// ── TENANT MANAGEMENT (Super Admin only) ──────────────────
+
+// List all tenants (super-admin only)
+app.get('/api/tenants', authMiddleware, requireRole('super-admin'), async (req, res) => {
+  const { data: tenants, error } = await db.from('nexus_tenants').select('*').order('id', { ascending: true });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(tenants || []);
+});
+
+// Create a new tenant (super-admin only)
+app.post('/api/tenants', authMiddleware, requireRole('super-admin'), async (req, res) => {
+  const { name, slug, plan, max_users, max_loans } = req.body;
+  if (!name || !slug) return res.status(400).json({ error: 'name and slug are required.' });
+  
+  // Check slug uniqueness
+  const { data: existing } = await db.from('nexus_tenants').select('id').eq('slug', slug).maybeSingle();
+  if (existing) return res.status(400).json({ error: 'Slug already taken.' });
+
+  const { data: tenant, error } = await db.from('nexus_tenants').insert({
+    name,
+    slug,
+    plan: plan || 'basic',
+    max_users: max_users || 50,
+    max_loans: max_loans || 500,
+  }).select().single();
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  // Create default config for the tenant
+  await db.from('nexus_config').insert({
+    tenant_id: tenant.id,
+    baseInterestRate: 5.4,
+    maxLoanAmount: 500000,
+    kycRequired: true,
+    autoApproveLimit: 5000,
+  });
+
+  // Create default reminder settings for the tenant
+  const defaultReminders = [
+    { name: '7 Days Before', days_before: 7, message_template: 'Reminder: Your loan installment is due in 7 days.', channel: 'both', is_active: true, tenant_id: tenant.id },
+    { name: '3 Days Before', days_before: 3, message_template: 'Reminder: Your loan installment is due in 3 days.', channel: 'both', is_active: true, tenant_id: tenant.id },
+    { name: '1 Day Before', days_before: 1, message_template: 'Reminder: Your loan installment is due tomorrow.', channel: 'both', is_active: true, tenant_id: tenant.id },
+    { name: 'Due Today', days_before: 0, message_template: 'Your loan installment is due today.', channel: 'both', is_active: true, tenant_id: tenant.id },
+  ];
+  await db.from('nexus_reminder_settings').insert(defaultReminders);
+
+  logAudit('tenant-created', `Tenant "${name}" (${slug}) created`, req.user);
+  res.status(201).json(tenant);
+});
+
+// Get tenant details (super-admin or tenant admin)
+app.get('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'), async (req, res) => {
+  const tenantId = parseInt(req.params.id);
+  // Non-super-admins can only see their own tenant
+  if (req.user.role !== 'super-admin' && req.user.tenant_id !== tenantId) {
+    return res.status(403).json({ error: 'Access denied.' });
+  }
+  const { data: tenant, error } = await db.from('nexus_tenants').select('*').eq('id', tenantId).maybeSingle();
+  if (error || !tenant) return res.status(404).json({ error: 'Tenant not found.' });
+  res.json(tenant);
+});
+
+// Update tenant (super-admin only)
+app.patch('/api/tenants/:id', authMiddleware, requireRole('super-admin'), async (req, res) => {
+  const tenantId = parseInt(req.params.id);
+  const { name, slug, plan, max_users, max_loans, is_active, logo_url } = req.body;
+  
+  const updateData: any = {};
+  if (name !== undefined) updateData.name = name;
+  if (slug !== undefined) updateData.slug = slug;
+  if (plan !== undefined) updateData.plan = plan;
+  if (max_users !== undefined) updateData.max_users = max_users;
+  if (max_loans !== undefined) updateData.max_loans = max_loans;
+  if (is_active !== undefined) updateData.is_active = is_active;
+  if (logo_url !== undefined) updateData.logo_url = logo_url;
+  updateData.updated_at = new Date().toISOString();
+
+  const { data: tenant, error } = await db.from('nexus_tenants').update(updateData).eq('id', tenantId).select().single();
+  if (error) return res.status(500).json({ error: error.message });
+  
+  logAudit('tenant-updated', `Tenant ${tenantId} updated: ${JSON.stringify(updateData)}`, req.user);
+  res.json(tenant);
+});
+
+// Delete tenant (super-admin only, soft-deactivate)
+app.delete('/api/tenants/:id', authMiddleware, requireRole('super-admin'), async (req, res) => {
+  const tenantId = parseInt(req.params.id);
+  if (tenantId === 1) return res.status(400).json({ error: 'Cannot delete the default tenant.' });
+  
+  const { error } = await db.from('nexus_tenants').update({ is_active: false }).eq('id', tenantId);
+  if (error) return res.status(500).json({ error: error.message });
+  
+  logAudit('tenant-deactivated', `Tenant ${tenantId} deactivated`, req.user);
+  res.json({ ok: true, message: 'Tenant deactivated.' });
+});
+
+// Get tenant stats (super-admin only)
+app.get('/api/tenants/:id/stats', authMiddleware, requireRole('super-admin'), async (req, res) => {
+  const tenantId = parseInt(req.params.id);
+  
+  const [usersResult, loansResult, txResult] = await Promise.all([
+    db.from('nexus_users').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+    db.from('nexus_loans').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+    db.from('nexus_transactions').select('amount').eq('tenant_id', tenantId),
+  ]);
+
+  const totalVolume = (txResult.data || []).reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount) || 0), 0);
+
+  res.json({
+    tenant_id: tenantId,
+    total_users: usersResult.count || 0,
+    total_loans: loansResult.count || 0,
+    total_volume: totalVolume,
+  });
 });
 
 // ── 404 catch-all ────────────────────────────────────────────
@@ -2593,7 +2789,7 @@ async function seedDemoUsers() {
     const { data: existing } = await db.from('nexus_users').select('id').eq('email', u.email).maybeSingle();
     if (!existing) {
       const passwordHash = await bcrypt.hash('password123', 10);
-      await db.from('nexus_users').insert({ ...u, password: passwordHash, phone: '', email_verified: true });
+      await db.from('nexus_users').insert({ ...u, password: passwordHash, phone: '', email_verified: true, tenant_id: 1 });
       console.log(`  👤 Seeded demo account: ${u.email}`);
     }
   }
@@ -2615,7 +2811,7 @@ app.listen(PORT, async () => {
   // ── Dynamic daily payment reminders cron startup ──
   let reminderTime = '07:00';
   try {
-    const { data: config } = await db.from('nexus_config').select('reminder_time').eq('id', 1).single();
+    const { data: config } = await db.from('nexus_config').select('reminder_time').eq('tenant_id', 1).maybeSingle();
     if (config && config.reminder_time) {
       reminderTime = config.reminder_time;
     }

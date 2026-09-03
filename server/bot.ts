@@ -112,14 +112,16 @@ function renderTemplate(template: string, vars: Record<string, string>): string 
 
 // ── PAYMENT REMINDER LOGIC (exported for cron) ─────────────────
 
-async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatId?: number) {
+async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatId?: number, tenantId?: number) {
   const activeBot = botInstance !== undefined ? botInstance : bot;
+  const tid = tenantId || 1;
 
-  // 1. Fetch active settings rules
+  // 1. Fetch active settings rules (scoped to tenant)
   const { data: settings, error: settingsError } = await db
     .from('nexus_reminder_settings')
     .select('*')
-    .eq('is_active', true);
+    .eq('is_active', true)
+    .eq('tenant_id', tid);
 
   if (settingsError) {
     console.error('Failed to load reminder settings:', settingsError);
@@ -129,10 +131,11 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
     return;
   }
 
-  // 2. Fetch active/disbursed loans
+  // 2. Fetch active/disbursed loans (scoped to tenant)
   const { data: loans, error: loansError } = await db
     .from('nexus_loans')
     .select('id, applicantEmail, applicantName, amount, date, durationMonths')
+    .eq('tenant_id', tid)
     .in('status', ['approved', 'Approved', 'active', 'Active', 'disbursed', 'Disbursed']);
 
   if (loansError) {
@@ -150,8 +153,8 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
     return;
   }
 
-  // Fetch config for grace period and late penalty calculations
-  const { data: config } = await db.from('nexus_config').select('*').eq('id', 1).maybeSingle();
+  // Fetch config for grace period and late penalty calculations (scoped to tenant)
+  const { data: config } = await db.from('nexus_config').select('*').eq('tenant_id', tid).maybeSingle();
   const gracePeriod = config?.grace_period_days !== undefined ? Number(config.grace_period_days) : 3;
   const latePenaltyDaily = config?.late_penalty_daily !== undefined ? Number(config.late_penalty_daily) : 0;
 
@@ -281,7 +284,8 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
             message: renderedMessage,
             channel: channel,
             status: status,
-            error_message: errorMessage
+            error_message: errorMessage,
+            tenant_id: tid,
           });
         } catch (logErr) {
           console.error('Failed to write nexus_reminder_logs:', logErr);
@@ -294,7 +298,7 @@ async function sendPaymentReminders(botInstance: TelegramBot | null, reportChatI
   let targetChatId = reportChatId;
 
   try {
-    const { data: config } = await db.from('nexus_config').select('telegram_admin_id, enable_admin_reports').eq('id', 1).single();
+    const { data: config } = await db.from('nexus_config').select('telegram_admin_id, enable_admin_reports').eq('tenant_id', tid).maybeSingle();
     if (config) {
       enableReports = config.enable_admin_reports !== false;
       if (config.telegram_admin_id) {

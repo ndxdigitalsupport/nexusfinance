@@ -4,6 +4,27 @@
 
 export type PortalType = 'portal-selection' | 'customer' | 'loan-officer' | 'super-admin';
 
+export interface Tenant {
+  id: number;
+  name: string;
+  slug: string;
+  logo_url: string;
+  plan: string;
+  max_users: number;
+  max_loans: number;
+  config: Record<string, any>;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TenantStats {
+  tenant_id: number;
+  total_users: number;
+  total_loans: number;
+  total_volume: number;
+}
+
 export interface LoanApplication {
   id: string; // e.g., "#77281"
   applicantName: string;
