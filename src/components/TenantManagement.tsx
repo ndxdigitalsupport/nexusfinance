@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Building2, Users, Landmark, Settings, Trash2, Edit2, X, Check, Download, QrCode, Upload } from 'lucide-react';
+import { Plus, Building2, Users, Landmark, Settings, Trash2, Edit2, X, Check, Download, QrCode, Upload, CreditCard } from 'lucide-react';
 import { apiFetch } from '../api';
 import { showToast } from './Toast';
 import { downloadCSV } from '../utils';
@@ -23,6 +23,7 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
   const [formPlan, setFormPlan] = useState('basic');
   const [formMaxUsers, setFormMaxUsers] = useState(50);
   const [formMaxLoans, setFormMaxLoans] = useState(500);
+  const [formPaymentProvider, setFormPaymentProvider] = useState<'bakong' | 'aba_payway'>('bakong');
   const [formBakongAccountId, setFormBakongAccountId] = useState('');
   const [formMerchantName, setFormMerchantName] = useState('');
   const [formPaywayMerchantId, setFormPaywayMerchantId] = useState('');
@@ -64,10 +65,11 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
           plan: formPlan,
           max_users: formMaxUsers,
           max_loans: formMaxLoans,
-          bakong_account_id: formBakongAccountId.trim() || undefined,
+          payment_provider: formPaymentProvider,
+          bakong_account_id: formPaymentProvider === 'bakong' ? formBakongAccountId.trim() || undefined : undefined,
           merchant_name: formMerchantName.trim() || undefined,
-          payway_merchant_id: formPaywayMerchantId.trim() || undefined,
-          payway_api_key: formPaywayApiKey.trim() || undefined,
+          payway_merchant_id: formPaymentProvider === 'aba_payway' ? formPaywayMerchantId.trim() || undefined : undefined,
+          payway_api_key: formPaymentProvider === 'aba_payway' ? formPaywayApiKey.trim() || undefined : undefined,
         }),
       });
       showToast('Tenant created successfully', 'success');
@@ -90,10 +92,11 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
           plan: formPlan,
           max_users: formMaxUsers,
           max_loans: formMaxLoans,
-          bakong_account_id: formBakongAccountId.trim() || '',
+          payment_provider: formPaymentProvider,
+          bakong_account_id: formPaymentProvider === 'bakong' ? formBakongAccountId.trim() : '',
           merchant_name: formMerchantName.trim() || '',
-          payway_merchant_id: formPaywayMerchantId.trim() || '',
-          payway_api_key: formPaywayApiKey.trim() || '',
+          payway_merchant_id: formPaymentProvider === 'aba_payway' ? formPaywayMerchantId.trim() : '',
+          payway_api_key: formPaymentProvider === 'aba_payway' ? formPaywayApiKey.trim() : '',
         }),
       });
       showToast('Tenant updated successfully', 'success');
@@ -118,6 +121,7 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
         'Total Users': st?.total_users || 0,
         'Total Loans': st?.total_loans || 0,
         'Total Volume (USD)': st?.total_volume || 0,
+        'Payment Provider': t.payment_provider === 'aba_payway' ? 'ABA PayWay' : 'Bakong KHQR',
         'Bakong Account': t.bakong_account_id || 'Global Platform',
         'Merchant Name': t.merchant_name || t.name,
         'PayWay Merchant ID': t.payway_merchant_id || 'Global Platform',
@@ -146,6 +150,7 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
     setFormPlan('basic');
     setFormMaxUsers(50);
     setFormMaxLoans(500);
+    setFormPaymentProvider('bakong');
     setFormBakongAccountId('');
     setFormMerchantName('');
     setFormPaywayMerchantId('');
@@ -159,6 +164,7 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
     setFormPlan(tenant.plan);
     setFormMaxUsers(tenant.max_users);
     setFormMaxLoans(tenant.max_loans);
+    setFormPaymentProvider(tenant.payment_provider || (tenant.payway_merchant_id ? 'aba_payway' : 'bakong'));
     setFormBakongAccountId(tenant.bakong_account_id || '');
     setFormMerchantName(tenant.merchant_name || '');
     setFormPaywayMerchantId(tenant.payway_merchant_id || '');
@@ -431,61 +437,102 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
               </div>
 
               {/* KHQR & Bakong Routing */}
+              {/* Payment Gateway Setup */}
               <div className="pt-2 border-t border-[var(--border-primary)] space-y-3">
-                <p className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-[var(--accent)]">
-                  <QrCode className="w-3.5 h-3.5" /> KHQR Bakong Merchant Routing
-                </p>
-                <div>
-                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Bakong Account ID</label>
-                  <input
-                    type="text"
-                    value={formBakongAccountId}
-                    onChange={e => setFormBakongAccountId(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2"
-                    style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
-                    placeholder="e.g. yourbank@bakong"
-                  />
+                <label className="block text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>Payment Gateway Provider</label>
+                <div className="grid grid-cols-2 gap-2 p-1 rounded-xl border" style={{ backgroundColor: 'var(--surface-secondary)', borderColor: 'var(--border-primary)' }}>
+                  <button
+                    type="button"
+                    onClick={() => setFormPaymentProvider('bakong')}
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      formPaymentProvider === 'bakong'
+                        ? 'bg-[var(--surface-primary)] text-[var(--accent)] shadow-xs'
+                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    }`}
+                  >
+                    <QrCode className="w-3.5 h-3.5" />
+                    <span>Bakong KHQR</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormPaymentProvider('aba_payway')}
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      formPaymentProvider === 'aba_payway'
+                        ? 'bg-[var(--surface-primary)] text-[var(--accent)] shadow-xs'
+                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    }`}
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>ABA PayWay</span>
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Merchant Name</label>
-                  <input
-                    type="text"
-                    value={formMerchantName}
-                    onChange={e => setFormMerchantName(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2"
-                    style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
-                    placeholder="e.g. Kako Finance Co., Ltd"
-                  />
-                </div>
-              </div>
 
-              {/* ABA PayWay Gateway Settings */}
-              <div className="pt-2 border-t border-[var(--border-primary)] space-y-3">
-                <p className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-[var(--accent)]">
-                  💳 ABA PayWay Gateway (Optional Custom Merchant)
-                </p>
-                <div>
-                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>ABA PayWay Merchant ID</label>
-                  <input
-                    type="text"
-                    value={formPaywayMerchantId}
-                    onChange={e => setFormPaywayMerchantId(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 font-mono"
-                    style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
-                    placeholder="e.g. nexus_001 (leave empty for platform default)"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>ABA PayWay API Key</label>
-                  <input
-                    type="password"
-                    value={formPaywayApiKey}
-                    onChange={e => setFormPaywayApiKey(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 font-mono"
-                    style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
-                    placeholder="Enter merchant secret key"
-                  />
-                </div>
+                {/* Bakong KHQR Fields */}
+                {formPaymentProvider === 'bakong' && (
+                  <div className="space-y-3 animate-in fade-in duration-150">
+                    <div>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Bakong Account ID</label>
+                      <input
+                        type="text"
+                        value={formBakongAccountId}
+                        onChange={e => setFormBakongAccountId(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2"
+                        style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
+                        placeholder="Please input Bakong Account ID"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Merchant Name</label>
+                      <input
+                        type="text"
+                        value={formMerchantName}
+                        onChange={e => setFormMerchantName(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2"
+                        style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
+                        placeholder="Please input Merchant Name"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* ABA PayWay Fields */}
+                {formPaymentProvider === 'aba_payway' && (
+                  <div className="space-y-3 animate-in fade-in duration-150">
+                    <div>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>ABA PayWay Merchant ID</label>
+                      <input
+                        type="text"
+                        value={formPaywayMerchantId}
+                        onChange={e => setFormPaywayMerchantId(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 font-mono"
+                        style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
+                        placeholder="Please input ABA PayWay Merchant ID"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>ABA PayWay API Key</label>
+                      <input
+                        type="password"
+                        value={formPaywayApiKey}
+                        onChange={e => setFormPaywayApiKey(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 font-mono"
+                        style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
+                        placeholder="Please input ABA PayWay API Key"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Merchant Name (Optional Override)</label>
+                      <input
+                        type="text"
+                        value={formMerchantName}
+                        onChange={e => setFormMerchantName(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2"
+                        style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
+                        placeholder="Please input Merchant Name"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

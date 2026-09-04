@@ -2684,6 +2684,7 @@ app.get('/api/tenants', authMiddleware, requireRole('super-admin', 'admin'), asy
   if (error) return res.status(500).json({ error: error.message });
   const formatted = (tenants || []).map((t: any) => ({
     ...t,
+    payment_provider: t.config?.payment_provider || (t.config?.payway_merchant_id ? 'aba_payway' : 'bakong'),
     bakong_account_id: t.config?.bakong_account_id || '',
     merchant_name: t.config?.merchant_name || '',
     payway_merchant_id: t.config?.payway_merchant_id || '',
@@ -2694,13 +2695,14 @@ app.get('/api/tenants', authMiddleware, requireRole('super-admin', 'admin'), asy
 
 // Create a new tenant (super-admin only)
 app.post('/api/tenants', authMiddleware, requireRole('super-admin'), async (req, res) => {
-  const { name, slug, plan, max_users, max_loans, logo_url, bakong_account_id, merchant_name, payway_merchant_id, payway_api_key } = req.body;
+  const { name, slug, plan, max_users, max_loans, logo_url, payment_provider, bakong_account_id, merchant_name, payway_merchant_id, payway_api_key } = req.body;
   if (!name || !slug) return res.status(400).json({ error: 'name and slug are required.' });
   
   const { data: existing } = await db.from('nexus_tenants').select('id').eq('slug', slug).maybeSingle();
   if (existing) return res.status(400).json({ error: 'Slug already taken.' });
 
   const configData: any = {};
+  if (payment_provider) configData.payment_provider = payment_provider;
   if (bakong_account_id) configData.bakong_account_id = bakong_account_id;
   if (merchant_name) configData.merchant_name = merchant_name;
   if (payway_merchant_id) configData.payway_merchant_id = payway_merchant_id;
@@ -2739,6 +2741,7 @@ app.post('/api/tenants', authMiddleware, requireRole('super-admin'), async (req,
   logAudit('tenant-created', `Tenant "${name}" (${slug}) created`, req.user);
   res.status(201).json({
     ...tenant,
+    payment_provider: tenant.config?.payment_provider || 'bakong',
     bakong_account_id: tenant.config?.bakong_account_id || '',
     merchant_name: tenant.config?.merchant_name || '',
     payway_merchant_id: tenant.config?.payway_merchant_id || '',
@@ -2756,6 +2759,7 @@ app.get('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'),
   if (error || !tenant) return res.status(404).json({ error: 'Tenant not found.' });
   res.json({
     ...tenant,
+    payment_provider: tenant.config?.payment_provider || (tenant.config?.payway_merchant_id ? 'aba_payway' : 'bakong'),
     bakong_account_id: tenant.config?.bakong_account_id || '',
     merchant_name: tenant.config?.merchant_name || '',
     payway_merchant_id: tenant.config?.payway_merchant_id || '',
@@ -2772,7 +2776,7 @@ app.patch('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'
     return res.status(403).json({ error: 'You can only update your own organization.' });
   }
 
-  const { name, slug, plan, max_users, max_loans, is_active, logo_url, bakong_account_id, merchant_name, payway_merchant_id, payway_api_key } = req.body;
+  const { name, slug, plan, max_users, max_loans, is_active, logo_url, payment_provider, bakong_account_id, merchant_name, payway_merchant_id, payway_api_key } = req.body;
   
   // Fetch existing tenant to preserve existing config
   const { data: existingTenant } = await db.from('nexus_tenants').select('config').eq('id', tenantId).maybeSingle();
@@ -2782,9 +2786,13 @@ app.patch('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'
   if (name !== undefined) updateData.name = name;
   if (logo_url !== undefined) updateData.logo_url = logo_url;
 
-  // bakong_account_id, merchant_name, payway_merchant_id, payway_api_key stored in JSONB config
+  // payment_provider, bakong_account_id, merchant_name, payway_merchant_id, payway_api_key stored in JSONB config
   let configUpdated = false;
   const newConfig = { ...existingConfig };
+  if (payment_provider !== undefined) {
+    newConfig.payment_provider = payment_provider;
+    configUpdated = true;
+  }
   if (bakong_account_id !== undefined) {
     newConfig.bakong_account_id = bakong_account_id;
     configUpdated = true;

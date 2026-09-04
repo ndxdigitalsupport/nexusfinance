@@ -13,6 +13,7 @@ export interface Tenant {
   max_users: number;
   max_loans: number;
   config: Record<string, any>;
+  payment_provider?: 'bakong' | 'aba_payway';
   bakong_account_id?: string;
   merchant_name?: string;
   payway_merchant_id?: string;

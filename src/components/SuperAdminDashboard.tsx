@@ -12,7 +12,8 @@ import {
   Building2,
   QrCode,
   Check,
-  Upload
+  Upload,
+  CreditCard
 } from 'lucide-react';
 import { PlatformConfig, PlatformStats, Tenant } from '../types';
 import Modal from './Modal';
@@ -62,6 +63,7 @@ export default function SuperAdminDashboard({
   const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
   const [tenantName, setTenantName] = useState('');
   const [tenantLogoUrl, setTenantLogoUrl] = useState('');
+  const [tenantPaymentProvider, setTenantPaymentProvider] = useState<'bakong' | 'aba_payway'>('bakong');
   const [tenantBakongId, setTenantBakongId] = useState('');
   const [tenantMerchantName, setTenantMerchantName] = useState('');
   const [tenantPaywayMerchantId, setTenantPaywayMerchantId] = useState('');
@@ -85,6 +87,7 @@ export default function SuperAdminDashboard({
           setCurrentTenant(matched);
           setTenantName(matched.name || '');
           setTenantLogoUrl(matched.logo_url || '');
+          setTenantPaymentProvider(matched.payment_provider || (matched.payway_merchant_id ? 'aba_payway' : 'bakong'));
           setTenantBakongId(matched.bakong_account_id || '');
           setTenantMerchantName(matched.merchant_name || '');
           setTenantPaywayMerchantId(matched.payway_merchant_id || '');
@@ -107,10 +110,11 @@ export default function SuperAdminDashboard({
         body: JSON.stringify({
           name: tenantName,
           logo_url: tenantLogoUrl.trim() || '',
-          bakong_account_id: tenantBakongId.trim() || '',
+          payment_provider: tenantPaymentProvider,
+          bakong_account_id: tenantPaymentProvider === 'bakong' ? tenantBakongId.trim() : '',
           merchant_name: tenantMerchantName.trim() || '',
-          payway_merchant_id: tenantPaywayMerchantId.trim() || '',
-          payway_api_key: tenantPaywayApiKey.trim() || '',
+          payway_merchant_id: tenantPaymentProvider === 'aba_payway' ? tenantPaywayMerchantId.trim() : '',
+          payway_api_key: tenantPaymentProvider === 'aba_payway' ? tenantPaywayApiKey.trim() : '',
         }),
       });
       setCurrentTenant(updated);
@@ -407,7 +411,7 @@ export default function SuperAdminDashboard({
                   <Building2 className="w-5 h-5 text-[var(--accent)]" /> Organization Profile & Branding
                 </h3>
                 <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">
-                  Configure white-label appearance and Bakong merchant credentials for <strong className="text-[var(--text-primary)]">{currentTenant.name}</strong> (#{currentTenant.id}).
+                  Configure white-label appearance and payment merchant credentials for <strong>{currentTenant.name}</strong> (#{currentTenant.id}).
                 </p>
               </div>
               <span className="text-[11px] font-bold uppercase px-2.5 py-1 rounded-full bg-[var(--accent)]/15 text-[var(--accent)]">
@@ -422,7 +426,7 @@ export default function SuperAdminDashboard({
                   type="text"
                   value={tenantName}
                   onChange={(e) => setTenantName(e.target.value)}
-                  placeholder="e.g. Kako Microfinance"
+                  placeholder="Please input Institution Name"
                   className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
                 />
               </div>
@@ -498,60 +502,139 @@ export default function SuperAdminDashboard({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5 flex items-center gap-1.5">
-                  <QrCode className="w-3.5 h-3.5 text-[var(--accent)]" /> Bakong Account ID
-                </label>
-                <input
-                  type="text"
-                  value={tenantBakongId}
-                  onChange={(e) => setTenantBakongId(e.target.value)}
-                  placeholder="e.g. kako_finance@devb"
-                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
-                />
-                <p className="text-[11px] text-[var(--text-tertiary)] mt-1">KHQR payments will be credited directly to this Bakong merchant ID.</p>
-              </div>
-
-              <div>
-                <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1.5">Merchant Name (displayed on KHQR)</label>
-                <input
-                  type="text"
-                  value={tenantMerchantName}
-                  onChange={(e) => setTenantMerchantName(e.target.value)}
-                  placeholder="e.g. Kako Finance Co., Ltd"
-                  className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
-                />
-                <p className="text-[11px] text-[var(--text-tertiary)] mt-1">Shown in the Bakong / mobile banking app when customers scan the QR code.</p>
-              </div>
-
+              {/* Payment Gateway Provider Selector */}
               <div className="pt-2 border-t border-[var(--border-primary)] space-y-4">
-                <h4 className="text-[13px] font-bold text-[var(--text-primary)] flex items-center gap-1.5">
-                  💳 ABA PayWay Gateway (Optional Custom Merchant)
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[12.5px] font-semibold text-[var(--text-secondary)] mb-1">ABA PayWay Merchant ID</label>
-                    <input
-                      type="text"
-                      value={tenantPaywayMerchantId}
-                      onChange={(e) => setTenantPaywayMerchantId(e.target.value)}
-                      placeholder="e.g. nexus_001"
-                      className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-2.5 rounded-lg text-[13px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
-                    />
-                    <p className="text-[10.5px] text-[var(--text-tertiary)] mt-1">Leave blank to use platform default.</p>
-                  </div>
-                  <div>
-                    <label className="block text-[12.5px] font-semibold text-[var(--text-secondary)] mb-1">ABA PayWay API Key</label>
-                    <input
-                      type="password"
-                      value={tenantPaywayApiKey}
-                      onChange={(e) => setTenantPaywayApiKey(e.target.value)}
-                      placeholder="Enter merchant secret key"
-                      className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-2.5 rounded-lg text-[13px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
-                    />
-                    <p className="text-[10.5px] text-[var(--text-tertiary)] mt-1">Secret API key used to generate cryptographic hashes.</p>
+                <div>
+                  <label className="block text-[13px] font-bold text-[var(--text-primary)] mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">💳 Payment Gateway & Merchant Setup</span>
+                    <span className="text-[11px] font-medium text-[var(--text-tertiary)]">Choose which provider to use</span>
+                  </label>
+                  <p className="text-[11.5px] text-[var(--text-secondary)] mb-3">
+                    Select whether your organization receives customer payments via National Bakong KHQR or ABA PayWay.
+                  </p>
+
+                  {/* Provider Toggle Pill Switcher */}
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl max-w-md">
+                    <button
+                      type="button"
+                      onClick={() => setTenantPaymentProvider('bakong')}
+                      className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-[13px] font-bold transition-all cursor-pointer ${
+                        tenantPaymentProvider === 'bakong'
+                          ? 'bg-[var(--surface-primary)] text-[var(--accent)] shadow-xs border border-[var(--border-primary)]'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      }`}
+                    >
+                      <QrCode className="w-4 h-4" />
+                      <span>Bakong KHQR</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTenantPaymentProvider('aba_payway')}
+                      className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-[13px] font-bold transition-all cursor-pointer ${
+                        tenantPaymentProvider === 'aba_payway'
+                          ? 'bg-[var(--surface-primary)] text-[var(--accent)] shadow-xs border border-[var(--border-primary)]'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      }`}
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      <span>ABA PayWay</span>
+                    </button>
                   </div>
                 </div>
+
+                {/* Bakong KHQR Configuration */}
+                {tenantPaymentProvider === 'bakong' && (
+                  <div className="p-4 bg-[var(--surface-secondary)]/50 border border-[var(--border-primary)] rounded-xl space-y-4 animate-in fade-in duration-200">
+                    <div className="flex items-center gap-2 text-[13px] font-bold text-[var(--text-primary)]">
+                      <QrCode className="w-4 h-4 text-[var(--accent)]" />
+                      <span>Bakong KHQR Settings</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[12.5px] font-semibold text-[var(--text-primary)] mb-1">
+                          Bakong Account ID
+                        </label>
+                        <input
+                          type="text"
+                          value={tenantBakongId}
+                          onChange={(e) => setTenantBakongId(e.target.value)}
+                          placeholder="Please input Bakong Account ID"
+                          className="w-full bg-[var(--surface-primary)] border border-[var(--border-primary)] p-2.5 rounded-lg text-[13px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
+                        />
+                        <p className="text-[11px] text-[var(--text-tertiary)] mt-1">KHQR payments will be credited directly to this Bakong merchant ID.</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-[12.5px] font-semibold text-[var(--text-primary)] mb-1">
+                          Merchant Name (displayed on KHQR)
+                        </label>
+                        <input
+                          type="text"
+                          value={tenantMerchantName}
+                          onChange={(e) => setTenantMerchantName(e.target.value)}
+                          placeholder="Please input Merchant Name"
+                          className="w-full bg-[var(--surface-primary)] border border-[var(--border-primary)] p-2.5 rounded-lg text-[13px] focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
+                        />
+                        <p className="text-[11px] text-[var(--text-tertiary)] mt-1">Shown in the Bakong / banking app when customers scan the QR code.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ABA PayWay Configuration */}
+                {tenantPaymentProvider === 'aba_payway' && (
+                  <div className="p-4 bg-[var(--surface-secondary)]/50 border border-[var(--border-primary)] rounded-xl space-y-4 animate-in fade-in duration-200">
+                    <div className="flex items-center gap-2 text-[13px] font-bold text-[var(--text-primary)]">
+                      <CreditCard className="w-4 h-4 text-[var(--accent)]" />
+                      <span>ABA PayWay Gateway Settings</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[12.5px] font-semibold text-[var(--text-primary)] mb-1">
+                          ABA PayWay Merchant ID
+                        </label>
+                        <input
+                          type="text"
+                          value={tenantPaywayMerchantId}
+                          onChange={(e) => setTenantPaywayMerchantId(e.target.value)}
+                          placeholder="Please input ABA PayWay Merchant ID"
+                          className="w-full bg-[var(--surface-primary)] border border-[var(--border-primary)] p-2.5 rounded-lg text-[13px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
+                        />
+                        <p className="text-[11px] text-[var(--text-tertiary)] mt-1">Your registered ABA PayWay merchant identifier.</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-[12.5px] font-semibold text-[var(--text-primary)] mb-1">
+                          ABA PayWay API Key
+                        </label>
+                        <input
+                          type="password"
+                          value={tenantPaywayApiKey}
+                          onChange={(e) => setTenantPaywayApiKey(e.target.value)}
+                          placeholder="Please input ABA PayWay API Key"
+                          className="w-full bg-[var(--surface-primary)] border border-[var(--border-primary)] p-2.5 rounded-lg text-[13px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
+                        />
+                        <p className="text-[11px] text-[var(--text-tertiary)] mt-1">Secret API key used to generate cryptographic transaction signatures.</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[var(--text-primary)] mb-1">
+                        Merchant Name (optional display override)
+                      </label>
+                      <input
+                        type="text"
+                        value={tenantMerchantName}
+                        onChange={(e) => setTenantMerchantName(e.target.value)}
+                        placeholder="Please input Merchant Name"
+                        className="w-full max-w-md bg-[var(--surface-primary)] border border-[var(--border-primary)] p-2.5 rounded-lg text-[13px] focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
+                      />
+                      <p className="text-[11px] text-[var(--text-tertiary)] mt-1">Displayed to customers on checkout receipts and invoices.</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
