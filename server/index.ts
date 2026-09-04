@@ -64,7 +64,8 @@ app.use(cors({
   exposedHeaders: ['X-Tenant-Id'],
 }));
 app.use(cookieParser());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Prevent caching on API routes by CDNs and edge networks
 app.use((req, res, next) => {
@@ -2658,24 +2659,37 @@ app.get('/api/tenants', authMiddleware, requireRole('super-admin', 'admin'), asy
   }
   const { data: tenants, error } = await query.order('id', { ascending: true });
   if (error) return res.status(500).json({ error: error.message });
-  res.json(tenants || []);
+  const formatted = (tenants || []).map((t: any) => ({
+    ...t,
+    bakong_account_id: t.config?.bakong_account_id || '',
+    merchant_name: t.config?.merchant_name || '',
+  }));
+  res.json(formatted);
 });
 
 // Create a new tenant (super-admin only)
 app.post('/api/tenants', authMiddleware, requireRole('super-admin'), async (req, res) => {
-  const { name, slug, plan, max_users, max_loans } = req.body;
+  const { name, slug, plan, max_users, max_loans, logo_url, bakong_account_id, merchant_name } = req.body;
   if (!name || !slug) return res.status(400).json({ error: 'name and slug are required.' });
   
   const { data: existing } = await db.from('nexus_tenants').select('id').eq('slug', slug).maybeSingle();
   if (existing) return res.status(400).json({ error: 'Slug already taken.' });
 
-  const { data: tenant, error } = await db.from('nexus_tenants').insert({
+  const configData: any = {};
+  if (bakong_account_id) configData.bakong_account_id = bakong_account_id;
+  if (merchant_name) configData.merchant_name = merchant_name;
+
+  const insertData: any = {
     name,
     slug,
     plan: plan || 'basic',
     max_users: max_users || 50,
     max_loans: max_loans || 500,
-  }).select().single();
+    config: configData,
+  };
+  if (logo_url) insertData.logo_url = logo_url;
+
+  const { data: tenant, error } = await db.from('nexus_tenants').insert(insertData).select().single();
 
   if (error) return res.status(500).json({ error: error.message });
 
@@ -2696,7 +2710,11 @@ app.post('/api/tenants', authMiddleware, requireRole('super-admin'), async (req,
   await db.from('nexus_reminder_settings').insert(defaultReminders);
 
   logAudit('tenant-created', `Tenant "${name}" (${slug}) created`, req.user);
-  res.status(201).json(tenant);
+  res.status(201).json({
+    ...tenant,
+    bakong_account_id: tenant.config?.bakong_account_id || '',
+    merchant_name: tenant.config?.merchant_name || '',
+  });
 });
 
 // Get tenant details (super-admin or tenant admin)
@@ -2707,7 +2725,11 @@ app.get('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'),
   }
   const { data: tenant, error } = await db.from('nexus_tenants').select('*').eq('id', tenantId).maybeSingle();
   if (error || !tenant) return res.status(404).json({ error: 'Tenant not found.' });
-  res.json(tenant);
+  res.json({
+    ...tenant,
+    bakong_account_id: tenant.config?.bakong_account_id || '',
+    merchant_name: tenant.config?.merchant_name || '',
+  });
 });
 
 // Update tenant (super-admin or tenant admin for their own organization)
@@ -2721,11 +2743,28 @@ app.patch('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'
 
   const { name, slug, plan, max_users, max_loans, is_active, logo_url, bakong_account_id, merchant_name } = req.body;
   
+  // Fetch existing tenant to preserve existing config
+  const { data: existingTenant } = await db.from('nexus_tenants').select('config').eq('id', tenantId).maybeSingle();
+  const existingConfig = existingTenant?.config || {};
+
   const updateData: any = {};
   if (name !== undefined) updateData.name = name;
   if (logo_url !== undefined) updateData.logo_url = logo_url;
-  if (bakong_account_id !== undefined) updateData.bakong_account_id = bakong_account_id;
-  if (merchant_name !== undefined) updateData.merchant_name = merchant_name;
+
+  // bakong_account_id and merchant_name are stored in JSONB config
+  let configUpdated = false;
+  const newConfig = { ...existingConfig };
+  if (bakong_account_id !== undefined) {
+    newConfig.bakong_account_id = bakong_account_id;
+    configUpdated = true;
+  }
+  if (merchant_name !== undefined) {
+    newConfig.merchant_name = merchant_name;
+    configUpdated = true;
+  }
+  if (configUpdated) {
+    updateData.config = newConfig;
+  }
 
   // Plan and limit controls restricted to super-admin
   if (isSuperAdmin) {
@@ -2741,7 +2780,11 @@ app.patch('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'
   if (error) return res.status(500).json({ error: error.message });
   
   logAudit('tenant-updated', `Tenant ${tenantId} updated: ${JSON.stringify(updateData)}`, req.user);
-  res.json(tenant);
+  res.json({
+    ...tenant,
+    bakong_account_id: tenant.config?.bakong_account_id || '',
+    merchant_name: tenant.config?.merchant_name || '',
+  });
 });
 
 // Delete tenant (super-admin only, soft-deactivate)

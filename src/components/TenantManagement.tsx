@@ -355,23 +355,28 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
                     />
                   </label>
 
-                  <input
-                    type="text"
-                    value={formLogoUrl.startsWith('data:') ? 'Image uploaded (Base64)' : formLogoUrl}
-                    onChange={e => setFormLogoUrl(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-xl text-xs border outline-none focus:ring-2 min-w-0"
-                    style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
-                    placeholder="Or paste URL"
-                  />
-
-                  {formLogoUrl && (
-                    <button
-                      type="button"
-                      onClick={() => setFormLogoUrl('')}
-                      className="px-2 py-1.5 text-[11px] font-bold text-rose-500 hover:underline"
-                    >
-                      Clear
-                    </button>
+                  {formLogoUrl ? (
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-[11px] font-medium text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg truncate">
+                        ✓ Image ready
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setFormLogoUrl('')}
+                        className="px-2 py-1 rounded-lg border border-[var(--border-primary)] text-[11px] font-bold text-rose-500 hover:bg-rose-500/10 hover:border-rose-300 transition-colors cursor-pointer bg-[var(--surface-primary)] shrink-0"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <input
+                      type="url"
+                      value={formLogoUrl}
+                      onChange={e => setFormLogoUrl(e.target.value)}
+                      className="flex-1 px-3 py-2 rounded-xl text-xs border outline-none focus:ring-2 min-w-0"
+                      style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
+                      placeholder="Or paste external URL"
+                    />
                   )}
                 </div>
               </div>
