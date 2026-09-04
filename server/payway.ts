@@ -10,6 +10,18 @@ function hmacSha512(data: string, key: string): string {
   return crypto.createHmac('sha512', key).update(data, 'utf8').digest('base64');
 }
 
+export interface PayWayCredentials {
+  merchantId?: string;
+  apiKey?: string;
+}
+
+function resolveCredentials(creds?: PayWayCredentials): { merchantId: string; apiKey: string } {
+  return {
+    merchantId: creds?.merchantId?.trim() || MERCHANT_ID,
+    apiKey: creds?.apiKey?.trim() || API_KEY,
+  };
+}
+
 function reqTime(): string {
   const d = new Date();
   return d.getUTCFullYear().toString() +
@@ -44,8 +56,9 @@ export interface PayWayPurchaseResult {
   tranId: string;
 }
 
-export function buildPurchaseRequest(req: PayWayPurchaseRequest, frontendUrl: string): PayWayPurchaseResult {
-  if (!MERCHANT_ID || !API_KEY) {
+export function buildPurchaseRequest(req: PayWayPurchaseRequest, frontendUrl: string, creds?: PayWayCredentials): PayWayPurchaseResult {
+  const { merchantId, apiKey } = resolveCredentials(creds);
+  if (!merchantId || !apiKey) {
     throw new Error('PayWay not configured: missing MERCHANT_ID or API_KEY');
   }
 
@@ -69,7 +82,7 @@ export function buildPurchaseRequest(req: PayWayPurchaseRequest, frontendUrl: st
 
   const fields: Record<string, string> = {
     req_time: rt,
-    merchant_id: MERCHANT_ID,
+    merchant_id: merchantId,
     tran_id: tranId,
     amount,
     items,
@@ -103,7 +116,7 @@ export function buildPurchaseRequest(req: PayWayPurchaseRequest, frontendUrl: st
   ];
 
   const b4hash = HASH_ORDER.map(k => fields[k] ?? '').join('');
-  const hash = hmacSha512(b4hash, API_KEY);
+  const hash = hmacSha512(b4hash, apiKey);
 
   return {
     success: true,
@@ -121,19 +134,20 @@ export interface PayWayCheckResult {
   raw?: any;
 }
 
-export async function checkTransaction(tranId: string): Promise<PayWayCheckResult> {
-  if (!MERCHANT_ID || !API_KEY) {
+export async function checkTransaction(tranId: string, creds?: PayWayCredentials): Promise<PayWayCheckResult> {
+  const { merchantId, apiKey } = resolveCredentials(creds);
+  if (!merchantId || !apiKey) {
     throw new Error('PayWay not configured');
   }
 
   const rt = reqTime();
-  const b4hash = [rt, MERCHANT_ID, tranId].join('');
-  const hash = hmacSha512(b4hash, API_KEY);
+  const b4hash = [rt, merchantId, tranId].join('');
+  const hash = hmacSha512(b4hash, apiKey);
 
   const res = await fetch(`${PAYWAY_BASE_URL}/api/payment-gateway/v1/payments/check-transaction-2`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ req_time: rt, merchant_id: MERCHANT_ID, tran_id: tranId, hash }),
+    body: JSON.stringify({ req_time: rt, merchant_id: merchantId, tran_id: tranId, hash }),
   });
 
   const data = await res.json();
@@ -155,8 +169,9 @@ export async function checkTransaction(tranId: string): Promise<PayWayCheckResul
   };
 }
 
-export function verifyWebhook(body: string, signature: string): boolean {
-  if (!API_KEY) return false;
+export function verifyWebhook(body: string, signature: string, creds?: PayWayCredentials): boolean {
+  const { apiKey } = resolveCredentials(creds);
+  if (!apiKey) return false;
   try {
     const payload = JSON.parse(body);
     const PURCHASE_HASH_ORDER = [
@@ -170,7 +185,7 @@ export function verifyWebhook(body: string, signature: string): boolean {
       const v = payload[k];
       return v == null ? '' : String(v);
     }).join('');
-    return hmacSha512(b4hash, API_KEY) === signature;
+    return hmacSha512(b4hash, apiKey) === signature;
   } catch {
     return false;
   }
@@ -195,8 +210,9 @@ export interface PayWayQRResult {
   tranId: string;
 }
 
-export async function generateDynamicQR(req: PayWayQRRequest, frontendUrl: string): Promise<PayWayQRResult> {
-  if (!MERCHANT_ID || !API_KEY) {
+export async function generateDynamicQR(req: PayWayQRRequest, frontendUrl: string, creds?: PayWayCredentials): Promise<PayWayQRResult> {
+  const { merchantId, apiKey } = resolveCredentials(creds);
+  if (!merchantId || !apiKey) {
     throw new Error('PayWay not configured: missing MERCHANT_ID or API_KEY');
   }
 
@@ -216,7 +232,7 @@ export async function generateDynamicQR(req: PayWayQRRequest, frontendUrl: strin
 
   const fields: Record<string, string> = {
     req_time: rt,
-    merchant_id: MERCHANT_ID,
+    merchant_id: merchantId,
     tran_id: tranId,
     amount,
     items,
@@ -243,7 +259,7 @@ export async function generateDynamicQR(req: PayWayQRRequest, frontendUrl: strin
   ];
 
   const b4hash = HASH_ORDER.map(k => fields[k] ?? '').join('');
-  const hash = hmacSha512(b4hash, API_KEY);
+  const hash = hmacSha512(b4hash, apiKey);
 
   const payload = {
     ...fields,
@@ -277,6 +293,7 @@ export async function generateDynamicQR(req: PayWayQRRequest, frontendUrl: strin
   };
 }
 
-export function isConfigured(): boolean {
-  return !!(MERCHANT_ID && API_KEY);
+export function isConfigured(creds?: PayWayCredentials): boolean {
+  const { merchantId, apiKey } = resolveCredentials(creds);
+  return !!(merchantId && apiKey);
 }

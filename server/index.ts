@@ -2440,6 +2440,22 @@ app.post('/api/payway/generate-qr', authMiddleware, async (req, res) => {
     const firstname = req.user?.name ? req.user.name.split(' ')[0] : 'Nexus';
     const lastname = req.user?.name ? req.user.name.split(' ').slice(1).join(' ') : 'Customer';
 
+    const tenantId = req.user?.tenant_id || 1;
+    let tenantMerchantName = 'ndxdigitalsupport';
+    let tenantPayWayCreds: { merchantId?: string; apiKey?: string } | undefined;
+    try {
+      const { data: tenant } = await db.from('nexus_tenants').select('merchant_name, name, bakong_account_id, config').eq('id', tenantId).maybeSingle();
+      if (tenant) {
+        tenantMerchantName = tenant.config?.merchant_name || tenant.merchant_name || tenant.name || tenantMerchantName;
+        if (tenant.config?.payway_merchant_id || tenant.config?.payway_api_key) {
+          tenantPayWayCreds = {
+            merchantId: tenant.config.payway_merchant_id,
+            apiKey: tenant.config.payway_api_key,
+          };
+        }
+      }
+    } catch { /* ignored */ }
+
     const frontendUrl = process.env.CORS_ORIGIN || 'https://nexusfinancefintech.vercel.app';
     const result = await payway.generateDynamicQR({
       amount,
@@ -2448,7 +2464,7 @@ app.post('/api/payway/generate-qr', authMiddleware, async (req, res) => {
       firstname,
       lastname,
       loanId: loanId || '',
-    }, frontendUrl);
+    }, frontendUrl, tenantPayWayCreds);
 
     const userEmail = email ? normalizeEmail(email) : null;
     let userId: number | null = null;
@@ -2456,15 +2472,6 @@ app.post('/api/payway/generate-qr', authMiddleware, async (req, res) => {
       const { data: u } = await db.from('nexus_users').select('id').eq('email', userEmail).maybeSingle();
       userId = u?.id ?? null;
     }
-
-    const tenantId = req.user?.tenant_id || 1;
-    let tenantMerchantName = 'ndxdigitalsupport';
-    try {
-      const { data: tenant } = await db.from('nexus_tenants').select('merchant_name, name, bakong_account_id').eq('id', tenantId).maybeSingle();
-      if (tenant) {
-        tenantMerchantName = tenant.merchant_name || tenant.name || tenantMerchantName;
-      }
-    } catch { /* ignored */ }
 
     try {
       await db.from('nexus_payway_transactions').insert({
@@ -2495,7 +2502,23 @@ app.post('/api/payway/verify-payment', async (req, res) => {
   try {
     const { tranId } = req.body;
     if (!tranId) return res.status(400).json({ error: 'tranId is required' });
-    const result = await payway.checkTransaction(tranId);
+
+    // Look up transaction to find associated tenant credentials
+    let tenantPayWayCreds: { merchantId?: string; apiKey?: string } | undefined;
+    try {
+      const { data: storedTx } = await db.from('nexus_payway_transactions').select('tenant_id').eq('tran_id', tranId).maybeSingle();
+      if (storedTx?.tenant_id) {
+        const { data: tenant } = await db.from('nexus_tenants').select('config').eq('id', storedTx.tenant_id).maybeSingle();
+        if (tenant?.config?.payway_merchant_id || tenant?.config?.payway_api_key) {
+          tenantPayWayCreds = {
+            merchantId: tenant.config.payway_merchant_id,
+            apiKey: tenant.config.payway_api_key,
+          };
+        }
+      }
+    } catch { /* ignored */ }
+
+    const result = await payway.checkTransaction(tranId, tenantPayWayCreds);
 
     if (result.status === 'APPROVED') {
       await recordPaidPayment(tranId, result.apv);
@@ -2663,13 +2686,15 @@ app.get('/api/tenants', authMiddleware, requireRole('super-admin', 'admin'), asy
     ...t,
     bakong_account_id: t.config?.bakong_account_id || '',
     merchant_name: t.config?.merchant_name || '',
+    payway_merchant_id: t.config?.payway_merchant_id || '',
+    payway_api_key: t.config?.payway_api_key || '',
   }));
   res.json(formatted);
 });
 
 // Create a new tenant (super-admin only)
 app.post('/api/tenants', authMiddleware, requireRole('super-admin'), async (req, res) => {
-  const { name, slug, plan, max_users, max_loans, logo_url, bakong_account_id, merchant_name } = req.body;
+  const { name, slug, plan, max_users, max_loans, logo_url, bakong_account_id, merchant_name, payway_merchant_id, payway_api_key } = req.body;
   if (!name || !slug) return res.status(400).json({ error: 'name and slug are required.' });
   
   const { data: existing } = await db.from('nexus_tenants').select('id').eq('slug', slug).maybeSingle();
@@ -2678,6 +2703,8 @@ app.post('/api/tenants', authMiddleware, requireRole('super-admin'), async (req,
   const configData: any = {};
   if (bakong_account_id) configData.bakong_account_id = bakong_account_id;
   if (merchant_name) configData.merchant_name = merchant_name;
+  if (payway_merchant_id) configData.payway_merchant_id = payway_merchant_id;
+  if (payway_api_key) configData.payway_api_key = payway_api_key;
 
   const insertData: any = {
     name,
@@ -2714,6 +2741,8 @@ app.post('/api/tenants', authMiddleware, requireRole('super-admin'), async (req,
     ...tenant,
     bakong_account_id: tenant.config?.bakong_account_id || '',
     merchant_name: tenant.config?.merchant_name || '',
+    payway_merchant_id: tenant.config?.payway_merchant_id || '',
+    payway_api_key: tenant.config?.payway_api_key || '',
   });
 });
 
@@ -2729,6 +2758,8 @@ app.get('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'),
     ...tenant,
     bakong_account_id: tenant.config?.bakong_account_id || '',
     merchant_name: tenant.config?.merchant_name || '',
+    payway_merchant_id: tenant.config?.payway_merchant_id || '',
+    payway_api_key: tenant.config?.payway_api_key || '',
   });
 });
 
@@ -2741,7 +2772,7 @@ app.patch('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'
     return res.status(403).json({ error: 'You can only update your own organization.' });
   }
 
-  const { name, slug, plan, max_users, max_loans, is_active, logo_url, bakong_account_id, merchant_name } = req.body;
+  const { name, slug, plan, max_users, max_loans, is_active, logo_url, bakong_account_id, merchant_name, payway_merchant_id, payway_api_key } = req.body;
   
   // Fetch existing tenant to preserve existing config
   const { data: existingTenant } = await db.from('nexus_tenants').select('config').eq('id', tenantId).maybeSingle();
@@ -2751,7 +2782,7 @@ app.patch('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'
   if (name !== undefined) updateData.name = name;
   if (logo_url !== undefined) updateData.logo_url = logo_url;
 
-  // bakong_account_id and merchant_name are stored in JSONB config
+  // bakong_account_id, merchant_name, payway_merchant_id, payway_api_key stored in JSONB config
   let configUpdated = false;
   const newConfig = { ...existingConfig };
   if (bakong_account_id !== undefined) {
@@ -2760,6 +2791,14 @@ app.patch('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'
   }
   if (merchant_name !== undefined) {
     newConfig.merchant_name = merchant_name;
+    configUpdated = true;
+  }
+  if (payway_merchant_id !== undefined) {
+    newConfig.payway_merchant_id = payway_merchant_id;
+    configUpdated = true;
+  }
+  if (payway_api_key !== undefined) {
+    newConfig.payway_api_key = payway_api_key;
     configUpdated = true;
   }
   if (configUpdated) {
@@ -2784,6 +2823,8 @@ app.patch('/api/tenants/:id', authMiddleware, requireRole('super-admin', 'admin'
     ...tenant,
     bakong_account_id: tenant.config?.bakong_account_id || '',
     merchant_name: tenant.config?.merchant_name || '',
+    payway_merchant_id: tenant.config?.payway_merchant_id || '',
+    payway_api_key: tenant.config?.payway_api_key || '',
   });
 });
 

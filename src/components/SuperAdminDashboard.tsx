@@ -64,6 +64,8 @@ export default function SuperAdminDashboard({
   const [tenantLogoUrl, setTenantLogoUrl] = useState('');
   const [tenantBakongId, setTenantBakongId] = useState('');
   const [tenantMerchantName, setTenantMerchantName] = useState('');
+  const [tenantPaywayMerchantId, setTenantPaywayMerchantId] = useState('');
+  const [tenantPaywayApiKey, setTenantPaywayApiKey] = useState('');
   const [savingTenant, setSavingTenant] = useState(false);
   const [tenantSavedMsg, setTenantSavedMsg] = useState(false);
 
@@ -85,6 +87,8 @@ export default function SuperAdminDashboard({
           setTenantLogoUrl(matched.logo_url || '');
           setTenantBakongId(matched.bakong_account_id || '');
           setTenantMerchantName(matched.merchant_name || '');
+          setTenantPaywayMerchantId(matched.payway_merchant_id || '');
+          setTenantPaywayApiKey(matched.payway_api_key || '');
         }
       } catch { /* ignored */ }
     };
@@ -105,11 +109,13 @@ export default function SuperAdminDashboard({
           logo_url: tenantLogoUrl.trim() || '',
           bakong_account_id: tenantBakongId.trim() || '',
           merchant_name: tenantMerchantName.trim() || '',
+          payway_merchant_id: tenantPaywayMerchantId.trim() || '',
+          payway_api_key: tenantPaywayApiKey.trim() || '',
         }),
       });
       setCurrentTenant(updated);
       setTenantSavedMsg(true);
-      showToast('Organization branding & Bakong details updated!', 'success');
+      showToast('Organization branding & payment gateway details updated!', 'success');
       // If user profile belongs to this tenant, sync tenant branding immediately
       const savedUserStr = localStorage.getItem('nexus_user');
       if (savedUserStr) {
@@ -516,6 +522,36 @@ export default function SuperAdminDashboard({
                   className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-3 rounded-lg text-[14px] focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
                 />
                 <p className="text-[11px] text-[var(--text-tertiary)] mt-1">Shown in the Bakong / mobile banking app when customers scan the QR code.</p>
+              </div>
+
+              <div className="pt-2 border-t border-[var(--border-primary)] space-y-4">
+                <h4 className="text-[13px] font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                  💳 ABA PayWay Gateway (Optional Custom Merchant)
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[12.5px] font-semibold text-[var(--text-secondary)] mb-1">ABA PayWay Merchant ID</label>
+                    <input
+                      type="text"
+                      value={tenantPaywayMerchantId}
+                      onChange={(e) => setTenantPaywayMerchantId(e.target.value)}
+                      placeholder="e.g. nexus_001"
+                      className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-2.5 rounded-lg text-[13px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
+                    />
+                    <p className="text-[10.5px] text-[var(--text-tertiary)] mt-1">Leave blank to use platform default.</p>
+                  </div>
+                  <div>
+                    <label className="block text-[12.5px] font-semibold text-[var(--text-secondary)] mb-1">ABA PayWay API Key</label>
+                    <input
+                      type="password"
+                      value={tenantPaywayApiKey}
+                      onChange={(e) => setTenantPaywayApiKey(e.target.value)}
+                      placeholder="Enter merchant secret key"
+                      className="w-full bg-[var(--surface-secondary)] border border-[var(--border-primary)] p-2.5 rounded-lg text-[13px] font-mono focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)]"
+                    />
+                    <p className="text-[10.5px] text-[var(--text-tertiary)] mt-1">Secret API key used to generate cryptographic hashes.</p>
+                  </div>
+                </div>
               </div>
             </div>
 

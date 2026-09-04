@@ -25,6 +25,8 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
   const [formMaxLoans, setFormMaxLoans] = useState(500);
   const [formBakongAccountId, setFormBakongAccountId] = useState('');
   const [formMerchantName, setFormMerchantName] = useState('');
+  const [formPaywayMerchantId, setFormPaywayMerchantId] = useState('');
+  const [formPaywayApiKey, setFormPaywayApiKey] = useState('');
 
   const fetchTenants = async () => {
     try {
@@ -64,6 +66,8 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
           max_loans: formMaxLoans,
           bakong_account_id: formBakongAccountId.trim() || undefined,
           merchant_name: formMerchantName.trim() || undefined,
+          payway_merchant_id: formPaywayMerchantId.trim() || undefined,
+          payway_api_key: formPaywayApiKey.trim() || undefined,
         }),
       });
       showToast('Tenant created successfully', 'success');
@@ -88,6 +92,8 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
           max_loans: formMaxLoans,
           bakong_account_id: formBakongAccountId.trim() || '',
           merchant_name: formMerchantName.trim() || '',
+          payway_merchant_id: formPaywayMerchantId.trim() || '',
+          payway_api_key: formPaywayApiKey.trim() || '',
         }),
       });
       showToast('Tenant updated successfully', 'success');
@@ -114,6 +120,7 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
         'Total Volume (USD)': st?.total_volume || 0,
         'Bakong Account': t.bakong_account_id || 'Global Platform',
         'Merchant Name': t.merchant_name || t.name,
+        'PayWay Merchant ID': t.payway_merchant_id || 'Global Platform',
         'Created Date': new Date(t.created_at).toLocaleDateString(),
       };
     });
@@ -141,6 +148,8 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
     setFormMaxLoans(500);
     setFormBakongAccountId('');
     setFormMerchantName('');
+    setFormPaywayMerchantId('');
+    setFormPaywayApiKey('');
   };
 
   const startEdit = (tenant: Tenant) => {
@@ -152,6 +161,8 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
     setFormMaxLoans(tenant.max_loans);
     setFormBakongAccountId(tenant.bakong_account_id || '');
     setFormMerchantName(tenant.merchant_name || '');
+    setFormPaywayMerchantId(tenant.payway_merchant_id || '');
+    setFormPaywayApiKey(tenant.payway_api_key || '');
   };
 
   const planColors: Record<string, string> = {
@@ -444,6 +455,35 @@ export default function TenantManagement({ selectedTenantId }: TenantManagementP
                     className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2"
                     style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
                     placeholder="e.g. Kako Finance Co., Ltd"
+                  />
+                </div>
+              </div>
+
+              {/* ABA PayWay Gateway Settings */}
+              <div className="pt-2 border-t border-[var(--border-primary)] space-y-3">
+                <p className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-[var(--accent)]">
+                  💳 ABA PayWay Gateway (Optional Custom Merchant)
+                </p>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>ABA PayWay Merchant ID</label>
+                  <input
+                    type="text"
+                    value={formPaywayMerchantId}
+                    onChange={e => setFormPaywayMerchantId(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 font-mono"
+                    style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
+                    placeholder="e.g. nexus_001 (leave empty for platform default)"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>ABA PayWay API Key</label>
+                  <input
+                    type="password"
+                    value={formPaywayApiKey}
+                    onChange={e => setFormPaywayApiKey(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 font-mono"
+                    style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-primary)' }}
+                    placeholder="Enter merchant secret key"
                   />
                 </div>
               </div>

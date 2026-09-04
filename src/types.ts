@@ -15,6 +15,8 @@ export interface Tenant {
   config: Record<string, any>;
   bakong_account_id?: string;
   merchant_name?: string;
+  payway_merchant_id?: string;
+  payway_api_key?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
