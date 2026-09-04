@@ -147,8 +147,23 @@ export default function App() {
     } catch { return null; }
   })(), [token, userData]);
 
-  // Compute active tenant branding for Super Admin
+  // Compute active tenant branding:
+  // - If logged in as tenant admin, always display their organization's custom branding
+  // - If logged in as root super-admin, display the selected tenant scope or fallback to platform branding
   const activeTenantBranding = useMemo(() => {
+    const isTenantAdmin = portalUser?.role === 'admin';
+    if (isTenantAdmin && portalUser?.tenant_id) {
+      // Prioritize loaded tenant list if available
+      const found = tenantsList.find(t => t.id === portalUser.tenant_id);
+      if (found) {
+        return { name: found.name, logo: found.logo_url || null };
+      }
+      return {
+        name: portalUser.tenant_name || 'NexusFinance',
+        logo: portalUser.tenant_logo_url || null,
+      };
+    }
+
     if (currentPortal === 'super-admin') {
       if (selectedTenantId === 'all') {
         return { name: 'NexusFinance', logo: null };
@@ -205,11 +220,12 @@ export default function App() {
   useEffect(() => {
     if (!token) return;
     refetchAll();
+    fetchUserData(token);
   }, [token]);
 
-  // Fetch tenants for super-admin portal
+  // Fetch tenants for super-admin and tenant admin portal
   useEffect(() => {
-    if (token && (currentPortal === 'super-admin' || portalUser?.role === 'super-admin')) {
+    if (token && (currentPortal === 'super-admin' || portalUser?.role === 'super-admin' || portalUser?.role === 'admin')) {
       apiFetch('/tenants')
         .then(data => {
           if (Array.isArray(data)) setTenantsList(data);
